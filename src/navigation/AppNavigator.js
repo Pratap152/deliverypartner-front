@@ -1,0 +1,52 @@
+import {View, Text ,StatusBar} from 'react-native';
+import React from 'react';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
+import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
+import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
+import AppPermissionScreen from '../screens/onboarding/AppPermissionScreen';
+import LocationSelectionScreen  from '../screens/onboarding/LocationSelectionScreen';
+import VehicleSelectionScreen from '../screens/onboarding/VehicleSelectionScreen';
+import PersonalInfoScreen from '../screens/onboarding/PersonalInfoScreen';
+import FaceInstructionScreen from '../screens/onboarding/FaceInstructionScreen';
+import FaceVerificationScreen from '../screens/onboarding/FaceVerificationScreen';
+import DocumentVerifyScreen from '../screens/onboarding/DocumentVerifyScreen';
+import AadharEntryScreen from '../screens/onboarding/AadharEntryScreen';
+import AadharVerifyScreen from '../screens/onboarding/AadharVerifyScreen';
+import PanUploadScreen from '../screens/onboarding/PanUploadScreen';
+import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
+import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
+
+
+
+const Stack = createNativeStackNavigator();
+const AppNavigator = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{headerShown: false,statusBarStyle:'light'}}
+      initialRouteName="OnBoardingScreen"
+      >
+      {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
+      <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
+      <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
+      <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
+      <Stack.Screen name="AppPermissionScreen" component={AppPermissionScreen} />
+      <Stack.Screen name="LocationSelectionScreen" component={LocationSelectionScreen} />
+      <Stack.Screen name="VehicleSelectionScreen" component={VehicleSelectionScreen} />
+      <Stack.Screen name="PersonalInfoScreen" component={PersonalInfoScreen} />
+      <Stack.Screen name="FaceInstructionScreen" component={FaceInstructionScreen} />
+      <Stack.Screen name="FaceVerificationScreen" component={FaceVerificationScreen} />
+      <Stack.Screen name="DocumentVerifyScreen" component={DocumentVerifyScreen} />
+      <Stack.Screen name="AadharEntryScreen" component={AadharEntryScreen} />
+      <Stack.Screen name="AadharVerifyScreen" component={AadharVerifyScreen} />
+      <Stack.Screen name="PanUploadScreen" component={PanUploadScreen} />
+      <Stack.Screen name="LicenseUploadScreen" component={LicenseUploadScreen} />
+      <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
+      {/* <Stack.Screen name="" component={} />
+      <Stack.Screen name="" component={} />
+      <Stack.Screen name="" component={} /> */}
+    </Stack.Navigator>
+  );
+};
+
+export default AppNavigator;
