@@ -1,6 +1,6 @@
 import { View, Text ,TouchableOpacity} from 'react-native'
 import React from 'react'
-import OnBoardingScreen1 from './OnBoardingScreen1'
+import OnBoardingScreen from './OnBoardingScreen'
 
 const ProcessingVerificationScreen = ({navigation}) => {
   return (
@@ -8,7 +8,7 @@ const ProcessingVerificationScreen = ({navigation}) => {
           
           <View style={{margin:70}}>
           <Text style={{color:'white'}}>ProcessingVerificationScreen</Text>
-          <TouchableOpacity onPress={()=>navigation.navigate(OnBoardingScreen1)}>
+          <TouchableOpacity onPress={()=>navigation.navigate(OnBoardingScreen)}>
             <Text style={{color:"white"}}>Next</Text>
           </TouchableOpacity>
         

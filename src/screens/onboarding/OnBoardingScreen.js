@@ -23,10 +23,10 @@ const slides = [
     emoji: "😄",
     description:
       "Lets start quickly, Its very easy to start and process. We’ll be all there to help you & guide you to start journey with us as a Delivery Boy.",
-    leaf: require("../Screens/assets/leaf.png"),
-    wave: require("../Screens/assets/waves.png"),
-    image: require("../Screens/assets/delivery-boy.png"),
-    bg: require("../Screens/assets/Ellipse.png"),
+    leaf: require("../../assets/leaf.png"),
+    wave: require("../../assets/waves.png"),
+    image: require("../../assets/delivery-boy.png"),
+    bg: require("../../assets/Ellipse.png"),
   },
   {
     id: "2",
@@ -34,9 +34,9 @@ const slides = [
     title1: "Start Now",
     description:
       "Start your journey with us and begin accepting delivery tasks instantly",
-    wave: require("../Screens/assets/waves.png"),
-    image: require("../Screens/assets/delivery.png"),
-    bg: require("../Screens/assets/Ellipse2.png"),
+    wave: require("../../assets/waves.png"),
+    image: require("../../assets/delivery.png"),
+    bg: require("../../assets/Ellipse2.png"),
   },
 ];
  
@@ -144,7 +144,7 @@ const OnBoardingScreen = ({ navigation }) => {
           onPress={() => flatListRef.current.scrollToIndex({ index: 1 })}
         >
           <Image
-            source={require("../Screens/assets/arrow.png")}
+            source={require("../../assets/arrow.png")}
             style={styles.arrowImage}
             resizeMode="contain"
           />
