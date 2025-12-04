@@ -1,14 +1,14 @@
 import { View, Text,TouchableOpacity } from 'react-native'
 import React from 'react'
-import faceVerificationScreen from './faceVerificationScreen'
+import FaceVerificationScreen from './FaceVerificationScreen'
 
-const faceInstructionScreen = ({navigation}) => {
+const FaceInstructionScreen = ({navigation}) => {
   return (
     <View style={{flex:1,backgroundColor:"black"}}>
           
           <View style={{margin:70}}>
-          <Text style={{color:'white'}}>faceInstructionScreen</Text>
-          <TouchableOpacity onPress={()=>navigation.navigate(faceVerificationScreen)}>
+          <Text style={{color:'white'}}>FaceInstructionScreen</Text>
+          <TouchableOpacity onPress={()=>navigation.navigate(FaceVerificationScreen)}>
             <Text style={{color:"white"}}>Next</Text>
           </TouchableOpacity>
         
@@ -16,4 +16,4 @@ const faceInstructionScreen = ({navigation}) => {
   )
 }
 
-export default faceInstructionScreen
+export default FaceInstructionScreen
