@@ -54,6 +54,8 @@ export const sendOTPApi = async (phone) => {
 const LoginEntryScreen = ({ navigation }) => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [isChecked, setIsChecked] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
   const [error, setError] = useState('');
   // ---------------------------
   // MOBILE NUMBER VALIDATION
@@ -87,12 +89,12 @@ const LoginEntryScreen = ({ navigation }) => {
     setError(validationMessage);
   };
   const handleSendOTP = async () => {
-  if (error || mobileNumber.length !== 10) return;
-
+  if (error || mobileNumber.length !== 10 || isSending) return;
+  setIsSending(true);
   setError(""); // reset any previous errors
 
   const result = await sendOTPApi(mobileNumber);
-
+   setIsSending(false);
   if (result.status === 200) {
     navigation.navigate("LoginVerifyScreen", {
       phone: mobileNumber,
@@ -107,7 +109,7 @@ const LoginEntryScreen = ({ navigation }) => {
 };
 
 
-  const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked;
+const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked || isSending;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -173,7 +175,7 @@ const LoginEntryScreen = ({ navigation }) => {
                 onPress={handleSendOTP}
                 disabled={isButtonDisabled}
               >
-                <Text style={styles.buttonText}>Send OTP</Text>
+                <Text style={styles.buttonText}>{isSending ? "Sending..." : "Send OTP"}</Text>
               </TouchableOpacity>
 
             </View>
