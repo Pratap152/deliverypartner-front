@@ -35,7 +35,7 @@ export const sendOTPApi = async (phone) => {
     const response = await fetch(`${BASE_URL}/api/auth/send-otp`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json", 
       },
       body: JSON.stringify({
         phone: phone

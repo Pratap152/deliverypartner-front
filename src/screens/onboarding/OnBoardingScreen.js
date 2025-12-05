@@ -30,7 +30,7 @@ import {
  
 import LoginEntryScreen from './LoginEntryScreen';
 
-import VehicleSelectionScreen from "./VehicleSelectionScreen";
+// import VehicleSelectionScreen from "./VehicleSelectionScreen";
  
 const slides = [
 
@@ -212,7 +212,7 @@ const OnBoardingScreen = ({navigation}) => {
 
           style={styles.getStartedBtn}
 
-          onPress={()=>navigation.navigate(VehicleSelectionScreen)}
+          onPress={()=>navigation.navigate(LoginEntryScreen)}
 >
 <Text style={styles.getStartedText}>Get Started</Text>
 </TouchableOpacity>
