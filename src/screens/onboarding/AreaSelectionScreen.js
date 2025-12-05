@@ -1,19 +1,17 @@
-import { View, Text ,TouchableOpacity} from 'react-native'
+import { View, Text } from 'react-native'
 import React from 'react'
 import PersonalInfoScreen from './PersonalInfoScreen'
+import { TouchableOpacity } from 'react-native'
 
-const LocationSelectionScreen = ({navigation}) => {
+const AreaSelectionScreen = ({navigation}) => {
   return (
-    <View style={{flex:1,backgroundColor:"black"}}>
-          
-          <View style={{margin:70}}>
+     <View style={{margin:70}}>
           <Text style={{color:'white'}}>city</Text>
           <TouchableOpacity onPress={()=>navigation.navigate(PersonalInfoScreen)}>
             <Text style={{color:"white"}}>Next</Text>
           </TouchableOpacity>
-        
-        </View></View>
+    </View>
   )
 }
 
-export default LocationSelectionScreen
+export default AreaSelectionScreen
