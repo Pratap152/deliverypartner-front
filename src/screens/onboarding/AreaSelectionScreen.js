@@ -1,20 +1,4 @@
-// import { View, Text } from 'react-native'
-// import React from 'react'
-// import PersonalInfoScreen from './PersonalInfoScreen'
-// import { TouchableOpacity } from 'react-native'
 
-// const AreaSelectionScreen = ({navigation}) => {
-//   return (
-//      <View style={{margin:70}}>
-//           <Text style={{color:'white'}}>city</Text>
-//           <TouchableOpacity onPress={()=>navigation.navigate(PersonalInfoScreen)}>
-//             <Text style={{color:"white"}}>Next</Text>
-//           </TouchableOpacity>
-//     </View>
-//   )
-// }
-
-// export default AreaSelectionScreen
 const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzMmI0YTU2NDBlYTg2ZDcyNmIwMTY4IiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY0OTMwOTc0LCJleHAiOjE3NjU1MzU3NzR9.FDTHscYGAQZmKKNspilWD27OiefaZpHuOd4EhwvtX28"
 import axios from "axios";
 import React, { useEffect, useState } from "react";

@@ -1,20 +1,3 @@
-// import { View, Text ,TouchableOpacity} from 'react-native'
-// import React from 'react'
-// import AreaSelectionScreen from './AreaSelectionScreen'
-
-// const SelectCityScreen = ({navigation}) => {
-//   return (
-//     <View style={{flex:1,backgroundColor:"black"}}>
-          
-//           <View style={{margin:70}}>
-//           <Text style={{color:'white'}}>city</Text>
-//           <TouchableOpacity onPress={()=>navigation.navigate(AreaSelectionScreen)}>
-//             <Text style={{color:"white"}}>Next</Text>
-//           </TouchableOpacity>
-        
-//         </View></View>
-//   )
-// }
 
 // export default SelectCityScreen;
 // import Geolocation from "@react-native-community/geolocation";
