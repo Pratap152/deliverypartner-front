@@ -17,99 +17,137 @@
 // }
 
 // export default SelectCityScreen;
-import Geolocation from "@react-native-community/geolocation";
-import AreaSelectionScreen from './AreaSelectionScreen'
+// import Geolocation from "@react-native-community/geolocation";
+import AreaSelectionScreen from "./AreaSelectionScreen";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Pressable, PermissionsAndroid } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  PermissionsAndroid,
+} from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-const Base_url=" http://10.78.140.252:4000";
-export default function SelectCityScreen ({navigation}) {
-  const [citiesList,setCitiesList]=useState(['Hyderabad', 'Vijayawada', 'Visakhapatnam', 'Bangalore', 'Chennai', 'Mumbai', 'Pune', 'Delhi']);
-  const [selectedCity, setSelectedCity] = useState("Hyderabad");
-  const [userLocation, setUserLocation] = useState(null);
-  const [searchText,setSearchText]=useState("");
-  useEffect(()=>{
-    async function fetchCities(){
-      const response=await axios.get(Base_url+"/api/location/cities");
-      console.log("responce:",response.data.cities);
-      setCitiesList(response.data.cities);
 
-    }
-    fetchCities();
-  },[])
-  function handleSearch(text){
+const Base_url = "http://10.172.185.5:4000";
 
-    console.log("text",text);
-    if(text===""|| searchText==="") return;
-    setSearchText(text);
-    const filteredCities = citiesList.filter((city) =>
-    city.toLowerCase().includes(searchText.toLowerCase()));
-    console.log("filteredList",filteredCities,!filteredCities);
-    setCitiesList(filteredCities);
-
-  }
-  
-
-async function handleGetCurrentLocation(){
-  console.log("enterd...");
-
-  const granted = await PermissionsAndroid.requestMultiple([
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+export default function SelectCityScreen({ navigation }) {
+  // Original full list from API
+  const [allCities, setAllCities] = useState([
+    "Hyderabad",
+    "Vijayawada",
+    "Visakhapatnam",
+    "Bangalore",
+    "Chennai",
+    "Mumbai",
+    "Pune",
+    "Delhi",
   ]);
 
-  if (
-    granted["android.permission.ACCESS_FINE_LOCATION"] !== "granted" &&
-    granted["android.permission.ACCESS_COARSE_LOCATION"] !== "granted"
-  ) {
-    console.log("Permission denied");
-    return;
+  // Filtered list for UI
+  const [citiesList, setCitiesList] = useState(allCities);
+
+  const [selectedCity, setSelectedCity] = useState("Hyderabad");
+  const [userLocation, setUserLocation] = useState(null);
+  const [searchText, setSearchText] = useState("");
+
+  // Fetch Cities From API
+  useEffect(() => {
+    async function fetchCities() {
+      try {
+        const response = await axios.get(Base_url + "/api/location/cities");
+        console.log("response:", response.data.cities);
+
+        setAllCities(response.data.cities);
+        setCitiesList(response.data.cities); // reset filtered list
+      } catch (err) {
+        console.log("Error fetching cities", err);
+      }
+    }
+    fetchCities();
+  }, []);
+
+  // ✅ SEARCH FUNCTION WITH ALL EDGE CASES
+  function handleSearch(text) {
+    console.log("search text:", text);
+    setSearchText(text);
+
+    // 1️⃣ If empty — reset to full list
+    if (!text || text.trim() === "") {
+      setCitiesList(allCities);
+      return;
+    }
+
+    // 2️⃣ Normalize input
+    const query = text.toLowerCase().trim();
+
+    // 3️⃣ Always filter from ORIGINAL list
+    const filtered = allCities.filter((city) =>
+      (city || "").toLowerCase().includes(query)
+    );
+
+    console.log("Filtered:", filtered);
+
+    setCitiesList(filtered);
   }
 
-  Geolocation.getCurrentPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
- 
-                console.log("Latitude:", latitude);
-                console.log("Longitude:", longitude);
- 
-                if (!latitude || !longitude) {
-                    console.log("Invalid coordinates");
-                    return;
-                }
- 
-                setUserLocation({
-                    Latitude: latitude,
-                    Longitude: longitude,
-                });
- 
-                // ⬇⬇⬇ REPLACED GOOGLE API WITH FREE OSM API ⬇⬇⬇
-                const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-                const response = await axios.get(url);
-                console.log(response);
-                const area = response.data.locality;
-                const city = response.data.city;
-                setSelectedCity({city,area})
-                const pincode = response.data.postcode;
-                console.log(area, city, pincode);
- 
-                // console.log("OSM API Response:", response.data);
-                // console.log("Formatted Address:", response.data.display_name);
-    }, 
-    (error) => {
-      console.log("ERROR:", error);
-    },
-    {
-      enableHighAccuracy: false,
-      timeout: 30000,   // increased timeout
-      maximumAge: 0,
-      distanceFilter: 0,
-    }
-  );
-}
-console.log(searchText);
-console.log(citiesList);
+  // ------------------------------
+  // LOCATION HANDLER (unchanged)
+  // ------------------------------
+
+  // async function handleGetCurrentLocation() {
+  //   console.log("entered...");
+
+  //   const granted = await PermissionsAndroid.requestMultiple([
+  //     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //     PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+  //   ]);
+
+  //   if (
+  //     granted["android.permission.ACCESS_FINE_LOCATION"] !== "granted" &&
+  //     granted["android.permission.ACCESS_COARSE_LOCATION"] !== "granted"
+  //   ) {
+  //     console.log("Permission denied");
+  //     return;
+  //   }
+
+  //   Geolocation.getCurrentPosition(
+  //     async (position) => {
+  //       const { latitude, longitude } = position.coords;
+
+  //       console.log("Latitude:", latitude, "Longitude:", longitude);
+
+  //       if (!latitude || !longitude) {
+  //         console.log("Invalid coordinates");
+  //         return;
+  //       }
+
+  //       setUserLocation({ Latitude: latitude, Longitude: longitude });
+
+  //       const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+  //       const response = await axios.get(url);
+
+  //       const area = response.data.locality;
+  //       const city = response.data.city;
+
+  //       setSelectedCity({ city, area });
+  //     },
+  //     (error) => {
+  //       console.log("ERROR:", error);
+  //     },
+  //     {
+  //       enableHighAccuracy: false,
+  //       timeout: 30000,
+  //       maximumAge: 0,
+  //       distanceFilter: 0,
+  //     }
+  //   );
+  // }
+console.log(selectedCity);
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -127,51 +165,54 @@ console.log(citiesList);
           style={styles.searchInput}
           placeholderTextColor="#999"
           onChangeText={handleSearch}
+          value={searchText}
         />
       </View>
-      
 
-      {/* Current Location Row */}
-      {/* <Pressable style={styles.locationRow} onPress={handleGetCurrentLocation}>
-        <Icon name="location-sharp" size={22} color="#333" />
-        <Text style={styles.locationText}>Use Current Location</Text>
-      </Pressable> */}
-
-      {/* Divider Bar */}
+      {/* Divider */}
       <View style={styles.dividerBar}>
         <Text style={styles.dividerText}>Popular search</Text>
       </View>
 
       {/* Cities List */}
       <ScrollView contentContainerStyle={{ paddingVertical: 10 }}>
-        {citiesList.map((city) => (
-          <TouchableOpacity
-            key={city}
-            style={[
-              styles.cityItem,
-              selectedCity === city && styles.citySelected
-            ]}
-            onPress={() => setSelectedCity(city)}
-          >
-            <Icon
-              name="key-outline"
-              size={20}
-              color={selectedCity === city ? "#fff" : "#00A8E8"}
-            />
-            <Text
+        {citiesList.length === 0 ? (
+          <Text style={{ textAlign: "center", color: "#999", marginTop: 20 }}>
+            No cities found
+          </Text>
+        ) : (
+          citiesList.map((city) => (
+            <TouchableOpacity
+              key={city}
               style={[
-                styles.cityText,
-                selectedCity === city && styles.cityTextSelected
+                styles.cityItem,
+                selectedCity === city && styles.citySelected,
               ]}
+              onPress={() => setSelectedCity(city)}
             >
-              {city}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Icon
+                name="home-outline"
+                size={20}
+                color={selectedCity === city ? "#fff" : "#00A8E8"}
+              />
+              <Text
+                style={[
+                  styles.cityText,
+                  selectedCity === city && styles.cityTextSelected,
+                ]}
+              >
+                {city}
+              </Text>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
 
       {/* Submit Button */}
-      <TouchableOpacity style={styles.submitBtn} onPress={()=>navigation.navigate(AreaSelectionScreen)}>
+      <TouchableOpacity
+        style={styles.submitBtn}
+        onPress={() => navigation.navigate("AreaSelectionScreen",{city:selectedCity})}
+      >
         <Text style={styles.submitText}>Submit</Text>
       </TouchableOpacity>
     </View>
@@ -186,7 +227,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
 
-  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -199,7 +239,6 @@ const styles = StyleSheet.create({
     color: "#000",
   },
 
-  // Search Bar
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -216,19 +255,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // Location Row
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  locationText: {
-    marginLeft: 8,
-    fontSize: 15,
-    color: "#000",
-  },
-
-  // Divider
   dividerBar: {
     backgroundColor: "#ccc",
     paddingVertical: 6,
@@ -241,7 +267,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // City Item
   cityItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -265,7 +290,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Submit Button
   submitBtn: {
     backgroundColor: "#00C2FF",
     paddingVertical: 12,

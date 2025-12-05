@@ -28,7 +28,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{headerShown: false,statusBarStyle:'light'}}
-      initialRouteName="SelectCityScreen"
+      initialRouteName="AppPermissionScreen"
       >
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />

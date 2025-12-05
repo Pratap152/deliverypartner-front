@@ -17,6 +17,7 @@
 // }
 
 // export default AppPermissionScreen
+const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzMmI0YTU2NDBlYTg2ZDcyNmIwMTY4IiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY0OTMwOTc0LCJleHAiOjE3NjU1MzU3NzR9.FDTHscYGAQZmKKNspilWD27OiefaZpHuOd4EhwvtX28"
  import SelectCityScreen from './SelectCityScreen'
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Image, Platform } from 'react-native';
@@ -29,6 +30,7 @@ import {
 } from 'react-native-permissions';
 // import Icon from 'react-native-vector-icons/Ionicons';
 import PermissionItem from "../../components/onboarding/AppPermissions/PermissionItem";
+import axios from 'axios';
 
  const APP_PERMISSIONS = {
   location: {
@@ -64,6 +66,27 @@ const [permissionStatus,setPermissionStatus]=useState({
   camera:"",
   notification:"",
 })
+const [error,setError]=useState("");
+async function handleSubmit(){
+  try{
+  const response = await axios.post('http://10.172.185.5:4000/api/rider/permissions',{
+  "camera": true,
+  "foregroundLocation": true,
+  "backgroundLocation": true,
+},{
+  headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "x-client": "mobile",
+    },
+});
+navigation.navigate(SelectCityScreen);
+  }
+  catch(e){
+    
+    setError(e.message);
+  }
+}
 // async function handleNotification() {
 //   try {
 //     if (Platform.OS !== 'android') {
@@ -120,12 +143,12 @@ const [permissionStatus,setPermissionStatus]=useState({
 //   }
 // }
 async function handleLocation(permissionType){
-  console.log("entered....",permissionType);
+ 
   const perm=(Platform.OS === "android"? APP_PERMISSIONS[permissionType].android: APP_PERMISSIONS[permissionType].ios);
   const permission = await check(perm);
-  console.log(permission);
+  
   if (permission==="granted"){
-    console.log("entered...");
+    
     setPermissionStatus((status)=>({...status,[permissionType]:"granted"}));
     return "granted";
   }
@@ -143,7 +166,14 @@ async function handleLocation(permissionType){
     openSettings("application");
   }
 } 
-console.log(permissionStatus);
+
+if(error){
+  
+return (
+<View style={{flex:1,alignItems:"center",justifyContent:"center"}}>
+  <Text>{error}</Text>
+</View>
+)}
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.imageContainer}>
@@ -194,7 +224,7 @@ console.log(permissionStatus);
       </View>
 
 
-      {permissionStatus.backgroundLocation==="granted"&&permissionStatus.location==="granted"&&permissionStatus.camera==="granted"&& <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate(SelectCityScreen)} >
+      {permissionStatus.backgroundLocation==="granted"&&permissionStatus.location==="granted"&&permissionStatus.camera==="granted"&& <TouchableOpacity style={styles.button} onPress={handleSubmit} >
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>}
     </ScrollView>
