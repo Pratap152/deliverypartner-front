@@ -13,7 +13,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-// import LoginEntryScreen from './LoginEntryScreen';
+// import LoginEntryScreen from "../../screens/onboarding/LoginEntryScreen";
  
 const slides = [
   {
