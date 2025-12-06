@@ -15,6 +15,7 @@ import {
   PermissionsAndroid,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import WEBSITE_URL from "../../utils/host";
 
 const Base_url = "http://10.172.185.5:4000";
 
@@ -42,7 +43,7 @@ export default function SelectCityScreen({ navigation }) {
   useEffect(() => {
     async function fetchCities() {
       try {
-        const response = await axios.get(Base_url + "/api/location/cities");
+        const response = await axios.get(WEBSITE_URL+ "/api/location/cities");
         console.log("response:", response.data.cities);
 
         setAllCities(response.data.cities);

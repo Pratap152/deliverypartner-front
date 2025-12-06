@@ -31,6 +31,7 @@ import {
 // import Icon from 'react-native-vector-icons/Ionicons';
 import PermissionItem from "../../components/onboarding/AppPermissions/PermissionItem";
 import axios from 'axios';
+import WEBSITE_URL from "../../utils/host";
 
  const APP_PERMISSIONS = {
   location: {
@@ -69,7 +70,7 @@ const [permissionStatus,setPermissionStatus]=useState({
 const [error,setError]=useState("");
 async function handleSubmit(){
   try{
-  const response = await axios.post('http://10.172.185.5:4000/api/rider/permissions',{
+  const response = await axios.post(WEBSITE_URL+'/api/rider/permissions',{
   "camera": true,
   "foregroundLocation": true,
   "backgroundLocation": true,

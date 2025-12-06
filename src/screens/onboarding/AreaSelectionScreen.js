@@ -11,6 +11,8 @@ import {
   ScrollView,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+// import WEBSITE_URL from "src/utils/host";
+import WEBSITE_URL from "../../utils/host";
 
 const Base_url = "http://10.78.140.252:4000";
 
@@ -36,7 +38,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
         //   `${Base_url}/api/location/areas?city=${city}`
         // );
         const response = await axios.get(
-          `http://10.172.185.5:4000/api/location/areas?city=${city}`
+          `${WEBSITE_URL}/api/location/areas?city=${city}`
         );
         console.log(response);
         console.log("Areas Response:", response);
@@ -79,7 +81,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
     console.log("city ,selectedarea",city,selectedArea);
     if (!selectedArea) return;
     try{
-      const responce=await axios.post("http://10.172.185.5:4000/api/rider/location", 
+      const responce=await axios.post(WEBSITE_URL+"/api/rider/location", 
         {
          "city": city,
          "area": selectedArea
