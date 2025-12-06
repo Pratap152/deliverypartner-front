@@ -1,5 +1,4 @@
 
-const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzMmI0YTU2NDBlYTg2ZDcyNmIwMTY4IiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY0OTMwOTc0LCJleHAiOjE3NjU1MzU3NzR9.FDTHscYGAQZmKKNspilWD27OiefaZpHuOd4EhwvtX28"
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
@@ -13,12 +12,12 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 // import WEBSITE_URL from "src/utils/host";
 import WEBSITE_URL from "../../utils/host";
-
-const Base_url = "http://10.78.140.252:4000";
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AreaSelectionScreen({ route, navigation }) {
   console.log("routeparams",route);
   const { city } = route.params; 
+  const {authToken}=useAuth();
   // 👈 city passed from SelectCityScreen
 
   const [allAreas, setAllAreas] = useState([]);   // Full list from API
@@ -90,7 +89,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
       headers: 
       {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${authToken}`,
       "x-client": "mobile",
       },
   });
