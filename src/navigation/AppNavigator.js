@@ -5,7 +5,7 @@ import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
 import AppPermissionScreen from '../screens/onboarding/AppPermissionScreen';
-import LocationSelectionScreen  from '../screens/onboarding/LocationSelectionScreen';
+
 import VehicleSelectionScreen from '../screens/onboarding/VehicleSelectionScreen';
 import PersonalInfoScreen from '../screens/onboarding/PersonalInfoScreen';
 import FaceInstructionScreen from '../screens/onboarding/FaceInstructionScreen';
@@ -16,6 +16,10 @@ import AadharVerifyScreen from '../screens/onboarding/AadharVerifyScreen';
 import PanUploadScreen from '../screens/onboarding/PanUploadScreen';
 import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
+import SelectCityScreen from "../screens/onboarding/SelectCityScreen";
+import AreaSelectionScreen from "../screens/onboarding/AreaSelectionScreen";
+
+
 
 
 
@@ -31,7 +35,8 @@ const AppNavigator = () => {
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
       <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
       <Stack.Screen name="AppPermissionScreen" component={AppPermissionScreen} />
-      <Stack.Screen name="LocationSelectionScreen" component={LocationSelectionScreen} />
+      <Stack.Screen name="SelectCityScreen" component={SelectCityScreen} />
+      <Stack.Screen name="AreaSelectionScreen" component={AreaSelectionScreen} />
       <Stack.Screen name="VehicleSelectionScreen" component={VehicleSelectionScreen} />
       <Stack.Screen name="PersonalInfoScreen" component={PersonalInfoScreen} />
       <Stack.Screen name="FaceInstructionScreen" component={FaceInstructionScreen} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import WEBSITE_URL from "../../utils/host";
 
 import {
   responsiveWidth as rw,
@@ -23,11 +24,9 @@ const COLORS = {
   error: "red",
 };
 
-const BASE_URL = "http://192.168.1.61:4000"; // same as Send OTP screen
-
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+    const response = await fetch(`${WEBSITE_URL}/api/auth/verify-otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import BGImage from '../../assets/Ellipse.png';
 import vega_partner from '../../assets/vega_partner.png';
+import WEBSITE_URL from "../../utils/host";
+
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -27,12 +29,12 @@ const CURVE_TOP = '#FFFFFFF5';
 const CURVE_BOTTOM = '#CDF5E7';
 const BUTTON_BLUE = '#16C2D5';
 
-const BASE_URL = "http://192.168.1.61:4000";  // <-- change to your backend URL
+// const BASE_URL = "https://delivarypartner.onrender.com";  // <-- change to your backend URL
 
 export const sendOTPApi = async (phone) => {
     console.log("📤 Sending OTP to:", phone);
   try {
-    const response = await fetch(`${BASE_URL}/api/auth/send-otp`, {
+    const response = await fetch(`${WEBSITE_URL}/api/auth/send-otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json", 
