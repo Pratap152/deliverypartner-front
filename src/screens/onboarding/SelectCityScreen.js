@@ -16,9 +16,6 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import WEBSITE_URL from "../../utils/host";
-
-const Base_url = "http://10.172.185.5:4000";
-
 export default function SelectCityScreen({ navigation }) {
   // Original full list from API
   const [allCities, setAllCities] = useState([

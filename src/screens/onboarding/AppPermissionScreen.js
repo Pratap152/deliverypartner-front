@@ -17,7 +17,7 @@
 // }
 
 // export default AppPermissionScreen
-const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzMmI0YTU2NDBlYTg2ZDcyNmIwMTY4IiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY0OTMwOTc0LCJleHAiOjE3NjU1MzU3NzR9.FDTHscYGAQZmKKNspilWD27OiefaZpHuOd4EhwvtX28"
+const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDAxOTZiNjQ2M2M5ZTNjM2E1NGMzIiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY1MDE4NDc4LCJleHAiOjE3NjU2MjMyNzh9.sWedT2Diz5MxEsAINOR6m5MGoQCJW8dpRrVqc_Kqy_Y"
  import SelectCityScreen from './SelectCityScreen'
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Image, Platform } from 'react-native';
@@ -32,6 +32,7 @@ import {
 import PermissionItem from "../../components/onboarding/AppPermissions/PermissionItem";
 import axios from 'axios';
 import WEBSITE_URL from "../../utils/host";
+import { useAuth } from '../../hooks/useAuth';
 
  const APP_PERMISSIONS = {
   location: {
@@ -68,6 +69,7 @@ const [permissionStatus,setPermissionStatus]=useState({
   notification:"",
 })
 const [error,setError]=useState("");
+const { authToken } = useAuth();
 async function handleSubmit(){
   try{
   const response = await axios.post(WEBSITE_URL+'/api/rider/permissions',{
@@ -77,14 +79,14 @@ async function handleSubmit(){
 },{
   headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${authToken}`,
       "x-client": "mobile",
     },
 });
 navigation.navigate(SelectCityScreen);
   }
   catch(e){
-    
+    console.log(e);
     setError(e.message);
   }
 }
