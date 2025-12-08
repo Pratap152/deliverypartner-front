@@ -33,6 +33,7 @@ import PermissionItem from "../../components/onboarding/AppPermissions/Permissio
 import axios from 'axios';
 import WEBSITE_URL from "../../utils/host";
 import { useAuth } from '../../hooks/useAuth';
+import PrimaryButton from "../../components/common/PrimaryButton";
 
  const APP_PERMISSIONS = {
   location: {
@@ -227,9 +228,16 @@ return (
       </View>
 
 
-      {permissionStatus.backgroundLocation==="granted"&&permissionStatus.location==="granted"&&permissionStatus.camera==="granted"&& <TouchableOpacity style={styles.button} onPress={handleSubmit} >
-        <Text style={styles.buttonText}>Submit</Text>
-      </TouchableOpacity>}
+      {permissionStatus.backgroundLocation==="granted"&&permissionStatus.location==="granted"&&permissionStatus.camera==="granted"&& 
+      // <TouchableOpacity style={styles.button} onPress={handleSubmit} >
+      //   <Text style={styles.buttonText}>Submit</Text>
+      // </TouchableOpacity>}
+      <PrimaryButton
+          title="Submit"
+            onPress={handleSubmit}
+             bgColor="#00B5CC"
+           textColor="#fff"
+         />}
     </ScrollView>
   );
 };

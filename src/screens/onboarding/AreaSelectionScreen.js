@@ -13,6 +13,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 // import WEBSITE_URL from "src/utils/host";
 import WEBSITE_URL from "../../utils/host";
 import { useAuth } from '../../hooks/useAuth';
+import PrimaryButton from "../../components/common/PrimaryButton";
 
 export default function AreaSelectionScreen({ route, navigation }) {
   console.log("routeparams",route);
@@ -172,9 +173,15 @@ export default function AreaSelectionScreen({ route, navigation }) {
       </ScrollView>
 
       {/* Submit Button */}
-      <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+      {/* <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
         <Text style={styles.submitText}>Submit</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
+      <PrimaryButton
+            title="Submit"
+            onPress={handleSubmit}
+            bgColor="#00B5CC"
+            textColor="#fff"
+          />
     </View>
   );
 }
