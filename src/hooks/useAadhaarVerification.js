@@ -15,9 +15,7 @@ export default function useAadhaarVerification() {
 
   const { authToken } = useAuth();
 
-  const token =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDAxOTZiNjQ2M2M5ZTNjM2E1NGMzIiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY1MTg3NDIyLCJleHAiOjE3NjU3OTIyMjJ9.OqsHXRlr7G7f2coVaYn5J-DXuIla4GRSHBWiHmCeAW4';
-
+  
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -46,7 +44,7 @@ export default function useAadhaarVerification() {
         },
         {
           headers: {
-            Authorization: `Bearer ${authToken || token}`,
+            Authorization: `Bearer ${authToken}`,
           },
         },
       );
