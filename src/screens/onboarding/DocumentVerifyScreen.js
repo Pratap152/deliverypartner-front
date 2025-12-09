@@ -1,30 +1,140 @@
-import { View, Text ,TouchableOpacity} from 'react-native'
-import React from 'react'
-import AadharEntryScreen from './AadharEntryScreen'
-import ProcessingVerificationScreen from './ProcessingVerificationScreen'
-import PanUploadScreen from './PanUploadScreen'
-import LicenseUploadScreen from './LicenseUploadScreen'
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const DocumentVerifyScreen = ({navigation}) => {
+import Header from '../../components/common/Header';
+import PrimaryButton from '../../components/common/PrimaryButton';
+
+import { useSelector } from 'react-redux';
+import { COLORS } from '../../utils/colors';
+
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const DOCUMENTS = [
+  { title: 'Aadhar Card', id: 'aadhaar', route: 'AadharEntryScreen' },
+  { title: 'PAN Card', id: 'pan', route: 'PanUploadScreen' },
+  { title: 'Driving License', id: 'dl', route: 'LicenseUploadScreen' },
+];
+
+const DocumentVerificationScreen = () => {
+  const navigation = useNavigation();
+  const verifiedDocuments = useSelector(state => state.documents);
+  const selectedVehicel = useSelector(state => state.vehicle.selectedVehicle);
+  // const selectedVehicel = 'ev';
+
+  const handleSelect = item => {
+    if (verifiedDocuments[item.id]) return;
+    navigation.navigate(item.route);
+  };
+
+  const isAllDocumentsVerified = Object.values(verifiedDocuments)
+    .slice(0, selectedVehicel === 'ev' ? 2 : 3)
+    .every(value => value === true);
+
+  const handleSubmit = () => {
+    navigation.navigate('ProcessingVerificationScreen');
+  };
+
   return (
-    <View style={{flex:1,backgroundColor:"black"}}>
-          
-          <View style={{margin:70}}>
-          <Text style={{color:'white'}}>DocumentVerifyScreen</Text>
-          <TouchableOpacity onPress={()=>navigation.navigate(AadharEntryScreen)}>
-            <Text style={{color:"white"}}>A</Text>
-          </TouchableOpacity>
-        <TouchableOpacity onPress={()=>navigation.navigate(PanUploadScreen)}>
-            <Text style={{color:"white"}}>P</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate(LicenseUploadScreen)}>
-            <Text style={{color:"white"}}>L</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate(ProcessingVerificationScreen)}>
-            <Text style={{color:"white"}}>Next</Text>
-          </TouchableOpacity>
-        </View></View>
-  )
-}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {/* header */}
+        <Header text="Document Verification" />
+        <View style={{ flex: 1, justifyContent: 'space-between' }}>
+          {/* content */}
+          <View style={styles.content}>
+            <Text
+              style={{
+                fontFamily: 'Nunito Sans',
+                fontSize: 16,
+                fontWeight: '600',
+                //   textAlign: 'center',
+              }}
+            >
+              Upload focused photos of below documents for faster verification
+            </Text>
 
-export default DocumentVerifyScreen
+            <View style={styles.btnsContainer}>
+              {DOCUMENTS.slice(0, selectedVehicel === 'ev' ? 2 : 3).map(
+                item => {
+                  const isVerified = verifiedDocuments[item.id];
+                  return (
+                    <TouchableOpacity
+                      onPress={() => handleSelect(item)}
+                      key={item.id}
+                      disabled={isVerified}
+                      style={[styles.btn, isVerified && styles.active]}
+                    >
+                      <Text
+                        style={[styles.btnText, isVerified && styles.active]}
+                      >
+                        {item.title}
+                      </Text>
+                      <Ionicons
+                        name={isVerified ? 'checkmark' : 'chevron-forward'}
+                        size={20}
+                        color={isVerified ? COLORS.white : COLORS.border}
+                      />
+                    </TouchableOpacity>
+                  );
+                },
+              )}
+            </View>
+          </View>
+          <View>
+            <PrimaryButton
+              title={'submit'}
+              disabled={isAllDocumentsVerified === false}
+              onPress={handleSubmit}
+            />
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default DocumentVerificationScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingLeft: 8,
+    paddingRight: 8,
+    backgroundColor: COLORS.white,
+    // justifyContent: 'space-between',
+  },
+
+  content: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+  },
+  btn: {
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: COLORS.border,
+  },
+  btnsContainer: {
+    marginTop: 30,
+    gap: 20,
+  },
+  btnText: {
+    fontFamily: 'Nunito Sans',
+    fontSize: 18,
+    fontWeight: '400',
+  },
+  active: {
+    backgroundColor: COLORS.primary,
+    color: COLORS.white,
+    borderColor: COLORS.primary,
+  },
+});
