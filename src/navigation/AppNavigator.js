@@ -1,6 +1,6 @@
-import {View, Text ,StatusBar} from 'react-native';
+import { View, Text, StatusBar } from 'react-native';
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
@@ -16,37 +16,57 @@ import AadharVerifyScreen from '../screens/onboarding/AadharVerifyScreen';
 import PanUploadScreen from '../screens/onboarding/PanUploadScreen';
 import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
-import SelectCityScreen from "../screens/onboarding/SelectCityScreen";
-import AreaSelectionScreen from "../screens/onboarding/AreaSelectionScreen";
-
-
-
-
+import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
+import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
-      screenOptions={{headerShown: false,statusBarStyle:'light'}}
+      screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
       initialRouteName="OnBoardingScreen"
-      >
+    >
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
       <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
-      <Stack.Screen name="AppPermissionScreen" component={AppPermissionScreen} />
+      <Stack.Screen
+        name="AppPermissionScreen"
+        component={AppPermissionScreen}
+      />
       <Stack.Screen name="SelectCityScreen" component={SelectCityScreen} />
-      <Stack.Screen name="AreaSelectionScreen" component={AreaSelectionScreen} />
-      <Stack.Screen name="VehicleSelectionScreen" component={VehicleSelectionScreen} />
+      <Stack.Screen
+        name="AreaSelectionScreen"
+        component={AreaSelectionScreen}
+      />
+      <Stack.Screen
+        name="VehicleSelectionScreen"
+        component={VehicleSelectionScreen}
+      />
       <Stack.Screen name="PersonalInfoScreen" component={PersonalInfoScreen} />
-      <Stack.Screen name="FaceInstructionScreen" component={FaceInstructionScreen} />
-      <Stack.Screen name="FaceVerificationScreen" component={FaceVerificationScreen} />
-      <Stack.Screen name="DocumentVerifyScreen" component={DocumentVerifyScreen} />
+      <Stack.Screen
+        name="FaceInstructionScreen"
+        component={FaceInstructionScreen}
+      />
+      <Stack.Screen
+        name="FaceVerificationScreen"
+        component={FaceVerificationScreen}
+      />
+      <Stack.Screen
+        name="DocumentVerifyScreen"
+        component={DocumentVerifyScreen}
+      />
       <Stack.Screen name="AadharEntryScreen" component={AadharEntryScreen} />
       <Stack.Screen name="AadharVerifyScreen" component={AadharVerifyScreen} />
       <Stack.Screen name="PanUploadScreen" component={PanUploadScreen} />
-      <Stack.Screen name="LicenseUploadScreen" component={LicenseUploadScreen} />
-      <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
+      <Stack.Screen
+        name="LicenseUploadScreen"
+        component={LicenseUploadScreen}
+      />
+      <Stack.Screen
+        name="ProcessingVerificationScreen"
+        component={ProcessingVerificationScreen}
+      />
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
