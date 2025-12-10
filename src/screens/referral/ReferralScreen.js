@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native';
 import React from 'react';
 
-const BankForm = () => {
+const ReferralScreen = () => {
   return (
     <View>
-      <Text>BankForm</Text>
+      <Text>ReferralScreen</Text>
     </View>
   );
 };
 
-export default BankForm;
+export default ReferralScreen;
