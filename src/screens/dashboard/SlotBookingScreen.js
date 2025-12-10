@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 
-const HomeDashboard = () => {
+const SlotBookingScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Coming Soon...</Text>
@@ -24,4 +24,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeDashboard;
+export default SlotBookingScreen;
