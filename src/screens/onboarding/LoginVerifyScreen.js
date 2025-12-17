@@ -26,7 +26,7 @@ const COLORS = {
 
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await fetch(`${WEBSITE_URL}/api/auth/verify-otp`, {
+    const response = await fetch(`${WEBSITE_URL}/api/mobile/verify-static-otp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

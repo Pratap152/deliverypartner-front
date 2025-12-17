@@ -6,7 +6,6 @@ import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
 import AppPermissionScreen from '../screens/onboarding/AppPermissionScreen';
-
 import VehicleSelectionScreen from '../screens/onboarding/VehicleSelectionScreen';
 import PersonalInfoScreen from '../screens/onboarding/PersonalInfoScreen';
 import FaceInstructionScreen from '../screens/onboarding/FaceInstructionScreen';
@@ -19,7 +18,8 @@ import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
-
+import HelpCenterList from '../screens/help/HelpCenterList'
+import HelpIssueScreen from '../screens/help/HelpIssueScreen'
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -27,6 +27,7 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
       initialRouteName="OnBoardingScreen"
     >
+      
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
@@ -67,6 +68,15 @@ const AppNavigator = () => {
       <Stack.Screen
         name="ProcessingVerificationScreen"
         component={ProcessingVerificationScreen}
+      />
+      <Stack.Screen
+        name="HelpCenter"
+        component={HelpCenterList}
+      />
+
+      <Stack.Screen
+        name="HelpIssueScreen"
+        component={HelpIssueScreen}
       />
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
