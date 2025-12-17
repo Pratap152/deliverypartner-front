@@ -34,7 +34,7 @@ const BUTTON_BLUE = '#16C2D5';
 export const sendOTPApi = async (phone) => {
     console.log("📤 Sending OTP to:", phone);
   try {
-    const response = await fetch(`${WEBSITE_URL}/api/auth/send-otp`, {
+    const response = await fetch(`${WEBSITE_URL}/api/mobile/send-static-otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json", 
