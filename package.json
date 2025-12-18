@@ -13,6 +13,7 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "^8.5.1",
     "@react-native-community/geolocation": "^3.4.0",
+    "@react-native-community/netinfo": "^11.4.1",
     "@react-native/new-app-screen": "0.82.1",
     "@react-navigation/bottom-tabs": "^7.8.12",
     "@react-navigation/elements": "^2.8.4",
@@ -26,7 +27,10 @@
     "react-native": "0.82.1",
     "react-native-actions-sheet": "^10.1.0",
     "react-native-actionsheet": "^2.4.2",
+    "react-native-background-timer": "^2.4.1",
+    "react-native-encrypted-storage": "^4.0.3",
     "react-native-image-picker": "^8.2.1",
+    "react-native-keychain": "^10.0.0",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-permissions": "^5.4.4",
     "react-native-responsive-dimensions": "^3.1.1",
@@ -35,7 +39,8 @@
     "react-native-screens": "^4.18.0",
     "react-native-vector-icons": "^10.3.0",
     "react-native-vision-camera": "^4.7.3",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
