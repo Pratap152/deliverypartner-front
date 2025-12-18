@@ -7,50 +7,52 @@ import {
   Platform,
   Alert,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+ 
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { useIsFocused } from '@react-navigation/native';
-
-import { ActivityIndicator } from 'react-native';
+ 
 import { useAuth } from '../../hooks/useAuth';
-
+ 
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+ 
 export default function FaceVerificationScreen({ navigation }) {
   const { authToken } = useAuth();
-
+ 
   const devices = useCameraDevices();
-
   const isFocused = useIsFocused();
-
+ 
   const [nativeDevices, setNativeDevices] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
-
   const [devicePosition, setDevicePosition] = useState('front');
-
+ 
   const cameraRef = useRef(null);
-
+ 
   const [hasPermission, setHasPermission] = useState(false);
-
   const [loadingDevices, setLoadingDevices] = useState(false);
-
+ 
   const [photo, setPhoto] = useState(null);
   const [isActive, setIsActive] = useState(true);
-
+ 
   const [uploading, setUploading] = useState(false);
-
+ 
   const loadDevices = async () => {
     try {
       setLoadingDevices(true);
       const list = await Camera.getAvailableCameraDevices();
       console.log('getAvailableCameraDevices ->', list);
-
+ 
       const byPos = {};
       (list || []).forEach(d => {
         if (d.position) byPos[d.position] = d;
       });
       setNativeDevices(byPos);
-
+ 
       const sel =
         byPos[devicePosition] ||
         byPos.front ||
@@ -58,7 +60,7 @@ export default function FaceVerificationScreen({ navigation }) {
         (devices && (devices.front || devices.back)
           ? devices.front || devices.back
           : undefined);
-
+ 
       if (sel) {
         setSelectedDevice(sel);
         setIsActive(true);
@@ -69,36 +71,34 @@ export default function FaceVerificationScreen({ navigation }) {
       setLoadingDevices(false);
     }
   };
-
+ 
   // FOCUS-AWARE PERMISSION + NATIVE-DEVICE EFFECT
   useEffect(() => {
     let mounted = true;
-
+ 
     (async () => {
       if (!isFocused) {
         setIsActive(false);
         return;
       }
-
-      // check current permission status
+ 
       const status = await Camera.requestCameraPermission();
       console.log('Initial camera status ->', status);
       if (!mounted) return;
-
+ 
       const ok = status === 'authorized' || status === 'granted';
       setHasPermission(ok);
-
       if (ok) {
         await loadDevices();
       }
     })();
-
+ 
     return () => {
       mounted = false;
       setIsActive(false);
     };
   }, [isFocused, devicePosition]);
-
+ 
   // compute effective device each render (prefer selectedDevice state)
   const effectiveDevice =
     selectedDevice ||
@@ -109,7 +109,7 @@ export default function FaceVerificationScreen({ navigation }) {
       : devices && (devices.front || devices.back)
       ? devices[devicePosition] || devices.front || devices.back
       : undefined);
-
+ 
   // CAPTURING PHOTO
   const takePhoto = async () => {
     try {
@@ -125,12 +125,11 @@ export default function FaceVerificationScreen({ navigation }) {
       Alert.alert('Error taking photo', String(e));
     }
   };
-
+ 
   // SWAPPING FRONT/BACK
   const flipCamera = () => {
     const next = devicePosition === 'front' ? 'back' : 'front';
     setDevicePosition(next);
-    // pick device from nativeDevices or devices based on next
     if (nativeDevices && (nativeDevices.front || nativeDevices.back)) {
       setSelectedDevice(
         nativeDevices[next] || nativeDevices.front || nativeDevices.back,
@@ -140,7 +139,7 @@ export default function FaceVerificationScreen({ navigation }) {
     }
     setIsActive(true);
   };
-
+ 
   const getFileInfo = uri => {
     if (!uri || typeof uri !== 'string') {
       return { name: 'photo.jpg', type: 'image/jpeg' };
@@ -157,7 +156,7 @@ export default function FaceVerificationScreen({ navigation }) {
     };
     return { name, type: mimeMap[ext] || `image/${ext}` };
   };
-
+ 
   // UPLOAD SELFIE
   const uploadSelfie = async () => {
     if (!photo) {
@@ -166,17 +165,16 @@ export default function FaceVerificationScreen({ navigation }) {
     }
     try {
       setUploading(true);
-
+ 
       const { name, type } = getFileInfo(photo);
-
+ 
       const fd = new FormData();
       fd.append('selfie', {
         uri: photo,
         name,
         type,
       });
-
-      // CALLING API
+ 
       const res = await fetch(
         'https://delivarypartner.onrender.com/api/rider/selfie',
         {
@@ -188,7 +186,7 @@ export default function FaceVerificationScreen({ navigation }) {
           body: fd,
         },
       );
-
+ 
       const json = await res.json().catch(() => ({}));
       console.log('STATUS:', res.status);
       console.log('BODY:', json);
@@ -205,17 +203,20 @@ export default function FaceVerificationScreen({ navigation }) {
       setUploading(false);
     }
   };
-
+ 
   // STYLING
-  return (
-    <View>
+  return(
+    <View style={{ flex: 1 }}>
+      {/* HEADER */}
       <View
         style={{
           flexDirection: 'row',
-          gap: 75,
-          marginTop: 55,
-          marginLeft: 20,
+          alignItems:'center',
+          gap: wp('20%'),          
+          marginTop: hp('5%'),  
+          marginLeft: wp('4%'),  
           color: 'white',
+          position:'relative'
         }}
       >
         {/* BACK BUTTON */}
@@ -223,15 +224,22 @@ export default function FaceVerificationScreen({ navigation }) {
           <Ionicons name="chevron-back-outline" size={22} color="black" />
         </TouchableOpacity>
         {/* HEADING */}
-        <Text style={{ fontSize: 20, fontWeight: 700 }}>
+        <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
           Verify Your Identity
         </Text>
       </View>
-
-      <Text style={{ marginLeft: 60, marginTop: 30, fontSize: 18 }}>
+ 
+      <Text
+        style={{
+          marginLeft: wp('16%'),  
+          marginTop: hp('3.7%'),  
+          fontSize: wp('4.5%'),
+        }}
+      >
         Make sure your entire face is visible
       </Text>
-
+ 
+      {/* CAMERA */}
       <View style={styles.preview}>
         {photo ? (
           <Image source={{ uri: photo }} style={styles.previewImage} />
@@ -254,30 +262,33 @@ export default function FaceVerificationScreen({ navigation }) {
             <Text style={{ color: 'white', textAlign: 'center' }}></Text>
           </View>
         )}
-
+ 
         {/* CAPTURE, SWITCH CAMERA BUTTONS */}
         <View style={styles.controls}>
           <TouchableOpacity onPress={flipCamera} style={styles.iconBtn}>
             <Ionicons name="camera-reverse-outline" size={22} color="#fff" />
           </TouchableOpacity>
-
+ 
           <TouchableOpacity onPress={takePhoto} style={styles.captureBtn}>
             <View style={styles.innerCapture} />
           </TouchableOpacity>
         </View>
       </View>
-
+ 
       {/* UPLOAD PHOTO BUTTON */}
       <TouchableOpacity
         onPress={uploadSelfie}
         style={{
-          marginTop: 70,
+          marginTop: hp('8.6%'),    
           alignSelf: 'center',
-          marginBottom: 10,
+          marginBottom: hp('1.2%'),
           backgroundColor: uploading ? '#9fdfe6' : '#0CBACE',
-          paddingVertical: 12,
-          borderRadius: 25,
-          width: '60%',
+          paddingVertical: hp('1.5%'),
+          borderRadius: wp('6%'),
+          width: wp('60%'),
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
         disabled={uploading}
       >
@@ -286,10 +297,10 @@ export default function FaceVerificationScreen({ navigation }) {
             <ActivityIndicator
               size="small"
               color="#fff"
-              style={{ marginRight: 10 }}
+              style={{ marginRight: wp('2.6%') }}
             />
             <Text
-              style={{ color: '#fff', fontWeight: '600', alignSelf: 'center' }}
+              style={{ color: '#fff', fontWeight: '600', textAlign: 'center' }}
             >
               Uploading...
             </Text>
@@ -298,7 +309,7 @@ export default function FaceVerificationScreen({ navigation }) {
           <Text
             style={{
               textAlign: 'center',
-              fontSize: 18,
+              fontSize: wp('4.5%'),
               color: 'white',
               fontWeight: '600',
             }}
@@ -307,7 +318,7 @@ export default function FaceVerificationScreen({ navigation }) {
           </Text>
         )}
       </TouchableOpacity>
-
+ 
       {/* RETAKE PHOTO BUTTON */}
       <TouchableOpacity
         onPress={() => {
@@ -315,20 +326,20 @@ export default function FaceVerificationScreen({ navigation }) {
           setIsActive(true);
         }}
         style={{
-          marginTop: 20,
+          marginTop: hp('2.4%'),
           alignSelf: 'center',
           backgroundColor: 'white',
           borderColor: '#0CBACE',
           borderWidth: 1,
-          paddingVertical: 12,
-          borderRadius: 25,
-          width: '60%',
+          paddingVertical: hp('1.5%'),
+          borderRadius: wp('6%'),
+          width: wp('60%'),
         }}
       >
         <Text
           style={{
             textAlign: 'center',
-            fontSize: 18,
+            fontSize: wp('4.5%'),
             color: '#0CBACE',
             fontWeight: '600',
           }}
@@ -337,57 +348,61 @@ export default function FaceVerificationScreen({ navigation }) {
         </Text>
       </TouchableOpacity>
     </View>
+   
   );
 }
-
+ 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   permissionBtn: {
-    marginTop: 12,
-    padding: 10,
+    marginTop: hp('1.5%'),      
+    padding: hp('1.2%'),        
     backgroundColor: 'lightgrey',
-    borderRadius: 8,
+    borderRadius: wp('2%'),
   },
-  previewWrap: { marginTop: 20, alignItems: 'center' },
+  previewWrap: {
+    marginTop: hp('2.4%'),      
+    alignItems: 'center',
+  },
   preview: {
-    width: '80%',
-    height: 360,
-    borderRadius: 180,
+    width: wp('90%'),
+    height: hp('40%'),          
+    borderRadius: hp('22.5%'),  
     overflow: 'hidden',
     backgroundColor: '#000',
-    marginTop: 50,
+    marginTop: hp('6%'),        
     alignSelf: 'center',
   },
-  previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  previewImage: { width: wp('100%'), height: hp('100%'), resizeMode: 'cover' },
   controls: {
     position: 'absolute',
-    bottom: 18,
+    bottom: hp('2.3%'),        
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: wp('4.2%'),
   },
   iconBtn: {
-    padding: 5,
+    padding: hp('0.6%'),        
     backgroundColor: '#333',
-    borderRadius: 40,
-    marginRight: 10,
+    borderRadius: wp('10%'),
+    marginRight: wp('2.6%'),    
   },
   captureBtn: {
-    width: 62,
-    height: 62,
-    borderRadius: 33,
+    width: hp('7.5%'),          
+    height: hp('7.5%'),
+    borderRadius: hp('4%'),    
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 40,
+    marginRight: wp('10.5%'),  
   },
   innerCapture: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: hp('6.8%'),          
+    height: hp('6.8%'),
+    borderRadius: hp('3.6%'),  
     backgroundColor: '#000',
   },
 });

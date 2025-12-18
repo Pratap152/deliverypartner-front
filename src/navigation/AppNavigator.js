@@ -6,7 +6,6 @@ import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
 import AppPermissionScreen from '../screens/onboarding/AppPermissionScreen';
-
 import VehicleSelectionScreen from '../screens/onboarding/VehicleSelectionScreen';
 import PersonalInfoScreen from '../screens/onboarding/PersonalInfoScreen';
 import FaceInstructionScreen from '../screens/onboarding/FaceInstructionScreen';
@@ -22,6 +21,8 @@ import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 
 import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 
+import HelpCenterList from '../screens/help/HelpCenterList';
+import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -72,6 +73,9 @@ const AppNavigator = () => {
       />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
 
+      <Stack.Screen name="HelpCenter" component={HelpCenterList} />
+
+      <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}

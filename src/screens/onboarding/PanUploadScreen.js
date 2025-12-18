@@ -104,7 +104,12 @@ const PanUploadScreen = ({ navigation }) => {
       dispatch(verifyDocument("pan"));
 
       Alert.alert("Success", "PAN submitted for verification.", [
-        { text: "Next", onPress: () => navigation.navigate("DocumentVerifyScreen") },
+        { text: "Next", onPress: () => navigation.replace("DocumentVerifyScreen", {
+  documentType: "PAN",
+  status: response.data.status,
+  serverData: response.data,
+})
+ },
       ]);
 
     } catch (err) {

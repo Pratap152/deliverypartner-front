@@ -1,64 +1,78 @@
 import { Text, View, TouchableOpacity, Image } from 'react-native';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
 export default function FaceInstructionScreen({ navigation }) {
+
   return (
     <View style={{ flex: 1 }}>
-      {/* BACK BUTTON */}
+      {/* BACK BUTTON + HEADING */}
       <View
         style={{
           flexDirection: 'row',
-          gap: 110,
-          marginTop: 55,
-          marginLeft: 20,
+          alignItems: 'center',
+          gap: wp('28%'),
+          marginTop: hp('5%'),
+          marginLeft: wp('4%'),
+          position: 'relative'
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back-outline" size={22} color="black" />
         </TouchableOpacity>
-        {/* HEADING */}
-        <Text style={{ fontSize: 20, fontWeight: 700 }}>Take a Selfie</Text>
+
+        <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
+          Take a Selfie
+        </Text>
       </View>
-      <View style={{ marginLeft: 30, marginTop: 40 }}>
-        <Text style={{ fontWeight: 500, fontSize: 20, marginLeft: 20 }}>
+
+      {/* INSTRUCTIONS */}
+      <View
+        style={{
+          marginLeft: wp('8%'),
+          marginTop: hp('5%'),
+        }}
+      >
+        <Text
+          style={{
+            fontWeight: '500',
+            fontSize: wp('5%'),
+            marginLeft: wp('5%'),
+          }}
+        >
           Do This
         </Text>
 
         {/* GUIDELINES */}
-        <View style={{ fontSize: 18, marginLeft: 20, marginTop: 15 }}>
-          <Ionicons
-            name="caret-forward-outline"
-            size={18}
-            color="black"
-            style={{ marginBottom: 5 }}
-          >
-            <Text>Show full face clearly</Text>
-          </Ionicons>
-          <Ionicons
-            name="caret-forward-outline"
-            size={18}
-            color="black"
-            style={{ marginBottom: 5 }}
-          >
-            <Text>Use good lighting </Text>
-          </Ionicons>
-          <Ionicons
-            name="caret-forward-outline"
-            size={18}
-            color="black"
-            style={{ marginBottom: 5 }}
-          >
-            <Text>Hold camera at eye level</Text>
-          </Ionicons>
-          <Ionicons
-            name="caret-forward-outline"
-            size={18}
-            color="black"
-            style={{ marginBottom: 5 }}
-          >
-            <Text>Look straight</Text>
-          </Ionicons>
+        <View
+          style={{
+            marginLeft: wp('5%'),
+            marginTop: hp('2%'),
+          }}
+        >
+          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
+            <Ionicons name="caret-forward-outline" size={18} color="black" />
+            <Text style={{fontSize:wp('4%')}}> Show full face clearly</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
+            <Ionicons name="caret-forward-outline" size={18} color="black" />
+            <Text style={{fontSize:wp('4%')}}> Use good lighting</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
+            <Ionicons name="caret-forward-outline" size={18} color="black" />
+            <Text style={{fontSize:wp('4%')}}> Hold camera at eye level</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
+            <Ionicons name="caret-forward-outline" size={18} color="black" />
+            <Text style={{fontSize:wp('4%')}}> Look straight</Text>
+          </View>
         </View>
       </View>
 
@@ -66,40 +80,45 @@ export default function FaceInstructionScreen({ navigation }) {
       <View
         style={{
           flex: 1,
-          alignContent: 'center',
           alignItems: 'center',
-          marginTop: 50,
+          marginTop: hp('6%'),
         }}
       >
         <Image
           source={require('../../../src/assets/selfie.png')}
-          style={{ height: '60%', width: '60%', marginTop: 20 }}
+          style={{
+            height: hp('30%'),
+            width: wp('60%'),
+            marginTop: hp('2.5%'),
+            resizeMode: 'contain',
+          }}
         />
       </View>
 
-      {/* CLICK A SELFIE BUTTON */}
+      {/* SELFIE BUTTON */}
       <TouchableOpacity
         onPress={() => navigation.navigate('FaceVerificationScreen')}
         style={{
-          marginBottom: 150,
+          marginBottom: hp('15%'),
           alignSelf: 'center',
           backgroundColor: '#0CBACE',
-          paddingVertical: 10,
-          borderRadius: 25,
-          width: '60%',
+          paddingVertical: hp('1.4%'),
+          borderRadius: wp('6%'),
+          width: wp('60%'),
         }}
       >
         <Text
           style={{
             alignSelf: 'center',
-            fontSize: 20,
+            fontSize: wp('5%'),
             color: 'white',
-            fontWeight: 600,
+            fontWeight: '600',
           }}
         >
           Click a Selfie
         </Text>
       </TouchableOpacity>
     </View>
+
   );
 }
