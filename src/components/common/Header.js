@@ -14,7 +14,7 @@ const Header = ({ text }) => {
       </TouchableOpacity>
       {text && (
         <>
-          <Text style={styles.headerTitle}>Document Verification</Text>
+          <Text style={styles.headerTitle}>{text}</Text>
           <View style={{ width: 25 }} />
         </>
       )}
