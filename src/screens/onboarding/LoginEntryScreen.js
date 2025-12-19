@@ -127,7 +127,7 @@ const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChec
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        enabled={false}
+        enabled={true}
         style={{ flex: 1 }}
       >
         <ScrollView

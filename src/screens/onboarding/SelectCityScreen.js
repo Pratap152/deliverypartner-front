@@ -133,7 +133,7 @@ console.log(selectedCity);
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Icon name="arrow-back" size={22} color="#000" />
+        {/* <Icon name="arrow-back" size={22} color="#000" /> */}
         <Text style={styles.headerTitle}>Select city</Text>
         <View style={{ width: 22 }} />
       </View>
