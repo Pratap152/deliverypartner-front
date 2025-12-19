@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import WEBSITE_URL from '../../utils/host';
-
+import axios from "axios";
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
-
 import { useOtp } from '../../hooks/useOtp';
 import { useAuth } from '../../hooks/useAuth';
 import OtpInput from '../../components/common/OTPInputBox';
@@ -26,27 +25,36 @@ const COLORS = {
 
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await fetch(`${WEBSITE_URL}/api/mobile/verify-static-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await axios.post(
+      `${WEBSITE_URL}/api/mobile/verify-static-otp`,
+      {
         phone: phone,
         otp: otp,
-      }),
-    });
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
     console.log(response);
+    console.log("hello", response.data);
 
-    const data = await response.json().catch(() => ({}));
-    console.log('hello', data);
-    return { status: response.status, data };
+    return { status: response.status, data: response.data };
   } catch (err) {
-    console.log('❌ Network error:', err);
+    console.log("❌ Network error:", err);
 
-    return { status: 500, data: { message: 'Network error' } };
+    if (err.response) {
+      return {
+        status: err.response.status,
+        data: err.response.data || {},
+      };
+    }
+    return { status: 500, data: { message: "Network error" } };
   }
 };
+
 
 const LoginVerifyScreen = ({ route, navigation }) => {
   const { setAuthToken } = useAuth();

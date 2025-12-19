@@ -30,7 +30,7 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
       initialRouteName="AddBankDetailsScreen"
     >
-      
+   
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
@@ -90,7 +90,7 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} /> */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
     </Stack.Navigator>
-  );
+  ); n
 };
 
 export default AppNavigator;
