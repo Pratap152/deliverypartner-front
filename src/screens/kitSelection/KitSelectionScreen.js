@@ -16,7 +16,7 @@ import {
   addAddress,
 } from "../../redux/slices/addressSlice";
 import KitHeader from "../../components/kit/KitHeader";
-
+import apiClient from "../../api/ApiClient";
 const KitSelectionScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
@@ -58,7 +58,7 @@ const KitSelectionScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave =async () => {
     if (!validate()) return;
 
     if (editingAddress) {
@@ -81,8 +81,20 @@ const KitSelectionScreen = ({ navigation }) => {
         })
       );
     }
+try {
+  const response = await apiClient.post("/api/rider/kit-address", {
+    name,
+    completeAddress: address,
+    pincode,
+  });
 
-    navigation.navigate("KitPickupSelection");
+  console.log(response.data);
+  navigation.navigate("KitPickupSelection");
+} catch (error) {
+  console.log("❌ API failed:", error.response?.data || error.message);
+}
+navigation.navigate("KitPickupSelection");
+
   };
 
   return (
@@ -90,6 +102,16 @@ const KitSelectionScreen = ({ navigation }) => {
         
       <Text style={styles.title}>Kit Selection</Text>
       <KitHeader/>
+      <View style={{marginVertical:10}}>
+
+      <Text style={styles.text}>
+        Enter Your Address To Deliver This Kit
+      </Text>
+      </View>
+
+      <Text style={styles.text}>
+        Name:
+      </Text>
 
       <TextInput
         placeholder="Please enter first name"
@@ -98,6 +120,9 @@ const KitSelectionScreen = ({ navigation }) => {
         onChangeText={setName}
       />
       {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+      <Text style={styles.text}>
+        Address:
+      </Text>
 
       <TextInput
         placeholder="Please enter Address"
@@ -107,6 +132,9 @@ const KitSelectionScreen = ({ navigation }) => {
         multiline
       />
       {errors.address && <Text style={styles.error}>{errors.address}</Text>}
+      <Text style={styles.text}>
+        Pincode:
+      </Text>
 
       <TextInput
         placeholder="Pincode"
@@ -141,6 +169,11 @@ const styles = StyleSheet.create({
     color: "#D32F2F",
     fontSize: 12,
     marginBottom: 10,
+  },
+   text: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333333",
   },
 
   continueBtn: {

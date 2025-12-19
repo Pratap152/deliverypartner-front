@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,16 +6,17 @@ import {
   StyleSheet,
   ScrollView,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { setEditingAddress } from "../../redux/slices/addressSlice";
+import { fetchAddresses, setEditingAddress } from "../../redux/slices/addressSlice";
 import KitHeader from "../../components/kit/KitHeader";
 
 const KitPickupSelection = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
 
-  const addresses = useSelector(state => state.address.addresses);
+  const {addresses,loading} = useSelector(state => state.address);
   const [selectedId, setSelectedId] = useState(null);
 
   const goToAdd = () => {
@@ -26,13 +27,20 @@ const KitPickupSelection = ({ navigation }) => {
     dispatch(setEditingAddress(item));
     navigation.navigate("KitSelectionScreen");
   };
+   useEffect(() => {
+    dispatch(fetchAddresses());
+  }, []);
 
   return (
     <>
       <ScrollView style={[styles.container, { padding: width * 0.05 }]}>
         <Text style={styles.title}>Kit Selection</Text>
         <KitHeader />
-        {addresses.map(item => (
+         {loading && (
+          <ActivityIndicator size="large" color="#00BCD4" />
+        )}
+       
+        {!loading && addresses.map(item => (
           <TouchableOpacity
             key={item.id}
             style={[

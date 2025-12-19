@@ -106,7 +106,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       if (token) {
         setAuthToken(token);
       }
-      navigation.navigate('AppPermissionScreen');
+      navigation.navigate('KitPickupSelection');
     } else if (result.status === 401) {
       setError('Invalid or expired OTP');
     } else {

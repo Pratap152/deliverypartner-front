@@ -27,12 +27,11 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName='KitSelectionScreen'
+      initialRouteName='KitPickupSelection'
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
-      {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
-      {/* <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
+       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
       <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
       <Stack.Screen
@@ -81,10 +80,10 @@ const AppNavigator = () => {
         name="HelpIssueScreen"
         component={HelpIssueScreen}
       />
-      {/* <Stack.Screen name="" component={} />
+       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
-      <Stack.Screen name="" component={} /> */}
-      {/* <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> } */}
+      <Stack.Screen name="" component={} />  */}
+      <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
     </Stack.Navigator>
   );
 };

@@ -1,9 +1,24 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import apiClient from "../../api/ApiClient";
 
 const initialState = {
   addresses: [],
   editingAddress: null,
+  loading: false,
+  error: null
 };
+export const fetchAddresses = createAsyncThunk(
+  "address/fetchAddresses",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get("/api/rider/kit-address");
+      console.log("Fetched addresses:", response);
+      return response.data; // expect array
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to fetch addresses");
+    }
+  }
+);
 
 const addressSlice = createSlice({
   name: "address",
@@ -24,6 +39,21 @@ const addressSlice = createSlice({
       state.editingAddress = null;
     },
   },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchAddresses.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAddresses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.addresses = action.payload;
+      })
+      .addCase(fetchAddresses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
 });
 
 export const {
@@ -31,6 +61,7 @@ export const {
   updateAddress,
   setEditingAddress,
   clearEditingAddress,
+  
 } = addressSlice.actions;
 
 export default addressSlice.reducer;
