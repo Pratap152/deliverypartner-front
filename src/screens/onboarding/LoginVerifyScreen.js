@@ -103,6 +103,8 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
     if (result.status === 200) {
       const token = result?.data?.accessToken;
+      console.log(token);
+      
       if (token) {
         setAuthToken(token);
       }

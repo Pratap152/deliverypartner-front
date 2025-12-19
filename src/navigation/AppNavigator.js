@@ -20,12 +20,15 @@ import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 import HelpCenterList from '../screens/help/HelpCenterList'
 import HelpIssueScreen from '../screens/help/HelpIssueScreen'
+
+import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
+
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="OnBoardingScreen"
+      initialRouteName="AddBankDetailsScreen"
     >
       
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
@@ -77,6 +80,10 @@ const AppNavigator = () => {
       <Stack.Screen
         name="HelpIssueScreen"
         component={HelpIssueScreen}
+      />
+      <Stack.Screen 
+      name='AddBankDetailsScreen' 
+      component={AddBankDetailsScreen}
       />
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
