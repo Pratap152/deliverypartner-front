@@ -20,16 +20,19 @@ import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 import HelpCenterList from '../screens/help/HelpCenterList'
 import HelpIssueScreen from '../screens/help/HelpIssueScreen'
+import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
+import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="OnBoardingScreen"
+      initialRouteName='KitSelectionScreen'
     >
-      
+      <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
+      <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
-      <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
+      {/* <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
       <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
       <Stack.Screen
@@ -81,7 +84,7 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
-      <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      {/* <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> } */}
     </Stack.Navigator>
   );
 };
