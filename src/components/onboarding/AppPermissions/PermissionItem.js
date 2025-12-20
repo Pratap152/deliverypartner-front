@@ -11,7 +11,40 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
       <Text style={styles.permissionTitle}>{title}</Text>
       <Text style={styles.permissionDesc}>{desc}</Text>
     </View>
+    {!isEnabled && (
+    <Icon
+      name="checkmark-circle"
+      size={26}
+      color="#24cc15ff"
+    />
+  )}
   </Pressable>
+//   <Pressable
+//   disabled={!isEnabled}
+//   style={({ pressed }) => [
+//     styles.permissionItem,
+//     (!isEnabled) && { opacity: 0.5, height: "22%", width: "98%" }
+//   ]}
+//   onPress={() => onPress(key)}
+//   android_ripple={{ color: "#0e0c0c" }}
+// >
+//   <Icon name={icon} size={28} color="#000000" />
+
+//   <View style={styles.permissionTextBox}>
+//     <Text style={styles.permissionTitle}>{title}</Text>
+//     <Text style={styles.permissionDesc}>{desc}</Text>
+//   </View>
+
+//   {/* ✅ GREEN TICK */}
+//   {isGranted && (
+//     <Icon
+//       name="checkmark-circle"
+//       size={26}
+//       color="#2ecc71"
+//     />
+//   )}
+// </Pressable>
+
 )};
 const styles=StyleSheet.create({
     permissionItem: {

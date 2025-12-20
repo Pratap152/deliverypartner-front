@@ -1,23 +1,3 @@
-// import { View, Text ,TouchableOpacity} from 'react-native'
-// import React from 'react'
-// import SelectCityScreen from './SelectCityScreen'
-
-// const AppPermissionScreen = ({navigation}) => {
-//   return (
-//     <View style={{flex:1,backgroundColor:"black"}}>
-          
-//           <View style={{margin:70}}>
-//           <Text style={{color:'white'}}>AppPermissionScreen</Text>
-//           <TouchableOpacity onPress={()=>navigation.navigate(SelectCityScreen)}>
-//             <Text style={{color:"white"}}>Next</Text>
-//           </TouchableOpacity>
-        
-//         </View></View>
-//   )
-// }
-
-// export default AppPermissionScreen
-const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDAxOTZiNjQ2M2M5ZTNjM2E1NGMzIiwicGhvbmUiOiI3MDkzOTAxNTEzIiwiaWF0IjoxNzY1MDE4NDc4LCJleHAiOjE3NjU2MjMyNzh9.sWedT2Diz5MxEsAINOR6m5MGoQCJW8dpRrVqc_Kqy_Y"
  import SelectCityScreen from './SelectCityScreen'
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Image, Platform } from 'react-native';
@@ -91,61 +71,6 @@ navigation.navigate(SelectCityScreen);
     setError(e.message);
   }
 }
-// async function handleNotification() {
-//   try {
-//     if (Platform.OS !== 'android') {
-//       console.log("Not Android");
-//       return true;
-//     }
-
-//     // Check API version
-//     const apiLevel = Platform.constants.Release;  // e.g. "13", "12", "11"
-
-//     // Only Android 13+ requires POST_NOTIFICATIONS
-//     const isAndroid13Plus = parseInt(apiLevel, 10) >= 13;
-
-//     if (!isAndroid13Plus) {
-//       console.log("Android < 13 → Permission not required");
-//       return true;
-//     }
-
-//     const permission = PERMISSIONS.ANDROID.POST_NOTIFICATIONS;
-
-//     if (!permission) {
-//       throw new Error("POST_NOTIFICATIONS permission constant is null. Update react-native-permissions.");
-//     }
-
-//     // Check current status
-//     const currentStatus = await check(permission);
-//     console.log("CURRENT:", currentStatus);
-
-//     if (currentStatus === RESULTS.GRANTED) {
-//       console.log("Already granted");
-//       return true;
-//     }
-
-//     // Ask permission
-//     const result = await request(permission);
-//     console.log("REQUEST RESULT:", result);
-
-//     if (result === RESULTS.GRANTED) {
-//       console.log("Permission Granted");
-//       return true;
-//     }
-
-//     if (result === RESULTS.BLOCKED) {
-//       console.log("Permission Blocked → Open Settings");
-//       return false;
-//     }
-
-//     console.log("Permission Denied");
-//     return false;
-
-//   } catch (err) {
-//     console.log("ERROR:", err);
-//     return false;
-//   }
-// }
 async function handleLocation(permissionType){
  
   const perm=(Platform.OS === "android"? APP_PERMISSIONS[permissionType].android: APP_PERMISSIONS[permissionType].ios);
@@ -216,22 +141,10 @@ return (
         isEnabled={permissionStatus.backgroundLocation==="granted"&&permissionStatus.camera!=="granted"}
         onPress={()=>handleLocation("camera")}
       />
-
-      {/* <PermissionItem
-        icon="notifications"
-        title="Push Notifications"
-        desc="We need this permission to show push notifications"
-        permissionStatus={permissionStatus}
-        isEnabled={true}
-        onPress={handleNotification}
-      /> */}
       </View>
 
 
       {permissionStatus.backgroundLocation==="granted"&&permissionStatus.location==="granted"&&permissionStatus.camera==="granted"&& 
-      // <TouchableOpacity style={styles.button} onPress={handleSubmit} >
-      //   <Text style={styles.buttonText}>Submit</Text>
-      // </TouchableOpacity>}
       <PrimaryButton
           title="Submit"
             onPress={handleSubmit}
