@@ -87,7 +87,6 @@ async function handleSubmit(){
 navigation.navigate(SelectCityScreen);
   }
   catch(e){
-    console.log(e);
     setError(e.message);
   }
 }

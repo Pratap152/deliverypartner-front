@@ -16,11 +16,11 @@ import {
   addAddress,
 } from "../../redux/slices/addressSlice";
 import KitHeader from "../../components/kit/KitHeader";
-import apiClient from "../../api/ApiClient";
+import { useCreateKitAddress } from "../../hooks/useCreateKitAddress";
+
 const KitSelectionScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
-
   const editingAddress = useSelector(
     state => state.address.editingAddress
   );
@@ -30,11 +30,18 @@ const KitSelectionScreen = ({ navigation }) => {
   const [pincode, setPincode] = useState("");
 
   const [errors, setErrors] = useState({});
+  const {
+    createKitAddress,
+    loading,
+    error,
+    success,
+  } = useCreateKitAddress();
 
   useEffect(() => {
     if (editingAddress) {
       setName(editingAddress.name);
-      setAddress(editingAddress.address);
+      // some API responses use `address` key, others use `completeAddress`
+      setAddress(editingAddress.address || editingAddress.completeAddress || "");
       setPincode(editingAddress.pincode);
     }
   }, [editingAddress]);
@@ -82,18 +89,20 @@ const KitSelectionScreen = ({ navigation }) => {
       );
     }
 try {
-  const response = await apiClient.post("/api/rider/kit-address", {
-    name,
-    completeAddress: address,
-    pincode,
-  });
+      if (!editingAddress) {
+        // create on server for new addresses
+        await createKitAddress(name,address,pincode);
+        console.log("Address saved successfully");
+      } else {
+        // editing existing address: we update local state but
+        // server-side update endpoint is not implemented yet
+        console.log("Address updated locally (server update not implemented)");
+      }
+      navigation.navigate("KitPickupSelection");
+    } catch (e) {
+      console.log(e);
+    }
 
-  console.log(response.data);
-  navigation.navigate("KitPickupSelection");
-} catch (error) {
-  console.log("❌ API failed:", error.response?.data || error.message);
-}
-navigation.navigate("KitPickupSelection");
 
   };
 
