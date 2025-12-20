@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 
 import {
@@ -15,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '../../components/common/Header';
 import OTPInputBox from '../../components/common/OTPInputBox';
-import OtpInput from '../../components/common/OtpInput';
 
 import { useDispatch } from 'react-redux';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
