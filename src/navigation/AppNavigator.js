@@ -18,8 +18,10 @@ import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
-import HelpCenterList from '../screens/help/HelpCenterList'
-import HelpIssueScreen from '../screens/help/HelpIssueScreen'
+
+
+
+
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -69,15 +71,8 @@ const AppNavigator = () => {
         name="ProcessingVerificationScreen"
         component={ProcessingVerificationScreen}
       />
-      <Stack.Screen
-        name="HelpCenter"
-        component={HelpCenterList}
-      />
 
-      <Stack.Screen
-        name="HelpIssueScreen"
-        component={HelpIssueScreen}
-      />
+      
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
