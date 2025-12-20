@@ -15,11 +15,19 @@ import {
 import axios from "axios";
 import WEBSITE_URL from "../../utils/host";
 
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
+
 export default function AddBankDetailsScreen() {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");
   const [holder, setHolder] = useState("");
+  const [focusedField, setFocusedField] = useState(null);
+
 
   const [touched, setTouched] = useState({
     bankName: false,
@@ -39,12 +47,20 @@ export default function AddBankDetailsScreen() {
       ? "Enter valid bank name"
       : "";
 
-  const validateAccount = (t) =>
-    !t.trim()
-      ? "Account number required"
-      : !/^\d{9,18}$/.test(t)
-      ? "Account number must be 9–18 digits"
-      : "";
+  const validateAccount = (t) => {
+  if (!t.trim()) return "Account number required";
+
+  if (!/^\d+$/.test(t))
+    return "Only numbers are allowed";
+
+  if (t.length < 9)
+    return "Minimum 9 digits required";
+
+  if (t.length > 18)
+    return "Maximum 18 digits allowed";
+
+  return "";
+};
 
 const validateIFSC = (t) => {
   if (!t.trim()) return "IFSC code is required";
@@ -78,12 +94,14 @@ const validateIFSC = (t) => {
   }, [bankName, touched.bankName]);
 
   useEffect(() => {
-    if (touched.accountNumber)
-      setError((e) => ({
-        ...e,
-        accountNumber: validateAccount(accountNumber),
-      }));
-  }, [accountNumber, touched.accountNumber]);
+  if (touched.accountNumber || accountNumber.length > 0) {
+    setError((e) => ({
+      ...e,
+      accountNumber: validateAccount(accountNumber),
+    }));
+  }
+}, [accountNumber, touched.accountNumber]);
+
 
   useEffect(() => {
     if (touched.ifsc)
@@ -161,15 +179,28 @@ const validateIFSC = (t) => {
           touched={touched.bankName}
         />
 
-        <InputField
-          label="Account Number"
-          value={accountNumber}
-          keyboardType="numeric"
-          onChangeText={(t) => setAccountNumber(t.replace(/\D/g, ""))}
-          onBlur={() => setTouched((p) => ({ ...p, accountNumber: true }))}
-          error={error.accountNumber}
-          touched={touched.accountNumber}
-        />
+       <InputField
+  label="Account Number"
+  value={accountNumber}
+  keyboardType="numeric"
+  onFocus={() => setFocusedField("accountNumber")}
+  onBlur={() => {
+    setFocusedField(null);
+    setTouched((p) => ({ ...p, accountNumber: true }));
+  }}
+  onChangeText={(t) => {
+    if (/^\d*$/.test(t)) {
+      setAccountNumber(t);
+    }
+  }}
+  error={error.accountNumber}
+  touched={
+    touched.accountNumber &&
+    focusedField !== "accountNumber" &&
+    accountNumber.length > 0
+  }
+/>
+
 
         <InputField
   label="IFSC Code"
@@ -221,27 +252,86 @@ const InputField = ({ label, error, touched, ...props }) => (
   </View>
 );
 
-/* ---------------- STYLES ---------------- */
+// /* ---------------- STYLES ---------------- */
+// const styles = StyleSheet.create({
+//   container: { padding: 30, backgroundColor: "#fff" },
+//   image: { width: "90%", height: 200, alignSelf: "center" },
+//   title: { fontSize: 22, fontWeight: "700", marginTop: 20, textAlign: "center" },
+//   label: { fontSize: 14, marginBottom: 6 },
+//   input: {
+//     borderWidth: 1,
+//     borderColor: "#ccc",
+//     borderRadius: 10,
+//     padding: 14,
+//   },
+//   error: { color: "red", fontSize: 12, marginTop: 5 },
+//   button: {
+//     backgroundColor: "#3D63FF",
+//     paddingVertical: 15,
+//     borderRadius: 30,
+//     marginTop: 30,
+//     marginBottom: 100,
+//     alignItems: "center",
+//   },
+//   buttonDisabled: { backgroundColor: "#9BB4FF" },
+//   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+// });
+
 const styles = StyleSheet.create({
-  container: { padding: 30, backgroundColor: "#fff" },
-  image: { width: "90%", height: 200, alignSelf: "center" },
-  title: { fontSize: 22, fontWeight: "700", marginTop: 20, textAlign: "center" },
-  label: { fontSize: 14, marginBottom: 6 },
+  container: {
+    padding: wp("7%"),
+    backgroundColor: "#fff",
+  },
+
+  image: {
+    width: wp("90%"),
+    height: hp("25%"),
+    alignSelf: "center",
+  },
+
+  title: {
+    fontSize: wp("5.5%"),
+    fontWeight: "700",
+    marginTop: hp("2%"),
+    textAlign: "center",
+  },
+
+  label: {
+    fontSize: wp("3.6%"),
+    marginBottom: hp("0.8%"),
+  },
+
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 14,
+    borderRadius: wp("3%"),
+    paddingVertical: hp("1.8%"),
+    paddingHorizontal: wp("4%"),
+    fontSize: wp("4%"),
   },
-  error: { color: "red", fontSize: 12, marginTop: 5 },
+
+  error: {
+    color: "red",
+    fontSize: wp("3.2%"),
+    marginTop: hp("0.6%"),
+  },
+
   button: {
     backgroundColor: "#3D63FF",
-    paddingVertical: 15,
-    borderRadius: 30,
-    marginTop: 30,
-    marginBottom: 100,
+    paddingVertical: hp("2%"),
+    borderRadius: wp("8%"),
+    marginTop: hp("4%"),
+    marginBottom: hp("12%"),
     alignItems: "center",
   },
-  buttonDisabled: { backgroundColor: "#9BB4FF" },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+
+  buttonDisabled: {
+    backgroundColor: "#9BB4FF",
+  },
+
+  btnText: {
+    color: "#fff",
+    fontSize: wp("4.2%"),
+    fontWeight: "600",
+  },
 });

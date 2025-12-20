@@ -23,8 +23,8 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-import HelpCenterList from '../screens/help/HelpCenterList';
-import HelpIssueScreen from '../screens/help/HelpIssueScreen';
+
+
 
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
 
@@ -33,7 +33,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="AddBankDetailsScreen"
+      initialRouteName="OnBoardingScreen"
     >
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
@@ -81,7 +81,7 @@ const AppNavigator = () => {
 
       <Stack.Screen name="HelpCenter" component={HelpCenterList} />
 
-      <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
+
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       <Stack.Screen
         name="AddBankDetailsScreen"
