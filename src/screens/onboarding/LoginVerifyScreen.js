@@ -25,19 +25,19 @@ const COLORS = {
 
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await axios.post(
+    const response = await fetch(
       `${WEBSITE_URL}/api/mobile/verify-static-otp`,
       {
-        phone: phone,
-        otp: otp,
-      },
-      {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-      }
+        body: JSON.stringify({
+          phone: phone,
+          otp: otp,
+        }),
+      },
     );
-
     console.log(response);
     console.log("hello", response.data);
 

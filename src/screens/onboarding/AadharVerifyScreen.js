@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 
 import {
@@ -15,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '../../components/common/Header';
 import OTPInputBox from '../../components/common/OTPInputBox';
-import OtpInput from '../../components/common/OtpInput';
 
 import { useDispatch } from 'react-redux';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
@@ -29,9 +27,6 @@ const OTP_LENGTH = 6;
 const AadhaarOtpVerificationScreen = ({ route }) => {
   const navigation = useNavigation();
   const aadharNumber = route?.params?.aadharNumber;
-  console.log(route?.params?.otp);
-
-  console.log(aadharNumber);
 
   const dispatch = useDispatch();
 
@@ -73,22 +68,22 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
             OTP was sent on your registrated mobile number
           </Text>
 
-          {/* <OTPInputBox
+          <OTPInputBox
             otp={otp}
             inputRefs={inputRefs}
             handleChange={handleChange}
             handleKeyPress={handleKeyPress}
             handlePress={handlePress}
-          /> */}
+          />
 
-          <OtpInput
+          {/* <OtpInput
             otp={otp}
             error={error}
             inputRefs={inputRefs}
             onChange={handleChange}
             onKeyPress={handleKeyPress}
             handlePress={handlePress}
-          />
+          /> */}
 
           {error && <Text style={styles.error}>{error}.</Text>}
           {success && (
@@ -181,7 +176,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.error,
-    marginTop: 10,
+    marginTop: -5,
   },
   successText: {
     color: COLORS.success,
