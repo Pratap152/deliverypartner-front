@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+
+import api from '../api/ApiClient';
 
 import WEBSITE_URL from '../utils/host';
 import { useAuth } from './useAuth';
+
+import axios from 'axios';
 
 const useOtpVerification = otpLength => {
   const [otp, setOtp] = useState(new Array(otpLength).fill(''));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const inputRefs = useRef([]);
-
   const { authToken } = useAuth();
-
-  
+  const inputRefs = useRef([]);
 
   useEffect(() => {
     if (inputRefs.current[0]) {
@@ -49,7 +49,7 @@ const useOtpVerification = otpLength => {
       const reponse = await axios.post(
         `${WEBSITE_URL}/aadhar/verify-otp`,
         {
-          aadharNumber,
+          aadharNumber: aadharNumber.split(' ').join(''),
           otp: enteredOtp,
         },
         {
@@ -59,6 +59,7 @@ const useOtpVerification = otpLength => {
         },
       );
 
+      console.log('otp verification response...', reponse);
       if (reponse.status !== 200) {
         setError(reponse.data.message);
         return;
@@ -68,7 +69,7 @@ const useOtpVerification = otpLength => {
 
       onSuccess();
     } catch (error) {
-      console.log('Error While verifying Otp', error?.response?.data);
+      console.log('Error While verifying Otp', error);
       setError(error?.response?.data?.message);
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   FlatList,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/common/Header';
@@ -17,8 +18,11 @@ import paytmImage from '../../assets/paytm-logo.jpg';
 import razorPayImage from '../../assets/razor-pay-logo.jpg';
 import upiImage from '../../assets/upi-logo.png';
 
+import api from '../../api/ApiClient';
+
 import { COLORS } from '../../utils/colors';
 import { TextInput } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const PAYMENT_METHODS = [
   { id: 'phonepe', label: 'PhonePe', image: phonePayImage },
@@ -49,9 +53,39 @@ const OFFLINE_ADDRESSES = [
 export default function PaymentsScreen() {
   const [tab, setTab] = useState('Online'); // 'Online' | 'Offline'
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [selectedAddress, setSelectedAddress] = useState(
-    OFFLINE_ADDRESSES[0].id,
-  );
+  const [selectedAddress, setSelectedAddress] = useState();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [offlineAddress, setOfflineAddress] = useState([]);
+  const [error, setError] = useState('');
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (tab === 'Offline') {
+      fetchOfflineStores();
+    }
+  }, [tab]);
+
+  const fetchOfflineStores = async () => {
+    try {
+      setIsLoading(true);
+      const reponse = await api.get('/api/admin/get-offline-stores');
+      console.log(reponse.data);
+
+      if (!reponse.data.success) {
+        console.log('Error while fetching offline stores');
+        setError('Unable to fetch stores. Please try again.');
+        return;
+      }
+      setOfflineAddress(reponse.data?.data);
+    } catch (error) {
+      console.log(error);
+      setError('Something went wrong. Please try again');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const renderPaymentItem = ({ item }) => {
     const selected = selectedPayment === item.id;
@@ -156,19 +190,19 @@ export default function PaymentsScreen() {
   };
 
   const renderAddressItem = ({ item }) => {
-    const selected = selectedAddress === item.id;
+    const selected = selectedAddress === item._id;
     return (
       <TouchableOpacity
         activeOpacity={0.9}
         style={[styles.addressCard, selected && styles.addressCardSelected]}
-        onPress={() => setSelectedAddress(item.id)}
+        onPress={() => setSelectedAddress(item._id)}
       >
         <View style={styles.addressTopRow}>
           <View style={styles.addressRadioOuter}>
             {selected && <View style={styles.addressRadioInner} />}
           </View>
           <Text style={styles.addressTitle} numberOfLines={3}>
-            {item.title}
+            {item.completeAddress}
           </Text>
         </View>
       </TouchableOpacity>
@@ -226,11 +260,25 @@ export default function PaymentsScreen() {
               renderItem={renderPaymentItem}
             />
           ) : (
-            <FlatList
-              data={OFFLINE_ADDRESSES}
-              keyExtractor={i => i.id}
-              renderItem={renderAddressItem}
-            />
+            <>
+              {isLoading ? (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <ActivityIndicator size={'large'} color={COLORS.primary} />
+                </View>
+              ) : (
+                <FlatList
+                  data={offlineAddress}
+                  keyExtractor={item => item._id}
+                  renderItem={renderAddressItem}
+                />
+              )}
+            </>
           )}
         </View>
 
@@ -244,9 +292,9 @@ export default function PaymentsScreen() {
           }
           onPress={() => {
             if (tab === 'Online') {
-              console.log('Selected payment:', selectedPayment);
+              navigation.navigate('SuccessScreen');
             } else {
-              console.log('Selected address:', selectedAddress);
+              navigation.navigate('MainTabs');
             }
           }}
         >

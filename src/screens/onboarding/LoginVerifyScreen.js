@@ -26,16 +26,19 @@ const COLORS = {
 
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await fetch(`${WEBSITE_URL}/api/mobile/verify-static-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${WEBSITE_URL}/api/mobile/verify-static-otp`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phone,
+          otp: otp,
+        }),
       },
-      body: JSON.stringify({
-        phone: phone,
-        otp: otp,
-      }),
-    });
+    );
     console.log(response);
 
     const data = await response.json().catch(() => ({}));

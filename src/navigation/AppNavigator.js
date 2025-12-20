@@ -20,7 +20,7 @@ import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 
 import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
-
+import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 const Stack = createNativeStackNavigator();
@@ -28,7 +28,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="PaymentsScreen"
+      initialRouteName="OnBoardingScreen"
     >
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
@@ -72,6 +72,7 @@ const AppNavigator = () => {
         component={ProcessingVerificationScreen}
       />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
+      <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
 
       <Stack.Screen name="HelpCenter" component={HelpCenterList} />
 
