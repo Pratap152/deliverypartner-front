@@ -92,7 +92,7 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
     </Stack.Navigator>
-  ); n
+  ); 
 };
 
 export default AppNavigator;
