@@ -23,7 +23,7 @@ const KitHeader = () => {
           <View
             style={[
               styles.imageContainer,
-              { width: imageSize, height: imageSize },
+              { width: imageSize+20, height: imageSize+40 },
             ]}
           >
             <Image

@@ -9,87 +9,88 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchAddresses, setEditingAddress } from "../../redux/slices/addressSlice";
+import { startEditingAddress,assignAddress } from "../../redux/slices/addressSlice";
 import KitHeader from "../../components/kit/KitHeader";
+import { useKitAddress } from "../../hooks/useCreateKitAddress";
 
 const KitPickupSelection = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
+  const {address:globalAddress} = useSelector(state => state.address);
+  const { getKitAddress, loading } = useKitAddress();
+  
+  
+  const handleEdit = () => {
+  dispatch(startEditingAddress());
+  navigation.navigate("KitSelectionScreen");
+};
 
-  const {addresses,loading} = useSelector(state => state.address);
-  const [selectedId, setSelectedId] = useState(null);
 
-  const goToAdd = () => {
-    dispatch(setEditingAddress(null));
-    navigation.navigate("KitSelectionScreen");
-  };
-  const editAddress = (item) => {
-    dispatch(setEditingAddress(item));
-    navigation.navigate("KitSelectionScreen");
-  };
-   useEffect(() => {
-    dispatch(fetchAddresses());
-  }, []);
 
+useEffect(() => {
+  async function fetchAddress() {
+    try {
+      const address = await getKitAddress();
+      if (address) {
+        dispatch(assignAddress(address));
+      }
+    } catch (e) {
+      console.log("Failed to fetch address");
+    }
+  }
+
+  fetchAddress();
+}, []);
+if (loading) return  (
+  <View style={{flex:1,justifyContent:"center",alignItems:"center"}}>
+<ActivityIndicator/>
+  </View>
+);
   return (
-    <>
-      <ScrollView style={[styles.container, { padding: width * 0.05 }]}>
-        <Text style={styles.title}>Kit Selection</Text>
-        <KitHeader />
-         {loading && (
-          <ActivityIndicator size="large" color="#00BCD4" />
-        )}
-       
-        {!loading && addresses.map(item => (
-          <TouchableOpacity
-            key={item.id}
-            style={[
-              styles.card,
-              selectedId === item.id && styles.cardSelected,
-            ]}
-            onPress={() => setSelectedId(item.id)}
-          >
-            <View style={styles.row}>
-              <View
-                style={[
-                  styles.radioOuter,
-                  selectedId === item.id && styles.radioOuterActive,
-                ]}
-              >
-                {selectedId === item.id && <View style={styles.radioInner} />}
-              </View>
+  <>
+    <ScrollView style={[styles.container, { padding: width * 0.05 }]}>
+      <Text style={styles.title}>Kit Selection</Text>
+      <KitHeader />
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.address}>
-                  {item.address}, {item.pincode}
-                </Text>
-              </View>
-
-              <TouchableOpacity onPress={() => editAddress(item)}>
-                <Text style={styles.editIcon}>✎</Text>
-              </TouchableOpacity>
+      {globalAddress && (
+        <TouchableOpacity style={[styles.card, styles.cardSelected]}>
+          <View style={styles.row}>
+            <View style={[styles.radioOuter, styles.radioOuterActive]}>
+              <View style={styles.radioInner} />
             </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
 
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.addBtn} onPress={goToAdd}>
-          <Text style={styles.addText}>+ Add Address</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{globalAddress.name}</Text>
+              <Text style={styles.address}>
+                {globalAddress.address || globalAddress.completeAddress}, {globalAddress.pincode || globalAddress.pin}
+              </Text>
+            </View>
+
+            <TouchableOpacity onPress={() => handleEdit(globalAddress)}>
+              <Text style={styles.editIcon}>✎</Text>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
+      )}
+    </ScrollView>
 
-        <View style={styles.footerBtns}>
-          <TouchableOpacity style={styles.payBtn}>
-            <Text style={styles.payText}>Pay Now</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.payBtn}>
-            <Text style={styles.payText}>Pay On EMI</Text>
-          </TouchableOpacity>
-        </View>
+    
+    <View style={styles.bottomContainer}>
+      <TouchableOpacity style={styles.addBtn} onPress={handleEdit}>
+        <Text style={styles.addText}>Change Address</Text>
+      </TouchableOpacity>
+
+      <View style={styles.footerBtns}>
+        <TouchableOpacity style={styles.payBtn}>
+          <Text style={styles.payText}>Pay Now</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.payBtn}>
+          <Text style={styles.payText}>Pay On EMI</Text>
+        </TouchableOpacity>
       </View>
-    </>
-  );
+    </View>
+  </>
+);
 };
 
 export default KitPickupSelection;

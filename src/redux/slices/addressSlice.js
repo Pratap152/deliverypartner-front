@@ -1,67 +1,48 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../api/ApiClient";
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  addresses: [],
-  editingAddress: null,
-  loading: false,
-  error: null
+  address: null,       // single address object
+  isEditing: false,    // tells input screen mode
 };
-export const fetchAddresses = createAsyncThunk(
-  "address/fetchAddresses",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.get("/api/rider/kit-address");
-      console.log("Fetched addresses:", response);
-      return response.data; // expect array
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to fetch addresses");
-    }
-  }
-);
 
 const addressSlice = createSlice({
   name: "address",
   initialState,
   reducers: {
-    addAddress: (state, action) => {
-      state.addresses.push(action.payload);
+    // ✅ Create or overwrite address
+    assignAddress: (state, action) => {
+      state.address = action.payload;
+      state.isEditing = false;
     },
+
+    // ✅ Start editing existing address
+    startEditingAddress: (state) => {
+      state.isEditing = true;
+    },
+
+    // ✅ Update existing address
     updateAddress: (state, action) => {
-      state.addresses = state.addresses.map(item =>
-        item.id === action.payload.id ? action.payload : item
-      );
+      state.address = {
+        ...state.address,
+        ...action.payload,
+      };
+      state.isEditing = false;
     },
-    setEditingAddress: (state, action) => {
-      state.editingAddress = action.payload;
+
+    // ✅ Clear address (optional: logout / reset)
+    clearAddress: (state) => {
+      state.address = null;
+      state.isEditing = false;
     },
-    clearEditingAddress: (state) => {
-      state.editingAddress = null;
-    },
-  },
-  extraReducers: builder => {
-    builder
-      .addCase(fetchAddresses.pending, state => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchAddresses.fulfilled, (state, action) => {
-        state.loading = false;
-        state.addresses = action.payload;
-      })
-      .addCase(fetchAddresses.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
   },
 });
 
 export const {
-  addAddress,
+  assignAddress,
   updateAddress,
-  setEditingAddress,
-  clearEditingAddress,
-  
+  startEditingAddress,
+  clearAddress,
 } = addressSlice.actions;
 
 export default addressSlice.reducer;
+

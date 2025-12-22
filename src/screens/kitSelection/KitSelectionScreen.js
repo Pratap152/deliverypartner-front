@@ -9,42 +9,30 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  addAdress,
-  updateAddress,
-  clearEditingAddress,
-  addAddress,
-} from "../../redux/slices/addressSlice";
+import { assignAddress, updateAddress } from "../../redux/slices/addressSlice";
 import KitHeader from "../../components/kit/KitHeader";
-import { useCreateKitAddress } from "../../hooks/useCreateKitAddress";
+import {useCreateKitAddress, useKitAddress} from "../../hooks/useCreateKitAddress";
+import { add } from "@shopify/react-native-skia";
 
 const KitSelectionScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
-  const editingAddress = useSelector(
-    state => state.address.editingAddress
-  );
-
+  const { address:globalAddress, isEditing } = useSelector(state => state.address);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
-
   const [errors, setErrors] = useState({});
-  const {
-    createKitAddress,
-    loading,
-    error,
-    success,
-  } = useCreateKitAddress();
-
+  const {createKitAddress,loading,error,success} =useKitAddress();
   useEffect(() => {
-    if (editingAddress) {
-      setName(editingAddress.name);
-      // some API responses use `address` key, others use `completeAddress`
-      setAddress(editingAddress.address || editingAddress.completeAddress || "");
-      setPincode(editingAddress.pincode);
-    }
-  }, [editingAddress]);
+  if (isEditing && globalAddress) {
+    setName(globalAddress.name || "");
+    // backend may return address under `completeAddress`
+    setAddress(globalAddress.address || globalAddress.completeAddress || "");
+    // pincode could be named differently in some responses
+    setPincode(globalAddress.pincode || globalAddress.pin || "");
+  }
+}, [isEditing, globalAddress]);
+
 
   const validate = () => {
     const newErrors = {};
@@ -53,7 +41,7 @@ const KitSelectionScreen = ({ navigation }) => {
       newErrors.name = "Name must be at least 2 characters";
     }
 
-    if (!address) {
+    if (!address||address.length<8) {
       newErrors.address = "Address is required";
     }
 
@@ -65,45 +53,18 @@ const KitSelectionScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave =async () => {
+  const handleSave = async () => {
     if (!validate()) return;
+  const payload = { name, address, pincode };
+  const data=await createKitAddress(name,address,pincode);
 
-    if (editingAddress) {
-      dispatch(
-        updateAddress({
-          id: editingAddress.id,
-          name,
-          address,
-          pincode,
-        })
-      );
-      dispatch(clearEditingAddress());
-    } else {
-      dispatch(
-        addAddress({
-          id: Date.now(),
-          name,
-          address,
-          pincode,
-        })
-      );
-    }
-try {
-      if (!editingAddress) {
-        // create on server for new addresses
-        await createKitAddress(name,address,pincode);
-        console.log("Address saved successfully");
-      } else {
-        // editing existing address: we update local state but
-        // server-side update endpoint is not implemented yet
-        console.log("Address updated locally (server update not implemented)");
-      }
-      navigation.navigate("KitPickupSelection");
-    } catch (e) {
-      console.log(e);
-    }
-
-
+  if (isEditing) {
+    dispatch(updateAddress(payload));
+  } else {
+    dispatch(assignAddress(payload));
+  }
+  navigation.navigate("KitPickupSelection")
+    
   };
 
   return (
@@ -154,8 +115,8 @@ try {
       />
       {errors.pincode && <Text style={styles.error}>{errors.pincode}</Text>}
 
-      <TouchableOpacity style={styles.continueBtn} onPress={handleSave}>
-        <Text style={styles.continueText}>Continue</Text>
+      <TouchableOpacity disabled={loading}  style={styles.continueBtn} onPress={handleSave}>
+        <Text style={styles.continueText}>{loading?"loading...":"Continue"}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
