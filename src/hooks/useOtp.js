@@ -28,6 +28,15 @@ export const useOtp = (length = 6) => {
 
   // ======== INPUT CHANGE HANDLER ========
   const handleChange = (value, index) => {
+
+    if (
+    index > 0 &&
+    !otp[index - 1] &&
+    value.length === 1 // allow paste/autofill
+  ) {
+    inputRefs.current[index - 1]?.focus();
+    return;
+  }
     // Only allow numbers
     if (!/^\d*$/.test(value)) return;
 

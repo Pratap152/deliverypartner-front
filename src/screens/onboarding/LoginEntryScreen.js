@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import BGImage from '../../assets/Ellipse.png';
 import vega_partner from '../../assets/vega_partner.png';
 import WEBSITE_URL from "../../utils/host";
-
+import axios from "axios";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -29,26 +29,36 @@ const CURVE_TOP = '#FFFFFFF5';
 const CURVE_BOTTOM = '#CDF5E7';
 const BUTTON_BLUE = '#16C2D5';
 
-// const BASE_URL = "https://delivarypartner.onrender.com";  // <-- change to your backend URL
-
 export const sendOTPApi = async (phone) => {
-    console.log("📤 Sending OTP to:", phone);
-  try {
-    const response = await fetch(`${WEBSITE_URL}/api/mobile/send-static-otp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", 
-      },
-      body: JSON.stringify({
-        phone: phone
-      }),
-    });
+  console.log("📤 Sending OTP to:", phone);
 
-    const data = await response.json();
-    console.log(data)
-    return { status: response.status, data };
+  try {
+    const response = await axios.post(
+      `${WEBSITE_URL}/api/mobile/send-static-otp`,
+      {
+        phone: phone,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(response.data);
+    return { status: response.status, data: response.data };
   } catch (error) {
-    return { status: 500, data: { message: "Something went wrong" }};
+    if (error.response) {
+      return {
+        status: error.response.status,
+        data: error.response.data,
+      };
+    }
+    // Network or unexpected error
+    return {
+      status: 500,
+      data: { message: "Something went wrong" },
+    };
   }
 };
 
@@ -96,7 +106,7 @@ const LoginEntryScreen = ({ navigation }) => {
   setError(""); // reset any previous errors
 
   const result = await sendOTPApi(mobileNumber);
-   setIsSending(false);
+    setIsSending(false);
   if (result.status === 200) {
     navigation.navigate("LoginVerifyScreen", {
       phone: mobileNumber,
@@ -117,7 +127,7 @@ const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChec
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        enabled={false}
+        enabled={true}
         style={{ flex: 1 }}
       >
         <ScrollView

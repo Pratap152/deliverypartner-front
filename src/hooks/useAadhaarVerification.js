@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 
 import { isValidAadhaar } from '../utils/helpers';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
 import WEBSITE_URL from '../utils/host';
 import { useAuth } from './useAuth';
+
+import axios from 'axios';
+
+import api from '../api/ApiClient';
 
 export default function useAadhaarVerification() {
   const navigation = useNavigation();
@@ -15,32 +18,34 @@ export default function useAadhaarVerification() {
 
   const { authToken } = useAuth();
 
-  
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (aadhaar.length === 12) {
-      setError(isValidAadhaar(aadhaar) ? '' : 'Invalid Aadhaar number.');
+    const rawAadhaar = aadhaar.replace(/\s/g, '');
+
+    if (rawAadhaar.length === 12) {
+      setError(isValidAadhaar(rawAadhaar) ? '' : 'Invalid Aadhaar number.');
+    } else {
+      setError('');
     }
   }, [aadhaar]);
 
-  console.log(authToken);
-
   const handleSubmit = async () => {
-    console.log('sending aadhaar otp....');
+    console.log('sending aadhaar otp...');
     if (!isValidAadhaar(aadhaar)) {
       setError('Invalid Aadhaar number.');
       return;
     }
     setLoading(true);
 
+    setError('');
     try {
       const response = await axios.post(
         `${WEBSITE_URL}/aadhar/send-otp`,
         {
-          aadharNumber: aadhaar,
+          aadharNumber: aadhaar.split(' ').join(''),
         },
         {
           headers: {
@@ -49,7 +54,6 @@ export default function useAadhaarVerification() {
         },
       );
 
-      console.log('aadhaar send otp success', response);
       if (response.status !== 200) {
         setError(response.data.message);
         return;
@@ -60,17 +64,24 @@ export default function useAadhaarVerification() {
       });
       setAadhaar('');
     } catch (error) {
-      console.log('Error aadhaar send otp', error?.response?.data);
+      console.log('Error aadhaar send otp', error);
       setError(error?.response?.data?.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOnChange = text => {
-    const numericText = text.replace(/\D/g, '');
+  function formatAadhaarInput(value) {
+    return value
+      .replace(/\D/g, '') // remove non-digits
+      .slice(0, 12) // max 12 digits
+      .replace(/(\d{4})(?=\d)/g, '$1 ');
+  }
 
-    setAadhaar(numericText);
+  const handleOnChange = text => {
+    const formattedAadhaar = formatAadhaarInput(text);
+
+    setAadhaar(formattedAadhaar);
   };
 
   return {
