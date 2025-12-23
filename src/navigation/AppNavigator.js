@@ -23,18 +23,18 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-
-
-
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-
+import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
+import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="OnBoardingScreen"
+      initialRouteName='KitSelectionScreen'
     >
+      <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
+      <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
@@ -87,12 +87,12 @@ const AppNavigator = () => {
         name="AddBankDetailsScreen"
         component={AddBankDetailsScreen}
       />
-      {/* <Stack.Screen name="" component={} />
+       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
-      <Stack.Screen name="" component={} /> */}
-      <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      <Stack.Screen name="" component={} />  */}
+      <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
     </Stack.Navigator>
-  ); n
+  ); 
 };
 
 export default AppNavigator;
