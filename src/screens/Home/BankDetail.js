@@ -21,7 +21,7 @@ import {
 } from "react-native-responsive-screen";
 
 
-export default function AddBankDetailsScreen() {
+export default function AddBankDetails() {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");

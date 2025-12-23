@@ -22,15 +22,19 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-import ReferFrd from '../screens/Home/ReferFrd'
+import ReferEarn from '../../src/screens/Home/ReferEarn';
+import AddBankDetails from '../../src/screens/Home/BankDetail';
+import HomeDashboard from '../../src/screens/dashboard/HomeDashboard';
+import IncentiveDetails from '../../src/screens/Home/IncentiveDetails';
+
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="ReferFrd"
+      initialRouteName="HomeDashboard"
     >
+      <Stack.Screen name='HomeDashboard' component={HomeDashboard}/>
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
@@ -80,16 +84,25 @@ const AppNavigator = () => {
 
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       <Stack.Screen
-        name="AddBankDetailsScreen"
-        component={AddBankDetailsScreen}
+        name="AddBankDetails"
+        component={AddBankDetails}
       />
+
+    <Stack.Screen name='ReferEarn' component={ReferEarn}/>
+      <Stack.Screen
+  name="IncentiveDetails"
+  component={IncentiveDetails}
+  options={{ headerShown: true, title: "Incentive Details" }}
+/>
+ 
+
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
     </Stack.Navigator>
-  ); n
+  ); 
 };
 
 export default AppNavigator;
