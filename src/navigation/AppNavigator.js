@@ -18,22 +18,18 @@ import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
-
 import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-
-
-
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-
+import ReferFrd from '../screens/Home/ReferFrd'
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="OnBoardingScreen"
+      initialRouteName="ReferFrd"
     >
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
@@ -90,6 +86,7 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
+      <Stack.Screen name="ReferFrd" component={ReferFrd} />
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
     </Stack.Navigator>
   ); n
