@@ -20,17 +20,15 @@ const DOCUMENTS = [
 const DocumentVerificationScreen = () => {
   const navigation = useNavigation();
   const verifiedDocuments = useSelector(state => state.documents);
-  const selectedVehicel = useSelector(state => state.vehicle.selectedVehicle);
-  // const selectedVehicel = 'ev';
 
   const handleSelect = item => {
     if (verifiedDocuments[item.id]) return;
     navigation.navigate(item.route);
   };
 
-  const isAllDocumentsVerified = Object.values(verifiedDocuments)
-    .slice(0, selectedVehicel === 'ev' ? 2 : 3)
-    .every(value => value === true);
+  const isAllDocumentsVerified = Object.values(verifiedDocuments).every(
+    value => value === true,
+  );
 
   const handleSubmit = () => {
     navigation.navigate('ProcessingVerificationScreen');
@@ -56,30 +54,26 @@ const DocumentVerificationScreen = () => {
             </Text>
 
             <View style={styles.btnsContainer}>
-              {DOCUMENTS.slice(0, selectedVehicel === 'ev' ? 2 : 3).map(
-                item => {
-                  const isVerified = verifiedDocuments[item.id];
-                  return (
-                    <TouchableOpacity
-                      onPress={() => handleSelect(item)}
-                      key={item.id}
-                      disabled={isVerified}
-                      style={[styles.btn, isVerified && styles.active]}
-                    >
-                      <Text
-                        style={[styles.btnText, isVerified && styles.active]}
-                      >
-                        {item.title}
-                      </Text>
-                      <Ionicons
-                        name={isVerified ? 'checkmark' : 'chevron-forward'}
-                        size={20}
-                        color={isVerified ? COLORS.white : COLORS.border}
-                      />
-                    </TouchableOpacity>
-                  );
-                },
-              )}
+              {DOCUMENTS.map(item => {
+                const isVerified = verifiedDocuments[item.id];
+                return (
+                  <TouchableOpacity
+                    onPress={() => handleSelect(item)}
+                    key={item.id}
+                    disabled={isVerified}
+                    style={[styles.btn, isVerified && styles.active]}
+                  >
+                    <Text style={[styles.btnText, isVerified && styles.active]}>
+                      {item.title}
+                    </Text>
+                    <Ionicons
+                      name={isVerified ? 'checkmark' : 'chevron-forward'}
+                      size={20}
+                      color={isVerified ? COLORS.white : COLORS.border}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
           <View>
@@ -100,12 +94,9 @@ export default DocumentVerificationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
-    paddingBottom: 16,
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
     backgroundColor: COLORS.white,
-    // justifyContent: 'space-between',
   },
 
   content: {

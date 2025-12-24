@@ -1,6 +1,6 @@
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text, View } from "react-native";
- const  PermissionItem = ({ icon, title, desc,onPress,isEnabled}) =>{
+ const  PermissionItem = ({ icon, title, desc,onPress,isTick,isEnabled}) =>{
   
   const key=title==="Location"?"location":title==="Background Location"?"backgroundLocation":title==="Camera"?"camera":"notification";
 
@@ -11,6 +11,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
       <Text style={styles.permissionTitle}>{title}</Text>
       <Text style={styles.permissionDesc}>{desc}</Text>
     </View>
+    {isTick && (   
+    <Icon
+      name="checkmark-circle"
+      size={26}
+      color="#24cc15ff"
+    />
+  )}
   </Pressable>
 )};
 const styles=StyleSheet.create({
