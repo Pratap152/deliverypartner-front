@@ -15,12 +15,12 @@ export default function HomeDashboard({navigation}) {
         <Text style={styles.userName}>Rajesh</Text>
         <Text style={styles.icon}>📍 🔔</Text>
       </View>
-
+ 
       {/* Swipe for Online */}
       <View style={styles.swipeBox}>
         <Text style={styles.swipeText}>Swipe For Online</Text>
       </View>
-
+ 
       {/* Add Bank Details */}
       <View style={styles.bankCard}>
         <Text style={styles.bankTitle}>Add Bank Details</Text>
@@ -31,7 +31,7 @@ export default function HomeDashboard({navigation}) {
           <Text style={styles.btnText}>Complete Now →</Text>
         </TouchableOpacity>
       </View>
-
+ 
       {/* Today's Progress */}
       <Text style={styles.sectionTitle}>Today's Progress</Text>
       <View style={styles.progressRow}>
@@ -39,14 +39,14 @@ export default function HomeDashboard({navigation}) {
         <ProgressCard title="Online" value="4h 23m" />
         <ProgressCard title="Orders" value="12" />
       </View>
-
+ 
       {/* Refer & Earn */}
        <View style={styles.banner}>
           <TouchableOpacity onPress={()=>{navigation.navigate("ReferEarn")}}>
             <Text>Navigate to Refer Earn Screen</Text>
       </TouchableOpacity>
        </View>
-
+ 
       {/* Active Shift */}
       <View style={styles.shiftCard}>
         <Text style={styles.shiftTitle}>Active Shift</Text>
@@ -55,14 +55,14 @@ export default function HomeDashboard({navigation}) {
           <Text style={styles.darkText}>Book Now and Go Online</Text>
         </TouchableOpacity>
       </View>
-
+ 
       {/* Peak Hour Bonus */}
        <View style={styles.banner}>
           <TouchableOpacity onPress={()=>{navigation.navigate("IncentiveDetails")}}>
             <Text>Navigate to IncentiveDetails Screen</Text>
       </TouchableOpacity>
        </View>
-    
+   
       {/* Weekly Summary */}
       <View style={styles.weekCard}>
         <Text style={styles.weekTitle}>This Week</Text>
@@ -73,14 +73,14 @@ export default function HomeDashboard({navigation}) {
     </ScrollView>
   );
 }
-
+ 
 const ProgressCard = ({ title, value }) => (
   <View style={styles.progressCard}>
     <Text style={styles.progressValue}>{value}</Text>
     <Text style={styles.progressTitle}>{title}</Text>
   </View>
 );
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -212,3 +212,5 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 });
+ 
+ 
