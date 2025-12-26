@@ -22,17 +22,20 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-
+import AddBankDetails from '../screens/Home/BankDetail';
 import CustomerResponse from '../screens/Home/CustomerResponse';
 import ReportIssue from '../screens/Home/ReportIssue'
-import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-
+// import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
+import HomeDashboard from '../screens/dashboard/HomeDashboard';
+import ReferEarn from '../screens/Home/ReferEarn';
+import IncentiveDetails from '../screens/Home/IncentiveDetails';
+import ReferFrd from '../screens/Home/ReferFrd';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="ReportIssue"
+      initialRouteName="HomeDashboard"
     >
       <Stack.Screen name='HomeDashboard' component={HomeDashboard}/>
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
@@ -89,6 +92,7 @@ const AppNavigator = () => {
       />
 
     <Stack.Screen name='ReferEarn' component={ReferEarn}/>
+    <Stack.Screen name='ReferFrd' component={ReferFrd}/>
       <Stack.Screen
   name="IncentiveDetails"
   component={IncentiveDetails}

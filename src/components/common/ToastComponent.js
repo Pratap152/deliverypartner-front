@@ -19,7 +19,7 @@ const toastConfig = {
     <ToastView
       {...props}
       icon="checkmark-circle"
-      bgColor="bluegit"
+      bgColor="blue"
     />
   ),
 

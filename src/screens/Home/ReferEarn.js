@@ -5,28 +5,47 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  Image
+  Image,
+  ScrollView
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import ReferralBanner from '../Home/ReferralBanner';
+import Clipboard from "@react-native-clipboard/clipboard";
+import { Alert } from "react-native";
+import { Share } from "react-native";
 
+
+import {
+
+  widthPercentageToDP as wp,
+
+  heightPercentageToDP as hp,
+
+} from "react-native-responsive-screen";
 const { width } = Dimensions.get("window");
 
-export default function ReferEarn() {
+export default function ReferEarn({navigation}) {
+  const referralCode = "ABDIJIEOPJI1234";
+
+const copyToClipboard = () => {
+  Clipboard.setString(referralCode);
+  Alert.alert("Copied!", "Referral code copied to clipboard");
+};
+const shareReferralCode = async () => {
+  try {
+    await Share.share({
+      message: `Join using my referral code: ${referralCode} and start earning! 🚀`,
+    });
+  } catch (error) {
+    console.log("Share error:", error);
+  }
+};
   return (
+      
+      <ScrollView contentContainerStyle={styles.container}>
+      <ReferralBanner />
     <View style={styles.container}>
-      {/* Top Banner */}
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>Earn upto</Text>
-        <Text style={styles.amount}>₹1000</Text>
-        <Text style={styles.bannerText}>For every referral</Text>
-
-        <Image
-        source={require('../../assets/Earn.png')}
-        style={styles.moneyBagImage}
-      />
-      </View>
-
       {/* Refer & Earn Title */}
       <View style={styles.titleRow}>
         <View style={styles.line} />
@@ -54,66 +73,45 @@ export default function ReferEarn() {
         <Text style={styles.codeText}>ABDIJIEOPJI1234</Text>
 
         <View style={styles.iconRow}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={copyToClipboard}>
             <MaterialIcons name="content-copy" size={22} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={{ marginLeft: 12 }}>
+          <TouchableOpacity style={{ marginLeft: 12 }} onPress={shareReferralCode}>
             <MaterialIcons name="share" size={22} />
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Refer Now Button */}
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={()=>{navigation.navigate('ReferFrd')}}>
         <Text style={styles.buttonText}>Refer Now</Text>
       </TouchableOpacity>
     </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
     backgroundColor: "#fff",
   },
 
-  banner: {
-    backgroundColor: "#019C5D",
-    height: width * 0.65,
-    padding: 20,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    justifyContent: "center",
-  },
-
-  bannerText: {
-    color: "#fff",
-    fontSize: 20,
-  },
-
-  amount: {
-    fontSize: 42,
-    fontWeight: "bold",
-    color: "#FFD54F",
-    marginVertical: 5,
-  },
-
-  illustration: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
+  container: {
+    flex: 1,
   },
 
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
-    paddingHorizontal: 20,
+    marginVertical: hp("2.5%"),
+    paddingHorizontal: wp("5%"),
   },
 
   title: {
-    marginHorizontal: 10,
+    marginHorizontal: wp("3%"),
+    fontSize: wp("5%"),
     fontWeight: "600",
   },
 
@@ -126,48 +124,50 @@ const styles = StyleSheet.create({
   cardRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
+    paddingHorizontal: wp("5%"),
   },
 
   card: {
     width: "47%",
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: wp("4%"),
+    padding: wp("4%"),
   },
 
   greenCard: {
-    backgroundColor: "#2ECC71",
+    backgroundColor: "#F54900",
+    borderRadius:wp("5%")
   },
 
   orangeCard: {
-    backgroundColor: "#FF6F00",
+    backgroundColor: "#F54900",
   },
 
   cardValue: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: wp("6%"),
     fontWeight: "bold",
-    marginTop: 6,
+    marginTop: hp("1%"),
   },
 
   cardLabel: {
     color: "#fff",
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: wp("3.2%"),
+    marginTop: hp("0.5%"),
   },
 
   codeBox: {
-    margin: 20,
-    padding: 14,
+    margin: wp("5%"),
+    padding: wp("4%"),
     borderWidth: 1,
     borderColor: "#000",
-    borderRadius: 10,
+    borderRadius: wp("3%"),
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
 
   codeText: {
+    fontSize: wp("4%"),
     fontWeight: "600",
     letterSpacing: 1,
   },
@@ -178,17 +178,17 @@ const styles = StyleSheet.create({
 
   button: {
     backgroundColor: "#2E8B57",
-    marginHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 30,
+    marginVertical:wp("40%"),
+    marginHorizontal: wp("10%"),
+    paddingVertical: hp("2%"),
+    borderRadius: wp("10%"),
     alignItems: "center",
-    marginTop: "auto",
-    marginBottom: 20,
+    marginBottom: hp("3%"),
   },
 
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: wp("4.2%"),
     fontWeight: "600",
   },
 });

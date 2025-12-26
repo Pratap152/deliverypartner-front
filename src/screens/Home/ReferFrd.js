@@ -11,7 +11,7 @@ import {
 import Toast from 'react-native-toast-message';
 import ReferralBanner from './ReferralBanner';
 
-const ReferFrd = () => {
+function ReferFrd(){
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
@@ -74,7 +74,11 @@ const ReferFrd = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <ReferralBanner />
 
-      <Text style={styles.sectionTitle}>Refer & Earn</Text>
+      <View style={styles.titleRow}>
+              <View style={styles.line} />
+              <Text style={styles.title}>Refer & Earn</Text>
+              <View style={styles.line} />
+            </View>
 
       <Text style={styles.sectionSubtitle}>
         Enter the details below so we can get to know about your Refer
@@ -155,6 +159,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 20,
     lineHeight: 18,
+  },
+ titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+    paddingHorizontal: 20,
+  },
+ title: {
+    marginHorizontal: 10,
+    fontWeight: "600",
+    fontSize:20,
+  },
+
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ccc",
   },
 
   formContainer: {
