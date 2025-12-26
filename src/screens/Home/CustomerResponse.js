@@ -9,7 +9,6 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const { width } = Dimensions.get("window");
-
 export default CustomerResponse = ({
   amount = 45,
   onBackHome,

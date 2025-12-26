@@ -22,6 +22,7 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
+<<<<<<< Updated upstream
 import AddBankDetails from '../screens/Home/BankDetail';
 import CustomerResponse from '../screens/Home/CustomerResponse';
 import ReportIssue from '../screens/Home/ReportIssue'
@@ -30,12 +31,27 @@ import HomeDashboard from '../screens/dashboard/HomeDashboard';
 import ReferEarn from '../screens/Home/ReferEarn';
 import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
+=======
+import HomeDashboard from '../screens/dashboard/HomeDashboard';
+import CustomerResponse from '../screens/Home/CustomerResponse';
+import ReportIssue from '../screens/Home/ReportIssue';
+import Timer from '../screens/Home/Timer';
+// import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
+import AddBankDetails from '../screens/Home/BankDetail';
+import ReferEarn from '../screens/Home/ReferEarn';
+import IncentiveDetails from '../screens/Home/IncentiveDetails';
+
+>>>>>>> Stashed changes
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
+<<<<<<< Updated upstream
       initialRouteName="HomeDashboard"
+=======
+      initialRouteName="Timer"
+>>>>>>> Stashed changes
     >
       <Stack.Screen name='HomeDashboard' component={HomeDashboard}/>
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
@@ -103,6 +119,7 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
+      <Stack.Screen name="Timer" component={Timer}/>
       <Stack.Screen name="CustomerResponse" component={CustomerResponse}/>
       <Stack.Screen name="ReportIssue" component={ReportIssue}/>
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
