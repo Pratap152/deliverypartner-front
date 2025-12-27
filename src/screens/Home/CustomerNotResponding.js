@@ -8,7 +8,7 @@ const STROKE = 12;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export default function Timer({
+export default function CustomerNotResponding({
   title = "Customer Not Responding",
   duration = 120,
   onCallPress,

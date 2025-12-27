@@ -10,7 +10,10 @@ import {
   Modal,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 export default function ReportIssue({
   reasons = [
@@ -34,6 +37,9 @@ export default function ReportIssue({
     const payload = { reason: selectedReason, notes };
     onSubmit ? onSubmit(payload) : console.log(payload);
     Alert.alert("Success", "Issue submitted successfully");
+
+       setSelectedReason("");
+        setNotes("");
   };
 
   const isDisabled = !selectedReason;
@@ -67,11 +73,11 @@ export default function ReportIssue({
           >
             {selectedReason || "Select reason"}
           </Text>
-          <Ionicons name="chevron-down" size={20} color="#777" /> 
+          <Ionicons name="chevron-down" size={wp("5%")} color="#777" />
         </TouchableOpacity>
 
-        {/* Notes */}  
-        <Text style={[styles.label, { marginTop: 20 }]}>
+        {/* Notes */}
+        <Text style={[styles.label, { marginTop: hp("3%") }]}>
           Additional Notes
         </Text>
         <TextInput
@@ -83,6 +89,7 @@ export default function ReportIssue({
           onChangeText={setNotes}
         />
       </ScrollView>
+
       {/* FIXED BOTTOM BUTTON */}
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity
@@ -113,52 +120,57 @@ export default function ReportIssue({
           onPress={() => setShowDropdown(false)}
         >
           <View style={styles.dropdownContainer}>
-            {reasons.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.dropdownItem}
-                onPress={() => {
-                  setSelectedReason(item);
-                  setShowDropdown(false);
-                }}
-              >
-                <Text style={styles.dropdownText}>{item}</Text>
-              </TouchableOpacity>
-            ))}
+            <ScrollView>
+              {reasons.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedReason(item);
+                    setShowDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+    padding:5,
   },
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 130,
+    paddingHorizontal: wp("5%"),
+    paddingTop: hp("2.5%"),
+    paddingBottom: hp("18%"),
   },
 
   title: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: wp("6%"),
+    fontWeight: "900",
     color: "#000",
   },
+
   subtitle: {
-    marginTop: 6,
-    fontSize: 14,
+    marginTop: hp("0.8%"),
+    fontSize: wp("4.4%"),
     color: "#777",
   },
 
   label: {
-    marginTop: 24,
-    marginBottom: 6,
-    fontSize: 14,
+    marginTop: hp("3%"),
+    marginBottom: hp("0.8%"),
+    fontSize: wp("3.6%"),
     fontWeight: "500",
     color: "#000",
   },
@@ -169,17 +181,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderWidth: 1,
     borderColor: "#E0E0E0",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: wp("2.5%"),
+    paddingHorizontal: wp("4%"),
+    paddingVertical: hp("2%"),
     backgroundColor: "#FFF",
   },
 
   selectText: {
-    fontSize: 14,
+    fontSize: wp("3.6%"),
     color: "#000",
     flex: 1,
-    marginRight: 8,
+    marginRight: wp("2%"),
   },
 
   placeholder: {
@@ -189,10 +201,10 @@ const styles = StyleSheet.create({
   textArea: {
     borderWidth: 1,
     borderColor: "#E0E0E0",
-    borderRadius: 10,
-    padding: 14,
-    minHeight: 100,
-    fontSize: 14,
+    borderRadius: wp("2.5%"),
+    padding: wp("4%"),
+    minHeight: hp("14%"),
+    fontSize: wp("3.6%"),
     color: "#000",
     textAlignVertical: "top",
     backgroundColor: "#FFF",
@@ -203,16 +215,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
+    padding: wp("5%"),
     backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#EAEAEA",
   },
 
   submitButton: {
     backgroundColor: "#10B7C4",
-    paddingVertical: 16,
-    borderRadius: 30,
+    paddingVertical: hp("2.2%"),
+    marginVertical:hp("2%"),
+    borderRadius: wp("8%"),
     alignItems: "center",
   },
 
@@ -222,7 +233,7 @@ const styles = StyleSheet.create({
 
   submitText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: wp("4%"),
     fontWeight: "600",
   },
 
@@ -234,24 +245,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: wp("5%"),
   },
 
   dropdownContainer: {
     backgroundColor: "#FFF",
-    borderRadius: 12,
-    paddingVertical: 10,
+    borderRadius: wp("3%"),
+    paddingVertical: hp("1%"),
+    maxHeight: hp("60%"),
   },
 
   dropdownItem: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: hp("2%"),
+    paddingHorizontal: wp("4%"),
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
   },
 
   dropdownText: {
-    fontSize: 14,
+    fontSize: wp("3.6%"),
     color: "#000",
   },
 });

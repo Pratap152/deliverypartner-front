@@ -6,8 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { useState } from "react";
 // import IncentiveDetails from "../Home/IncentiveDetails";
+import SwipeOnlineOffline from '../Home/SwipeOnlineOffline';
 export default function HomeDashboard({navigation}) {
+  const [isOnline, setIsOnline] = useState(false);
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -17,9 +20,8 @@ export default function HomeDashboard({navigation}) {
       </View>
  
       {/* Swipe for Online */}
-      <View style={styles.swipeBox}>
-        <Text style={styles.swipeText}>Swipe For Online</Text>
-      </View>
+     
+      <SwipeOnlineOffline isOnline={isOnline} setIsOnline={setIsOnline} />
  
       {/* Add Bank Details */}
       <View style={styles.bankCard}>
@@ -27,7 +29,7 @@ export default function HomeDashboard({navigation}) {
         <Text style={styles.bankDesc}>
           Complete your profile to receive instant payouts
         </Text>
-        <TouchableOpacity style={styles.primaryBtn} onPress={()=>{navigation.navigate('BankDetails')}}>
+        <TouchableOpacity style={styles.primaryBtn} onPress={()=>{navigation.navigate('AddBankDetails')}}>
           <Text style={styles.btnText}>Complete Now →</Text>
         </TouchableOpacity>
       </View>
@@ -46,7 +48,28 @@ export default function HomeDashboard({navigation}) {
             <Text>Navigate to Refer Earn Screen</Text>
       </TouchableOpacity>
        </View>
- 
+       <View style={styles.banner}>
+          <TouchableOpacity onPress={()=>{navigation.navigate('HelpCenterList')}}>
+            <Text>Navigate to Help & Support </Text>
+      </TouchableOpacity>
+       </View>
+
+       <View style={styles.banner} >
+        <TouchableOpacity onPress={()=>{navigation.navigate('ReportIssue')}}>
+          <Text>Navigate to Report Issue Screen</Text>
+        </TouchableOpacity>
+       </View>
+        <View style={styles.banner} >
+        <TouchableOpacity onPress={()=>{navigation.navigate('CustomerNotResponding')}}>
+          <Text>Navigate to Customer Not Responding</Text>
+        </TouchableOpacity>
+       </View>
+       SuccessfullDelivered 
+ <View style={styles.banner} >
+        <TouchableOpacity onPress={()=>{navigation.navigate('SuccessfullDelivered')}}>
+          <Text>Navigate to SuccessfullDelivered</Text>
+        </TouchableOpacity>
+       </View>
       {/* Active Shift */}
       <View style={styles.shiftCard}>
         <Text style={styles.shiftTitle}>Active Shift</Text>

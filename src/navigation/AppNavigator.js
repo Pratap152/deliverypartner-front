@@ -23,13 +23,14 @@ import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
-import CustomerResponse from '../screens/Home/CustomerResponse';
 import ReportIssue from '../screens/Home/ReportIssue';
-import Timer from '../screens/Home/Timer';
+// import CustomerNotResponding from '../screens/Home/CustomerNotResponding';
 import AddBankDetails from '../screens/Home/BankDetail';
 import ReferEarn from '../screens/Home/ReferEarn';
 import IncentiveDetails from '../screens/Home/IncentiveDetails';
-
+import ReferFrd from '../screens/Home/ReferFrd';
+import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
+import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -82,7 +83,7 @@ const AppNavigator = () => {
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
 
-      <Stack.Screen name="HelpCenter" component={HelpCenterList} />
+      <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
 
 
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
@@ -91,6 +92,7 @@ const AppNavigator = () => {
         component={AddBankDetails}
       />
 
+<Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered}/>
     <Stack.Screen name='ReferEarn' component={ReferEarn}/>
     <Stack.Screen name='ReferFrd' component={ReferFrd}/>
       <Stack.Screen
@@ -103,10 +105,11 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} /> */}
-      <Stack.Screen name="Timer" component={Timer}/>
-      <Stack.Screen name="CustomerResponse" component={CustomerResponse}/>
+      {/* <Stack.Screen name="Timer" component={Timer}/> */}
+      {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
       <Stack.Screen name="ReportIssue" component={ReportIssue}/>
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline}/>
     </Stack.Navigator>
   ); 
 };
