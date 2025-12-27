@@ -46,21 +46,6 @@ const shareReferralCode = async () => {
       <ScrollView contentContainerStyle={styles.container}>
       <ReferralBanner />
     <View style={styles.container}>
-<<<<<<< Updated upstream
-=======
-      {/* Top Banner */}
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>Earn upto</Text>
-        <Text style={styles.amount}>₹1000</Text>
-        <Text style={styles.bannerText}>For every referral</Text>
-
-        <Image
-        source={require('../../assets/earn.png')}
-        style={styles.moneyBagImage}
-      />
-      </View>
-
->>>>>>> Stashed changes
       {/* Refer & Earn Title */}
       <View style={styles.titleRow}>
         <View style={styles.line} />

@@ -8,6 +8,10 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import Toast from 'react-native-toast-message';
 import ReferralBanner from './ReferralBanner';
 
@@ -141,35 +145,29 @@ export default ReferFrd;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    paddingBottom: 50,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 24,
-    marginHorizontal: 16,
-    color: '#000',
+    paddingBottom: hp("6%"),
   },
 
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: wp("3.2%"),
     color: '#6F6F6F',
-    marginTop: 6,
-    marginHorizontal: 16,
-    marginBottom: 20,
-    lineHeight: 18,
+    marginTop: hp("0.8%"),
+    marginHorizontal: wp("4%"),
+    marginBottom: hp("2.5%"),
+    lineHeight: hp("2.3%"),
   },
- titleRow: {
+
+  titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
-    paddingHorizontal: 20,
+    marginVertical: hp("2.5%"),
+    paddingHorizontal: wp("5%"),
   },
- title: {
-    marginHorizontal: 10,
+
+  title: {
+    marginHorizontal: wp("2.5%"),
     fontWeight: "600",
-    fontSize:20,
+    fontSize: wp("5%"),
   },
 
   line: {
@@ -179,25 +177,25 @@ const styles = StyleSheet.create({
   },
 
   formContainer: {
-    marginHorizontal: 16,
-    padding: 10,
+    marginHorizontal: wp("4%"),
+    padding: wp("3%"),
   },
 
   label: {
-    fontSize: 13,
+    fontSize: wp("3.2%"),
     color: '#6F6F6F',
-    marginBottom: 6,
+    marginBottom: hp("0.8%"),
   },
 
   input: {
-    height: 48,
+    height: hp("6%"),
     borderWidth: 1,
     borderColor: '#D9D9D9',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 14,
+    borderRadius: wp("2%"),
+    paddingHorizontal: wp("3%"),
+    fontSize: wp("3.6%"),
     color: '#000',
-    marginBottom: 16,
+    marginBottom: hp("2%"),
     backgroundColor: '#FFF',
   },
 
@@ -207,23 +205,23 @@ const styles = StyleSheet.create({
 
   errorText: {
     color: 'red',
-    fontSize: 12,
-    marginTop: -10,
-    marginBottom: 10,
+    fontSize: wp("3%"),
+    marginTop: hp("-1%"),
+    marginBottom: hp("1%"),
   },
 
   confirmButton: {
     backgroundColor: '#0A8F4D',
-    height: 48,
-    borderRadius: 24,
+    height: hp("6%"),
+    borderRadius: hp("3%"),
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: hp("6%"),
   },
 
   confirmButtonText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: wp("4%"),
     fontWeight: '600',
   },
 });

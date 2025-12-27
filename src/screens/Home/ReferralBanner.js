@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const BANNER_HEIGHT = width * 0.42;
+ import React from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const ReferralBanner = React.memo(() => {
   return (
@@ -26,13 +27,13 @@ export default ReferralBanner;
 
 const styles = StyleSheet.create({
   bannerContainer: {
-    height:280,
+    height: hp("32%"),
     backgroundColor: '#0A8F4D',
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
+    borderBottomLeftRadius: wp("12%"),
+    borderBottomRightRadius: wp("12%"),
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: wp("4%"),
   },
 
   bannerTextContainer: {
@@ -41,20 +42,19 @@ const styles = StyleSheet.create({
 
   bannerSmallText: {
     color: '#E6F4EC',
-    fontSize: 24,
+    fontSize: wp("5.5%"),
   },
 
   bannerAmountText: {
     color: '#E0C881',
-    fontSize: 50,
+    fontSize: wp("12%"),
     fontWeight: '700',
-    marginVertical: 4,
+    marginVertical: hp("0.8%"),
   },
 
   moneyBagImage: {
-    width: width * 0.45,
-    height: width * 0.45,
-    marginBottom:60
+    width: wp("45%"),
+    height: wp("45%"),
+    marginBottom: hp("6%"),
   },
 });
-    
