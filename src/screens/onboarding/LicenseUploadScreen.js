@@ -11,8 +11,6 @@ import {
   ScrollView,
 } from "react-native";
 import ActionSheet from "react-native-actionsheet";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { useDispatch } from "react-redux";
 import Header from '../../components/common/Header';
 import WEBSITE_URL from "../../utils/host";
@@ -20,6 +18,8 @@ import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import { verifyDocument } from "../../redux/slices/documentsVerificationSlice";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks/useAuth';
+import apiClient from '../../api/ApiClient';
+import axios from "axios";
 
 const LicenseUploadScreen = ({ navigation }) => {
   const [front, setFront] = useState(null);
@@ -143,8 +143,7 @@ const LicenseUploadScreen = ({ navigation }) => {
             "Content-Type": "multipart/form-data",
           },
           timeout: 20000,
-          maxBodyLength: Infinity,
-          maxContentLength: Infinity,
+
         }
       );
 
@@ -194,7 +193,7 @@ const LicenseUploadScreen = ({ navigation }) => {
               onChangeText={(t) => setDlNumber(t.toUpperCase())}
               autoCapitalize="characters"
             />
-
+            <Text>DL format: AP00720249992221</Text>
             <TouchableOpacity
               style={styles.uploadBox}
               onPress={() => openSheet("front")}
@@ -285,6 +284,7 @@ const LicenseUploadScreen = ({ navigation }) => {
           title={"Upload Driving Licence"}
           options={["Capture from Camera", "Choose from Files", "Cancel"]}
           cancelButtonIndex={2}
+          useNativeDriver={true}
           onPress={(index) => {
             if (index === 0) pickCamera();
             else if (index === 1) pickGallery();

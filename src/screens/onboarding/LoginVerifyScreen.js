@@ -14,6 +14,8 @@ import { useAuth } from '../../hooks/useAuth';
 import OtpInput from '../../components/common/OTPInputBox';
 import { sendOTPApi } from './LoginEntryScreen';
 import AppPermissionScreen from './AppPermissionScreen';
+import { tokenService } from '../../services/TokenService';
+import apiClient from '../../api/ApiClient';
 
 const COLORS = {
   primary: '#16C2D5',
@@ -59,8 +61,8 @@ const COLORS = {
 
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await axios.post(
-      `${WEBSITE_URL}/api/mobile/verify-static-otp`,
+    const response = await apiClient.post(
+      '/api/mobile/verify-static-otp',
       {
         phone: phone,
         otp: otp,
@@ -142,11 +144,15 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setIsVerifying(false);
 
     if (result.status === 200) {
-      const token = result?.data?.accessToken;
-      console.log(token);
-      
-      if (token) {
-        setAuthToken(token);
+      const { accessToken, refreshToken } = result.data;
+
+  await tokenService.set({
+    accessToken,
+    refreshToken,
+  });
+
+      if (result.data.accessToken) {
+        setAuthToken(result.data.accessToken);
       }
       navigation.navigate(AppPermissionScreen);
     } else if (result.status === 401) {

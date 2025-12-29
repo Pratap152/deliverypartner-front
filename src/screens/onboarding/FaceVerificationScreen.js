@@ -16,7 +16,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { useAuth } from '../../hooks/useAuth';
  
 import {
-  widthPercentageToDP as wp,
+  widthPercentageToDP as wp,  
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
  

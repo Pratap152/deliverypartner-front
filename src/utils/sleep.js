@@ -1,7 +1,2 @@
-import { tokenService } from '../services/TokenService';
-import { navigateAndReset } from '../navigation/RootNavigation';
-
-export const ForceLogout = async (reason = 'Session expired') => {
-  await tokenService.clear();
-  navigateAndReset('LoginEntryScreen', { reason });
-};
+export const sleep = ms =>
+  new Promise(resolve => setTimeout(resolve, ms));

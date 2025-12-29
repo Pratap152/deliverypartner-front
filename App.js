@@ -1,31 +1,46 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { AppState } from 'react-native';
-import AppNavigator from './src/navigation/AppNavigator';
-import { AuthProvider } from './src/hooks/useAuth';
+import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-import { store } from './src/redux/store';
 
-import { sessionService } from './src/services/SessionService';
+import AppNavigator from './src/navigation/AppNavigator';
+import { store } from './src/redux/store';
+import { AuthProvider } from './src/hooks/useAuth';
+
 import { tokenService } from './src/services/TokenService';
-import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
+import { sessionService } from './src/services/SessionService';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
+import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
 
 const App = () => {
   useEffect(() => {
+    let mounted = true;
+
     const bootstrap = async () => {
-      const tokens = await tokenService.get();
-      const session = await sessionService.get();
+      try {
+        const tokens = await tokenService.get();
 
-      if (!tokens?.accessToken) {
+        if (!mounted) return;
+
+        console.log('Bootstrap tokens:', tokens);
+
+        if (!tokens?.accessToken) {
+          
+          navigateAndReset('OnBoardingScreen');
+          return;
+        }
+
+        await refreshTokenIfNeeded()
+
+        const onboardingComplete =
+          await sessionService.isOnboardingComplete();
+
+        navigateAndReset(
+          onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen'
+        );
+      } catch (err) {
+        console.error('App bootstrap failed:', err);
         navigateAndReset('LoginEntryScreen');
-        return;
-      }
-
-      if (session?.onboardingComplete) {
-        navigateAndReset('HomeDashboard');
-      } else {
-        navigateAndReset('DocumentVerifyScreen');
       }
     };
 
@@ -37,16 +52,19 @@ const App = () => {
       }
     });
 
-    return () => sub.remove();
+    return () => {
+      mounted = false;
+      sub.remove();
+    };
   }, []);
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <AuthProvider>
-        <Provider store={store}>
+      <Provider store={store}>
+        <AuthProvider>
           <AppNavigator />
-        </Provider>
-      </AuthProvider>
+        </AuthProvider>
+      </Provider>
     </NavigationContainer>
   );
 };
