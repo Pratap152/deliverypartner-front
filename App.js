@@ -6,42 +6,42 @@ import { AuthProvider } from './src/hooks/useAuth';
 import { Provider } from 'react-redux';
 import { store } from './src/redux/store';
 
-import { sessionService } from './src/services/SessionService';
-import { tokenService } from './src/services/TokenService';
-import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
-import { refreshTokenIfNeeded } from './src/api/RefreshManager';
+// import { sessionService } from './src/services/SessionService';
+// import { tokenService } from './src/services/TokenService';
+// import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
+// import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 
 const App = () => {
-  useEffect(() => {
-    const bootstrap = async () => {
-      const tokens = await tokenService.get();
-      const session = await sessionService.get();
+  // useEffect(() => {
+  //   const bootstrap = async () => {
+  //     const tokens = await tokenService.get();
+  //     const session = await sessionService.get();
 
-      if (!tokens?.accessToken) {
-        navigateAndReset('LoginEntryScreen');
-        return;
-      }
+  //     if (!tokens?.accessToken) {
+  //       navigateAndReset('LoginEntryScreen');
+  //       return;
+  //     }
 
-      if (session?.onboardingComplete) {
-        navigateAndReset('HomeDashboard');
-      } else {
-        navigateAndReset('DocumentVerifyScreen');
-      }
-    };
+  //     if (session?.onboardingComplete) {
+  //       navigateAndReset('HomeDashboard');
+  //     } else {
+  //       navigateAndReset('DocumentVerifyScreen');
+  //     }
+  //   };
 
-    bootstrap();
+  //   bootstrap();
 
-    const sub = AppState.addEventListener('change', state => {
-      if (state === 'active') {
-        refreshTokenIfNeeded(true);
-      }
-    });
+  //   const sub = AppState.addEventListener('change', state => {
+  //     if (state === 'active') {
+  //       refreshTokenIfNeeded(true);
+  //     }
+  //   });
 
-    return () => sub.remove();
-  }, []);
+  //   return () => sub.remove();
+  // }, []);
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer >
       <AuthProvider>
         <Provider store={store}>
           <AppNavigator />
