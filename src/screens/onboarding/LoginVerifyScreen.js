@@ -25,10 +25,42 @@ const COLORS = {
   error: 'red',
 };
 
+// const verifyOTPApi = async (phone, otp) => {
+//   try {
+//     const response = await fetch(
+//       `${WEBSITE_URL}/api/mobile/verify-static-otp`,
+//       {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           phone: phone,
+//           otp: otp,
+//         }),
+//       },
+//     );
+//     console.log(response);
+//     console.log("hello", response.data);
+
+//     return { status: response.status, data: response.data };
+//   } catch (err) {
+//     console.log("❌ Network error:", err);
+
+//     if (err.response) {
+//       return {
+//         status: err.response.status,
+//         data: err.response.data || {},
+//       };
+//     }
+//     return { status: 500, data: { message: "Network error" } };
+//   }
+// };
+
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await axios.post(
-      `${WEBSITE_URL}/api/mobile/verify-static-otp`,
+    const response = await apiClient.post(
+      '/api/mobile/verify-static-otp',
       {
         phone: phone,
         otp: otp,
@@ -39,14 +71,14 @@ const verifyOTPApi = async (phone, otp) => {
         },
       }
     );
-
+ 
     console.log(response);
     // console.log("hello", response.data);
 
     return { status: response.status, data: response.data };
   } catch (err) {
     console.log("❌ Network error:", err);
-
+ 
     if (err.response) {
       return {
         status: err.response.status,

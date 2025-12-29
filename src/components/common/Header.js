@@ -9,12 +9,14 @@ const Header = ({ text }) => {
   const navigation = useNavigation();
   return (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+      // onPress={() => navigation.goBack()}
+      >
         <Ionicons name="arrow-back" color={COLORS.textPrimary} size={25} />
       </TouchableOpacity>
       {text && (
         <>
-          <Text style={styles.headerTitle}>Document Verification</Text>
+          <Text style={styles.headerTitle}>{text}</Text>
           <View style={{ width: 25 }} />
         </>
       )}

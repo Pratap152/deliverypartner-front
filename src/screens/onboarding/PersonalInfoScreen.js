@@ -8,7 +8,7 @@ import {
   ScrollView,
   Platform,
   Keyboard,
-  TouchableWithoutFeedback,
+  ActivityIndicator
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -33,9 +33,7 @@ export default function PersonalInfoScreen({ navigation }) {
     gender: "",
   });
 
-  // UI states for mobile fields
-  const [mobileDigits, setMobileDigits] = useState("");
-  const [altDigits, setAltDigits] = useState("");
+ 
 
   // DOB
   const [isModalVisible, setModalVisible] = useState(false);
@@ -44,6 +42,8 @@ export default function PersonalInfoScreen({ navigation }) {
   const [errors, setErrors] = useState({});
 
   const [loading, setLoading] = useState(false);
+
+   const [submitting, setSubmitting] = useState(false);
 
   const formatDate = (d) => {
     const dd = String(d.getDate()).padStart(2, "0");
@@ -59,25 +59,29 @@ export default function PersonalInfoScreen({ navigation }) {
   };
   const handleCancel = () => setModalVisible(false);
 
-  const handleChange = (field, value) =>
-    setFormData((f) => ({ ...f, [field]: value }));
+  const handleChange = (field, value) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
 
-  // helper
-  const extractDigits = (s = "") => String(s).replace(/\D/g, "");
+  let error = "";
+  if (field === "fullName") error = validateName(value);
+  if (field === "primaryPhone") error = validateMobile(value);
+  if (field === "secondaryPhone") error = validateAlternativeMobile(value);
+  if (field === "email") error = validateEmail(value);
 
-  const setMobileValue = (digits) => {
-    setMobileDigits(digits);
-    handleChange("primaryPhone", digits);
-  };
-  const setAltValue = (digits) => {
-    setAltDigits(digits);
-    handleChange("secondaryPhone", digits);
-  };
+  setErrors(prev => ({ ...prev, [field]: error }));
+};
+
+
+
 
   // VALIDATIONS
   const validateName = (fullName) => {
     if (!fullName) return "Name is required";
+    if ((fullName.length)<3) return "Name should be minimum 3 characters";
+    if ((fullName.length)>50) return "Name can be maximum 50 characters only";
     return (/^[A-Za-z\s]*$/).test(fullName) ? "" : "only alphabets are allowed";
+    
+   
   };
   const validateDOB = (dob) => {
     if (!dob) return "Date of birth is required";
@@ -89,17 +93,24 @@ export default function PersonalInfoScreen({ navigation }) {
   };
   const validateEmail = (email) => {
     if (!email) return "Email is required";
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const re = /^[a-z0-9]+([._%+-]?[a-z0-9]+)*@[a-z0-9-]+(\.[a-z]{2,})+$/;
     return re.test(email) ? "" : "Enter a valid email address";
   };
   const validateMobile = (primaryPhone) => {
     if (!primaryPhone) return "Mobile number is required";
+    if (!/^[6-9]/.test(primaryPhone)) {
+      return "Mobile number should start with 6, 7, 8, or 9";
+    }
     return primaryPhone.length === 10
       ? ""
       : "Enter a valid 10-digit mobile number";
+    
   };
   const validateAlternativeMobile = (secondaryPhone) => {
     if (!secondaryPhone) return "Alternative Mobile number is required";
+    if (!/^[6-9]/.test(secondaryPhone)) {
+      return "Mobile number should start with 6, 7, 8, or 9";
+    }
     return secondaryPhone.length === 10
       ? ""
       : "Enter a valid 10-digit alternative mobile number";
@@ -148,6 +159,8 @@ export default function PersonalInfoScreen({ navigation }) {
       email: formData.email,
     };
     console.log("submit", payload);
+    
+    setSubmitting(true);
 
     setLoading(true);
     try {
@@ -215,7 +228,6 @@ export default function PersonalInfoScreen({ navigation }) {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior="height">
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -225,26 +237,13 @@ export default function PersonalInfoScreen({ navigation }) {
           keyboardDismissMode="none"
         >
           <View>
-            {/* HEADER */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: 'center',
-                gap: wp('17%'),
-                marginTop: hp("5%"),
-                marginLeft: wp("4%"),
-                position: 'relative'
-              }}
-            >
-              {/* BACK BUTTON */}
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons
-                  name="chevron-back-outline"
-                  size={22}
-                  color="black"
-                />
-              </TouchableOpacity>
-              {/* HEADING */}
+            {/* HEADING */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent:'center',
+                  marginTop: hp('5%'),
+                }}>
               <Text style={{ fontSize: wp('5%'), fontWeight: "700" }}>
                 Personal Information
               </Text>
@@ -295,7 +294,10 @@ export default function PersonalInfoScreen({ navigation }) {
                 Date of Birth
               </Text>
               <TouchableOpacity
-                onPress={() => setModalVisible(true)}
+                onPress={() => {
+                    Keyboard.dismiss();
+                    setModalVisible(true);
+                  }}
                 style={{
                   borderWidth: 1,
                   borderColor: 'grey',
@@ -372,15 +374,9 @@ export default function PersonalInfoScreen({ navigation }) {
                 <TextInput
                   placeholder="enter mobile number"
                   placeholderTextColor="#888"
-                  value={mobileDigits}
-                  onChangeText={(text) => {
-                    let digits = extractDigits(text);
-                    if (digits.length > 10) digits = digits.slice(-10);
-                    if (digits.length > 10) return;
-                    setMobileValue(digits);
-                  }}
+                  value={formData.primaryPhone}
+                  onChangeText={(text) => handleChange('primaryPhone',text) }
                   keyboardType="number-pad"
-                  maxLength={10}
                   style={{
                     flex: 1,
                     paddingVertical: hp('1.2%'),
@@ -427,15 +423,9 @@ export default function PersonalInfoScreen({ navigation }) {
                 <TextInput
                   placeholder="enter alternative mobile number"
                   placeholderTextColor="#888"
-                  value={altDigits}
-                  onChangeText={(text) => {
-                    let digits = extractDigits(text);
-                    if (digits.length > 10) digits = digits.slice(-10);
-                    if (digits.length > 10) return;
-                    setAltValue(digits);
-                  }}
+                  value={formData.secondaryPhone}
+                  onChangeText={(text) => handleChange('secondaryPhone',text)}
                   keyboardType="number-pad"
-                  maxLength={10}
                   style={{
                     flex: 1,
                     paddingVertical: hp('1.2%'),
@@ -509,29 +499,44 @@ export default function PersonalInfoScreen({ navigation }) {
             <TouchableOpacity
               style={{
                 alignSelf: "center",
-                backgroundColor: isFormValid ? '#0CBACE' : '#aee2e8ff',
+                backgroundColor:'#0CBACE',
                 paddingVertical: hp("1.5%"),
-                borderRadius: wp('6%'),
-                width: wp("60%"),
-
+                borderRadius: wp('4%'),
+                width: wp("90%"),
+                opacity: isFormValid? 1 : 0.5,
+                marginVertical:hp('2%')
               }}
               onPress={handleSubmit}
-              disabled={!isFormValid}
-            >
-              <Text
-                style={{
-                  alignSelf: "center",
-                  fontSize: wp('5%'),
-                  color: "white",
-                  fontWeight: "600",
-                }}
-              >
-                Submit
-              </Text>
+            
+              disabled={submitting}>
+
+                        {submitting ? (
+                          <>
+                            <ActivityIndicator
+                              size="small"
+                              color="#fff"
+                              style={{ marginRight: wp('2.6%') }}
+                            />
+                            <Text
+                              style={{ color: '#fff', fontWeight: '600', textAlign: 'center' }}>
+                              Submitting...
+                            </Text>
+                          </>
+                        ) : (
+                        <Text
+                          style={{
+                            alignSelf: "center",
+                            fontSize: wp('5%'),
+                            color: "white",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Submit
+                        </Text>
+                      )}
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
 
   );

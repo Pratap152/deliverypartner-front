@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLORS } from '../../utils/colors';
-import Header from '../../components/common/Header';
 
 import useAadhaarVerification from '../../hooks/useAadhaarVerification';
 
@@ -26,11 +25,11 @@ const AadhaarVerificationScreen = () => {
     handleSubmit,
   } = useAadhaarVerification();
 
+  console.log(aadhaar);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <Header />
-
         <View style={{ alignItems: 'center' }}>
           <Image
             source={require('../../assets/aadhaar.png')}
@@ -43,14 +42,14 @@ const AadhaarVerificationScreen = () => {
         </View>
 
         <View style={styles.form}>
-          <View style={{ width: 348 }}>
+          <View style={{ width: '95%' }}>
             <Text style={styles.title}>Fill Aadhar Card Details</Text>
             <Text style={styles.description}>
               Instant Verification of your Aadhar with OTP
             </Text>
             <TextInput
               ref={inputRef}
-              maxLength={12}
+              maxLength={14}
               style={styles.input}
               value={aadhaar}
               onChangeText={text => handleOnChange(text)}

@@ -1,8 +1,7 @@
-import apiClient from './ApiClient';
-
-export const uploadMultipart = async (url, formData) => {
-  return apiClient.post(url, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 60000,
-  });
-};
+import axios from "axios";
+import WEBSITE_URL from "../utils/host";
+const uploadMultipart = axios.create({
+  baseURL: WEBSITE_URL,
+  timeout: 60000, 
+});
+export default uploadMultipart;

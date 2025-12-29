@@ -18,19 +18,23 @@ import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
-import HelpCenterList from '../screens/help/HelpCenterList'
-import HelpIssueScreen from '../screens/help/HelpIssueScreen'
 
+import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
+import SuccessScreen from '../screens/onboarding/SuccessScreen';
+import HelpCenterList from '../screens/help/HelpCenterList';
+import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-
+import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
+import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="AddBankDetailsScreen"
+      initialRouteName='OnBoardingScreen'
     >
-   
+      <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
+      <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
@@ -72,25 +76,23 @@ const AppNavigator = () => {
         name="ProcessingVerificationScreen"
         component={ProcessingVerificationScreen}
       />
-      <Stack.Screen
-        name="HelpCenter"
-        component={HelpCenterList}
-      />
+      <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
+      <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
 
+      <Stack.Screen name="HelpCenter" component={HelpCenterList} />
+
+
+      <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       <Stack.Screen
-        name="HelpIssueScreen"
-        component={HelpIssueScreen}
+        name="AddBankDetailsScreen"
+        component={AddBankDetailsScreen}
       />
-      <Stack.Screen 
-      name='AddBankDetailsScreen' 
-      component={AddBankDetailsScreen}
-      />
-      {/* <Stack.Screen name="" component={} />
+       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
-      <Stack.Screen name="" component={} /> */}
-      <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      <Stack.Screen name="" component={} />  */}
+      <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
     </Stack.Navigator>
-  ); n
+  ); 
 };
 
 export default AppNavigator;
