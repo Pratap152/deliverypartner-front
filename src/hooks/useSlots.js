@@ -1,10 +1,11 @@
+// src/modules/slots/slots.hooks.js
 import { useState } from "react";
 import {
   loadSlotsApi,
   loadWeeksApi,
   bookSlotApi,
   cancelSlotApi,
-} from "../services/slots/slotsServices";
+} from "../services/slots/slots.service";
 
 export function useSlots() {
   const [weeks, setWeeks] = useState([]);      // 👈 NEW

@@ -17,6 +17,7 @@ import AppPermissionScreen from './AppPermissionScreen';
 import { tokenService } from '../../services/TokenService';
 import apiClient from '../../api/ApiClient';
 
+
 const COLORS = {
   primary: '#16C2D5',
   textDark: '#444',
@@ -144,17 +145,42 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setIsVerifying(false);
 
     if (result.status === 200) {
-      const { accessToken, refreshToken } = result.data;
-
-  await tokenService.set({
-    accessToken,
-    refreshToken,
-  });
-
-      if (result.data.accessToken) {
-        setAuthToken(result.data.accessToken);
+      const token = result?.data?.accessToken;
+      console.log(token);
+      if (!token) {
+        setError('Authentication failed. Try again.');
+        return;
       }
-      navigation.navigate(AppPermissionScreen);
+
+      await tokenService.set({
+        accessToken:token,
+        refreshToken:token
+      });
+
+      // ✅ Save token globally
+      setAuthToken(token);
+
+
+      // 🔍 Check registration status
+      const initResult = await initializeRiderApi(token);
+
+      console.log(initResult)
+
+      if (initResult.status === 200) {
+        const isFullyRegistered = initResult?.data?.status;
+
+        if (isFullyRegistered === "FULLY_REGISTERED") {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          });
+        } else {
+          navigation.navigate(AppPermissionScreen);
+        }
+      } else {
+        setError('Unable to check registration status.');
+      }
+
     } else if (result.status === 401) {
       setError('Invalid or expired OTP');
     } else {
