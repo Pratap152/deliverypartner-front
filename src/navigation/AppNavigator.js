@@ -24,27 +24,18 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-<<<<<<< HEAD
+
+import ProfileNavigator from './ProfileNavigator';
 
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-
-import ProfileNavigator from './ProfileNavigator'
-
-=======
-import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
-import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
-import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
->>>>>>> b0619e163eb8aefd31396f01bdf3f73b176a118f
+import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
+import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-<<<<<<< HEAD
-      initialRouteName="MainTabs"
-=======
-      initialRouteName='OnBoardingScreen'
->>>>>>> b0619e163eb8aefd31396f01bdf3f73b176a118f
+      initialRouteName="OnBoardingScreen"
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
@@ -94,26 +85,18 @@ const AppNavigator = () => {
 
       <Stack.Screen name="HelpCenter" component={HelpCenterList} />
 
-
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       <Stack.Screen
         name="AddBankDetailsScreen"
         component={AddBankDetailsScreen}
       />
-       {/* <Stack.Screen name="" component={} />
+      {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
-<<<<<<< HEAD
       <Stack.Screen name="" component={} /> */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="Profile" component={ProfileNavigator} />
     </Stack.Navigator>
   );
-=======
-      <Stack.Screen name="" component={} />  */}
-      <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
-    </Stack.Navigator>
-  ); 
->>>>>>> b0619e163eb8aefd31396f01bdf3f73b176a118f
 };
 
 export default AppNavigator;
