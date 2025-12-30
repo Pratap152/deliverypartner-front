@@ -1,4 +1,5 @@
-import { Text, View, TouchableOpacity, Image } from 'react-native';
+import React from 'react';
+import { Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {
@@ -6,9 +7,41 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-import ImagePicker from 'react-native-image-crop-picker';
+// ✅ NEW IMAGE PICKER
+import { launchCamera } from 'react-native-image-picker';
 
 export default function FaceInstructionScreen({ navigation }) {
+  const openCamera = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        cameraType: 'front',
+        quality: 0.8,
+        saveToPhotos: false,
+      },
+      response => {
+        if (response.didCancel) {
+          console.log('Camera cancelled');
+          return;
+        }
+
+        if (response.errorCode) {
+          Alert.alert(
+            'Camera Error',
+            response.errorMessage || 'Unable to open camera',
+          );
+          return;
+        }
+
+        const asset = response.assets?.[0];
+        if (asset?.uri) {
+          navigation.navigate('FaceVerificationScreen', {
+            photoUri: asset.uri,
+          });
+        }
+      },
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -16,9 +49,10 @@ export default function FaceInstructionScreen({ navigation }) {
       <View
         style={{
           flexDirection: 'row',
-          justifyContent:'center',
+          justifyContent: 'center',
           marginTop: hp('5%'),
-        }}>
+        }}
+      >
         <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
           Take a Selfie
         </Text>
@@ -42,31 +76,21 @@ export default function FaceInstructionScreen({ navigation }) {
         </Text>
 
         {/* GUIDELINES */}
-        <View
-          style={{
-            marginLeft: wp('5%'),
-            marginTop: hp('2%'),
-          }}
-        >
-          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
-            <Ionicons name="caret-forward-outline" size={18} color="black" />
-            <Text style={{fontSize:wp('4%')}}> Show full face clearly</Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
-            <Ionicons name="caret-forward-outline" size={18} color="black" />
-            <Text style={{fontSize:wp('4%')}}> Use good lighting</Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
-            <Ionicons name="caret-forward-outline" size={18} color="black" />
-            <Text style={{fontSize:wp('4%')}}> Hold camera at eye level</Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}>
-            <Ionicons name="caret-forward-outline" size={18} color="black" />
-            <Text style={{fontSize:wp('4%')}}> Look straight</Text>
-          </View>
+        <View style={{ marginLeft: wp('5%'), marginTop: hp('2%') }}>
+          {[
+            'Show full face clearly',
+            'Use good lighting',
+            'Hold camera at eye level',
+            'Look straight',
+          ].map((item, index) => (
+            <View
+              key={index}
+              style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}
+            >
+              <Ionicons name="caret-forward-outline" size={18} color="black" />
+              <Text style={{ fontSize: wp('4%') }}> {item}</Text>
+            </View>
+          ))}
         </View>
       </View>
 
@@ -91,37 +115,16 @@ export default function FaceInstructionScreen({ navigation }) {
 
       {/* SELFIE BUTTON */}
       <TouchableOpacity
-          onPress={async () => {
-            try {
-              const image = await ImagePicker.openCamera({
-                cropping: false,          
-                width: 1024,
-                height: 1024,
-                compressImageQuality: 0.8,
-                includeExif: false,
-                forceJpg: true
-              });
-
-              // image.path contains the local file path
-              if (image && image.path) {
-                navigation.navigate('FaceVerificationScreen', { photoUri: image.path });
-              } else {
-                console.log('camera cancelled or no image returned');
-              }
-            } catch (err) {
-              console.log('camera error/cancel', err?.message || err);
-            }
-          }}
-          style={{
-            marginBottom: hp('12%'),
-            alignSelf: 'center',
-            backgroundColor: '#0CBACE',
-            paddingVertical: hp('1.5%'),
-            borderRadius: wp('8%'),
-            width: wp('80%'),
-            
-          }}>
-  
+        onPress={openCamera}
+        style={{
+          marginBottom: hp('12%'),
+          alignSelf: 'center',
+          backgroundColor: '#0CBACE',
+          paddingVertical: hp('1.5%'),
+          borderRadius: wp('8%'),
+          width: wp('80%'),
+        }}
+      >
         <Text
           style={{
             alignSelf: 'center',
@@ -134,6 +137,5 @@ export default function FaceInstructionScreen({ navigation }) {
         </Text>
       </TouchableOpacity>
     </View>
-
   );
 }
