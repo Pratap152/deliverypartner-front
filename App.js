@@ -1,52 +1,71 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { AppState } from 'react-native';
-import AppNavigator from './src/navigation/AppNavigator';
-import { AuthProvider } from './src/hooks/useAuth';
+import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-import { store } from './src/redux/store';
 
-// import { sessionService } from './src/services/SessionService';
-// import { tokenService } from './src/services/TokenService';
-// import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
-// import { refreshTokenIfNeeded } from './src/api/RefreshManager';
+import AppNavigator from './src/navigation/AppNavigator';
+import { store } from './src/redux/store';
+import { AuthProvider } from './src/hooks/useAuth';
+
+import { tokenService } from './src/services/TokenService';
+import { sessionService } from './src/services/SessionService';
+import { refreshTokenIfNeeded } from './src/api/RefreshManager';
+import {
+  navigationRef,
+  navigateAndReset,
+} from './src/navigation/RootNavigation';
 
 const App = () => {
-  // useEffect(() => {
-  //   const bootstrap = async () => {
-  //     const tokens = await tokenService.get();
-  //     const session = await sessionService.get();
+  useEffect(() => {
+    let mounted = true;
 
-  //     if (!tokens?.accessToken) {
-  //       navigateAndReset('LoginEntryScreen');
-  //       return;
-  //     }
+    const bootstrap = async () => {
+      try {
+        const tokens = await tokenService.get();
 
-  //     if (session?.onboardingComplete) {
-  //       navigateAndReset('HomeDashboard');
-  //     } else {
-  //       navigateAndReset('DocumentVerifyScreen');
-  //     }
-  //   };
+        if (!mounted) return;
 
-  //   bootstrap();
+        console.log('Bootstrap tokens:', tokens);
 
-  //   const sub = AppState.addEventListener('change', state => {
-  //     if (state === 'active') {
-  //       refreshTokenIfNeeded(true);
-  //     }
-  //   });
+        if (!tokens?.accessToken) {
+          navigateAndReset('OnBoardingScreen');
+          return;
+        }
 
-  //   return () => sub.remove();
-  // }, []);
+        await refreshTokenIfNeeded();
+
+        const onboardingComplete = await sessionService.isOnboardingComplete();
+
+        navigateAndReset(
+          onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen',
+        );
+      } catch (err) {
+        console.error('App bootstrap failed:', err);
+        navigateAndReset('LoginEntryScreen');
+      }
+    };
+
+    //   bootstrap();
+
+    //   const sub = AppState.addEventListener('change', state => {
+    //     if (state === 'active') {
+    //       refreshTokenIfNeeded(true);
+    //     }
+    //   });
+
+    return () => {
+      mounted = false;
+      sub.remove();
+    };
+  }, []);
 
   return (
-    <NavigationContainer >
-      <AuthProvider>
-        <Provider store={store}>
+    <NavigationContainer ref={navigationRef}>
+      <Provider store={store}>
+        <AuthProvider>
           <AppNavigator />
-        </Provider>
-      </AuthProvider>
+        </AuthProvider>
+      </Provider>
     </NavigationContainer>
   );
 };

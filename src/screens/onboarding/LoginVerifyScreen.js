@@ -59,8 +59,8 @@ const COLORS = {
 
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await axios.post(
-      `${WEBSITE_URL}/api/mobile/verify-static-otp`,
+    const response = await apiClient.post(
+      '/api/mobile/verify-static-otp',
       {
         phone: phone,
         otp: otp,
@@ -73,8 +73,8 @@ const verifyOTPApi = async (phone, otp) => {
     );
  
     console.log(response);
-    console.log("hello", response.data);
- 
+    // console.log("hello", response.data);
+
     return { status: response.status, data: response.data };
   } catch (err) {
     console.log("❌ Network error:", err);
@@ -101,10 +101,43 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   } = useOtp(6);
 
   const [timer, setTimer] = useState(50);
+
+  
   const [isResendEnabled, setIsResendEnabled] = useState(false);
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendCount, setResendCount] = useState(0);
+
+
+
+
+
+  const initializeRiderApi = async (token) => {
+    try {
+      const response = await axios.get(
+        `${WEBSITE_URL}/api/rider/initialize`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return { status: response.status, data: response.data };
+    } catch (err) {
+      console.log("❌ Initialize error:", err);
+
+      if (err.response) {
+        return {
+          status: err.response.status,
+          data: err.response.data || {},
+        };
+      }
+
+      return { status: 500, data: { message: "Network error" } };
+    }
+  };
 
   // Timer Logic
   useEffect(() => {
@@ -120,7 +153,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     React.useCallback(() => {
       clearOtp();
       setError('');
-      return () => {};
+      return () => { };
     }, []),
   );
 
@@ -138,17 +171,40 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setError('');
 
     const result = await verifyOTPApi(phone, fullOtp);
-    console.log('i need to test', result);
+    // console.log('i need to test', result);
     setIsVerifying(false);
 
     if (result.status === 200) {
       const token = result?.data?.accessToken;
       console.log(token);
-      
-      if (token) {
-        setAuthToken(token);
+      if (!token) {
+        setError('Authentication failed. Try again.');
+        return;
       }
-      navigation.navigate(AppPermissionScreen);
+
+      // ✅ Save token globally
+      setAuthToken(token);
+
+      // 🔍 Check registration status
+      const initResult = await initializeRiderApi(token);
+
+      console.log(initResult)
+
+      if (initResult.status === 200) {
+        const isFullyRegistered = initResult?.data?.status;
+
+        if (isFullyRegistered === "FULLY_REGISTERED") {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'HomeDashboard' }],
+          });
+        } else {
+          navigation.navigate(AppPermissionScreen);
+        }
+      } else {
+        setError('Unable to check registration status.');
+      }
+
     } else if (result.status === 401) {
       setError('Invalid or expired OTP');
     } else {

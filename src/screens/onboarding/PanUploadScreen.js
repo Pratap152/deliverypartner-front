@@ -10,14 +10,14 @@ import {
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from 'react-redux';
 import Header from '../../components/common/Header';
 import WEBSITE_URL from "../../utils/host";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks/useAuth';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
+import apiClient from '../../api/ApiClient';
+import axios, { Axios } from 'axios';
 
 const PanUploadScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
@@ -142,7 +142,7 @@ const PanUploadScreen = ({ navigation }) => {
               marginTop: 20,
             }}
           />
-
+          <Text>PAN format: ABCDE1234F</Text>
           <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
             {image ? (
               <>
@@ -197,6 +197,7 @@ const PanUploadScreen = ({ navigation }) => {
             title={'Upload PAN Card'}
             options={['Capture from Camera', 'Choose from Files', 'Cancel']}
             cancelButtonIndex={2}
+            useNativeDriver={true}
             onPress={i => {
               if (i === 0) takePhoto();
               else if (i === 1) chooseFromGallery();

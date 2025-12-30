@@ -6,25 +6,19 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
+import ImagePicker from 'react-native-image-crop-picker';
+
 export default function FaceInstructionScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* BACK BUTTON + HEADING */}
+      {/* HEADING */}
       <View
         style={{
           flexDirection: 'row',
-          alignItems: 'center',
-          gap: wp('28%'),
+          justifyContent:'center',
           marginTop: hp('5%'),
-          marginLeft: wp('4%'),
-          position: 'relative'
-        }}
-      >
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back-outline" size={22} color="black" />
-        </TouchableOpacity>
-
+        }}>
         <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
           Take a Selfie
         </Text>
@@ -97,16 +91,37 @@ export default function FaceInstructionScreen({ navigation }) {
 
       {/* SELFIE BUTTON */}
       <TouchableOpacity
-        onPress={() => navigation.navigate('FaceVerificationScreen')}
-        style={{
-          marginBottom: hp('15%'),
-          alignSelf: 'center',
-          backgroundColor: '#0CBACE',
-          paddingVertical: hp('1.4%'),
-          borderRadius: wp('6%'),
-          width: wp('60%'),
-        }}
-      >
+          onPress={async () => {
+            try {
+              const image = await ImagePicker.openCamera({
+                cropping: false,          
+                width: 1024,
+                height: 1024,
+                compressImageQuality: 0.8,
+                includeExif: false,
+                forceJpg: true
+              });
+
+              // image.path contains the local file path
+              if (image && image.path) {
+                navigation.navigate('FaceVerificationScreen', { photoUri: image.path });
+              } else {
+                console.log('camera cancelled or no image returned');
+              }
+            } catch (err) {
+              console.log('camera error/cancel', err?.message || err);
+            }
+          }}
+          style={{
+            marginBottom: hp('12%'),
+            alignSelf: 'center',
+            backgroundColor: '#0CBACE',
+            paddingVertical: hp('1.5%'),
+            borderRadius: wp('8%'),
+            width: wp('80%'),
+            
+          }}>
+  
         <Text
           style={{
             alignSelf: 'center',

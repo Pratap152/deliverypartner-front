@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-
-import api from '../api/ApiClient';
-
 import WEBSITE_URL from '../utils/host';
 import { useAuth } from './useAuth';
-
 import axios from 'axios';
+import uploadMultipart from '../api/UploadClient';
 
 const useOtpVerification = otpLength => {
   const [otp, setOtp] = useState(new Array(otpLength).fill(''));
@@ -46,8 +43,8 @@ const useOtpVerification = otpLength => {
     const enteredOtp = otp.join('');
 
     try {
-      const reponse = await axios.post(
-        `${WEBSITE_URL}/aadhar/verify-otp`,
+      const reponse = await uploadMultipart.post(
+        '/aadhar/verify-otp',
         {
           aadharNumber: aadharNumber.split(' ').join(''),
           otp: enteredOtp,

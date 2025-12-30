@@ -1,9 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 
-export const waitForInternet = async () => {
+export const isOnline = async () => {
   const state = await NetInfo.fetch();
-  if (!state.isConnected) {
-    console.log('[NETWORK] Offline — waiting');
-    throw new Error('NO_INTERNET');
-  }
+  return Boolean(state.isConnected && state.isInternetReachable);
 };
