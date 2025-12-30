@@ -14,6 +14,8 @@ import { useAuth } from '../../hooks/useAuth';
 import OtpInput from '../../components/common/OTPInputBox';
 import { sendOTPApi } from './LoginEntryScreen';
 import AppPermissionScreen from './AppPermissionScreen';
+import apiClient from '../../api/ApiClient';
+import { tokenService } from '../../services/TokenService';
 
 const COLORS = {
   primary: '#16C2D5',
@@ -182,8 +184,14 @@ const LoginVerifyScreen = ({ route, navigation }) => {
         return;
       }
 
+      await tokenService.set({
+        accessToken:token,
+        refreshToken:token
+      });
+
       // ✅ Save token globally
       setAuthToken(token);
+
 
       // 🔍 Check registration status
       const initResult = await initializeRiderApi(token);
@@ -196,7 +204,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
         if (isFullyRegistered === "FULLY_REGISTERED") {
           navigation.reset({
             index: 0,
-            routes: [{ name: 'HomeDashboard' }],
+            routes: [{ name: 'MainTabs' }],
           });
         } else {
           navigation.navigate(AppPermissionScreen);
