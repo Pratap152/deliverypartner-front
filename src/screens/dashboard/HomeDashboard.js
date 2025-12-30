@@ -1,19 +1,8 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {  bookSlotApi, cancelSlotApi, loadSlotsApi } from '../../services/slots/slots.service';
-
 
 const HomeDashboard = () => {
-  
-  useEffect(() => {
-    async function fetch(){
-      console.log("entered...loadsapi");
-      const responce=await cancelSlotApi();
-      console.log(responce);
-    }
-    fetch();
-    }, []);
   const navigation = useNavigation();
   return (
     <View style={styles.container}>

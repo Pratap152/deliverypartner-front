@@ -1,4 +1,3 @@
-// src/modules/slots/slots.service.js
 import axios from "axios";
 import { tokenService } from "../../services/TokenService";
 import WEBSITE_URL from "../../utils/host";
