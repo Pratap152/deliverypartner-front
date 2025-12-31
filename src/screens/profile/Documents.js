@@ -18,12 +18,12 @@ import {
 } from 'react-native-responsive-dimensions';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import WEBSITE_URL from '../../utils/host';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { tokenService } from '../../services/TokenService';
 
-const DocumentsScreen = () => {
+const DocumentsScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewImages, setPreviewImages] = useState([]);
 
   useEffect(() => {
     fetchDocuments();
@@ -32,18 +32,15 @@ const DocumentsScreen = () => {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
+      const access = await tokenService.getAccessToken();
 
-      const token = await AsyncStorage.getItem('authToken');
-      if (!token) {
+      if (!access) {
         Alert.alert('Auth Error', 'Token not found. Please login again.');
         return;
       }
 
       const res = await axios.get(`${WEBSITE_URL}/api/profile/documents`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 15000,
+        headers: { Authorization: `Bearer ${access}` },
       });
 
       if (res.data?.success) {
@@ -52,7 +49,6 @@ const DocumentsScreen = () => {
         Alert.alert('Error', res.data?.message || 'Failed to fetch documents');
       }
     } catch (err) {
-      console.log('Documents API error:', err?.response?.data || err.message);
       Alert.alert('Error', 'Unable to fetch documents');
     } finally {
       setLoading(false);
@@ -61,9 +57,13 @@ const DocumentsScreen = () => {
 
   const isVerified = status => status === 'approved';
 
-  const getImageUrl = doc => {
-    if (!doc) return null;
-    return doc.image || doc.frontImage || doc.backImage || null;
+  const getImageUrls = doc => {
+    if (!doc) return [];
+    const images = [];
+    if (doc.frontImage) images.push(doc.frontImage);
+    if (doc.backImage) images.push(doc.backImage);
+    if (doc.image) images.push(doc.image);
+    return images;
   };
 
   if (loading) {
@@ -91,22 +91,34 @@ const DocumentsScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
-        <Ionicons name="arrow-back" size={rf(3)} />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={rf(2.6)} />
+        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Documents</Text>
-        <View style={{ width: rw(6) }} />
+        <TouchableOpacity
+          onPress={() => Alert.alert('Help', 'Contact support for assistance')}
+        >
+          <Image
+            source={require('../../assets/profile/HelpcenterIcon.png')}
+            style={styles.robotIcon}
+          />
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Document Status */}
+        {/* SUMMARY */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Document Status</Text>
+
           <View style={styles.summaryRow}>
             <View style={[styles.summaryBox, styles.verifiedBox]}>
               <Text style={styles.summaryCount}>{verifiedCount}</Text>
               <Text style={styles.summaryLabel}>Verified</Text>
             </View>
+
             <View style={[styles.summaryBox, styles.pendingBox]}>
               <Text style={styles.summaryCount}>{pendingCount}</Text>
               <Text style={styles.summaryLabel}>Pending</Text>
@@ -114,7 +126,7 @@ const DocumentsScreen = () => {
           </View>
         </View>
 
-        {/* Document Cards */}
+        {/* DOCUMENT CARDS */}
         {docsArray.map(item => (
           <View key={item.title} style={styles.docCard}>
             <View style={styles.docHeader}>
@@ -162,16 +174,24 @@ const DocumentsScreen = () => {
               <TouchableOpacity
                 style={styles.viewBtn}
                 onPress={() => {
-                  const url = getImageUrl(item.data);
-                  if (url) setPreviewUrl(url);
-                  else Alert.alert('No Image', 'Document image not available');
+                  const urls = getImageUrls(item.data);
+                  if (urls.length > 0) setPreviewImages(urls);
+                  else Alert.alert('No Image', 'Images not available');
                 }}
               >
                 <Ionicons name="eye-outline" size={rf(2)} />
                 <Text style={styles.viewText}>View</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.updateBtn}>
+              <TouchableOpacity
+                style={styles.updateBtn}
+                onPress={() =>
+                  Alert.alert(
+                    'Coming Soon',
+                    'Document update will be enabled later.',
+                  )
+                }
+              >
                 <Ionicons
                   name="cloud-upload-outline"
                   size={rf(2)}
@@ -186,26 +206,35 @@ const DocumentsScreen = () => {
         <View style={{ height: rh(3) }} />
       </ScrollView>
 
-      {/* Image Preview Modal */}
+      {/* IMAGE PREVIEW MODAL */}
       <Modal
-        visible={!!previewUrl}
+        visible={previewImages.length > 0}
         transparent
         animationType="fade"
-        onRequestClose={() => setPreviewUrl(null)}
+        onRequestClose={() => setPreviewImages([])}
       >
         <View style={styles.modalOverlay}>
           <TouchableOpacity
             style={styles.modalClose}
-            onPress={() => setPreviewUrl(null)}
+            onPress={() => setPreviewImages([])}
           >
             <Ionicons name="close" size={rf(3)} color="#fff" />
           </TouchableOpacity>
 
-          <Image
-            source={{ uri: previewUrl }}
-            style={styles.previewImage}
-            resizeMode="contain"
-          />
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+          >
+            {previewImages.map((img, index) => (
+              <Image
+                key={index}
+                source={{ uri: img }}
+                style={styles.previewImage}
+                resizeMode="contain"
+              />
+            ))}
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -213,6 +242,8 @@ const DocumentsScreen = () => {
 };
 
 export default DocumentsScreen;
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -231,9 +262,14 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: rf(2.4),
+    fontSize: rf(2.3),
     fontWeight: '600',
-    color: '#000',
+  },
+
+  robotIcon: {
+    width: rw(12),
+    height: rw(11),
+    resizeMode: 'contain',
   },
 
   row: {
@@ -268,18 +304,12 @@ const styles = StyleSheet.create({
     paddingVertical: rh(2),
   },
 
-  verifiedBox: {
-    backgroundColor: '#ECFDF3',
-  },
-
-  pendingBox: {
-    backgroundColor: '#FFFAEB',
-  },
+  verifiedBox: { backgroundColor: '#ECFDF3' },
+  pendingBox: { backgroundColor: '#FFFAEB' },
 
   summaryCount: {
     fontSize: rf(3),
     fontWeight: '700',
-    color: '#000',
   },
 
   summaryLabel: {
@@ -315,7 +345,6 @@ const styles = StyleSheet.create({
   docTitle: {
     fontSize: rf(2),
     fontWeight: '600',
-    color: '#000',
   },
 
   statusText: {
@@ -351,7 +380,6 @@ const styles = StyleSheet.create({
   viewText: {
     marginLeft: rw(1),
     fontSize: rf(1.7),
-    color: '#344054',
   },
 
   updateBtn: {
@@ -377,6 +405,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.9)',
@@ -385,7 +414,7 @@ const styles = StyleSheet.create({
   },
 
   previewImage: {
-    width: rw(90),
+    width: rw(100),
     height: rh(70),
   },
 

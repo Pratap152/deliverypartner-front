@@ -36,9 +36,7 @@ const App = () => {
 
         const onboardingComplete = await sessionService.isOnboardingComplete();
 
-        navigateAndReset(
-          onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen',
-        );
+        navigateAndReset(onboardingComplete ? 'MainTabs' : 'OnBoardingScreen');
       } catch (err) {
         console.error('App bootstrap failed:', err);
         navigateAndReset('LoginEntryScreen');
@@ -47,11 +45,11 @@ const App = () => {
 
     //   bootstrap();
 
-    //   const sub = AppState.addEventListener('change', state => {
-    //     if (state === 'active') {
-    //       refreshTokenIfNeeded(true);
-    //     }
-    //   });
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        refreshTokenIfNeeded(true);
+      }
+    });
 
     return () => {
       mounted = false;
