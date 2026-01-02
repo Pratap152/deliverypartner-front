@@ -1,4 +1,12 @@
 // src/modules/slots/slots.hooks.js
+export function formatWeeks(apiWeeks = []) {
+  return apiWeeks.map((item) => ({
+    date: item.date,                 // "2025-12-01"
+    label: item.dayName,             // "Mon", "Tue"
+    day: new Date(item.date).getDate().toString(), // "1", "2"
+  }));
+}
+
 import { useState } from "react";
 import {
   loadSlotsApi,
@@ -10,39 +18,52 @@ import {
 export function useSlots() {
   const [weeks, setWeeks] = useState([]);      // 👈 NEW
   const [slots, setSlots] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [weeksLoading, setWeeksLoading] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  /**
-   * Load weeks first → then load slots
-   * payload = { city, zone, weekNumber, year }
-   */
-  const loadWeeksAndSlots = async (payload) => {
+  // Load weeks (days)
+  const loadWeeks = async (payload) => {
+    console.log("loadWeeks hook entered...payload", payload);
     try {
-      setLoading(true);
+      setWeeksLoading(true);
       setError(false);
 
-      // 1️⃣ Load weeks (days)
       const weeksRes = await loadWeeksApi(payload);
+      console.log("loadWeeksApi exited.....", weeksRes?.data?.data);
 
       if (weeksRes.data?.success) {
-        setWeeks(weeksRes.data.data);
+        setWeeks(formatWeeks(weeksRes.data.data));
       } else {
         throw new Error("Failed to load weeks");
       }
+    } catch (err) {
+      console.log("loadWeeks error:", err?.response?.data || err.message);
+      setError(true);
+    } finally {
+      setWeeksLoading(false);
+    }
+  };
 
-      // 2️⃣ Load slots AFTER weeks success
+  // Load slots
+  const loadSlots = async (payload) => {
+    console.log("loadSlots hook entered...payload", payload);
+    try {
+      setSlotsLoading(true);
+      setError(false);
+
       const slotsRes = await loadSlotsApi(payload);
+      console.log("loadSlotsApi exited....", slotsRes?.data);
 
       if (slotsRes.data?.success) {
         setSlots(slotsRes.data.data);
       }
     } catch (err) {
-      console.log("Slots hook error:", err?.response?.data || err.message);
+      console.log("loadSlots error:", err?.response?.data || err.message);
       setError(true);
     } finally {
-      setLoading(false);
+      setSlotsLoading(false);
     }
   };
 
@@ -51,6 +72,7 @@ export function useSlots() {
     try {
       setActionLoading(true);
       const res = await bookSlotApi(payload);
+      console.log("successfully exited", res);
       return res.data?.success === true;
     } catch (err) {
       return false;
@@ -64,6 +86,7 @@ export function useSlots() {
     try {
       setActionLoading(true);
       const res = await cancelSlotApi(payload);
+      console.log("exited cancel slot call", res);
       return res.data?.success === true;
     } catch (err) {
       return false;
@@ -73,12 +96,15 @@ export function useSlots() {
   };
 
   return {
-    weeks,               // 👈 expose weeks (days)
+    weeks,
     slots,
-    loading,
+    weeksLoading,
+    slotsLoading,
+    loading: weeksLoading || slotsLoading,
     actionLoading,
     error,
-    loadWeeksAndSlots,   // 👈 NEW main loader
+    loadWeeks,
+    loadSlots,
     bookSlot,
     cancelSlot,
   };

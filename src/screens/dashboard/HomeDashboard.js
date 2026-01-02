@@ -5,15 +5,7 @@ import {  bookSlotApi, cancelSlotApi, loadSlotsApi } from '../../services/slots/
 
 
 const HomeDashboard = () => {
-  
-  useEffect(() => {
-    async function fetch(){
-      console.log("entered...loadsapi");
-      const responce=await cancelSlotApi();
-      console.log(responce);
-    }
-    fetch();
-    }, []);
+
   const navigation = useNavigation();
   return (
     <View style={styles.container}>

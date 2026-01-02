@@ -108,6 +108,33 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendCount, setResendCount] = useState(0);
+   const initializeRiderApi = async (token) => {
+    try {
+      const response = await axios.get(
+        `${WEBSITE_URL}/api/rider/initialize`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+ 
+      return { status: response.status, data: response.data };
+    } catch (err) {
+      console.log("❌ Initialize error:", err);
+ 
+      if (err.response) {
+        return {
+          status: err.response.status,
+          data: err.response.data || {},
+        };
+      }
+ 
+      return { status: 500, data: { message: "Network error" } };
+    }
+  };
+ 
 
   // Timer Logic
   useEffect(() => {

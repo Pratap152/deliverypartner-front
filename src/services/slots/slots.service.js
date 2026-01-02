@@ -6,21 +6,26 @@ import WEBSITE_URL from "../../utils/host";
 
 
 // 🔹 Common API configuration (previously apiClient)
- // replace with real URL
+// replace with real URL
 const TIMEOUT = 15000;
 
 export const getAuthHeaders = async () => {
-  const token=await tokenService.get();
-    const access=token?.accessToken;
+  // const token=await tokenService.get();
+  //   const access=token?.accessToken;
+  const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzAxMTk4MX0.6V1prb7zYlZX2YP86PV0yrxuvuCOxW59_FXmWMLcRR8";
   return {
     Authorization: `Bearer ${access}`,
     "Content-Type": "application/json",
   };
 };
-export const loadWeeksApi = async (payload) => {
-  const {city,zone,weekNumber,year}=payload;
-  
+export const loadWeeksApi = async (payload = {}) => {
+  console.log("loadsweekapi......", payload);
+
+  const { city = "Hyderabad", zone = "Gachibowli", weekNumber = "49", year = "2025" } = payload;
+  console.log("city zone weekNumber year.....", city, zone, weekNumber, year);
+
   const headers = await getAuthHeaders();
+  console.log("entered into loadweeks api...");
   return axios.get(`${WEBSITE_URL}/api/slots/week?city=${city}&zone=${zone}&weekNumber=${weekNumber}&year=${year}`, {
     timeout: TIMEOUT,
     headers,
@@ -28,9 +33,12 @@ export const loadWeeksApi = async (payload) => {
 };
 
 // 1️⃣ Load slots
-export const loadSlotsApi = async (payload) => {
-  const {date,city,zone,status}=payload;
+export const loadSlotsApi = async (payload = {}) => {
+  console.log("entered...loadslotsapi", payload);
+  const { date = "2026-01-05", city = "Hyderabad", zone = "Gachibowli", filter: status = "all" } = payload;
+  console.log("status....inner", status, date);
   const headers = await getAuthHeaders();
+  console.log("entered into loadslotsstatus api...")
   return axios.get(`${WEBSITE_URL}/api/slots/status?date=${date}&city=${city}&zone=${zone}&status=${status}`, {
     timeout: TIMEOUT,
     headers,
@@ -39,13 +47,15 @@ export const loadSlotsApi = async (payload) => {
 
 // 2️⃣ Book slot
 export const bookSlotApi = async (payload) => {
-  const {date,slotIds}=payload;
+  const { slotIds, date } = payload;
+  console.log("booking payload....", payload);
   const headers = await getAuthHeaders();
   return axios.post(`${WEBSITE_URL}/api/slots/book`,
-  {
-  date,slotIds
-  }, 
-  {
+    {
+      date, // Use dynamic date
+      slotIds
+    },
+    {
       timeout: TIMEOUT,
       headers,
     });
@@ -53,6 +63,7 @@ export const bookSlotApi = async (payload) => {
 
 // 3️⃣ Cancel slot
 export const cancelSlotApi = async (bookingId) => {
+  console.log("entered cancelslot booking", bookingId);
   const headers = await getAuthHeaders();
   return axios.delete(`${WEBSITE_URL}/api/slots/cancel/${bookingId}`, {
     timeout: TIMEOUT,
