@@ -7,12 +7,12 @@ const META_KEY = 'TOKEN_META';
 
 export const tokenService = {
   async set({ accessToken, refreshToken, accessExpiry, refreshExpiry }) {
-    console.log("Storing tokens:", { accessToken, refreshToken});
+    console.log('Storing tokens:', { accessToken, refreshToken });
     await Keychain.setGenericPassword('access', accessToken);
     await AsyncStorage.setItem(REFRESH_KEY, refreshToken);
     await AsyncStorage.setItem(
       META_KEY,
-      JSON.stringify({ accessExpiry, refreshExpiry })
+      JSON.stringify({ accessExpiry, refreshExpiry }),
     );
   },
 

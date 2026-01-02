@@ -19,7 +19,11 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import WEBSITE_URL from '../../utils/host';
 import { tokenService } from '../../services/TokenService';
+import ImageViewer from 'react-native-image-zoom-viewer';
 
+const formatTitle = key => {
+  return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+};
 const DocumentsScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +42,7 @@ const DocumentsScreen = ({ navigation }) => {
         Alert.alert('Auth Error', 'Token not found. Please login again.');
         return;
       }
+      console.log('Using access token:', access);
 
       const res = await axios.get(`${WEBSITE_URL}/api/profile/documents`, {
         headers: { Authorization: `Bearer ${access}` },
@@ -65,6 +70,9 @@ const DocumentsScreen = ({ navigation }) => {
     if (doc.image) images.push(doc.image);
     return images;
   };
+  const zoomImages = previewImages.map(img => ({
+    url: img,
+  }));
 
   if (loading) {
     return (
@@ -74,17 +82,18 @@ const DocumentsScreen = ({ navigation }) => {
     );
   }
 
-  const { aadhar, pan, drivingLicense } = documents || {};
+  const HIDDEN_DOC_KEYS = ['aadhar'];
 
-  const docsArray = [
-    { title: 'Aadhar Card', data: aadhar },
-    { title: 'PAN Card', data: pan, number: pan?.number },
-    {
-      title: 'Driving License',
-      data: drivingLicense,
-      number: drivingLicense?.number,
-    },
-  ].filter(d => d.data);
+  const docsArray = documents
+    ? Object.entries(documents)
+        .filter(([key]) => !HIDDEN_DOC_KEYS.includes(key))
+        .map(([key, value]) => ({
+          key,
+          title: formatTitle(key),
+          data: value,
+          number: value?.number,
+        }))
+    : [];
 
   const verifiedCount = docsArray.filter(d => isVerified(d.data.status)).length;
   const pendingCount = docsArray.length - verifiedCount;
@@ -207,34 +216,28 @@ const DocumentsScreen = ({ navigation }) => {
       </ScrollView>
 
       {/* IMAGE PREVIEW MODAL */}
+      {/* IMAGE PREVIEW MODAL */}
       <Modal
         visible={previewImages.length > 0}
-        transparent
         animationType="fade"
+        statusBarTranslucent={false}
         onRequestClose={() => setPreviewImages([])}
       >
-        <View style={styles.modalOverlay}>
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <ImageViewer
+            imageUrls={previewImages.map(img => ({ url: img }))}
+            backgroundColor="#FFFFFF"
+            enableSwipeDown
+            useNativeDriver={false}
+            onSwipeDown={() => setPreviewImages([])}
+          />
+
           <TouchableOpacity
             style={styles.modalClose}
             onPress={() => setPreviewImages([])}
           >
-            <Ionicons name="close" size={rf(3)} color="#fff" />
+            <Ionicons name="close" size={rf(3)} color="#000" />
           </TouchableOpacity>
-
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-          >
-            {previewImages.map((img, index) => (
-              <Image
-                key={index}
-                source={{ uri: img }}
-                style={styles.previewImage}
-                resizeMode="contain"
-              />
-            ))}
-          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -402,13 +405,6 @@ const styles = StyleSheet.create({
 
   loader: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
