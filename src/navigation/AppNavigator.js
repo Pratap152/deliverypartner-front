@@ -31,6 +31,7 @@ import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
+import Map from '../../src/screens/Home/Map';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -38,6 +39,7 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
       initialRouteName="HomeDashboard"
     >
+      <Stack.Screen name="Map" component={Map} />
       <Stack.Screen name='HomeDashboard' component={HomeDashboard}/>
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />

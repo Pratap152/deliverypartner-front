@@ -41,7 +41,7 @@ export default function HomeDashboard({navigation}) {
         <ProgressCard title="Online" value="4h 23m" />
         <ProgressCard title="Orders" value="12" />
       </View>
- 
+    
       {/* Refer & Earn */}
        <View style={styles.banner}>
           <TouchableOpacity onPress={()=>{navigation.navigate("ReferEarn")}}>
@@ -51,6 +51,11 @@ export default function HomeDashboard({navigation}) {
        <View style={styles.banner}>
           <TouchableOpacity onPress={()=>{navigation.navigate('HelpCenterList')}}>
             <Text>Navigate to Help & Support </Text>
+      </TouchableOpacity>
+       </View>
+        <View style={styles.banner}>
+          <TouchableOpacity onPress={()=>{navigation.navigate('Map')}}>
+            <Text>Navigate to Maps </Text>
       </TouchableOpacity>
        </View>
 

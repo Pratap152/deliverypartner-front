@@ -9,7 +9,8 @@ import { sessionService } from './src/services/SessionService';
 import { tokenService } from './src/services/TokenService';
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
-import ToastComponent from './src/components/common/ToastComponent'
+import ToastComponent from './src/components/common/ToastComponent';
+
 const App = () => {
   // useEffect(() => {
   //   const bootstrap = async () => {

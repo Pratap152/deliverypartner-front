@@ -23,11 +23,23 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+       <meta-data
+  android:name="com.google.android.geo.API_KEY"
+  android:value='AIzaSyAt59NjjnVtI5PfvhkQKFDLeBFfCTW-mxg
+ '/>
     </application>
-    <uses-feature android:name="android.hardware.location.gps" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+<uses-permission android:name="android.permission.INTERNET" />
+
+<!-- Foreground location -->
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+<!-- Background location (MANDATORY for live tracking) -->
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+<!-- For background service stability -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-feature android:name="android.hardware.location.gps" />
 <uses-permission android:name="android.permission.CAMERA"/>
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
