@@ -147,7 +147,10 @@ const LoginVerifyScreen = ({ route, navigation }) => {
         setError('Authentication failed. Try again.');
         return;
       }
- 
+      await tokenService.set({
+        accessToken:token,
+        refreshToken:token
+      })
       // ✅ Save token globally
       setAuthToken(token);
  
