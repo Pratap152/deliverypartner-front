@@ -10,9 +10,9 @@ import WEBSITE_URL from "../../utils/host";
 const TIMEOUT = 15000;
 
 export const getAuthHeaders = async () => {
-  // const token=await tokenService.get();
-  //   const access=token?.accessToken;
-  const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzAxMTk4MX0.6V1prb7zYlZX2YP86PV0yrxuvuCOxW59_FXmWMLcRR8";
+  const token=await tokenService.get();
+    const access=token?.accessToken;
+  // const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk1Nzg5ZjMzMDMwZWZjNjE5NTBkMWVhIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzM0NzI5N30.IeMnYSM0BWrI_NxwoJBNByREpm81B1PbtNnMjpsp63E";
   return {
     Authorization: `Bearer ${access}`,
     "Content-Type": "application/json",

@@ -1,6 +1,6 @@
-
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { useSlots } from "../../hooks/useSlots";
 
 import WeekSelector from "../../components/dashboard/slots/WeekSelector";
@@ -10,19 +10,22 @@ import BookSlotModal from "../../components/dashboard/slots/BookSlotModal";
 import CancelSlotModal from "../../components/dashboard/slots/CancelSlotModal";
 import SuccessModal from "../../components/dashboard/slots/SuccessModal";
 
+const { width } = Dimensions.get("window");
+
 export default function SlotBookingScreen() {
   const {
     weeks,
     slots,
-    weeksLoading, // Separate loading state
-    slotsLoading, // Separate loading state
-    loading,      // Combined loading (if needed for global spinner)
-    loadWeeks,    // 👈 Load ONLY weeks
-    loadSlots,    // 👈 Load ONLY slots
+    weeksLoading,
+    slotsLoading,
+    loading,
+    loadWeeks,
+    loadSlots,
     bookSlot,
     cancelSlot,
   } = useSlots();
 
+  const [activeTab, setActiveTab] = useState("current"); // "current" | "next"
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [filter, setFilter] = useState("all");
   const [selectedSlots, setSelectedSlots] = useState([]);
@@ -93,17 +96,16 @@ export default function SlotBookingScreen() {
 
   function handleChangeWeek(date) {
     setSelectedWeek(date);
-    // No need to call loadSlots here, useEffect will handle it
   }
 
   function handleFilter(f) {
     setFilter(f);
     console.log("filter", f);
-    // No need to call loadSlots here, useEffect will handle it
   }
 
-  return (
-    <View style={styles.container}>
+  // --- RENDER HELPERS ---
+  const renderCurrentWeek = () => (
+    <View style={styles.contentContainer}>
       <WeekSelector
         weeks={weeks}
         selectedWeek={selectedWeek}
@@ -124,7 +126,6 @@ export default function SlotBookingScreen() {
             selectable={item.bookingStatus === "NOT_BOOKED"}
             selected={selectedSlots.some((s) => s.slotId === item.slotId)}
             onSelect={() => toggleSlotSelection(item)}
-            // onBook removed - bulk action only
             onCancel={() => {
               setActiveSlot(item);
               setCancelModalVisible(true);
@@ -147,7 +148,54 @@ export default function SlotBookingScreen() {
           </TouchableOpacity>
         </View>
       )}
+    </View>
+  );
 
+  const renderNextWeek = () => (
+    <View style={styles.lockedContainer}>
+      <View style={styles.lockIconWrapper}>
+        <Ionicons name="lock-closed" size={60} color="#6B7280" />
+      </View>
+      <Text style={styles.lockedText}>Slots will be unlocked next 2 hours</Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* --- HEADER SECTION --- */}
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>My Slots</Text>
+          <TouchableOpacity>
+            <Ionicons name="headset" size={24} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "current" && styles.activeTab]}
+            onPress={() => setActiveTab("current")}
+          >
+            <Text style={[styles.tabText, activeTab === "current" && styles.activeTabText]}>
+              Current Week
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "next" && styles.activeTab]}
+            onPress={() => setActiveTab("next")}
+          >
+            <Text style={[styles.tabText, activeTab === "next" && styles.activeTabText]}>
+              Next Week
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* --- MAIN CONTENT --- */}
+      {activeTab === "current" ? renderCurrentWeek() : renderNextWeek()}
+
+      {/* --- MODALS --- */}
       <BookSlotModal
         visible={bookModalVisible}
         slots={selectedSlots}
@@ -171,7 +219,78 @@ export default function SlotBookingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F6F7FB", marginVertical: 40 },
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  contentContainer: { flex: 1, paddingHorizontal: 16, marginTop: 10 },
+
+  // Header Styles
+  header: {
+    backgroundColor: "#4C4CFF", // Purple/Blue
+    paddingTop: 20, // Status bar safe area approx
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 12,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  activeTab: {
+    backgroundColor: "#FFF",
+  },
+  tabText: {
+    color: "#E0E0E0",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  activeTabText: {
+    color: "#4C4CFF",
+    fontWeight: "700",
+  },
+
+  // Locked View Styles
+  lockedContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  lockIconWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#E5E7EB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  lockedText: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+    fontWeight: "500",
+  },
+
+  // Footer Styles
   footerContainer: {
     position: "absolute",
     bottom: 20,

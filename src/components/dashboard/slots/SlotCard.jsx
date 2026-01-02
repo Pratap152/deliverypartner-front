@@ -6,7 +6,6 @@ import {
   StyleSheet,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import Checkbox from "./Checkbox";
 
 export default function SlotCard({
   slot,
@@ -17,6 +16,7 @@ export default function SlotCard({
 }) {
   const isBooked = slot.isBooked;
   const isCancelled = slot.isCancelled;
+  const isAvailable = !isBooked && !isCancelled;
 
   // Helper to convert 24h string "14:00" -> "02:00 PM"
   const formatTime = (timeStr) => {
@@ -30,11 +30,11 @@ export default function SlotCard({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.9} // Slight feedback on press if selectable
-      onPress={selectable ? onSelect : null} // Make whole card selectable if available
+      activeOpacity={0.9}
+      onPress={selectable ? onSelect : null}
       style={[
         styles.card,
-        selected && styles.selectedCard, // Optional style for selected state
+        selected && styles.selectedCard,
         isBooked && styles.bookedCard,
         isCancelled && styles.cancelledCard,
       ]}
@@ -43,14 +43,6 @@ export default function SlotCard({
       <View style={styles.headerRow}>
         {/* Left: Icon + Time info */}
         <View style={styles.leftContent}>
-
-          {/* TRASH ICON (Top-Left) for Booked Slots */}
-          {isBooked && (
-            <TouchableOpacity onPress={onCancel} style={styles.trashIconWrapper}>
-              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-            </TouchableOpacity>
-          )}
-
           <View style={styles.iconWrapper}>
             <Ionicons name="flash" size={18} color="#FF6A00" />
           </View>
@@ -64,39 +56,51 @@ export default function SlotCard({
           </View>
         </View>
 
-        {/* Right: Checkbox (Top-Right as requested) */}
-        {!isBooked && !isCancelled && selectable && (
-          <View style={styles.checkboxWrapper}>
-            <View style={[styles.box, selected && styles.checked]}>
-              {selected && (
-                <Ionicons name="checkmark" size={12} color="#FFF" />
-              )}
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* ---------- STATUS ROW (If Booked/Cancelled) ---------- */}
-      {(isBooked || isCancelled) && (
-        <View style={styles.statusRow}>
+        {/* Right Content */}
+        <View style={styles.rightContent}>
+          {/* TRASH ICON (Top-Right) for Booked Slots */}
           {isBooked && (
-            <View style={styles.statusContainer}>
-              <View style={styles.bookedBadge}>
-                <Ionicons name="checkmark-circle" size={16} color="#FFF" />
-                <Text style={styles.statusText}>Booked</Text>
-              </View>
-              {/* Cancel button removed from here, moved to top-left trash icon */}
-            </View>
+            <TouchableOpacity onPress={onCancel} style={styles.trashBtn}>
+              <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+            </TouchableOpacity>
           )}
 
-          {isCancelled && (
-            <View style={styles.cancelledBadge}>
-              <Ionicons name="close-circle" size={16} color="#FFF" />
-              <Text style={styles.statusText}>Cancelled</Text>
+          {/* Checkbox for Available slots */}
+          {isAvailable && selectable && (
+            <View style={styles.checkboxWrapper}>
+              <View style={[styles.box, selected && styles.checked]}>
+                {selected && (
+                  <Ionicons name="checkmark" size={12} color="#FFF" />
+                )}
+              </View>
             </View>
           )}
         </View>
-      )}
+      </View>
+
+      {/* ---------- STATUS ROW ---------- */}
+      <View style={styles.statusRow}>
+        {isBooked && (
+          <View style={styles.bookedBadge}>
+            <Ionicons name="checkmark-circle" size={16} color="#FFF" />
+            <Text style={styles.statusText}>Booked</Text>
+          </View>
+        )}
+
+        {isCancelled && (
+          <View style={styles.cancelledBadge}>
+            <Ionicons name="close-circle" size={16} color="#FFF" />
+            <Text style={styles.statusText}>Cancelled</Text>
+          </View>
+        )}
+
+        {isAvailable && (
+          <View style={styles.availableBadge}>
+            <Ionicons name="radio-button-on" size={16} color="#FFF" />
+            <Text style={styles.statusText}>Available</Text>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }
@@ -109,6 +113,11 @@ const styles = StyleSheet.create({
     borderColor: "#E5E5EA",
     padding: 16,
     marginVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
   },
   selectedCard: {
     borderColor: "#4C4CFF",
@@ -123,20 +132,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF4EC",
   },
 
-  /* Header Row */
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start", // Align top
+    alignItems: "flex-start",
   },
   leftContent: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
-  trashIconWrapper: {
-    marginRight: 10,
-    padding: 4,
+  rightContent: {
+    paddingLeft: 10,
+  },
+  trashBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#FEE2E2",
+    justifyContent: "center",
+    alignItems: "center",
   },
   iconWrapper: {
     width: 40,
@@ -158,10 +173,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  /* Checkbox */
   checkboxWrapper: {
-    marginLeft: 10,
-    marginTop: 4, // Align slightly with icon
+    marginTop: 4,
   },
   box: {
     width: 22,
@@ -178,25 +191,19 @@ const styles = StyleSheet.create({
     borderColor: "#4C4CFF",
   },
 
-  /* Status Row */
   statusRow: {
     marginTop: 12,
     flexDirection: "row",
     justifyContent: "center",
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center', // Centered now that icon is gone
   },
   bookedBadge: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#34C759",
     paddingVertical: 8,
-    paddingHorizontal: 24, // Wider badge
+    paddingHorizontal: 24,
     borderRadius: 20,
+    minWidth: 160,
     justifyContent: 'center',
   },
   cancelledBadge: {
@@ -206,6 +213,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 24,
     borderRadius: 20,
+    minWidth: 160,
+    justifyContent: 'center',
+  },
+  availableBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4C4CFF", // Blue
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    minWidth: 160,
     justifyContent: 'center',
   },
   statusText: {

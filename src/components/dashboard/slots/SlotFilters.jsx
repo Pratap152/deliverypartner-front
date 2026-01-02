@@ -33,14 +33,14 @@ export default function SlotFilters({ value, onChange }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 12,
+    marginVertical: 8,
   },
   scrollContent: {
     flexDirection: "row",
     paddingHorizontal: 4,
   },
   filterPill: {
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8, // Pill shape
     marginRight: 10,

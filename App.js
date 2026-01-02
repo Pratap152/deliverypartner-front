@@ -11,67 +11,58 @@ import { tokenService } from './src/services/TokenService';
 import { sessionService } from './src/services/SessionService';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
-import {getAuthHeaders} from "./src/services/slots/slots.service";
+import { getAuthHeaders } from "./src/services/slots/slots.service";
 
 
 const App = () => {
-   
-  // useEffect(() => {
-  //   let mounted = true;
 
-  //   const bootstrap = async () => {
-  //     try {
-  //       const tokens = await tokenService.get();
+  useEffect(() => {
+    let mounted = true;
 
-  //       if (!mounted) return;
+    const bootstrap = async () => {
+      try {
+        const tokens = await tokenService.get();
 
-  //       console.log('Bootstrap tokens:', tokens);
+        if (!mounted) return;
 
-  //       if (!tokens?.accessToken) {
-  //         console.log('if entered....'); 
-  //         navigateAndReset('OnBoardingScreen');
-  //         return;
-  //       }
+        console.log('Bootstrap tokens:', tokens);
 
-  //       await refreshTokenIfNeeded()
+        if (!tokens?.accessToken) {
+          console.log('if entered....');
+          navigateAndReset('OnBoardingScreen');
+          return;
+        }
 
-  //       const onboardingComplete =
-  //         await sessionService.isOnboardingComplete();
+        await refreshTokenIfNeeded()
 
-  //       navigateAndReset(
-  //         onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen'
-  //       );
-  //     } catch (err) {
-  //       console.error('App bootstrap failed:', err);
-  //       navigateAndReset('LoginEntryScreen');
-  //     }
-  //   };
+        const onboardingComplete =
+          await sessionService.isOnboardingComplete();
 
-  //   bootstrap();
+        navigateAndReset(
+          onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen'
+        );
+      } catch (err) {
+        console.error('App bootstrap failed:', err);
+        navigateAndReset('LoginEntryScreen');
+      }
+    };
 
-  //   const sub = AppState.addEventListener('change', state => {
-  //     if (state === 'active') {
-  //       refreshTokenIfNeeded(true);
-  //     }
-  //   });
+    bootstrap();
 
-  //   return () => {
-  //     mounted = false;
-  //     sub.remove();
-  //   };
-  // }, []);
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        refreshTokenIfNeeded(true);
+      }
+    });
 
-  return (
-    <NavigationContainer >
-      <Provider store={store}>
-        <AuthProvider>
-          <AppNavigator />
-        </AuthProvider>
-      </Provider>
-    </NavigationContainer>
-  );
+    return () => {
+      mounted = false;
+      sub.remove();
+    };
+  }, []);
+
   // return (
-  //   <NavigationContainer ref={navigationRef}>
+  //   <NavigationContainer >
   //     <Provider store={store}>
   //       <AuthProvider>
   //         <AppNavigator />
@@ -79,6 +70,15 @@ const App = () => {
   //     </Provider>
   //   </NavigationContainer>
   // );
+  return (
+    <NavigationContainer ref={navigationRef}>
+      <Provider store={store}>
+        <AuthProvider>
+          <AppNavigator />
+        </AuthProvider>
+      </Provider>
+    </NavigationContainer>
+  );
 };
 
 export default App;
