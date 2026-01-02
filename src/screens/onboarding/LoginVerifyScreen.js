@@ -14,6 +14,9 @@ import { useAuth } from '../../hooks/useAuth';
 import OtpInput from '../../components/common/OTPInputBox';
 import { sendOTPApi } from './LoginEntryScreen';
 import AppPermissionScreen from './AppPermissionScreen';
+import { tokenService } from '../../services/TokenService';
+import apiClient from '../../api/ApiClient';
+
  
 const COLORS = {
   primary: '#16C2D5',
@@ -116,7 +119,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     React.useCallback(() => {
       clearOtp();
       setError('');
-      return () => { };
+      return () => {};
     }, []),
   );
  
@@ -134,7 +137,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setError('');
  
     const result = await verifyOTPApi(phone, fullOtp);
-    // console.log('i need to test', result);
+    console.log('i need to test', result);
     setIsVerifying(false);
  
     if (result.status === 200) {
@@ -144,7 +147,10 @@ const LoginVerifyScreen = ({ route, navigation }) => {
         setError('Authentication failed. Try again.');
         return;
       }
- 
+      await tokenService.set({
+        accessToken:token,
+        refreshToken:token
+      })
       // ✅ Save token globally
       setAuthToken(token);
  
