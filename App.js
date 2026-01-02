@@ -22,32 +22,43 @@ const App = () => {
     const bootstrap = async () => {
       try {
         const tokens = await tokenService.get();
-
         if (!mounted) return;
 
         console.log('Bootstrap tokens:', tokens);
 
-        if (!tokens?.accessToken) {
-          navigateAndReset('OnBoardingScreen');
+        // 1️⃣ Access token exists → go to app
+        if (tokens?.accessToken) {
+          navigateAndReset('MainTabs');
           return;
         }
 
-        await refreshTokenIfNeeded();
+        // 2️⃣ Try refresh if refresh token exists
+        if (tokens?.refreshToken) {
+          try {
+            await refreshTokenIfNeeded(true);
 
-        const onboardingComplete = await sessionService.isOnboardingComplete();
+            if (!mounted) return;
+            navigateAndReset('MainTabs');
+            return;
+          } catch (err) {
+            console.log('Refresh failed during bootstrap');
+          }
+        }
 
-        navigateAndReset(onboardingComplete ? 'MainTabs' : 'OnBoardingScreen');
+        // 3️⃣ No tokens or refresh failed → login
+        navigateAndReset('LoginEntryScreen');
       } catch (err) {
         console.error('App bootstrap failed:', err);
         navigateAndReset('LoginEntryScreen');
       }
     };
 
-    //   bootstrap();
+    bootstrap();
 
+    // 🔁 Refresh token when app returns to foreground
     const sub = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        refreshTokenIfNeeded(true);
+        refreshTokenIfNeeded(true).catch(() => {});
       }
     });
 
