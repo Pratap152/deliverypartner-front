@@ -31,16 +31,17 @@ import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
+import MapScreen from '../screens/Home/MapScreen'
 import Map from '../../src/screens/Home/Map';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="HomeDashboard"
+      initialRouteName="LoginEntryScreen"
     >
       <Stack.Screen name="Map" component={Map} />
-      <Stack.Screen name='HomeDashboard' component={HomeDashboard}/>
+      <Stack.Screen name='HomeDashboard' component={HomeDashboard} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
@@ -94,26 +95,20 @@ const AppNavigator = () => {
         component={AddBankDetails}
       />
 
-<Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered}/>
-    <Stack.Screen name='ReferEarn' component={ReferEarn}/>
-    <Stack.Screen name='ReferFrd' component={ReferFrd}/>
-      <Stack.Screen
-  name="IncentiveDetails"
-  component={IncentiveDetails}
-  options={{ headerShown: true, title: "Incentive Details" }}
-/>
- 
+      <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
+      <Stack.Screen name='ReferEarn' component={ReferEarn} />
+      <Stack.Screen name='ReferFrd' component={ReferFrd} />
+      <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: true, title: "Incentive Details" }}/>
 
-      {/* <Stack.Screen name="" component={} />
-      <Stack.Screen name="" component={} />
-      <Stack.Screen name="" component={} /> */}
+    
+      <Stack.Screen name="Map" component={MapScreen}  options={{ headerShown: false }}/>
       {/* <Stack.Screen name="Timer" component={Timer}/> */}
       {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
-      <Stack.Screen name="ReportIssue" component={ReportIssue}/>
+      <Stack.Screen name="ReportIssue" component={ReportIssue} />
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-      <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline}/>
+      <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} />
     </Stack.Navigator>
-  ); 
+  );
 };
 
 export default AppNavigator;

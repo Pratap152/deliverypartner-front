@@ -1,0 +1,13 @@
+// export const ORDER_STATUS = {
+//   PICKED_UP: 'PICKED_UP',
+//   ARRIVED: 'ARRIVED',
+//   DELIVERED: 'DELIVERED',
+// };
+// orderStates.js
+export const ORDER_STATUS = {
+  PICKUP_ASSIGNED: 'PICKUP_ASSIGNED',
+  AT_RESTAURANT: 'AT_RESTAURANT',
+  ORDER_PICKED_UP: 'ORDER_PICKED_UP',   // ✅ renamed
+  AT_DROP: 'AT_DROP',
+  ORDER_DELIVERED: 'ORDER_DELIVERED',   // ✅ renamed
+};
