@@ -16,53 +16,52 @@ import { getAuthHeaders } from "./src/services/slots/slots.service";
 
 const App = () => {
 
-  // useEffect(() => {
-  //   let mounted = true;
+  useEffect(() => {
+    let mounted = true;
 
-  //   const bootstrap = async () => {
-  //     try {
-  //       const tokens = await tokenService.get();
+    const bootstrap = async () => {
+      try {
+        const tokens = await tokenService.get();
 
-  //       if (!mounted) return;
+        if (!mounted) return;
 
-  //       console.log('Bootstrap tokens:', tokens);
+        console.log('Bootstrap tokens:', tokens);
 
-  //       if (!tokens?.accessToken) {
-  //         console.log('if entered....');
-  //         navigateAndReset('OnBoardingScreen');
-  //         return;
-  //       }
+        if (!tokens?.accessToken) {
+          console.log('if entered....');
+          navigateAndReset('OnBoardingScreen');
+          return;
+        }
 
-  //       await refreshTokenIfNeeded()
+        await refreshTokenIfNeeded()
 
-  //       const onboardingComplete =
-  //         await sessionService.isOnboardingComplete();
+        const onboardingComplete =
+          await sessionService.isOnboardingComplete();
 
-  //       navigateAndReset(
-  //         onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen'
-  //       );
-  //     } catch (err) {
-  //       console.error('App bootstrap failed:', err);
-  //       navigateAndReset('LoginEntryScreen');
-  //     }
-  //   };
+        navigateAndReset(
+          onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen'
+        );
+      } catch (err) {
+        console.error('App bootstrap failed:', err);
+        navigateAndReset('LoginEntryScreen');
+      }
+    };
 
-  //   bootstrap();
+    bootstrap();
 
-  //   const sub = AppState.addEventListener('change', state => {
-  //     if (state === 'active') {
-  //       refreshTokenIfNeeded(true);
-  //     }
-  //   });
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        refreshTokenIfNeeded(true);
+      }
+    });
 
-  //   return () => {
-  //     mounted = false;
-  //     sub.remove();
-  //   };
-  // }, []);
-
+    return () => {
+      mounted = false;
+      sub.remove();
+    };
+  }, []);
   return (
-    <NavigationContainer >
+    <NavigationContainer ref={navigationRef}>
       <Provider store={store}>
         <AuthProvider>
           <AppNavigator />
@@ -70,15 +69,6 @@ const App = () => {
       </Provider>
     </NavigationContainer>
   );
-  // return (
-  //   <NavigationContainer ref={navigationRef}>
-  //     <Provider store={store}>
-  //       <AuthProvider>
-  //         <AppNavigator />
-  //       </AuthProvider>
-  //     </Provider>
-  //   </NavigationContainer>
-  // );
 };
 
 export default App;
