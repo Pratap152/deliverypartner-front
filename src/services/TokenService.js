@@ -1,33 +1,61 @@
+// services/TokenService.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Keychain from 'react-native-keychain';
 
-const TOKEN_KEY = 'AUTH_TOKENS';
+const REFRESH_KEY = 'REFRESH_TOKEN';
+const META_KEY = 'TOKEN_META';
 
-class TokenService {
-  async set({ accessToken, refreshToken, expiresIn }) {
-    const expiry = Date.now() + expiresIn * 1000; // ⏱ timeout here
+export const tokenService = {
+  async set({ accessToken, refreshToken, accessExpiry, refreshExpiry }) {
+    console.log("Storing tokens:", { accessToken, refreshToken});
+    await Keychain.setGenericPassword('access', accessToken);
+    await AsyncStorage.setItem(REFRESH_KEY, refreshToken);
+    await AsyncStorage.setItem(
+      META_KEY,
+      JSON.stringify({ accessExpiry, refreshExpiry })
+    );
+  },
 
-    const data = {
-      accessToken,
-      refreshToken,
-      expiry,
-    };
-
-    await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(data));
-  }
-
+  // ✅ ADD THIS METHOD
   async get() {
-    const raw = await AsyncStorage.getItem(TOKEN_KEY);
+    const creds = await Keychain.getGenericPassword();
+    const refreshToken = await AsyncStorage.getItem(REFRESH_KEY);
+    const metaRaw = await AsyncStorage.getItem(META_KEY);
+
+    const meta = metaRaw ? JSON.parse(metaRaw) : null;
+
+    return {
+      accessToken: creds ? creds.password : null,
+      refreshToken,
+      accessExpiry: meta?.accessExpiry ?? null,
+      refreshExpiry: meta?.refreshExpiry ?? null,
+    };
+  },
+
+  async getAccessToken() {
+    const creds = await Keychain.getGenericPassword();
+    return creds ? creds.password : null;
+  },
+
+  async getRefreshToken() {
+    return AsyncStorage.getItem(REFRESH_KEY);
+  },
+
+  async getExpiry() {
+    const raw = await AsyncStorage.getItem(META_KEY);
     return raw ? JSON.parse(raw) : null;
-  }
+  },
 
   async clear() {
-    await AsyncStorage.removeItem(TOKEN_KEY);
-  }
+    await Keychain.resetGenericPassword();
+    await AsyncStorage.multiRemove([REFRESH_KEY, META_KEY]);
+  },
 
   isExpired(expiry) {
-    if (!expiry) return true;
-    return Date.now() > expiry - 30_000; // refresh 30s early
-  }
-}
+    return !expiry || Date.now() >= expiry;
+  },
 
-export const tokenService = new TokenService();
+  willExpireSoon(expiry, buffer = 2 * 60 * 1000) {
+    return expiry && expiry - Date.now() <= buffer;
+  },
+};

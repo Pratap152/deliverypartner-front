@@ -1,57 +1,81 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { AppState } from 'react-native';
-import AppNavigator from './src/navigation/AppNavigator';
-import { AuthProvider } from './src/hooks/useAuth';
+import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
+
+import AppNavigator from './src/navigation/AppNavigator';
 import { store } from './src/redux/store';
-import { sessionService } from './src/services/SessionService';
+import { AuthProvider } from './src/hooks/useAuth';
+
 import { tokenService } from './src/services/TokenService';
+import { sessionService } from './src/services/SessionService';
+import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import ToastComponent from './src/components/common/ToastComponent';
 
 const App = () => {
-  // useEffect(() => {
-  //   const bootstrap = async () => {
-  //     const tokens = await tokenService.get();
-  //     const session = await sessionService.get();
+  useEffect(() => {
+  let mounted = true;
 
-  //     if (!tokens?.accessToken) {
-  //       navigateAndReset('LoginEntryScreen');
-  //       return;
-  //     }
+  const bootstrap = async () => {
+    try {
+      const tokens = await tokenService.get();
+      if (!mounted) return;
 
-  //     if (session?.onboardingComplete) {
-  //       navigateAndReset('HomeDashboard');
-  //     } else {
-  //       navigateAndReset('DocumentVerifyScreen');
-  //     }
-  //   };
+      console.log('Bootstrap tokens:', tokens);
 
-  //   bootstrap();
+      // 1️⃣ Access token exists → go to app
+      if (tokens?.accessToken) {
+        navigateAndReset('MainTabs');
+        return;
+      }
 
-  //   const sub = AppState.addEventListener('change', state => {
-  //     if (state === 'active') {
-  //       refreshTokenIfNeeded(true);
-  //     }
-  //   });
+      // 2️⃣ Try refresh if refresh token exists
+      if (tokens?.refreshToken) {
+        try {
+          await refreshTokenIfNeeded(true);
 
-  //   return () => sub.remove();
-  // }, []);
+          if (!mounted) return;
+          navigateAndReset('MainTabs');
+          return;
+        } catch (err) {
+          console.log('Refresh failed during bootstrap');
+        }
+      }
+
+      // 3️⃣ No tokens or refresh failed → login
+      navigateAndReset('LoginEntryScreen');
+    } catch (err) {
+      console.error('App bootstrap failed:', err);
+      navigateAndReset('LoginEntryScreen');
+    }
+  };
+
+  bootstrap();
+
+  // 🔁 Refresh token when app returns to foreground
+  const sub = AppState.addEventListener('change', state => {
+    if (state === 'active') {
+      refreshTokenIfNeeded(true).catch(() => {});
+    }
+  });
+
+  return () => {
+    mounted = false;
+    sub.remove();
+  };
+}, []);
+
 
   return (
-    <>
-     <NavigationContainer ref={navigationRef}>
-      <AuthProvider>
-        <Provider store={store}>
+    <NavigationContainer ref={navigationRef}>
+      <Provider store={store}>
+        <AuthProvider>
           <AppNavigator />
-        </Provider>
-      </AuthProvider>
-     </NavigationContainer>
-     <ToastComponent/>
-    </>
-   
+        </AuthProvider>
+      </Provider>
+    </NavigationContainer>
   );
 };
 

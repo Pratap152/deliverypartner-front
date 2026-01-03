@@ -67,7 +67,6 @@ async function handleSubmit(){
 navigation.navigate(SelectCityScreen);
   }
   catch(e){
-    console.log(e);
     setError(e.message);
   }
 }
@@ -119,6 +118,7 @@ return (
         desc="We need this permission to intelligently surface location and allocate orders"
         permissionStatus={permissionStatus}
         onPress={()=>handleLocation("location")}
+        isTick={permissionStatus.location==="granted"}
         isEnabled={permissionStatus.location!=="granted"}
       />
 
@@ -128,7 +128,7 @@ return (
         desc="We require background location permission for accurate rider updates and geographical detection"
         permissionStatus={permissionStatus}
         onPress={()=>handleLocation("backgroundLocation")}
-        // isDisabled={permissionStatus.backgroundLocation==="granted"||permissionStatus.backgroundLocation===""}
+        isTick={permissionStatus.backgroundLocation==="granted"}
         isEnabled={permissionStatus.location==="granted"&&permissionStatus.backgroundLocation!=="granted"}
       />
 
@@ -137,7 +137,7 @@ return (
         title="Camera"
         desc="We need this permission to scan codes and take picture"
         permissionStatus={permissionStatus}
-        // isDisabled={permissionStatus.backgroundLocation==="granted"||permissionStatus.backgroundLocation===""}
+        isTick={permissionStatus.camera==="granted"}
         isEnabled={permissionStatus.backgroundLocation==="granted"&&permissionStatus.camera!=="granted"}
         onPress={()=>handleLocation("camera")}
       />

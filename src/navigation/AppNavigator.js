@@ -40,6 +40,8 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
       initialRouteName="LoginEntryScreen"
     >
+      <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
+      <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
       {/* <Stack.Screen name="Map" component={Map} /> */}
       <Stack.Screen name='HomeDashboard' component={HomeDashboard} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
@@ -93,7 +95,7 @@ const AppNavigator = () => {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} />
     </Stack.Navigator>
-  );
+  ); n
 };
 
 export default AppNavigator;
