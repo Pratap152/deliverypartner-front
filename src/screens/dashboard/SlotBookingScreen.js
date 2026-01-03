@@ -123,7 +123,8 @@ export default function SlotBookingScreen() {
         renderItem={({ item }) => (
           <SlotCard
             slot={item}
-            selectable={item.bookingStatus === "NOT_BOOKED"}
+            activeFilter={filter} // Pass current filter
+            selectable={filter !== "cancelled" && !!item.isAvailable}
             selected={selectedSlots.some((s) => s.slotId === item.slotId)}
             onSelect={() => toggleSlotSelection(item)}
             onCancel={() => {
@@ -199,6 +200,7 @@ export default function SlotBookingScreen() {
       <BookSlotModal
         visible={bookModalVisible}
         slots={selectedSlots}
+        date={selectedWeek} // Pass selected date for display
         onClose={() => setBookModalVisible(false)}
         onConfirm={handleBookConfirm}
       />

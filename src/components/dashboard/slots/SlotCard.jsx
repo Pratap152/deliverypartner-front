@@ -13,10 +13,37 @@ export default function SlotCard({
   selected,
   onSelect,
   onCancel,
+  activeFilter,
 }) {
-  const isBooked = slot.isBooked;
-  const isCancelled = slot.isCancelled;
-  const isAvailable = !isBooked && !isCancelled;
+  // Raw flags from API
+  const rawIsBooked = slot.isBooked;
+  const rawIsCancelled = slot.isCancelled;
+  // If API explicitly says available, or if neither booked nor cancelled
+  const rawIsAvailable = slot.isAvailable || (!rawIsBooked && !rawIsCancelled);
+
+  // Determine Display Status based on Filter & Priority
+  let displayStatus = 'AVAILABLE'; // Default fallback
+
+  if (activeFilter === 'booked') {
+    displayStatus = 'BOOKED';
+  } else if (activeFilter === 'cancelled') {
+    displayStatus = 'CANCELLED';
+  } else if (activeFilter === 'available') {
+    displayStatus = 'AVAILABLE';
+  } else {
+    // Filter is 'all' (or undefined) -> prioritized logic
+    if (rawIsBooked) {
+      displayStatus = 'BOOKED';
+    } else if (rawIsAvailable) {
+      displayStatus = 'AVAILABLE';
+    } else if (rawIsCancelled) {
+      displayStatus = 'CANCELLED';
+    }
+  }
+
+  const isBooked = displayStatus === 'BOOKED';
+  const isCancelled = displayStatus === 'CANCELLED';
+  const isAvailable = displayStatus === 'AVAILABLE';
 
   // Helper to convert 24h string "14:00" -> "02:00 PM"
   const formatTime = (timeStr) => {
