@@ -31,8 +31,8 @@ import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
-import MapScreen from '../screens/Home/MapScreen'
-import Map from '../../src/screens/Home/Map';
+// import MapScreen from '../screens/Home/MapScreen'
+// import Map from '../../src/screens/Home/Map';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -40,7 +40,7 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
       initialRouteName="LoginEntryScreen"
     >
-      <Stack.Screen name="Map" component={Map} />
+      {/* <Stack.Screen name="Map" component={Map} /> */}
       <Stack.Screen name='HomeDashboard' component={HomeDashboard} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
@@ -75,33 +75,18 @@ const AppNavigator = () => {
       <Stack.Screen name="AadharEntryScreen" component={AadharEntryScreen} />
       <Stack.Screen name="AadharVerifyScreen" component={AadharVerifyScreen} />
       <Stack.Screen name="PanUploadScreen" component={PanUploadScreen} />
-      <Stack.Screen
-        name="LicenseUploadScreen"
-        component={LicenseUploadScreen}
-      />
-      <Stack.Screen
-        name="ProcessingVerificationScreen"
-        component={ProcessingVerificationScreen}
-      />
+      <Stack.Screen name="LicenseUploadScreen" component={LicenseUploadScreen}/>
+      <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
-
       <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
-
-
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
-      <Stack.Screen
-        name="AddBankDetails"
-        component={AddBankDetails}
-      />
-
+      <Stack.Screen name="AddBankDetails" component={AddBankDetails} />
       <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
       <Stack.Screen name='ReferEarn' component={ReferEarn} />
       <Stack.Screen name='ReferFrd' component={ReferFrd} />
       <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: true, title: "Incentive Details" }}/>
-
-    
-      <Stack.Screen name="Map" component={MapScreen}  options={{ headerShown: false }}/>
+      {/* <Stack.Screen name="Map" component={MapScreen}  options={{ headerShown: false }}/> */}
       {/* <Stack.Screen name="Timer" component={Timer}/> */}
       {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
