@@ -140,21 +140,22 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setIsVerifying(false);
  
     if (result.status === 200) {
-      const token = result?.data?.accessToken;
-      console.log(token);
-      if (!token) {
+      const accessToken = result?.data?.accessToken;
+      const refreshToken = result?.data?.refreshToken;
+      console.log(accessToken);
+      if (!accessToken) {
         setError('Authentication failed. Try again.');
         return;
       }
       await tokenService.set({
-        accessToken:token,
-        refreshToken:token
+        accessToken:accessToken,
+        refreshToken:refreshToken
       })
       // ✅ Save token globally
-      setAuthToken(token);
+      setAuthToken(accessToken);
  
       // 🔍 Check registration status
-      const initResult = await initializeRiderApi(token);
+      const initResult = await initializeRiderApi(accessToken);
  
       console.log(initResult)
  

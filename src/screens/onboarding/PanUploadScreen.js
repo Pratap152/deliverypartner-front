@@ -18,6 +18,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import apiClient from '../../api/ApiClient';
 import axios, { Axios } from 'axios';
+import { tokenService } from '../../services/TokenService';
 
 const PanUploadScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
@@ -63,9 +64,10 @@ const PanUploadScreen = ({ navigation }) => {
 
     try {
       setLoading(true);
-
+      const access = await tokenService.getAccessToken();
+      console.log("access token....", access);
       // const authToken = await AsyncStorage.getItem("AUTH_TOKEN") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDBkODE4YjdhZjNjMTg0ZGM4MmYwIiwicGhvbmUiOiI5ODc5ODc5ODc5IiwiaWF0IjoxNzY1MDE5MDQxLCJleHAiOjE3NjU2MjM4NDF9.lVY-cLPFwcp4CvKzWEIjX8LYxHRD_fDZyPSaisVCf1Q";
-      if (!authToken) {
+      if (!access) {
         Alert.alert("Session Expired", "Please login again");
         return;
       }
@@ -89,7 +91,7 @@ const PanUploadScreen = ({ navigation }) => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Bearer ${access}`,
             Accept: "application/json",
             "Content-Type": "multipart/form-data",
           },
