@@ -5,6 +5,7 @@ import SlotFilters from './SlotFilters';
 import SlotCard from './SlotCard';
 import EmptySlotState from './EmptySlotState';
 import { isSlotSelectable } from '../../../utils/slotHelpers';
+import SlotHistory from '../../common/SlotHistory';
 
 /**
  * SlotsList Component
@@ -66,6 +67,7 @@ export default function SlotsList({
                 keyExtractor={(item) => item.slotId}
                 renderItem={renderSlotCard}
                 ListEmptyComponent={<EmptySlotState filter={filter} />}
+                 ListFooterComponent={<SlotHistory />}
                 refreshing={loading}
                 onRefresh={onRefresh}
                 contentContainerStyle={styles.listContent}

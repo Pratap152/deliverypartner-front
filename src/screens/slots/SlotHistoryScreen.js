@@ -11,7 +11,7 @@ import { tokenService } from '../../services/TokenService';
 
 
 export default function SlotHistoryScreen({navigation}){
-    const [selectedWeek, setSelectedWeek] = useState(52);
+    const [selectedWeek, setSelectedWeek] = useState(6);
     const [summary, setSummary]  =useState(null);
     const [days, setDays] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -63,7 +63,7 @@ export default function SlotHistoryScreen({navigation}){
     },[selectedWeek]);
 
     // PREVIOUS WEEKS
-    const totalWeeks = 52;
+    const totalWeeks = 6;
     const weeks = Array.from({ length: totalWeeks }, (_, i) => totalWeeks - i);
 
 

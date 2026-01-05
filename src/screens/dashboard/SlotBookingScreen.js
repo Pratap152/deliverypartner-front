@@ -13,7 +13,7 @@ import SlotBookingFooter from '../../components/dashboard/slots/SlotBookingFoote
 import BookSlotModal from '../../components/dashboard/slots/modals/BookSlotModal';
 import CancelSlotModal from '../../components/dashboard/slots/modals/CancelSlotModal';
 import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
-
+import SlotHistory from '../../components/common/SlotHistory';
 /**
  * SlotBookingScreen - Main screen for slot booking functionality
  * Orchestrates child components and manages business logic
@@ -155,7 +155,7 @@ export default function SlotBookingScreen() {
         onBook={handleBookingOpen}
         visible={activeTab === TABS.CURRENT}
       />
-
+    
       {/* Modals */}
       <BookSlotModal
         visible={bookModalVisible}
@@ -176,6 +176,7 @@ export default function SlotBookingScreen() {
         visible={successVisible}
         onClose={() => setSuccessVisible(false)}
       />
+      
     </View>
   );
 }
