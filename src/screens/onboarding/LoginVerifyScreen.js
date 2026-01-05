@@ -14,9 +14,8 @@ import { useAuth } from '../../hooks/useAuth';
 import OtpInput from '../../components/common/OTPInputBox';
 import { sendOTPApi } from './LoginEntryScreen';
 import AppPermissionScreen from './AppPermissionScreen';
+import apiClient from "../../api/ApiClient";
 import { tokenService } from '../../services/TokenService';
-import apiClient from '../../api/ApiClient';
-
  
 const COLORS = {
   primary: '#16C2D5',

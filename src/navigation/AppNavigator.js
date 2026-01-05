@@ -26,6 +26,7 @@ import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
 import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
 import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
+
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -91,6 +92,7 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
+      
     </Stack.Navigator>
   ); 
 };
