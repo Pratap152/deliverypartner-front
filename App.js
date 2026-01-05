@@ -2,61 +2,66 @@ import React, { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-
 import AppNavigator from './src/navigation/AppNavigator';
 import { store } from './src/redux/store';
 import { AuthProvider } from './src/hooks/useAuth';
-
 import { tokenService } from './src/services/TokenService';
-import { sessionService } from './src/services/SessionService';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
 
 const App = () => {
   useEffect(() => {
-    let mounted = true;
+  let mounted = true;
 
-    const bootstrap = async () => {
-      try {
-        const tokens = await tokenService.get();
+  const bootstrap = async () => {
+    try {
+      const tokens = await tokenService.get();
+      if (!mounted) return;
 
-        if (!mounted) return;
+      console.log('Bootstrap tokens:', tokens);
 
-        console.log('Bootstrap tokens:', tokens);
+      // Access token exists → go to app
+      if (tokens?.accessToken) {
+        navigateAndReset('MainTabs');
+        return;
+      }
 
-        if (!tokens?.accessToken) {
-          
-          navigateAndReset('OnBoardingScreen');
+      // Try refresh if refresh token exists
+      if (tokens?.refreshToken) {
+        try {
+          await refreshTokenIfNeeded(true);
+
+          if (!mounted) return;
+          navigateAndReset('MainTabs');
           return;
+        } catch (err) {
+          console.log('Refresh failed during bootstrap');
         }
-
-        await refreshTokenIfNeeded()
-
-        const onboardingComplete =
-          await sessionService.isOnboardingComplete();
-
-        navigateAndReset(
-          onboardingComplete ? 'HomeDashboard' : 'OnBoardingScreen'
-        );
-      } catch (err) {
-        console.error('App bootstrap failed:', err);
-        navigateAndReset('LoginEntryScreen');
       }
-    };
 
-    bootstrap();
+      // No tokens or refresh failed → login
+      navigateAndReset('LoginEntryScreen');
+    } catch (err) {
+      console.error('App bootstrap failed:', err);
+      navigateAndReset('LoginEntryScreen');
+    }
+  };
 
-    const sub = AppState.addEventListener('change', state => {
-      if (state === 'active') {
-        refreshTokenIfNeeded(true);
-      }
-    });
+  bootstrap();
 
-    return () => {
-      mounted = false;
-      sub.remove();
-    };
-  }, []);
+  // Refresh token when app returns to foreground
+  const sub = AppState.addEventListener('change', state => {
+    if (state === 'active') {
+      refreshTokenIfNeeded(true).catch(() => {});
+    }
+  });
+
+  return () => {
+    mounted = false;
+    sub.remove();
+  };
+}, []);
+
 
   return (
     <NavigationContainer ref={navigationRef}>
