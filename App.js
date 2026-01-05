@@ -2,17 +2,17 @@ import React, { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-
 import AppNavigator from './src/navigation/AppNavigator';
 import { store } from './src/redux/store';
 import { AuthProvider } from './src/hooks/useAuth';
-
 import { tokenService } from './src/services/TokenService';
-import { sessionService } from './src/services/SessionService';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
+import { getAuthHeaders } from "./src/services/slots/slots.service";
+
 
 const App = () => {
+
   useEffect(() => {
   let mounted = true;
 
@@ -23,13 +23,13 @@ const App = () => {
 
       console.log('Bootstrap tokens:', tokens);
 
-      // 1️⃣ Access token exists → go to app
+      // Access token exists → go to app
       if (tokens?.accessToken) {
         navigateAndReset('MainTabs');
         return;
       }
 
-      // 2️⃣ Try refresh if refresh token exists
+      // Try refresh if refresh token exists
       if (tokens?.refreshToken) {
         try {
           await refreshTokenIfNeeded(true);
@@ -42,7 +42,7 @@ const App = () => {
         }
       }
 
-      // 3️⃣ No tokens or refresh failed → login
+      // No tokens or refresh failed → login
       navigateAndReset('LoginEntryScreen');
     } catch (err) {
       console.error('App bootstrap failed:', err);
@@ -52,7 +52,7 @@ const App = () => {
 
   bootstrap();
 
-  // 🔁 Refresh token when app returns to foreground
+  // Refresh token when app returns to foreground
   const sub = AppState.addEventListener('change', state => {
     if (state === 'active') {
       refreshTokenIfNeeded(true).catch(() => {});

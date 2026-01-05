@@ -1,14 +1,14 @@
+import { useNavigation } from '@react-navigation/native';
 import {View,Text,Image, TouchableOpacity,StyleSheet} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
-
-export default function SlotHistory({navigation}){
+export default function SlotHistory(){
+  const navigation = useNavigation();
         return(
            <View style={styles.slots_history}>
               
@@ -31,20 +31,20 @@ const styles = StyleSheet.create({
     slots_history:{
             flexDirection:'row',
             alignItems:'center',
-            justifyContent:'space-around',
+            justifyContent:'space-evenly',
             alignSelf:'center',
             backgroundColor:'#FFFFFF',
             marginLeft:wp(5),
-            width:wp(80),
-            height:hp(8),
+            width:wp(100),
+            height:hp(10),
             borderRadius:wp(3),
-            marginTop:hp(30)
+            marginTop:hp(3)
       
     },
     
     slot_img:{
       height:hp(3),
-      width:wp(7),
+      width:wp(6),
      
     }
 
