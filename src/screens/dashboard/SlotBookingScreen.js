@@ -10,9 +10,9 @@ import SlotBookingHeader from '../../components/dashboard/slots/SlotBookingHeade
 import SlotsList from '../../components/dashboard/slots/SlotsList';
 import LockedWeekView from '../../components/dashboard/slots/LockedWeekView';
 import SlotBookingFooter from '../../components/dashboard/slots/SlotBookingFooter';
-import BookSlotModal from '../../components/dashboard/slots/BookSlotModal';
-import CancelSlotModal from '../../components/dashboard/slots/CancelSlotModal';
-import SuccessModal from '../../components/dashboard/slots/SuccessModal';
+import BookSlotModal from '../../components/dashboard/slots/modals/BookSlotModal';
+import CancelSlotModal from '../../components/dashboard/slots/modals/CancelSlotModal';
+import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
 
 /**
  * SlotBookingScreen - Main screen for slot booking functionality
@@ -91,6 +91,7 @@ export default function SlotBookingScreen() {
 
   const handleBookConfirm = async () => {
     const slotIds = extractSlotIds(selectedSlots);
+    console.log(slotIds);
     const success = await bookSlot({
       slotIds,
       date: selectedWeek,

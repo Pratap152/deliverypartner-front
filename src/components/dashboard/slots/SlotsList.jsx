@@ -3,6 +3,7 @@ import { View, FlatList, StyleSheet } from 'react-native';
 import WeekSelector from './WeekSelector';
 import SlotFilters from './SlotFilters';
 import SlotCard from './SlotCard';
+import EmptySlotState from './EmptySlotState';
 import { isSlotSelectable } from '../../../utils/slotHelpers';
 
 /**
@@ -64,6 +65,7 @@ export default function SlotsList({
                 data={slots}
                 keyExtractor={(item) => item.slotId}
                 renderItem={renderSlotCard}
+                ListEmptyComponent={<EmptySlotState filter={filter} />}
                 refreshing={loading}
                 onRefresh={onRefresh}
                 contentContainerStyle={styles.listContent}
