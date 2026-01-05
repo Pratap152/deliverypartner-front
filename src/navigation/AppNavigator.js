@@ -26,6 +26,8 @@ import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
 import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
 import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
+import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
+import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -92,7 +94,8 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
-      
+      <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen}/>
+      <Stack.Screen name="SlotHistoryScreen" component={SlotHistoryScreen}/>
     </Stack.Navigator>
   ); 
 };
