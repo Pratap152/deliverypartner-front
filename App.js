@@ -8,8 +8,11 @@ import { AuthProvider } from './src/hooks/useAuth';
 import { tokenService } from './src/services/TokenService';
 import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
+import { getAuthHeaders } from "./src/services/slots/slots.service";
+
 
 const App = () => {
+
   useEffect(() => {
   let mounted = true;
 
