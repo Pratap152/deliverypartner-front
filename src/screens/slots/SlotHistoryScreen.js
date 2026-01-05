@@ -93,13 +93,17 @@ export default function SlotHistoryScreen({navigation}){
         return `${day} ${month} - ${weekday}`;
         };
 
+
+
     // LIST HEADER
     const ListHeader = () =>{
        return(
         <View>
             <View style={styles.week_selector_container}>
                     <View style={styles.week_selector}>
-                        <Text style={styles.week_text}>Week {selectedWeek}</Text>
+                        <Text style={styles.week_text}>
+                            Week {selectedWeek}
+                        </Text>
                         <Text style={styles.this_week}>This Week</Text>
                         <TouchableOpacity style={styles.change_week}
                                           onPress={() => setIsWeekSheetOpen(true)}>
@@ -200,6 +204,27 @@ export default function SlotHistoryScreen({navigation}){
         );
         };
 
+    const getWeekRangeByWeekNumber = (weekNumber) => {
+        const year = new Date().getFullYear();
+
+        // ISO week calculation (Monday start)
+        const firstThursday = new Date(year, 0, 4);
+        const weekStart = new Date(firstThursday);
+        weekStart.setDate(firstThursday.getDate() + (weekNumber - 1) * 7);
+        weekStart.setDate(weekStart.getDate() - (weekStart.getDay() || 7) + 1);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const format = (date) =>
+            `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
+
+        return `${format(weekStart)} - ${format(weekEnd)}`;
+        };
+
+
+    
+
     
 
 
@@ -216,8 +241,6 @@ export default function SlotHistoryScreen({navigation}){
                 </TouchableOpacity>
                 <Text style={{fontSize:wp(6),}}>Slots History</Text>
             </View>
-            
-
                 
 
 
@@ -252,28 +275,36 @@ export default function SlotHistoryScreen({navigation}){
                                 >
                                 {weeks.map(week => (
                                     <TouchableOpacity
-                                    key={week}
-                                    style={styles.week_item}
-                                    onPress={() => {
-                                        setSelectedWeek(week);
-                                        setIsWeekSheetOpen(false);
-                                    }}
-                                    >
-                                    <Text
-                                        style={{
-                                        fontWeight: week === selectedWeek ? '700' : '400'
-                                        }}
-                                    >
-                                        Week {week}
-                                    </Text>
+                                        key={week}
+                                        style={styles.week_item}
+                                        onPress={() => {
+                                            setSelectedWeek(week);
+                                            setIsWeekSheetOpen(false);
+                                        }}>
+                                        
+                                            <Text
+                                                style={{ fontWeight: week === selectedWeek ? '700' : '400' }}>
+                                                {getWeekRangeByWeekNumber(week)}  (Week {week})
+                                             </Text>
+                                                {week === selectedWeek &&
+                                                <Text style={styles.this_week}>
+                                                    This Week
+                                                </Text>
+                                                }
+                                           
+                                            
+                                        
+                                        
+                                            
+                                        
+
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
 
                             <TouchableOpacity
                                 style={styles.sheet_cancel}
-                                onPress={() => setIsWeekSheetOpen(false)}
-                            >
+                                onPress={() => setIsWeekSheetOpen(false)}>
                                 <Text>Cancel</Text>
                             </TouchableOpacity>
                         </View>
@@ -423,6 +454,9 @@ const styles = StyleSheet.create({
 
     week_item: {
         paddingVertical: hp(1.5),
+        flexDirection:'row',
+        gap:wp(2),
+        
     },
 
     sheet_cancel: {
