@@ -38,7 +38,9 @@ const VehicleSelectionScreen = ({ navigation }) => {
     try {
       const response = await SendVehicleType(selectedVehicle);
       console.log('Vehicle saved:', response);
-      navigation.navigate('PersonalInfoScreen');
+
+      // ✅ Always go back to Splash after success
+      navigation.replace('SplashScreen');
     } catch (error) {
       console.log('Vehicle submit error:', error);
     }

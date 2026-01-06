@@ -1,6 +1,5 @@
-
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,24 +7,24 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-} from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 // import WEBSITE_URL from "src/utils/host";
-import WEBSITE_URL from "../../utils/host";
+import WEBSITE_URL from '../../utils/host';
 import { useAuth } from '../../hooks/useAuth';
-import PrimaryButton from "../../components/common/PrimaryButton";
+import PrimaryButton from '../../components/common/PrimaryButton';
 
 export default function AreaSelectionScreen({ route, navigation }) {
-  console.log("routeparams",route);
-  const { city } = route.params; 
-  const {authToken}=useAuth();
+  console.log('routeparams', route);
+  const { city } = route.params;
+  const { authToken } = useAuth();
   // 👈 city passed from SelectCityScreen
 
-  const [allAreas, setAllAreas] = useState([]);   // Full list from API
-  const [areaList, setAreaList] = useState([]);   // Filtered list
+  const [allAreas, setAllAreas] = useState([]); // Full list from API
+  const [areaList, setAreaList] = useState([]); // Filtered list
   const [selectedArea, setSelectedArea] = useState(null);
-  const [searchText, setSearchText] = useState("");
-  const [errors,setErrors]=useState("");
+  const [searchText, setSearchText] = useState('');
+  const [errors, setErrors] = useState('');
 
   // -------------------------------------
   // FETCH AREAS BASED ON SELECTED CITY
@@ -33,20 +32,20 @@ export default function AreaSelectionScreen({ route, navigation }) {
   useEffect(() => {
     async function fetchAreas() {
       try {
-        console.log("entered...")
+        console.log('entered...');
         // const response = await axios.get(
         //   `${Base_url}/api/location/areas?city=${city}`
         // );
         const response = await axios.get(
-          `${WEBSITE_URL}/api/location/areas?city=${city}`
+          `${WEBSITE_URL}/api/location/areas?city=${city}`,
         );
         console.log(response);
-        console.log("Areas Response:", response);
+        console.log('Areas Response:', response);
 
         setAllAreas(response.data.areas);
         setAreaList(response.data.areas);
       } catch (err) {
-        console.log("Error fetching areas:", err);
+        console.log('Error fetching areas:', err);
         setErrors(err.message);
       }
     }
@@ -60,15 +59,15 @@ export default function AreaSelectionScreen({ route, navigation }) {
   function handleSearch(text) {
     setSearchText(text);
 
-    if (!text || text.trim() === "") {
+    if (!text || text.trim() === '') {
       setAreaList(allAreas);
       return;
     }
 
     const query = text.toLowerCase().trim();
 
-    const filtered = allAreas.filter((area) =>
-      (area || "").toLowerCase().includes(query)
+    const filtered = allAreas.filter(area =>
+      (area || '').toLowerCase().includes(query),
     );
 
     setAreaList(filtered);
@@ -78,35 +77,36 @@ export default function AreaSelectionScreen({ route, navigation }) {
   // SUBMIT → You can navigate to next screen here
   // -------------------------------------
   async function handleSubmit() {
-    console.log("city ,selectedarea",city,selectedArea);
+    console.log('city ,selectedarea', city, selectedArea);
     if (!selectedArea) return;
-    try{
-      const responce=await axios.post(WEBSITE_URL+"/api/rider/location", 
+    try {
+      const responce = await axios.post(
+        WEBSITE_URL + '/api/rider/location',
         {
-         "city": city,
-         "area": selectedArea
-        }
-  ,{
-      headers: 
-      {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
-      "x-client": "mobile",
-      },
-  });
+          city: city,
+          area: selectedArea,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+            'x-client': 'mobile',
+          },
+        },
+      );
       console.log(responce);
-      navigation.navigate("VehicleSelectionScreen");
-    }catch(e){
+      navigation.replace('SplashScreen');
+    } catch (e) {
       setErrors(e.message);
     }
   }
-  if(errors){
-  
-  return (
-  <View style={{flex:1,alignItems:"center",justifyContent:"center"}}>
-    <Text>{errors}</Text>
-  </View>
-  )}
+  if (errors) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>{errors}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -123,7 +123,12 @@ export default function AreaSelectionScreen({ route, navigation }) {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Icon name="search-outline" size={18} color="#888" style={{ marginRight: 6 }} />
+        <Icon
+          name="search-outline"
+          size={18}
+          color="#888"
+          style={{ marginRight: 6 }}
+        />
         <TextInput
           placeholder="Search area"
           style={styles.searchInput}
@@ -141,11 +146,11 @@ export default function AreaSelectionScreen({ route, navigation }) {
       {/* AREA LIST */}
       <ScrollView contentContainerStyle={{ paddingVertical: 10 }}>
         {areaList.length === 0 ? (
-          <Text style={{ textAlign: "center", color: "#999", marginTop: 20 }}>
+          <Text style={{ textAlign: 'center', color: '#999', marginTop: 20 }}>
             No areas found
           </Text>
         ) : (
-          areaList.map((area) => (
+          areaList.map(area => (
             <TouchableOpacity
               key={area}
               style={[
@@ -157,7 +162,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
               <Icon
                 name="location-outline"
                 size={20}
-                color={selectedArea === area ? "#fff" : "#00A8E8"}
+                color={selectedArea === area ? '#fff' : '#00A8E8'}
               />
               <Text
                 style={[
@@ -177,11 +182,11 @@ export default function AreaSelectionScreen({ route, navigation }) {
         <Text style={styles.submitText}>Submit</Text>
       </TouchableOpacity> */}
       <PrimaryButton
-            title="Submit"
-            onPress={handleSubmit}
-            bgColor="#00B5CC"
-            textColor="#fff"
-          />
+        title="Submit"
+        onPress={handleSubmit}
+        bgColor="#00B5CC"
+        textColor="#fff"
+      />
     </View>
   );
 }
@@ -189,31 +194,31 @@ export default function AreaSelectionScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingTop: 40,
   },
 
   /* Header */
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
+    fontWeight: '600',
+    color: '#000',
   },
 
   /* Search Bar */
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -226,53 +231,53 @@ const styles = StyleSheet.create({
 
   /* Divider */
   dividerBar: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
     paddingVertical: 6,
-    alignItems: "center",
+    alignItems: 'center',
     borderRadius: 5,
   },
   dividerText: {
     fontSize: 14,
-    color: "#555",
-    fontWeight: "600",
+    color: '#555',
+    fontWeight: '600',
   },
 
   /* Area item (same styling as your city screen) */
   cityItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: "#00A8E8",
+    borderColor: '#00A8E8',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 15,
     marginVertical: 6,
   },
   citySelected: {
-    backgroundColor: "#00A8E8",
+    backgroundColor: '#00A8E8',
   },
   cityText: {
     marginLeft: 10,
     fontSize: 16,
-    color: "#00A8E8",
+    color: '#00A8E8',
   },
   cityTextSelected: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
   },
 
   /* Submit Button */
   submitBtn: {
-    backgroundColor: "#00C2FF",
+    backgroundColor: '#00C2FF',
     paddingVertical: 12,
     borderRadius: 25,
     marginTop: 10,
     marginBottom: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   submitText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

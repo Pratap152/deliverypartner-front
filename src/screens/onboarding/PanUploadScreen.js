@@ -12,7 +12,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import Header from '../../components/common/Header';
-import WEBSITE_URL from "../../utils/host";
+import WEBSITE_URL from '../../utils/host';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks/useAuth';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
@@ -21,7 +21,7 @@ import axios, { Axios } from 'axios';
 
 const PanUploadScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
-  const [panNumber, setPanNumber] = useState("");
+  const [panNumber, setPanNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const actionSheetRef = useRef();
   const dispatch = useDispatch();
@@ -30,10 +30,13 @@ const PanUploadScreen = ({ navigation }) => {
   const openOptions = () => actionSheetRef.current.show();
 
   const takePhoto = () => {
-    launchCamera({ mediaType: 'photo', quality: 1, cameraType: 'back' }, res => {
-      if (res.didCancel || res.errorCode) return;
-      setImage(res.assets[0]);
-    });
+    launchCamera(
+      { mediaType: 'photo', quality: 1, cameraType: 'back' },
+      res => {
+        if (res.didCancel || res.errorCode) return;
+        setImage(res.assets[0]);
+      },
+    );
   };
 
   const chooseFromGallery = () => {
@@ -43,21 +46,21 @@ const PanUploadScreen = ({ navigation }) => {
     });
   };
 
-  const validatePAN = (num) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(num);
+  const validatePAN = num => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(num);
 
   const handleSubmit = async () => {
     if (!image) {
-      Alert.alert("Upload Required", "Please upload a PAN card image.");
+      Alert.alert('Upload Required', 'Please upload a PAN card image.');
       return;
     }
 
     if (!panNumber.trim()) {
-      Alert.alert("Missing PAN Number", "Please enter your PAN Number.");
+      Alert.alert('Missing PAN Number', 'Please enter your PAN Number.');
       return;
     }
 
     if (!validatePAN(panNumber)) {
-      Alert.alert("Invalid PAN", "Enter a valid PAN format (ABCDE1234F)");
+      Alert.alert('Invalid PAN', 'Enter a valid PAN format (ABCDE1234F)');
       return;
     }
 
@@ -66,23 +69,23 @@ const PanUploadScreen = ({ navigation }) => {
 
       // const authToken = await AsyncStorage.getItem("AUTH_TOKEN") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDBkODE4YjdhZjNjMTg0ZGM4MmYwIiwicGhvbmUiOiI5ODc5ODc5ODc5IiwiaWF0IjoxNzY1MDE5MDQxLCJleHAiOjE3NjU2MjM4NDF9.lVY-cLPFwcp4CvKzWEIjX8LYxHRD_fDZyPSaisVCf1Q";
       if (!authToken) {
-        Alert.alert("Session Expired", "Please login again");
+        Alert.alert('Session Expired', 'Please login again');
         return;
       }
 
       const formData = new FormData();
 
-      formData.append("panNumber", panNumber);
-      formData.append("pan", {
+      formData.append('panNumber', panNumber);
+      formData.append('pan', {
         uri: image.uri,
-        type: image.type || "image/jpeg",
-        name: image.fileName || "pan.jpg",
+        type: image.type || 'image/jpeg',
+        name: image.fileName || 'pan.jpg',
       });
 
-      console.log("Submitting PAN with data:", formData);
+      console.log('Submitting PAN with data:', formData);
       fetch(`${WEBSITE_URL}/api/rider/pan`)
-        .then(res => console.log("API OK"))
-        .catch(err => console.log("RN blocked:", err.message));
+        .then(res => console.log('API OK'))
+        .catch(err => console.log('RN blocked:', err.message));
 
       const response = await axios.post(
         `${WEBSITE_URL}/api/rider/pan`,
@@ -90,31 +93,28 @@ const PanUploadScreen = ({ navigation }) => {
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
-            Accept: "application/json",
-            "Content-Type": "multipart/form-data",
+            Accept: 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
           timeout: 20000,
           maxBodyLength: Infinity,
           maxContentLength: Infinity,
-        }
+        },
       );
 
-      console.log("PAN upload response:", response.data);
+      console.log('PAN upload response:', response.data);
 
-      dispatch(verifyDocument("pan"));
+      dispatch(verifyDocument('pan'));
 
-      Alert.alert("Success", "PAN submitted for verification.", [
-        { text: "Next", onPress: () => navigation.replace("DocumentVerifyScreen", {
-  documentType: "PAN",
-  status: response.data.status,
-  serverData: response.data,
-})
- },
+      Alert.alert('Success', 'PAN submitted for verification.', [
+        {
+          text: 'Next',
+          onPress: () => navigation.replace('SplashScreen'),
+        },
       ]);
-
     } catch (err) {
-      Alert.alert("Upload Error", "Unable to upload PAN. Try again.");
-      console.log("PAN upload error:", err);
+      Alert.alert('Upload Error', 'Unable to upload PAN. Try again.');
+      console.log('PAN upload error:', err);
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,9 @@ const PanUploadScreen = ({ navigation }) => {
         <Header />
         <View style={{ flex: 1, marginTop: 20 }}>
           <Text style={styles.title}>PAN card details</Text>
-          <Text style={styles.subtitle}>Upload clear photo & enter your PAN number.</Text>
+          <Text style={styles.subtitle}>
+            Upload clear photo & enter your PAN number.
+          </Text>
 
           <TextInput
             placeholder="Enter PAN Number"
@@ -136,7 +138,7 @@ const PanUploadScreen = ({ navigation }) => {
             maxLength={10}
             style={{
               borderWidth: 1,
-              borderColor: "#999",
+              borderColor: '#999',
               borderRadius: 8,
               padding: 10,
               marginTop: 20,
@@ -146,12 +148,18 @@ const PanUploadScreen = ({ navigation }) => {
           <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
             {image ? (
               <>
-                <Image source={{ uri: image.uri }} style={styles.previewImage} />
+                <Image
+                  source={{ uri: image.uri }}
+                  style={styles.previewImage}
+                />
                 <View style={styles.row}>
                   <View style={styles.uploadedTag}>
                     <Text style={styles.uploadedText}>Uploaded ✔</Text>
                   </View>
-                  <TouchableOpacity onPress={openOptions} style={styles.reuploadBtn}>
+                  <TouchableOpacity
+                    onPress={openOptions}
+                    style={styles.reuploadBtn}
+                  >
                     <Text style={styles.reuploadText}>Re-upload</Text>
                   </TouchableOpacity>
                 </View>
@@ -165,30 +173,37 @@ const PanUploadScreen = ({ navigation }) => {
                   }}
                 />
                 <Text style={styles.placeholderText}>
-                  Front side photo of your PAN card with your clear name and photo
+                  Front side photo of your PAN card with your clear name and
+                  photo
                 </Text>
               </>
             )}
           </TouchableOpacity>
 
           <View style={styles.instructionsBox}>
-            <Text style={styles.instructionTitle}>Make sure your upload is:</Text>
+            <Text style={styles.instructionTitle}>
+              Make sure your upload is:
+            </Text>
             <Text style={styles.instruction}>• Clear and readable</Text>
-            <Text style={styles.instruction}>• Shows your full name + photo</Text>
+            <Text style={styles.instruction}>
+              • Shows your full name + photo
+            </Text>
             <Text style={styles.instruction}>• Not blurred or cropped</Text>
             <Text style={styles.instruction}>• Taken in good lighting</Text>
           </View>
 
-
-
           <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-
             <TouchableOpacity
-              style={[styles.submitBtn, (!image || !panNumber) && { opacity: 0.5 }]}
+              style={[
+                styles.submitBtn,
+                (!image || !panNumber) && { opacity: 0.5 },
+              ]}
               disabled={!image || !panNumber || loading}
               onPress={handleSubmit}
             >
-              <Text style={styles.submitText}>{loading ? "Submitting..." : "Submit"}</Text>
+              <Text style={styles.submitText}>
+                {loading ? 'Submitting...' : 'Submit'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -295,22 +310,22 @@ const styles = StyleSheet.create({
   },
 
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 10,
     gap: 10,
   },
 
   reuploadBtn: {
     borderWidth: 1,
-    borderColor: "#0CBACE",
+    borderColor: '#0CBACE',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
 
   reuploadText: {
-    color: "#0CBACE",
-    fontWeight: "700",
+    color: '#0CBACE',
+    fontWeight: '700',
   },
 });
