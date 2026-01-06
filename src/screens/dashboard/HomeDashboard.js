@@ -6,11 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 // import IncentiveDetails from "../Home/IncentiveDetails";
-import SwipeOnlineOffline from '../Home/SwipeOnlineOffline';
+// import SwipeOnlineOffline from '../Home/SwipeOnlineOffline';
+// import SwipeOnlineToggle from "../../screens/Home/SwipeOnlineToggle";
+// import { checkLocationPermission } from "../../utils/locationPermissions";
 export default function HomeDashboard({navigation}) {
-  const [isOnline, setIsOnline] = useState(false);
+ 
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -18,10 +21,9 @@ export default function HomeDashboard({navigation}) {
         <Text style={styles.userName}>Rajesh</Text>
         <Text style={styles.icon}>📍 🔔</Text>
       </View>
- 
-      {/* Swipe for Online */}
+
      
-      <SwipeOnlineOffline isOnline={isOnline} setIsOnline={setIsOnline} />
+      {/* <SwipeOnlineOffline isOnline={isOnline} setIsOnline={setIsOnline} /> */}
  
       {/* Add Bank Details */}
       <View style={styles.bankCard}>
@@ -53,7 +55,7 @@ export default function HomeDashboard({navigation}) {
       </TouchableOpacity>
        </View>
         <View style={styles.banner}>
-          <TouchableOpacity onPress={()=>{navigation.navigate('Map')}}>
+          <TouchableOpacity onPress={()=>{navigation.navigate('LiveTracking')}}>
             <Text>Navigate to Maps </Text>
       </TouchableOpacity>
        </View>

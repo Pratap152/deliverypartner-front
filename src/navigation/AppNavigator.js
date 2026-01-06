@@ -30,13 +30,14 @@ import ReferEarn from '../screens/Home/ReferEarn';
 import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
-import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
+// import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
 import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
-import MapScreen from '../screens/Home/MapScreen'
+// import MapScreen from '../screens/Home/MapScreen'
 import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
+import LiveTracking from '../../src/screens/Home/LiveTracking';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (

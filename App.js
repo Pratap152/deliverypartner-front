@@ -1,19 +1,28 @@
 import React, { useEffect } from 'react';
+<<<<<<< Updated upstream
 import { AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+=======
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/hooks/useAuth';
+>>>>>>> Stashed changes
 import { Provider } from 'react-redux';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import { store } from './src/redux/store';
+<<<<<<< Updated upstream
 import { AuthProvider } from './src/hooks/useAuth';
 
 import { tokenService } from './src/services/TokenService';
 import { sessionService } from './src/services/SessionService';
+=======
+>>>>>>> Stashed changes
 import { navigationRef, navigateAndReset } from './src/navigation/RootNavigation';
-import { refreshTokenIfNeeded } from './src/api/RefreshManager';
 import ToastComponent from './src/components/common/ToastComponent';
 
 const App = () => {
+<<<<<<< Updated upstream
   useEffect(() => {
   let mounted = true;
 
@@ -67,6 +76,8 @@ const App = () => {
 }, []);
 
 
+=======
+>>>>>>> Stashed changes
   return (
     <NavigationContainer ref={navigationRef}>
       <Provider store={store}>
