@@ -1,103 +1,53 @@
-// import { ORDER_STATUS } from './orderStates';
 
-// export const orderUIConfig = {
-//   [ORDER_STATUS.PICKED_UP]: {
-//     headerIcon: 'help',
-//     bottomButtons: [
-//       { label: 'Order Picked Up', type: 'primary' },
-//     ],
-//   },
-
-//   [ORDER_STATUS.ARRIVED]: {
-//     headerIcon: 'call',
-//     bottomButtons: [
-//       { label: 'Customer Not Responding', type: 'secondary' },
-//       { label: 'Arrived at Drop Location', type: 'primary' },
-//     ],
-//   },
-
-//   [ORDER_STATUS.DELIVERED]: {
-//     headerIcon: 'help',
-//     bottomButtons: [
-//       { label: 'Order Delivered', type: 'primary' },
-//     ],
-//   },
-// };
-// 2nd example
-// import { ORDER_STATUS } from './orderStates';
-
-// export const orderUIConfig = {
-//   [ORDER_STATUS.PICKUP_ASSIGNED]: {
-//     headerIcon: 'help',
-//     primaryAction: {
-//       label: 'Navigate to Pickup',
-//       nextStatus: ORDER_STATUS.AT_RESTAURANT,
-//     },
-//   },
-
-//   [ORDER_STATUS.AT_RESTAURANT]: {
-//     headerIcon: 'call',
-//     primaryAction: {
-//       label: 'Order Picked Up',
-//       nextStatus: ORDER_STATUS.ORDER_PICKED_UP,
-//     },
-//   },
-
-//   [ORDER_STATUS.ORDER_PICKED_UP]: {
-//     headerIcon: 'help',
-//     primaryAction: {
-//       label: 'Navigate to Drop',
-//       nextStatus: ORDER_STATUS.AT_DROP,
-//     },
-//   },
-
-//   [ORDER_STATUS.AT_DROP]: {
-//     headerIcon: 'call',
-//     primaryAction: {
-//       label: 'Order Delivered',
-//       nextStatus: ORDER_STATUS.ORDER_DELIVERED,
-//     },
-//   },
-
-//   [ORDER_STATUS.ORDER_DELIVERED]: {
-//     headerIcon: 'success',
-//     primaryAction: null,
-//   },
-// };
 export const orderUIConfig = {
   PICKUP_ASSIGNED: {
+    showMap: true, // Map Visible
+    headerIcon: 'help',
     bottomButtons: [
       {
         label: 'Navigate to Pickup',
         type: 'primary',
-        nextStatus: 'AT_RESTAURANT',
+        nextStatus: 'AT_RESTAURANT', // Map should direct here
         navigateTo: 'Map',
       },
     ],
   },
 
   AT_RESTAURANT: {
+    showMap: false, // Map Hidden
+    headerIcon: 'call',
     bottomButtons: [
       {
         label: 'Order Picked Up',
         type: 'primary',
         nextStatus: 'ORDER_PICKED_UP',
+        // No navigateTo, simple status update via Swipe/Button
       },
     ],
   },
 
   ORDER_PICKED_UP: {
+    showMap: true, // Map Visible
+    headerIcon: 'call',
     bottomButtons: [
       {
         label: 'Navigate to Drop',
         type: 'primary',
-        nextStatus: 'AT_DROP',
+        nextStatus: 'QR_SCAN_REQUIRED', // Map should direct to QR Scanner
         navigateTo: 'Map',
       },
     ],
   },
 
+  // Intermediate state if needed, or MapScreen handles the transition to QR
+  QR_SCAN_REQUIRED: {
+    showMap: false,
+    navigateTo: 'QRScannerScreen',
+  },
+
   AT_DROP: {
+    showMap: false, // Map Hidden
+    headerIcon: 'call',
     bottomButtons: [
       {
         label: 'Order Delivered',
@@ -109,5 +59,6 @@ export const orderUIConfig = {
 
   ORDER_DELIVERED: {
     bottomButtons: [],
+    // triggering navigation to Success screen handled in component
   },
 };

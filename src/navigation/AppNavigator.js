@@ -31,8 +31,12 @@ import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
-// import MapScreen from '../screens/Home/MapScreen'
-// import Map from '../../src/screens/Home/Map';
+import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
+import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
+import MapScreen from '../screens/Home/MapScreen'
+import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
+import QRScannerScreen from '../screens/Home/QRScannerScreen';
+import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -42,7 +46,6 @@ const AppNavigator = () => {
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
-      {/* <Stack.Screen name="Map" component={Map} /> */}
       <Stack.Screen name='HomeDashboard' component={HomeDashboard} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
@@ -88,14 +91,17 @@ const AppNavigator = () => {
       <Stack.Screen name='ReferEarn' component={ReferEarn} />
       <Stack.Screen name='ReferFrd' component={ReferFrd} />
       <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: true, title: "Incentive Details" }}/>
-      {/* <Stack.Screen name="Map" component={MapScreen}  options={{ headerShown: false }}/> */}
+      <Stack.Screen name="Map" component={MapScreen}  options={{ headerShown: false }}/>
       {/* <Stack.Screen name="Timer" component={Timer}/> */}
       {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} />
+      <Stack.Screen name='OrderPopupScreen' component={OrderPopupScreen} />
+      <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
+      <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
     </Stack.Navigator>
-  ); n
+  );
 };
 
 export default AppNavigator;

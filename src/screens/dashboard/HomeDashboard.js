@@ -41,7 +41,6 @@ export default function HomeDashboard({navigation}) {
         <ProgressCard title="Online" value="4h 23m" />
         <ProgressCard title="Orders" value="12" />
       </View>
-    
       {/* Refer & Earn */}
        <View style={styles.banner}>
           <TouchableOpacity onPress={()=>{navigation.navigate("ReferEarn")}}>
@@ -90,7 +89,16 @@ export default function HomeDashboard({navigation}) {
             <Text>Navigate to IncentiveDetails Screen</Text>
       </TouchableOpacity>
        </View>
-   
+     <View style={styles.banner}>
+          <TouchableOpacity onPress={()=>{navigation.navigate("OrderDetailsScreen")}}>
+            <Text>Navigate to OrderDetailsScreen</Text>
+      </TouchableOpacity>
+       </View>
+       <View style={styles.banner}>
+          <TouchableOpacity onPress={()=>{navigation.navigate("OrderPopupScreen")}}>
+            <Text>Navigate to OrderPopupScreen</Text>
+      </TouchableOpacity>
+       </View>
       {/* Weekly Summary */}
       <View style={styles.weekCard}>
         <Text style={styles.weekTitle}>This Week</Text>
