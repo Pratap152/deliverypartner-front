@@ -9,18 +9,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import { launchCamera } from 'react-native-image-picker';
-import { useAuth } from '../../hooks/useAuth';
 
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-export default function FaceVerificationScreen({ navigation, route }) {
-  const { authToken } = useAuth();
+import apiClient from '../../services/ApiClient';
 
+export default function FaceVerificationScreen({ navigation, route }) {
   const initialUri = route?.params?.photoUri ?? null;
   const [photo, setPhoto] = useState(initialUri);
   const [uploading, setUploading] = useState(false);
@@ -38,11 +36,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
 
   const retake = () => {
     launchCamera(cameraOptions, response => {
-      if (response.didCancel) {
-        console.log('Retake cancelled');
-        return;
-      }
-
+      if (response.didCancel) return;
       if (response.errorCode) {
         console.log('Camera error:', response.errorMessage);
         return;
@@ -90,33 +84,23 @@ export default function FaceVerificationScreen({ navigation, route }) {
 
       const { name, type } = getFileInfo(photo);
 
-      const fd = new FormData();
-      fd.append('selfie', {
+      const formData = new FormData();
+      formData.append('selfie', {
         uri: photo,
         name,
         type,
       });
 
-      const res = await fetch(
-        'https://delivarypartner.onrender.com/api/rider/selfie',
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-          },
-          body: fd,
+      const response = await apiClient.post('/api/rider/selfie', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
         },
-      );
+      });
 
-      const json = await res.json().catch(() => ({}));
-      console.log('STATUS:', res.status);
-      console.log('BODY:', json);
-
-      if (res.ok) {
+      if (response.status === 200) {
         navigation.navigate('DocumentVerifyScreen');
       } else {
-        Alert.alert('Upload failed', json?.message || 'Try again');
+        Alert.alert('Upload failed', response.data?.message || 'Try again');
       }
     } catch (err) {
       console.error('Upload exception', err);

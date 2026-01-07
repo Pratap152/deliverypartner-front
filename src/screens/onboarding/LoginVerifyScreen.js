@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import WEBSITE_URL from '../../utils/host';
-
-import axios from 'axios';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
 import { useOtp } from '../../hooks/useOtp';
-import { useAuth } from '../../hooks/useAuth';
 import OtpInput from '../../components/common/OTPInputBox';
 import { sendOTPApi } from './LoginEntryScreen';
-import AppPermissionScreen from './AppPermissionScreen';
 import { tokenService } from '../../services/TokenService';
-import apiClient from '../../api/ApiClient';
+import api from '../../services/ApiClient';
 
 const COLORS = {
   primary: '#16C2D5',
@@ -27,28 +22,17 @@ const COLORS = {
   error: 'red',
 };
 
+/* ================= VERIFY OTP API ================= */
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await axios.post(
-      `${WEBSITE_URL}/api/mobile/verify-static-otp`,
-      {
-        phone: phone,
-        otp: otp,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
+    const response = await api.post(
+      '/api/mobile/verify-static-otp',
+      { phone, otp },
+      { skipAuth: true },
     );
-
-    console.log(response);
-    // console.log("hello", response.data);
 
     return { status: response.status, data: response.data };
   } catch (err) {
-    console.log('❌ Network error:', err);
-
     if (err.response) {
       return {
         status: err.response.status,
@@ -58,9 +42,10 @@ const verifyOTPApi = async (phone, otp) => {
     return { status: 500, data: { message: 'Network error' } };
   }
 };
+
 const LoginVerifyScreen = ({ route, navigation }) => {
-  const { setAuthToken } = useAuth();
-  const phone = route?.params?.phone; // <-- get phone from previous screen
+  const phone = route?.params?.phone;
+
   const {
     otp,
     inputRefs,
@@ -76,31 +61,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendCount, setResendCount] = useState(0);
 
-  const initializeRiderApi = async token => {
-    try {
-      const response = await axios.get(`${WEBSITE_URL}/api/rider/initialize`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      return { status: response.status, data: response.data };
-    } catch (err) {
-      console.log('❌ Initialize error:', err);
-
-      if (err.response) {
-        return {
-          status: err.response.status,
-          data: err.response.data || {},
-        };
-      }
-
-      return { status: 500, data: { message: 'Network error' } };
-    }
-  };
-
-  // Timer Logic
+  /* ================= TIMER ================= */
   useEffect(() => {
     if (timer === 0) {
       setIsResendEnabled(true);
@@ -114,58 +75,49 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     React.useCallback(() => {
       clearOtp();
       setError('');
-      return () => {};
     }, []),
   );
 
+  /* ================= VERIFY OTP ================= */
   const handleVerify = async () => {
     if (isVerifying) return;
 
     const fullOtp = otp.join('');
-
     if (fullOtp.length < 6) {
       setError('Please enter a valid 6-digit OTP.');
       return;
     }
 
-    setIsVerifying(true);
-    setError('');
+    try {
+      setIsVerifying(true);
+      setError('');
 
-    const result = await verifyOTPApi(phone, fullOtp);
-    console.log('i need to test', result);
-    setIsVerifying(false);
+      const result = await verifyOTPApi(phone, fullOtp);
 
-    if (result.status === 200) {
-      const token = result?.data?.accessToken;
-      console.log(token);
-      if (!token) {
+      if (result.status !== 200) {
+        setError('Invalid or expired OTP');
+        return;
+      }
+
+      const { accessToken, refreshToken } = result.data;
+
+      if (!accessToken) {
         setError('Authentication failed. Try again.');
         return;
       }
-      await tokenService.set({
-        accessToken: token,
-        refreshToken: token,
-      });
-      // ✅ Save token globally
-      setAuthToken(token);
 
-      // 🔍 Check registration status
-      const initResult = await initializeRiderApi(token);
+      await tokenService.set({ accessToken, refreshToken });
 
-      console.log(initResult);
-
-      if (initResult.status === 200) {
-        navigation.replace('SplashScreen');
-      } else {
-        setError('Unable to check registration status.');
-      }
-    } else if (result.status === 401) {
-      setError('Invalid or expired OTP');
-    } else {
-      setError('Failed to verify OTP. Try again.');
+      // ✅ Let SplashScreen decide next route
+      navigation.replace('SplashScreen');
+    } catch (err) {
+      setError('Something went wrong. Try again.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
+  /* ================= RESEND OTP ================= */
   const handleResendOtp = async () => {
     if (!isResendEnabled) return;
 
@@ -174,9 +126,8 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       return;
     }
 
-    // Reuse sendOTPApi() instead of separate resend API
     const result = await sendOTPApi(phone);
-    console.log(sendOTPApi());
+
     if (result.status === 200) {
       setResendCount(prev => prev + 1);
       setTimer(50);
@@ -187,6 +138,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       setError('Failed to resend OTP. Try again.');
     }
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>
@@ -198,7 +150,9 @@ const LoginVerifyScreen = ({ route, navigation }) => {
           <Text style={styles.changeNumber}> Change</Text>
         </TouchableOpacity>
       </Text>
+
       <Text style={styles.label}>Enter OTP</Text>
+
       <OtpInput
         otp={otp}
         inputRefs={inputRefs}
@@ -207,7 +161,9 @@ const LoginVerifyScreen = ({ route, navigation }) => {
         setOtpFromAutoFill={setOtpFromAutoFill}
         showError={!!error}
       />
+
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
       <TouchableOpacity
         style={[styles.verifyButton, isVerifying && { opacity: 0.5 }]}
         onPress={handleVerify}
@@ -217,6 +173,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
           {isVerifying ? 'Verifying...' : 'Verify OTP'}
         </Text>
       </TouchableOpacity>
+
       <TouchableOpacity
         onPress={handleResendOtp}
         disabled={!isResendEnabled}
@@ -232,7 +189,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   );
 };
 
-// ======================= RESPONSIVE STYLES =======================
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -240,38 +197,32 @@ const styles = StyleSheet.create({
     padding: rw(6),
     backgroundColor: COLORS.white,
   },
-
   subtitle: {
     marginTop: rh(6),
     color: COLORS.textDark,
     fontSize: rf(2.2),
     lineHeight: rf(2.7),
   },
-
   phoneNumber: {
     fontWeight: '900',
     color: COLORS.black,
     fontSize: rf(2.2),
   },
-
   changeNumber: {
     color: COLORS.error,
     fontWeight: '600',
     fontSize: rf(2),
   },
-
   label: {
     marginTop: rh(3),
     fontSize: rf(2.2),
     fontWeight: '600',
   },
-
   errorText: {
     color: COLORS.error,
     marginTop: rh(0.8),
     fontSize: rf(1.9),
   },
-
   verifyButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: rh(1.8),
@@ -279,23 +230,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: rh(2),
   },
-
   verifyText: {
     color: COLORS.white,
     fontSize: rf(2.3),
     fontWeight: '700',
   },
-
   resendContainer: {
     marginTop: rh(2.5),
     alignItems: 'center',
   },
-
   resend: {
     fontSize: rf(1.9),
     color: COLORS.textLight,
   },
-
   resendEnabled: {
     color: COLORS.primary,
   },

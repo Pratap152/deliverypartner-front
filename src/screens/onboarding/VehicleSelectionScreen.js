@@ -13,21 +13,27 @@ import {
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import PrimaryButton from '../../components/common/PrimaryButton';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
+
+import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
-import axios from 'axios';
-import WEBSITE_URL from '../../utils/host';
-import { useAuth } from '../../hooks/useAuth';
+import api from '../../services/ApiClient'; // interceptor-based api
+
+const submitVehicleType = async vehicleType => {
+  const res = await api.post('/api/rider/vehicle', {
+    type: vehicleType,
+  });
+  return res.data;
+};
 
 const VehicleSelectionScreen = ({ navigation }) => {
-  const { authToken } = useAuth();
   const dispatch = useDispatch();
 
   const selectedVehicle = useSelector(state => state.vehicle.selectedVehicle);
 
   const [localSelected, setLocalSelected] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSelect = type => {
     setLocalSelected(type);
@@ -35,43 +41,19 @@ const VehicleSelectionScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    try {
-      const response = await SendVehicleType(selectedVehicle);
-      console.log('Vehicle saved:', response);
+    if (!selectedVehicle || loading) return;
 
-      // ✅ Always go back to Splash after success
+    try {
+      setLoading(true);
+
+      await submitVehicleType(selectedVehicle);
+
+      //  ALWAYS go through Splash
       navigation.replace('SplashScreen');
     } catch (error) {
       console.log('Vehicle submit error:', error);
-    }
-  };
-
-  const SendVehicleType = async vehicleType => {
-    try {
-      if (!authToken) {
-        throw new Error('Auth token not found');
-      }
-
-      const payload = {
-        type: vehicleType,
-      };
-
-      const response = await axios.post(
-        `${WEBSITE_URL}/api/rider/vehicle`,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        },
-      );
-
-      console.log('Vehicle API Response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.log('Vehicle API Error:', error.response?.data || error.message);
-      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +62,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <Icon name="arrow-back" size={22} color="#000" />
       </TouchableOpacity>
+
       <Text style={styles.header}>Select Vehicle</Text>
 
       {/* Bike */}
@@ -93,6 +76,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
         >
           Bike / Scooty
         </Text>
+
         {localSelected === 'bike' && (
           <Ionicons
             name="checkmark"
@@ -113,6 +97,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
         >
           EV Vehicle
         </Text>
+
         {localSelected === 'ev' && (
           <Ionicons
             name="checkmark"
@@ -125,8 +110,9 @@ const VehicleSelectionScreen = ({ navigation }) => {
       {localSelected && (
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <PrimaryButton
-            title="Submit"
+            title={loading ? 'Submitting...' : 'Submit'}
             onPress={handleSubmit}
+            disabled={loading}
             bgColor="#00B5CC"
             textColor="#fff"
           />
@@ -176,15 +162,12 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
-  textWrapper: {
-    flex: 1,
-    marginLeft: responsiveWidth(3),
-  },
-
   text: {
     fontSize: responsiveFontSize(2.2),
     fontWeight: '600',
     color: '#000',
+    marginLeft: responsiveWidth(3),
+    flex: 1,
   },
 
   selectedText: {

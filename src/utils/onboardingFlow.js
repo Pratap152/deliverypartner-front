@@ -6,6 +6,7 @@ export const resolveNextScreen = async () => {
 
   switch (stage) {
     case 'APP_PERMISSION':
+    case 'APP_PERMISSIONS':
       return 'AppPermissionScreen';
 
     case 'SELECT_LOCATION':
@@ -28,9 +29,6 @@ export const resolveNextScreen = async () => {
 
     case 'DL_UPLOAD':
       return 'LicenseUploadScreen';
-
-    case 'DOCUMENTS':
-      return 'DocumentVerifyScreen';
 
     case 'KYC_APPROVAL_PENDING':
     case 'PENDING_VERIFICATION':

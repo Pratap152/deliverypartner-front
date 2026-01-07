@@ -1,25 +1,25 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import {
   responsiveWidth,
   responsiveHeight,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import { useNavigation } from '@react-navigation/native';
+//import { useNavigation } from '@react-navigation/native';
 
 const ProcessingVerificationScreen = () => {
-  const navigation = useNavigation();
+  ///const navigation = useNavigation();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
-    }, 3000); // ⏱ 3 seconds delay
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: 'MainTabs' }],
+  //     });
+  //   }, 3000); // ⏱ 3 seconds delay
 
-    return () => clearTimeout(timer); // ✅ cleanup
-  }, []);
+  //   return () => clearTimeout(timer); // ✅ cleanup
+  // }, []);
 
   return (
     <View style={styles.container}>

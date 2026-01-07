@@ -11,21 +11,19 @@ import {
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
-import Header from '../../components/common/Header';
-import WEBSITE_URL from '../../utils/host';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../hooks/useAuth';
+
+import Header from '../../components/common/Header';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
-import apiClient from '../../api/ApiClient';
-import axios, { Axios } from 'axios';
+import apiClient from '../../services/ApiClient';
 
 const PanUploadScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
   const [panNumber, setPanNumber] = useState('');
   const [loading, setLoading] = useState(false);
+
   const actionSheetRef = useRef();
   const dispatch = useDispatch();
-  const { authToken } = useAuth();
 
   const openOptions = () => actionSheetRef.current.show();
 
@@ -67,14 +65,7 @@ const PanUploadScreen = ({ navigation }) => {
     try {
       setLoading(true);
 
-      // const authToken = await AsyncStorage.getItem("AUTH_TOKEN") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDBkODE4YjdhZjNjMTg0ZGM4MmYwIiwicGhvbmUiOiI5ODc5ODc5ODc5IiwiaWF0IjoxNzY1MDE5MDQxLCJleHAiOjE3NjU2MjM4NDF9.lVY-cLPFwcp4CvKzWEIjX8LYxHRD_fDZyPSaisVCf1Q";
-      if (!authToken) {
-        Alert.alert('Session Expired', 'Please login again');
-        return;
-      }
-
       const formData = new FormData();
-
       formData.append('panNumber', panNumber);
       formData.append('pan', {
         uri: image.uri,
@@ -82,27 +73,11 @@ const PanUploadScreen = ({ navigation }) => {
         name: image.fileName || 'pan.jpg',
       });
 
-      console.log('Submitting PAN with data:', formData);
-      fetch(`${WEBSITE_URL}/api/rider/pan`)
-        .then(res => console.log('API OK'))
-        .catch(err => console.log('RN blocked:', err.message));
-
-      const response = await axios.post(
-        `${WEBSITE_URL}/api/rider/pan`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            Accept: 'application/json',
-            'Content-Type': 'multipart/form-data',
-          },
-          timeout: 20000,
-          maxBodyLength: Infinity,
-          maxContentLength: Infinity,
+      const response = await apiClient.post('/api/rider/pan', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
         },
-      );
-
-      console.log('PAN upload response:', response.data);
+      });
 
       dispatch(verifyDocument('pan'));
 
@@ -113,8 +88,8 @@ const PanUploadScreen = ({ navigation }) => {
         },
       ]);
     } catch (err) {
-      Alert.alert('Upload Error', 'Unable to upload PAN. Try again.');
       console.log('PAN upload error:', err);
+      Alert.alert('Upload Error', 'Unable to upload PAN. Try again.');
     } finally {
       setLoading(false);
     }
@@ -124,6 +99,7 @@ const PanUploadScreen = ({ navigation }) => {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         <Header />
+
         <View style={{ flex: 1, marginTop: 20 }}>
           <Text style={styles.title}>PAN card details</Text>
           <Text style={styles.subtitle}>
@@ -136,15 +112,11 @@ const PanUploadScreen = ({ navigation }) => {
             onChangeText={text => setPanNumber(text.toUpperCase())}
             autoCapitalize="characters"
             maxLength={10}
-            style={{
-              borderWidth: 1,
-              borderColor: '#999',
-              borderRadius: 8,
-              padding: 10,
-              marginTop: 20,
-            }}
+            style={styles.input}
           />
+
           <Text>PAN format: ABCDE1234F</Text>
+
           <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
             {image ? (
               <>
@@ -196,7 +168,7 @@ const PanUploadScreen = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 styles.submitBtn,
-                (!image || !panNumber) && { opacity: 0.5 },
+                (!image || !panNumber || loading) && { opacity: 0.5 },
               ]}
               disabled={!image || !panNumber || loading}
               onPress={handleSubmit}
@@ -212,7 +184,6 @@ const PanUploadScreen = ({ navigation }) => {
             title={'Upload PAN Card'}
             options={['Capture from Camera', 'Choose from Files', 'Cancel']}
             cancelButtonIndex={2}
-            useNativeDriver={true}
             onPress={i => {
               if (i === 0) takePhoto();
               else if (i === 1) chooseFromGallery();
@@ -226,10 +197,20 @@ const PanUploadScreen = ({ navigation }) => {
 
 export default PanUploadScreen;
 
+/* ================= STYLES ================= */
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 20 },
   title: { fontSize: 22, fontWeight: '700', color: '#000' },
   subtitle: { fontSize: 14, color: '#777', marginTop: 4 },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#999',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 20,
+  },
 
   uploadBox: {
     width: '100%',

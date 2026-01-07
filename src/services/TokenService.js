@@ -64,16 +64,36 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const ACCESS_KEY = 'accessToken';
 const REFRESH_KEY = 'refreshToken';
 
+// 🔥 In-memory cache (instant access)
+let memoryAccessToken = null;
+let memoryRefreshToken = null;
+
 export const tokenService = {
   async get() {
+    // ✅ First priority: memory
+    if (memoryAccessToken) {
+      return {
+        accessToken: memoryAccessToken,
+        refreshToken: memoryRefreshToken,
+      };
+    }
+
+    // 🔄 Fallback to storage
     const [accessToken, refreshToken] = await Promise.all([
       AsyncStorage.getItem(ACCESS_KEY),
       AsyncStorage.getItem(REFRESH_KEY),
     ]);
+
+    memoryAccessToken = accessToken;
+    memoryRefreshToken = refreshToken;
+
     return { accessToken, refreshToken };
   },
 
   async set({ accessToken, refreshToken }) {
+    memoryAccessToken = accessToken;
+    memoryRefreshToken = refreshToken;
+
     await Promise.all([
       AsyncStorage.setItem(ACCESS_KEY, accessToken),
       AsyncStorage.setItem(REFRESH_KEY, refreshToken),
@@ -81,6 +101,9 @@ export const tokenService = {
   },
 
   async clear() {
+    memoryAccessToken = null;
+    memoryRefreshToken = null;
+
     await AsyncStorage.multiRemove([ACCESS_KEY, REFRESH_KEY]);
   },
 };

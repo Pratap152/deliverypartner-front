@@ -1,4 +1,3 @@
-import SelectCityScreen from './SelectCityScreen';
 import React, { useState } from 'react';
 import {
   View,
@@ -15,15 +14,12 @@ import {
   RESULTS,
   PERMISSIONS,
   openSettings,
-  requestNotifications,
   check,
 } from 'react-native-permissions';
-// import Icon from 'react-native-vector-icons/Ionicons';
+
 import PermissionItem from '../../components/onboarding/AppPermissions/PermissionItem';
-import axios from 'axios';
-import WEBSITE_URL from '../../utils/host';
-import { useAuth } from '../../hooks/useAuth';
 import PrimaryButton from '../../components/common/PrimaryButton';
+import apiClient from '../../services/ApiClient';
 
 const APP_PERMISSIONS = {
   location: {
@@ -43,27 +39,20 @@ const APP_PERMISSIONS = {
     android: PERMISSIONS.ANDROID.CAMERA,
     ios: PERMISSIONS.IOS.CAMERA,
   },
-
-  notification: {
-    title: 'Notifications',
-    android: PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
-    ios: PERMISSIONS.IOS.NOTIFICATIONS,
-  },
 };
 
 const AppPermissionScreen = ({ navigation }) => {
   const [permissionStatus, setPermissionStatus] = useState({
-    location: 'location',
+    location: '',
     backgroundLocation: '',
     camera: '',
-    notification: '',
   });
   const [error, setError] = useState('');
-  const { authToken } = useAuth();
+
   async function handleSubmit() {
     try {
-      const response = await axios.post(
-        WEBSITE_URL + '/api/rider/permissions',
+      await apiClient.post(
+        '/api/rider/permissions',
         {
           camera: true,
           foregroundLocation: true,
@@ -71,52 +60,51 @@ const AppPermissionScreen = ({ navigation }) => {
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-            'x-client': 'mobile',
+            'x-client': 'mobile', // non-auth header
           },
         },
       );
+
+      // ✅ Always go through Splash
       navigation.replace('SplashScreen');
     } catch (e) {
-      setError(e.message);
+      console.log('Permission API error:', e);
     }
   }
+
   async function handleLocation(permissionType) {
     const perm =
       Platform.OS === 'android'
         ? APP_PERMISSIONS[permissionType].android
         : APP_PERMISSIONS[permissionType].ios;
+
     const permission = await check(perm);
 
-    if (permission === 'granted') {
+    if (permission === RESULTS.GRANTED) {
       setPermissionStatus(status => ({
         ...status,
-        [permissionType]: 'granted',
+        [permissionType]: RESULTS.GRANTED,
       }));
-      return 'granted';
+      return RESULTS.GRANTED;
     }
-    if (permission === 'denied') {
-      const responce = await request(perm);
-      if (responce === 'blocked') {
-        setPermissionStatus(status => ({
-          ...status,
-          [permissionType]: 'granted',
-        }));
-        openSettings('application');
+
+    if (permission === RESULTS.DENIED) {
+      const response = await request(perm);
+
+      if (response === RESULTS.BLOCKED) {
+        openSettings();
       }
+
       setPermissionStatus(status => ({
         ...status,
-        [permissionType]: responce,
+        [permissionType]: response,
       }));
-      return responce;
+      return response;
     }
-    if (permission === 'blocked') {
-      setPermissionStatus(status => ({
-        ...status,
-        [permissionType]: 'granted',
-      }));
-      openSettings('application');
+
+    if (permission === RESULTS.BLOCKED) {
+      openSettings();
+      return RESULTS.BLOCKED;
     }
   }
 
@@ -127,14 +115,17 @@ const AppPermissionScreen = ({ navigation }) => {
       </View>
     );
   }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.imageContainer}>
         <Image source={require('../../assets/permissionsImage.png')} />
       </View>
+
       <Text style={styles.title}>
         We need the following permissions to serve you better
       </Text>
+
       <View
         style={{
           width: '100%',
@@ -147,22 +138,20 @@ const AppPermissionScreen = ({ navigation }) => {
           icon="location"
           title="Location"
           desc="We need this permission to intelligently surface location and allocate orders"
-          permissionStatus={permissionStatus}
           onPress={() => handleLocation('location')}
-          isTick={permissionStatus.location === 'granted'}
-          isEnabled={permissionStatus.location !== 'granted'}
+          isTick={permissionStatus.location === RESULTS.GRANTED}
+          isEnabled={permissionStatus.location !== RESULTS.GRANTED}
         />
 
         <PermissionItem
           icon="locate"
           title="Background Location"
-          desc="We require background location permission for accurate rider updates and geographical detection"
-          permissionStatus={permissionStatus}
+          desc="We require background location permission for accurate rider updates"
           onPress={() => handleLocation('backgroundLocation')}
-          isTick={permissionStatus.backgroundLocation === 'granted'}
+          isTick={permissionStatus.backgroundLocation === RESULTS.GRANTED}
           isEnabled={
-            permissionStatus.location === 'granted' &&
-            permissionStatus.backgroundLocation !== 'granted'
+            permissionStatus.location === RESULTS.GRANTED &&
+            permissionStatus.backgroundLocation !== RESULTS.GRANTED
           }
         />
 
@@ -170,19 +159,18 @@ const AppPermissionScreen = ({ navigation }) => {
           icon="camera"
           title="Camera"
           desc="We need this permission to scan codes and take picture"
-          permissionStatus={permissionStatus}
-          isTick={permissionStatus.camera === 'granted'}
-          isEnabled={
-            permissionStatus.backgroundLocation === 'granted' &&
-            permissionStatus.camera !== 'granted'
-          }
           onPress={() => handleLocation('camera')}
+          isTick={permissionStatus.camera === RESULTS.GRANTED}
+          isEnabled={
+            permissionStatus.backgroundLocation === RESULTS.GRANTED &&
+            permissionStatus.camera !== RESULTS.GRANTED
+          }
         />
       </View>
 
-      {permissionStatus.backgroundLocation === 'granted' &&
-        permissionStatus.location === 'granted' &&
-        permissionStatus.camera === 'granted' && (
+      {permissionStatus.location === RESULTS.GRANTED &&
+        permissionStatus.backgroundLocation === RESULTS.GRANTED &&
+        permissionStatus.camera === RESULTS.GRANTED && (
           <PrimaryButton
             title="Submit"
             onPress={handleSubmit}
@@ -193,6 +181,8 @@ const AppPermissionScreen = ({ navigation }) => {
     </ScrollView>
   );
 };
+
+export default AppPermissionScreen;
 
 const styles = StyleSheet.create({
   placeholderBox: {
@@ -227,5 +217,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-export default AppPermissionScreen;

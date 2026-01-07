@@ -1,6 +1,6 @@
-import api from './api';
+import api from './ApiClient';
 
 export const getOnboardingStatus = async () => {
-  const response = await api.get('/api/rider/onboarding-status');
-  return response.data;
+  const res = await api.get('/api/rider/onboarding-status');
+  return res.data;
 };

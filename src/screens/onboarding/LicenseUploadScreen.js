@@ -13,20 +13,17 @@ import {
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import Header from '../../components/common/Header';
-import WEBSITE_URL from '../../utils/host';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../hooks/useAuth';
-import apiClient from '../../api/ApiClient';
-import axios from 'axios';
+import apiClient from '../../services/ApiClient';
 
 const LicenseUploadScreen = ({ navigation }) => {
   const [front, setFront] = useState(null);
   const [back, setBack] = useState(null);
   const [dlNumber, setDlNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const { authToken } = useAuth();
+
   const actionSheetRef = useRef();
   const selectedBox = useRef(null);
   const dispatch = useDispatch();
@@ -53,8 +50,7 @@ const LicenseUploadScreen = ({ navigation }) => {
   };
 
   const handlePick = response => {
-    if (!response) return;
-    if (response.didCancel) return;
+    if (!response || response.didCancel) return;
     if (response.errorMessage) {
       Alert.alert('Error', response.errorMessage);
       return;
@@ -85,6 +81,7 @@ const LicenseUploadScreen = ({ navigation }) => {
       Alert.alert('DL Number Required', 'Please enter Driving License Number');
       return;
     }
+
     const normalizedDL = dlNumber.replace(/\s+/g, '').toUpperCase();
     if (!validateDL(normalizedDL)) {
       Alert.alert(
@@ -93,6 +90,7 @@ const LicenseUploadScreen = ({ navigation }) => {
       );
       return;
     }
+
     if (!front || !back) {
       Alert.alert('Upload Required', 'Upload both front & back images.');
       return;
@@ -100,12 +98,6 @@ const LicenseUploadScreen = ({ navigation }) => {
 
     try {
       setLoading(true);
-
-      // const authToken = await AsyncStorage.getItem("AUTH_TOKEN") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDBkODE4YjdhZjNjMTg0ZGM4MmYwIiwicGhvbmUiOiI5ODc5ODc5ODc5IiwiaWF0IjoxNzY1MDE5MDQxLCJleHAiOjE3NjU2MjM4NDF9.lVY-cLPFwcp4CvKzWEIjX8LYxHRD_fDZyPSaisVCf1Q";
-      if (!authToken) {
-        Alert.alert('Authorization Missing', 'Please login again.');
-        return;
-      }
 
       const formData = new FormData();
       formData.append('dlNumber', normalizedDL);
@@ -121,25 +113,11 @@ const LicenseUploadScreen = ({ navigation }) => {
       });
       formData.append('documentType', 'DL');
 
-      console.log('FORM DATA CHECK: ', formData);
-      fetch(`${WEBSITE_URL}/api/rider/dl`)
-        .then(res => console.log(' API OK'))
-        .catch(err => console.log(' RN blocked:', err.message));
+      await apiClient.post('/api/rider/dl', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-      const response = await axios.post(
-        `${WEBSITE_URL}/api/rider/dl`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            Accept: 'application/json',
-            'Content-Type': 'multipart/form-data',
-          },
-          timeout: 20000,
-        },
-      );
-
-      console.log('DL upload response:', response.data);
+      dispatch(verifyDocument('dl'));
 
       Alert.alert('Success', 'Driving License submitted for verification.', [
         {
@@ -148,11 +126,11 @@ const LicenseUploadScreen = ({ navigation }) => {
         },
       ]);
     } catch (err) {
+      console.log('DL upload error:', err);
       Alert.alert(
         'Upload Error',
         'Unable to upload Driving License. Try again.',
       );
-      console.log('DL upload error:', err);
     } finally {
       setLoading(false);
     }
@@ -186,6 +164,7 @@ const LicenseUploadScreen = ({ navigation }) => {
               autoCapitalize="characters"
             />
             <Text>DL format: AP00720249992221</Text>
+
             <TouchableOpacity
               style={styles.uploadBox}
               onPress={() => openSheet('front')}
@@ -193,12 +172,10 @@ const LicenseUploadScreen = ({ navigation }) => {
               {front ? (
                 <>
                   <Image source={{ uri: front.uri }} style={styles.preview} />
-
                   <View style={styles.row}>
                     <View style={styles.uploadedBadge}>
                       <Text style={styles.uploadedText}>Uploaded ✔</Text>
                     </View>
-
                     <TouchableOpacity
                       style={styles.reuploadBtn}
                       onPress={() => openSheet('front')}
@@ -230,12 +207,10 @@ const LicenseUploadScreen = ({ navigation }) => {
               {back ? (
                 <>
                   <Image source={{ uri: back.uri }} style={styles.preview} />
-
                   <View style={styles.row}>
                     <View style={styles.uploadedBadge}>
                       <Text style={styles.uploadedText}>Uploaded ✔</Text>
                     </View>
-
                     <TouchableOpacity
                       style={styles.reuploadBtn}
                       onPress={() => openSheet('back')}
@@ -260,6 +235,7 @@ const LicenseUploadScreen = ({ navigation }) => {
             </TouchableOpacity>
           </ScrollView>
         </View>
+
         <View style={{ justifyContent: 'flex-end' }}>
           <TouchableOpacity
             style={[
@@ -280,7 +256,6 @@ const LicenseUploadScreen = ({ navigation }) => {
           title={'Upload Driving Licence'}
           options={['Capture from Camera', 'Choose from Files', 'Cancel']}
           cancelButtonIndex={2}
-          useNativeDriver={true}
           onPress={index => {
             if (index === 0) pickCamera();
             else if (index === 1) pickGallery();
@@ -290,7 +265,6 @@ const LicenseUploadScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
 export default LicenseUploadScreen;
 
 const styles = StyleSheet.create({
