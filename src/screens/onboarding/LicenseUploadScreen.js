@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks/useAuth';
 import apiClient from '../../api/ApiClient';
 import axios from "axios";
+import { tokenService } from "../../services/TokenService";
 
 const LicenseUploadScreen = ({ navigation }) => {
   const [front, setFront] = useState(null);
@@ -105,10 +106,11 @@ const LicenseUploadScreen = ({ navigation }) => {
 
     try {
       setLoading(true);
-
+      const access = await tokenService.getAccessToken();
+      console.log("access token....", access);
 
       // const authToken = await AsyncStorage.getItem("AUTH_TOKEN") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjkzNDBkODE4YjdhZjNjMTg0ZGM4MmYwIiwicGhvbmUiOiI5ODc5ODc5ODc5IiwiaWF0IjoxNzY1MDE5MDQxLCJleHAiOjE3NjU2MjM4NDF9.lVY-cLPFwcp4CvKzWEIjX8LYxHRD_fDZyPSaisVCf1Q";
-      if (!authToken) {
+      if (!access) {
         Alert.alert("Authorization Missing", "Please login again.");
         return;
       }
@@ -138,7 +140,7 @@ const LicenseUploadScreen = ({ navigation }) => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Bearer ${access}`,
             Accept: "application/json",
             "Content-Type": "multipart/form-data",
           },
