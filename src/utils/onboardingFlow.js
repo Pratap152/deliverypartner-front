@@ -2,43 +2,60 @@ import { getOnboardingStatus } from '../services/onboardingApi';
 
 export const resolveNextScreen = async () => {
   const res = await getOnboardingStatus();
-  const stage = res.onboardingStage;
 
-  switch (stage) {
-    case 'APP_PERMISSION':
-    case 'APP_PERMISSIONS':
-      return 'AppPermissionScreen';
+  console.log('ONBOARDING STATUS:', JSON.stringify(res, null, 2));
 
-    case 'SELECT_LOCATION':
-      return 'SelectCityScreen';
-
-    case 'SELECT_VEHICLE':
-      return 'VehicleSelectionScreen';
-
-    case 'PERSONAL_INFO':
-      return 'PersonalInfoScreen';
-
-    case 'SELFIE':
-      return 'FaceInstructionScreen';
-
-    case 'FACE_VERIFICATION':
-      return 'FaceVerificationScreen';
-
-    case 'PAN_UPLOAD':
-      return 'PanUploadScreen';
-
-    case 'DL_UPLOAD':
-      return 'LicenseUploadScreen';
-
-    case 'KYC_APPROVAL_PENDING':
-    case 'PENDING_VERIFICATION':
-      return 'ProcessingVerificationScreen';
-
-    case 'COMPLETED':
-      return 'MainTabs';
-
-    default:
-      console.warn('Unknown onboarding stage:', stage);
-      return 'LoginEntryScreen';
+  if (!res?.success) {
+    return 'LoginEntryScreen';
   }
+
+  const { onboardingProgress } = res;
+
+  // 1️⃣ App permissions
+  if (!onboardingProgress.appPermissionDone) {
+    return 'AppPermissionScreen';
+  }
+
+  // 2️⃣ City
+  if (!onboardingProgress.citySelected) {
+    return 'SelectCityScreen';
+  }
+
+  // 3️⃣ Vehicle
+  if (!onboardingProgress.vehicleSelected) {
+    return 'VehicleSelectionScreen';
+  }
+
+  // 4️⃣ Personal info
+  if (!onboardingProgress.personalInfoSubmitted) {
+    return 'PersonalInfoScreen';
+  }
+
+  // 5️⃣ Face verification
+  if (!onboardingProgress.selfieUploaded) {
+    return 'FaceInstructionScreen';
+  }
+
+  // 6️⃣ Aadhaar
+  if (!onboardingProgress.aadharVerified) {
+    return 'AadharEntryScreen';
+  }
+
+  // 7️⃣ PAN
+  if (!onboardingProgress.panUploaded) {
+    return 'PanUploadScreen';
+  }
+
+  // 8️⃣ DL
+  if (!onboardingProgress.dlUploaded) {
+    return 'LicenseUploadScreen';
+  }
+
+  // ⏳ WAIT FOR ADMIN VERIFICATION
+  if (!onboardingProgress.kycCompleted) {
+    return 'ProcessingVerificationScreen';
+  }
+
+  // ✅ VERIFIED → HOME
+  return 'MainTabs';
 };

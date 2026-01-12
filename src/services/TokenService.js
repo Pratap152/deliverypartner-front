@@ -86,6 +86,10 @@ export const tokenService = {
 
     memoryAccessToken = accessToken;
     memoryRefreshToken = refreshToken;
+    console.log('Retrieved tokens from storage:', {
+      accessToken,
+      refreshToken,
+    });
 
     return { accessToken, refreshToken };
   },
