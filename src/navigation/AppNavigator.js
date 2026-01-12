@@ -2,6 +2,7 @@ import { View, Text, StatusBar } from 'react-native';
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator';
+
 import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
@@ -18,6 +19,7 @@ import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
+import SplashScreen from '../screens/onboarding/SplashScreen';
 import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
@@ -43,10 +45,12 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
+      initialRouteName="SplashScreen"
       initialRouteName="LoginEntryScreen"
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
+      <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name='HomeDashboard' component={HomeDashboard} />
       {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
@@ -85,8 +89,25 @@ const AppNavigator = () => {
       <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
+
+      <Stack.Screen name="HelpCenter" component={HelpCenterList} />
+
       <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
+      <Stack.Screen
+        name="AddBankDetailsScreen"
+        component={AddBankDetailsScreen}
+      />
+      
+      <Stack.Screen
+        name="SlotHistoryScreen"
+        component={SlotHistoryScreen}
+      />
+       {/* <Stack.Screen name="" component={} />
+      <Stack.Screen name="" component={} />
+      <Stack.Screen name="" component={} />  */}
+      <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
+    
       <Stack.Screen name="AddBankDetails" component={AddBankDetails} />
       <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
       <Stack.Screen name='ReferEarn' component={ReferEarn} />
