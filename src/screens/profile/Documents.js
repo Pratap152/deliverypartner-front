@@ -10,17 +10,17 @@ import {
   Image,
   Modal,
 } from 'react-native';
-import axios from 'axios';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import WEBSITE_URL from '../../utils/host';
-import { tokenService } from '../../services/TokenService';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { launchImageLibrary } from 'react-native-image-picker';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
+
+import apiClient from '../../services/ApiClient';
 
 /* ================= HELPERS ================= */
 
@@ -30,12 +30,10 @@ const formatTitle = key =>
 const DOCUMENT_UPLOAD_CONFIG = {
   pan: {
     images: 1,
-    apiKey: 'pan',
     hint: 'Upload PAN card image',
   },
   drivingLicense: {
     images: 2,
-    apiKey: 'drivingLicense',
     hint: 'Upload FRONT image first, then BACK image',
   },
 };
@@ -46,7 +44,7 @@ const DocumentsScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState(null);
   const [loading, setLoading] = useState(true);
   const [previewImages, setPreviewImages] = useState([]);
-  const [uploadConfig, setUploadConfig] = useState(null);
+  const [uploadingKey, setUploadingKey] = useState(null); // ✅ upload loader
 
   useEffect(() => {
     fetchDocuments();
@@ -57,22 +55,14 @@ const DocumentsScreen = ({ navigation }) => {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const access = await tokenService.getAccessToken();
-      if (!access) {
-        Alert.alert('Auth Error', 'Token not found. Please login again.');
-        return;
-      }
-
-      const res = await axios.get(`${WEBSITE_URL}/api/profile/documents`, {
-        headers: { Authorization: `Bearer ${access}` },
-      });
+      const res = await apiClient.get('/api/profile/documents');
 
       if (res.data?.success) {
         setDocuments(res.data.data);
       } else {
         Alert.alert('Error', 'Failed to fetch documents');
       }
-    } catch {
+    } catch (error) {
       Alert.alert('Error', 'Unable to fetch documents');
     } finally {
       setLoading(false);
@@ -96,61 +86,74 @@ const DocumentsScreen = ({ navigation }) => {
       );
     });
 
+  /* ================= IMAGE COMPRESSION (FASTER) ================= */
+
+  const compressImage = async uri => {
+    const resized = await ImageResizer.createResizedImage(
+      uri,
+      1024, // ⬇ smaller size
+      1024,
+      'JPEG',
+      60, // ⬇ faster upload, no visible quality loss
+    );
+
+    return {
+      uri: resized.uri,
+      type: 'image/jpeg',
+      name: resized.name || `image_${Date.now()}.jpg`,
+    };
+  };
+
   /* ================= UPLOAD DOCUMENT ================= */
 
   const uploadDocument = async (docKey, images) => {
-    const config = DOCUMENT_UPLOAD_CONFIG[docKey];
-    if (!config) return;
-
-    const access = await tokenService.getAccessToken();
-    if (!access) {
-      Alert.alert('Session Expired', 'Please login again');
-      return;
-    }
-
-    const formData = new FormData();
-
-    if (config.images === 1) {
-      formData.append('image', {
-        uri: images[0].uri,
-        type: images[0].type,
-        name: images[0].fileName || 'image.jpg',
-      });
-    }
-
-    if (config.images === 2) {
-      formData.append('frontImage', {
-        uri: images[0].uri,
-        type: images[0].type,
-        name: 'front.jpg',
-      });
-      formData.append('backImage', {
-        uri: images[1].uri,
-        type: images[1].type,
-        name: 'back.jpg',
-      });
-    }
-
     try {
-      const res = await axios.put(
-        `${WEBSITE_URL}/api/profile/documents/${config.apiKey}`,
+      setUploadingKey(docKey); // ✅ start loader
+
+      const formData = new FormData();
+
+      if (docKey === 'pan') {
+        const pan = await compressImage(images[0].uri);
+        formData.append('panImage', pan);
+      }
+
+      if (docKey === 'drivingLicense') {
+        const front = await compressImage(images[0].uri);
+        const back = await compressImage(images[1].uri);
+
+        formData.append('dlFrontImage', front);
+        formData.append('dlBackImage', back);
+      }
+
+      const res = await apiClient.put(
+        '/api/profile/documents/update',
         formData,
         {
           headers: {
-            Authorization: `Bearer ${access}`,
             'Content-Type': 'multipart/form-data',
           },
+          timeout: 30000, // ✅ prevent hanging
         },
       );
 
       if (res.data?.success) {
-        Alert.alert('Success', res.data.message);
+        Alert.alert(
+          'Upload Successful',
+          docKey === 'pan'
+            ? 'Your PAN card has been uploaded successfully. It will be verified shortly.'
+            : 'Your Driving License has been uploaded successfully. It will be verified shortly.',
+        );
         fetchDocuments();
       } else {
-        Alert.alert('Error', 'Upload failed');
+        Alert.alert('Upload failed', 'Please try again');
       }
-    } catch {
-      Alert.alert('Error', 'Unable to upload document');
+    } catch (error) {
+      Alert.alert(
+        'Upload failed',
+        error?.response?.data?.message || 'Something went wrong',
+      );
+    } finally {
+      setUploadingKey(null); // ✅ stop loader
     }
   };
 
@@ -158,8 +161,14 @@ const DocumentsScreen = ({ navigation }) => {
 
   const isVerified = status => status === 'approved';
 
-  const getImageUrls = doc =>
-    [doc?.frontImage, doc?.backImage, doc?.image].filter(Boolean);
+  const getImageUrls = doc => {
+    if (!doc) return [];
+    const urls = [];
+    if (doc.frontImage) urls.push({ url: doc.frontImage });
+    if (doc.backImage) urls.push({ url: doc.backImage });
+    if (doc.image) urls.push({ url: doc.image });
+    return urls;
+  };
 
   if (loading) {
     return (
@@ -207,11 +216,13 @@ const DocumentsScreen = ({ navigation }) => {
         {/* SUMMARY */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Document Status</Text>
+
           <View style={styles.summaryRow}>
             <View style={[styles.summaryBox, styles.verifiedBox]}>
               <Text style={styles.summaryCount}>{verifiedCount}</Text>
               <Text style={styles.summaryLabel}>Verified</Text>
             </View>
+
             <View style={[styles.summaryBox, styles.pendingBox]}>
               <Text style={styles.summaryCount}>{pendingCount}</Text>
               <Text style={styles.summaryLabel}>Pending</Text>
@@ -266,7 +277,6 @@ const DocumentsScreen = ({ navigation }) => {
                 <Text style={styles.numberText}>{item.number}</Text>
               )}
 
-              {/* DL hint */}
               {uploadMeta?.hint && (
                 <Text style={styles.hintText}>{uploadMeta.hint}</Text>
               )}
@@ -286,26 +296,30 @@ const DocumentsScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.updateBtn}
+                  disabled={uploadingKey === item.key}
                   onPress={async () => {
                     if (!uploadMeta) {
                       Alert.alert('Info', 'Upload not supported');
                       return;
                     }
-
                     try {
                       const imgs = await openGallery(uploadMeta.images);
                       await uploadDocument(item.key, imgs);
-                    } catch {
-                      console.log('Gallery cancelled');
-                    }
+                    } catch {}
                   }}
                 >
-                  <Ionicons
-                    name="cloud-upload-outline"
-                    size={rf(2)}
-                    color="#fff"
-                  />
-                  <Text style={styles.updateText}>Update</Text>
+                  {uploadingKey === item.key ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons
+                        name="cloud-upload-outline"
+                        size={rf(2)}
+                        color="#fff"
+                      />
+                      <Text style={styles.updateText}>Update</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -323,11 +337,15 @@ const DocumentsScreen = ({ navigation }) => {
       >
         <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
           <ImageViewer
-            imageUrls={previewImages.map(i => ({ url: i }))}
+            imageUrls={previewImages}
             backgroundColor="#FFFFFF"
             enableSwipeDown
-            useNativeDriver={false}
+            enablePreload
+            useNativeDriver
             onSwipeDown={() => setPreviewImages([])}
+            loadingRender={() => (
+              <ActivityIndicator size="large" color="#00B2C9" />
+            )}
           />
 
           <TouchableOpacity
@@ -348,7 +366,6 @@ export default DocumentsScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F8' },
-
   header: {
     height: rh(8),
     backgroundColor: '#fff',
@@ -358,17 +375,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: rw(4),
     elevation: 2,
   },
-
   headerTitle: { fontSize: rf(2.3), fontWeight: '600' },
-
-  robotIcon: {
-    width: rw(12),
-    height: rw(11),
-    resizeMode: 'contain',
-  },
-
+  robotIcon: { width: rw(12), height: rw(11), resizeMode: 'contain' },
   row: { flexDirection: 'row', alignItems: 'center' },
-
   summaryCard: {
     backgroundColor: '#fff',
     margin: rw(4),
@@ -376,11 +385,8 @@ const styles = StyleSheet.create({
     padding: rw(4),
     elevation: 2,
   },
-
   summaryTitle: { fontSize: rf(2), fontWeight: '600', marginBottom: rh(2) },
-
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
-
   summaryBox: {
     flex: 1,
     marginHorizontal: rw(1),
@@ -388,14 +394,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: rh(2),
   },
-
   verifiedBox: { backgroundColor: '#ECFDF3' },
   pendingBox: { backgroundColor: '#FFFAEB' },
-
   summaryCount: { fontSize: rf(3), fontWeight: '700' },
-
   summaryLabel: { fontSize: rf(1.6), color: '#475467' },
-
   docCard: {
     backgroundColor: '#fff',
     marginHorizontal: rw(4),
@@ -404,13 +406,11 @@ const styles = StyleSheet.create({
     padding: rw(4),
     elevation: 2,
   },
-
   docHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-
   docIcon: {
     width: rw(8),
     height: rw(8),
@@ -420,25 +420,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: rw(2),
   },
-
   docTitle: { fontSize: rf(2), fontWeight: '600' },
-
   statusText: { marginLeft: rw(1), fontSize: rf(1.6), fontWeight: '500' },
-
   numberText: { marginTop: rh(1), fontSize: rf(1.7), color: '#667085' },
-
-  hintText: {
-    marginTop: rh(1),
-    fontSize: rf(1.5),
-    color: '#475467',
-  },
-
+  hintText: { marginTop: rh(1), fontSize: rf(1.5), color: '#475467' },
   actionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: rh(2),
   },
-
   viewBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -450,9 +440,7 @@ const styles = StyleSheet.create({
     paddingVertical: rh(1),
     marginRight: rw(2),
   },
-
   viewText: { marginLeft: rw(1), fontSize: rf(1.7) },
-
   updateBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -463,16 +451,13 @@ const styles = StyleSheet.create({
     paddingVertical: rh(1),
     marginLeft: rw(2),
   },
-
   updateText: {
     marginLeft: rw(1),
     fontSize: rf(1.7),
     color: '#fff',
     fontWeight: '500',
   },
-
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
   modalClose: {
     position: 'absolute',
     top: rh(5),

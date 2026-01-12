@@ -18,10 +18,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
-import api from '../../services/ApiClient'; // interceptor-based api
+import apiClient from '../../services/ApiClient'; // interceptor-based api
 
 const submitVehicleType = async vehicleType => {
-  const res = await api.post('/api/rider/vehicle', {
+  const res = await apiClient.post('/api/rider/vehicle', {
     type: vehicleType,
   });
   return res.data;
