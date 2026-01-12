@@ -10,7 +10,7 @@ import { useOtp } from '../../hooks/useOtp';
 import OtpInput from '../../components/common/OTPInputBox';
 import { sendOTPApi } from './LoginEntryScreen';
 import { tokenService } from '../../services/TokenService';
-import api from '../../services/ApiClient';
+import apiClient from '../../services/ApiClient';
 
 const COLORS = {
   primary: '#16C2D5',
@@ -25,7 +25,7 @@ const COLORS = {
 /* ================= VERIFY OTP API ================= */
 const verifyOTPApi = async (phone, otp) => {
   try {
-    const response = await api.post(
+    const response = await apiClient.post(
       '/api/mobile/verify-static-otp',
       { phone, otp },
       { skipAuth: true },
