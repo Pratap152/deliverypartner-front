@@ -21,6 +21,7 @@ export default function SuccessfullDelivered({
   amount = 45,
   onBackHome,
   onViewEarnings,
+  navigation
 }) {
   return (
     <View style={styles.container}>
@@ -52,8 +53,13 @@ export default function SuccessfullDelivered({
         style={styles.backButton}
         onPress={onBackHome}
         activeOpacity={0.9}
-      >
-        <Text style={styles.backButtonText}>Back to Home</Text>
+      ><TouchableOpacity
+  onPress={() => navigation.navigate('HomeDashboard')}
+  activeOpacity={0.7}
+>
+  <Text style={styles.backButtonText}>Back to Home</Text>
+</TouchableOpacity>
+        {/* <Text style={styles.backButtonText}>Back to Home</Text> */}
       </TouchableOpacity>
     </View>
   );

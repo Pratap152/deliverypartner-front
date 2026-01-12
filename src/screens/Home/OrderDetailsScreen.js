@@ -6,10 +6,10 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import OrderHeader from '../../components/home/OrderHeader';
-import OrderAddressCard from '../../components/home/OrderAddressCard'; 
-import OrderItemsCard from '../../components/home/OrderItemsCard';
-import OrderEarningsCard from '../../components/home/OrderEarningsCard';
+import OrderHeader from '../../components/order/OrderHeader';
+import OrderAddressCard from '../../components/order/OrderAddressCard'; 
+import OrderItemsCard from '../../components/order/OrderItemsCard';
+import OrderEarningsCard from '../../components/order/OrderEarningsCard';
 import SwipeButton from '../../components/common/SwipeButton';
 import { orderService } from '../../services/order/OrderService';
 

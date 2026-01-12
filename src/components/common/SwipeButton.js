@@ -4,8 +4,7 @@ import {
     Text,
     StyleSheet,
     Animated,
-    PanResponder,
-    Dimensions,
+    PanResponder
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
@@ -111,7 +110,7 @@ const styles = StyleSheet.create({
         width: SWIPEABLE_DIMENSIONS,
         height: SWIPEABLE_DIMENSIONS,
         borderRadius: SWIPEABLE_DIMENSIONS / 2,
-        backgroundColor: 'skyblue',
+        backgroundColor: '#5cceebff',
         position: 'absolute',
         left: 5,
         justifyContent: 'center',

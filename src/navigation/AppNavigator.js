@@ -33,11 +33,11 @@ import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 // import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
 import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
-// import MapScreen from '../screens/Home/MapScreen'
 import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
-import LiveTracking from '../../src/screens/Home/LiveTracking';
+import LiveTracking from '../../src/screens/Home/LiveTracking'; 
+import MapScreen from '../screens/Home/MapScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -97,10 +97,11 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-      <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} />
+      {/* <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} /> */}
       <Stack.Screen name='OrderPopupScreen' component={OrderPopupScreen} />
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
+      <Stack.Screen name="LiveTracking" component={LiveTracking} />
     </Stack.Navigator>
   );
 };
