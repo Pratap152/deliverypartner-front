@@ -17,7 +17,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-import api from '../../services/ApiClient';
+import apiClient from '../../services/ApiClient';
 
 export default function PersonalInfoScreen({ navigation }) {
   // FORM DATA
@@ -120,7 +120,7 @@ export default function PersonalInfoScreen({ navigation }) {
     setSubmitting(true);
 
     try {
-      const res = await api.post('/api/rider/personal-info', payload);
+      const res = await apiClient.post('/api/rider/personal-info', payload);
 
       console.log('STATUS:', res.status);
       console.log('BODY:', res.data);
