@@ -18,7 +18,7 @@ import paytmImage from '../../assets/paytm-logo.jpg';
 import razorPayImage from '../../assets/razor-pay-logo.jpg';
 import upiImage from '../../assets/upi-logo.png';
 
-import api from '../../api/ApiClient';
+import apiClient from '../../services/ApiClient';
 
 import { COLORS } from '../../utils/colors';
 import { TextInput } from 'react-native';
@@ -70,7 +70,7 @@ export default function PaymentsScreen() {
   const fetchOfflineStores = async () => {
     try {
       setIsLoading(true);
-      const reponse = await api.get('/api/admin/get-offline-stores');
+      const reponse = await apiClient.get('/api/admin/get-offline-stores');
       console.log(reponse.data);
 
       if (!reponse.data.success) {

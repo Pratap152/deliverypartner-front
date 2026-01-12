@@ -18,7 +18,7 @@ import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
-
+import SplashScreen from '../screens/onboarding/SplashScreen';
 import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
@@ -33,11 +33,11 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName='MainTabs'
+      initialRouteName="SplashScreen"
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
-      {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
+      <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
       <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
@@ -83,12 +83,12 @@ const AppNavigator = () => {
 
       <Stack.Screen name="HelpCenter" component={HelpCenterList} />
 
-
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       <Stack.Screen
         name="AddBankDetailsScreen"
         component={AddBankDetailsScreen}
       />
+      
       <Stack.Screen
         name="SlotHistoryScreen"
         component={SlotHistoryScreen}
@@ -97,8 +97,9 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
+    
     </Stack.Navigator>
-  ); 
+  );
 };
 
 export default AppNavigator;

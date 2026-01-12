@@ -17,16 +17,20 @@ export default function SlotHistoryScreen({navigation}){
     const [loading, setLoading] = useState(false);
     const [expandedDates, setExpandedDates] = useState([]);
     const [isWeekSheetOpen, setIsWeekSheetOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
 
 
     // FETCHING API DATA
-    const fetchSlotHistory = async (weekNumber) =>{
+    const fetchSlotHistory = async (weekNumber, isRefresh = false) =>{
         // FETCHING TOKEN
         //const access = await tokenService.getAccessToken();
         const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzM1MTMzNn0.-oxahATt8sxeT6BLjWB0z6u5_bTfcx6jIfWowMkqtqc";
         try{
-            setLoading(true);
+            if (!isRefresh){
+                setLoading(true);
+            }
+            
             // API CALL 
             const response = await axios.get(
                 'https://delivarypartner.onrender.com/api/slots/history',
@@ -54,7 +58,9 @@ export default function SlotHistoryScreen({navigation}){
             }
         }
         finally{
-            setLoading(false);
+            if (!isRefresh) {
+                setLoading(false);
+            }
         }
     };
 
@@ -81,6 +87,7 @@ export default function SlotHistoryScreen({navigation}){
 
         return `${format(start)} - ${format(end)}`;
         };
+        
 
     // FORMATTING DATE
     const formatDate = (dateString) => {
@@ -102,19 +109,19 @@ export default function SlotHistoryScreen({navigation}){
             <View style={styles.week_selector_container}>
                     <View style={styles.week_selector}>
                         <Text style={styles.week_text}>
-                            Week {selectedWeek}
+                            {getWeekRange(days)}
                         </Text>
                         <Text style={styles.this_week}>This Week</Text>
                         <TouchableOpacity style={styles.change_week}
                                           onPress={() => setIsWeekSheetOpen(true)}>
-                            <Text style={{fontSize:wp(4),fontWeight:'500',}}>Change</Text>
+                            <Text style={{fontSize:wp(4.5),fontWeight:'500',}}>Change</Text>
                             <Ionicons name='chevron-forward-outline' 
-                                    size={18}/>
+                                    size={18}
+                                    style={{paddingTop:hp(0.5)}}
+                                    />
                         </TouchableOpacity>  
                     </View>
-                    <Text style={{marginLeft:wp(2),fontSize:wp(3.5),}}>
-                       {getWeekRange(days)}
-                    </Text>
+                    
                 </View>
 
                 {/* SUMMARY */}
@@ -150,12 +157,8 @@ export default function SlotHistoryScreen({navigation}){
             <View>
 
             {/* DAY ROW */}
-            <View style={styles.day_row}>
-                <Text style={styles.day_row_text}>
-                    {formatDate(day.date)}
-                </Text>
-
                 <TouchableOpacity
+                    style={styles.day_row}
                     onPress={() =>
                         setExpandedDates(prev => {
                         if (prev.includes(day.date)) {
@@ -163,6 +166,11 @@ export default function SlotHistoryScreen({navigation}){
                         }
                         return [...prev, day.date]; // open this day
                         })}>
+
+                    <Text style={styles.day_row_text}>
+                        {formatDate(day.date)}
+                    </Text>
+   
                 <Ionicons
                     name={
                     expandedDates.includes(day.date)
@@ -173,15 +181,14 @@ export default function SlotHistoryScreen({navigation}){
                     style={styles.day_icon}
                 />
                 </TouchableOpacity>
-            </View>
 
             {/* EXPANDED CONTENT */}
             {expandedDates.includes(day.date)&& (
                 <View style={{ marginLeft: wp(3), marginTop: hp(1) }}>
                     {/* EMPTY STATE */}
                     {day.slots.length === 0 && (
-                        <Text style={{ marginTop: hp(1), color: '#777' }}>
-                            No Slot details found
+                        <Text style={{ marginTop: hp(1), color: '#777',fontSize:wp(4) }}>
+                            No Slots on this day
                         </Text>
                         )}
 
@@ -222,14 +229,23 @@ export default function SlotHistoryScreen({navigation}){
         return `${format(weekStart)} - ${format(weekEnd)}`;
         };
 
+    
+    const onRefresh = async () =>{
+        console.log('PULL TO REFRESH TRIGGERED');
+        try{
+            setRefreshing(true);
+            await fetchSlotHistory(selectedWeek, true);
+        }
+        finally{
+            setRefreshing(false);
+        }
+    };
 
     
 
-    
-
-
-    
+    // STYLING
     return(
+
         <SafeAreaView style={{flex:1}}>
 
             <View style={styles.header}>
@@ -237,13 +253,11 @@ export default function SlotHistoryScreen({navigation}){
                                 onPress={()=>navigation.goBack()}>
                     <Ionicons name='chevron-back-outline' 
                             size={24}
-                            color='#677294'/>
+                            />
                 </TouchableOpacity>
-                <Text style={{fontSize:wp(6),}}>Slots History</Text>
+                <Text style={{fontSize:wp(6),fontWeight:'500'}}>Slots History</Text>
             </View>
                 
-
-
 
                 {/* DAYS LIST */}
                 <FlatList
@@ -251,13 +265,17 @@ export default function SlotHistoryScreen({navigation}){
                     keyExtractor={(item) => item.date}
                     renderItem={renderDay}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: hp(4)}}
-                    
+                    refreshing = {refreshing}
+                    onRefresh = {onRefresh}
+                    contentContainerStyle={{
+                                paddingBottom: hp(4),
+                                flexGrow: 1
+                            }}
                     ListHeaderComponent={
                         <>
                             {loading && (
                             <View style={{ marginVertical: hp(2), alignItems: 'center' }}>
-                                <ActivityIndicator size="large" color="#4F39F6" />
+                                <ActivityIndicator size="large" color='black' />
                             </View>
                             )}
                             <ListHeader />
@@ -283,21 +301,16 @@ export default function SlotHistoryScreen({navigation}){
                                         }}>
                                         
                                             <Text
-                                                style={{ fontWeight: week === selectedWeek ? '700' : '400' }}>
-                                                {getWeekRangeByWeekNumber(week)}  (Week {week})
+                                                style={{ fontWeight: week === selectedWeek ? '700' : '400',fontSize:wp(4) }}>
+                                                {getWeekRangeByWeekNumber(week)}  
                                              </Text>
                                                 {week === selectedWeek &&
                                                 <Text style={styles.this_week}>
                                                     This Week
                                                 </Text>
                                                 }
-                                           
-                                            
-                                        
-                                        
-                                            
-                                        
-
+                                                    
+                                       
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -305,15 +318,13 @@ export default function SlotHistoryScreen({navigation}){
                             <TouchableOpacity
                                 style={styles.sheet_cancel}
                                 onPress={() => setIsWeekSheetOpen(false)}>
-                                <Text>Cancel</Text>
+                                <Text style={{fontSize:wp(4),fontWeight:'500'}}>Cancel</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                     )}
 
-
-            
-            
+    
         </SafeAreaView>
     );
 }
@@ -337,22 +348,22 @@ const styles = StyleSheet.create({
     },
     week_selector:{
         flexDirection:'row',
-        fontSize:wp(4),
-        gap:wp(2),    
+        gap:wp(1)
         
     },
     week_text:{
-        fontSize:wp(4),
+        fontSize:wp(4.5),
         marginBottom:hp(2),
         marginLeft:wp(2),
-        fontWeight:'800'
+        fontWeight:'700'
     },
     this_week:{
         borderRadius:wp(2),
         backgroundColor:'#cbced7ff',
-        width:wp(20),
+        width:wp(25),
         textAlign:'center',
         marginBottom:hp(2),
+        fontSize:wp(4),
         fontWeight:'500'
         
     },
@@ -362,8 +373,9 @@ const styles = StyleSheet.create({
     change_week:{
         flexDirection:'row',
         alignItems:'center',
-        marginLeft:wp(32),
-        marginTop:hp(1) 
+        marginLeft:wp(13),
+        marginBottom:hp(1)
+        
     },
     summary_container:{
         flexDirection:'row',
@@ -377,7 +389,7 @@ const styles = StyleSheet.create({
         borderRadius:wp(4),  
     },
     summary_text:{
-        fontSize:wp(4),
+        fontSize:wp(4.5),
         marginLeft:wp(2),
         
     },
@@ -414,12 +426,12 @@ const styles = StyleSheet.create({
     },
 
     slot_time: {
-        fontSize: wp(3.8),
+        fontSize: wp(4),
         fontWeight: '500',
     },
 
     slot_status: {
-        fontSize: wp(3.2),
+        fontSize: wp(3.5),
         fontWeight: '600',
         color: '#677294',
     },
@@ -447,8 +459,8 @@ const styles = StyleSheet.create({
     },
 
     sheet_title: {
-        fontSize: wp(4.5),
-        fontWeight: '700',
+        fontSize: wp(5),
+        fontWeight: '500',
         marginBottom: hp(2),
     },
 
@@ -462,6 +474,7 @@ const styles = StyleSheet.create({
     sheet_cancel: {
         marginTop: hp(2),
         alignItems: 'center',
+        
     },
 
 
