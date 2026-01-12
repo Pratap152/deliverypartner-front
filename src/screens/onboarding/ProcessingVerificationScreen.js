@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import {
   responsiveWidth,
@@ -6,20 +6,47 @@ import {
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import { useNavigation } from '@react-navigation/native';
+import { getOnboardingStatus } from '../../services/onboardingApi';
+
+const POLL_INTERVAL = 8000; // 8 seconds
 
 const ProcessingVerificationScreen = () => {
   const navigation = useNavigation();
+  const intervalRef = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
-    }, 3000); // ⏱ 3 seconds delay
+    const checkVerificationStatus = async () => {
+      try {
+        const res = await getOnboardingStatus();
 
-    return () => clearTimeout(timer); // ✅ cleanup
-  }, []);
+        if (
+          res?.success &&
+          res?.onboardingProgress?.kycCompleted &&
+          res?.isFullyRegistered
+        ) {
+          // stop polling
+          clearInterval(intervalRef.current);
+
+          // always go through splash
+          navigation.replace('SplashScreen');
+        }
+      } catch (err) {
+        console.log('Verification polling error:', err);
+      }
+    };
+
+    // 🔹 first check immediately
+    checkVerificationStatus();
+
+    // 🔹 then poll every 8 seconds
+    intervalRef.current = setInterval(checkVerificationStatus, POLL_INTERVAL);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

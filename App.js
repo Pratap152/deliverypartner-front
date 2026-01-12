@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import { AppState } from 'react-native';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import { store } from './src/redux/store';
 import { AuthProvider } from './src/hooks/useAuth';
+<<<<<<< HEAD
 
 import { tokenService } from './src/services/TokenService';
 import { sessionService } from './src/services/SessionService';
@@ -68,14 +68,19 @@ const App = () => {
     };
   }, []);
 
+=======
+import { navigationRef } from './src/navigation/RootNavigation';
+
+const App = () => {
+>>>>>>> 275bb894800481e1027ccc266a9ae118110d0f32
   return (
-    <NavigationContainer ref={navigationRef}>
-      <Provider store={store}>
-        <AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <NavigationContainer ref={navigationRef}>
           <AppNavigator />
-        </AuthProvider>
-      </Provider>
-    </NavigationContainer>
+        </NavigationContainer>
+      </AuthProvider>
+    </Provider>
   );
 };
 

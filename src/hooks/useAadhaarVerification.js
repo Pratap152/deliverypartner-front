@@ -1,13 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 import { isValidAadhaar } from '../utils/helpers';
-import { useNavigation } from '@react-navigation/native';
-import WEBSITE_URL from '../utils/host';
-import { useAuth } from './useAuth';
-
-import axios from 'axios';
-
-import api from '../api/ApiClient';
+import apiClient from '../services/ApiClient';
 
 export default function useAadhaarVerification() {
   const navigation = useNavigation();
@@ -15,8 +10,6 @@ export default function useAadhaarVerification() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
-
-  const { authToken } = useAuth();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -33,39 +26,33 @@ export default function useAadhaarVerification() {
   }, [aadhaar]);
 
   const handleSubmit = async () => {
-    console.log('sending aadhaar otp...');
     if (!isValidAadhaar(aadhaar)) {
       setError('Invalid Aadhaar number.');
       return;
     }
-    setLoading(true);
 
+    setLoading(true);
     setError('');
+
     try {
-      const response = await axios.post(
-        `${WEBSITE_URL}/aadhar/send-otp`,
-        {
-          aadharNumber: aadhaar.split(' ').join(''),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        },
-      );
+      const response = await apiClient.post('/aadhar/send-otp', {
+        aadharNumber: aadhaar.replace(/\s/g, ''),
+      });
 
       if (response.status !== 200) {
-        setError(response.data.message);
+        setError(response.data?.message || 'Failed to send OTP');
         return;
       }
+
       navigation.navigate('AadharVerifyScreen', {
         otp: response.data.otp,
         aadharNumber: aadhaar,
       });
+
       setAadhaar('');
     } catch (error) {
       console.log('Error aadhaar send otp', error);
-      setError(error?.response?.data?.message);
+      setError(error?.response?.data?.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -73,14 +60,13 @@ export default function useAadhaarVerification() {
 
   function formatAadhaarInput(value) {
     return value
-      .replace(/\D/g, '') // remove non-digits
-      .slice(0, 12) // max 12 digits
+      .replace(/\D/g, '')
+      .slice(0, 12)
       .replace(/(\d{4})(?=\d)/g, '$1 ');
   }
 
   const handleOnChange = text => {
     const formattedAadhaar = formatAadhaarInput(text);
-
     setAadhaar(formattedAadhaar);
   };
 
