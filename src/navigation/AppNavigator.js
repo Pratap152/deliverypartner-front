@@ -89,6 +89,7 @@ const AppNavigator = () => {
         name="AddBankDetailsScreen"
         component={AddBankDetailsScreen}
       />
+      
       <Stack.Screen
         name="SlotHistoryScreen"
         component={SlotHistoryScreen}
@@ -97,6 +98,7 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
+    
     </Stack.Navigator>
   ); 
 };
