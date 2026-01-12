@@ -43,8 +43,7 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
   } = useOtpVerification(OTP_LENGTH);
 
   const handleOnSuccess = () => {
-    dispatch(verifyDocument('aadhaar'));
-    navigation.navigate('DocumentVerifyScreen');
+    navigation.replace('SplashScreen');
   };
 
   return (

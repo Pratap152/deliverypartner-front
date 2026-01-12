@@ -1,39 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
-import WEBSITE_URL from '../utils/host';
-import { useAuth } from './useAuth';
-import axios from 'axios';
-import uploadMultipart from '../api/UploadClient';
+import apiClient from '../services/ApiClient';
 
 const useOtpVerification = otpLength => {
   const [otp, setOtp] = useState(new Array(otpLength).fill(''));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { authToken } = useAuth();
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs?.current[0]?.focus();
-    }
+    inputRefs.current[0]?.focus();
   }, []);
 
   const handleChange = (value, index) => {
     if (isNaN(+value)) return;
     setError('');
-    let newOtp = [...otp];
 
+    const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
-    if (value && index < otpLength - 1 && inputRefs?.current[index + 1]) {
-      inputRefs?.current[index + 1]?.focus();
+
+    if (value && index < otpLength - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyPress = (e, index) => {
     if (e.nativeEvent.key === 'Backspace') {
-      if (!otp[index] && index > 0 && inputRefs?.current[index - 1]) {
-        inputRefs?.current[index - 1]?.focus();
+      if (!otp[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
       }
     }
   };
@@ -43,31 +38,27 @@ const useOtpVerification = otpLength => {
     const enteredOtp = otp.join('');
 
     try {
-      const reponse = await uploadMultipart.post(
+      const response = await apiClient.post(
         '/aadhar/verify-otp',
         {
-          aadharNumber: aadharNumber.split(' ').join(''),
+          aadharNumber: aadharNumber.replace(/\s/g, ''),
           otp: enteredOtp,
         },
         {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
         },
       );
 
-      console.log('otp verification response...', reponse);
-      if (reponse.status !== 200) {
-        setError(reponse.data.message);
+      if (response.status !== 200) {
+        setError(response.data?.message || 'OTP verification failed');
         return;
       }
 
-      setSuccess(reponse.data.message);
-
+      setSuccess(response.data.message);
       onSuccess();
     } catch (error) {
       console.log('Error While verifying Otp', error);
-      setError(error?.response?.data?.message);
+      setError(error?.response?.data?.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
