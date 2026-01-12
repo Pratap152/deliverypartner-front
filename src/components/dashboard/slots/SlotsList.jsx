@@ -67,7 +67,7 @@ export default function SlotsList({
                 keyExtractor={(item) => item.slotId}
                 renderItem={renderSlotCard}
                 ListEmptyComponent={<EmptySlotState filter={filter} />}
-                 ListFooterComponent={<SlotHistory />}
+                ListFooterComponent={<SlotHistory />}
                 refreshing={loading}
                 onRefresh={onRefresh}
                 contentContainerStyle={styles.listContent}

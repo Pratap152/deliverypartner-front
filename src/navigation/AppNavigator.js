@@ -89,12 +89,15 @@ const AppNavigator = () => {
         component={AddBankDetailsScreen}
       />
       
+      <Stack.Screen
+        name="SlotHistoryScreen"
+        component={SlotHistoryScreen}
+      />
        {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
-      <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen}/>
-      <Stack.Screen name="SlotHistoryScreen" component={SlotHistoryScreen}/>
+    
     </Stack.Navigator>
   );
 };

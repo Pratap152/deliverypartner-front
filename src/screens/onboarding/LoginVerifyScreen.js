@@ -87,6 +87,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       setError('Please enter a valid 6-digit OTP.');
       return;
     }
+<<<<<<< HEAD
 
     try {
       setIsVerifying(true);
@@ -101,10 +102,25 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
       const { accessToken, refreshToken } = result.data;
 
+=======
+ 
+    setIsVerifying(true);
+    setError('');
+ 
+    const result = await verifyOTPApi(phone, fullOtp);
+    console.log('i need to test', result);
+    setIsVerifying(false);
+ 
+    if (result.status === 200) {
+      const accessToken = result?.data?.accessToken;
+      const refreshToken = result?.data?.refreshToken;
+      console.log(accessToken);
+>>>>>>> ef61a0265fec4b21e0cf42c7ecbe9a690478dd31
       if (!accessToken) {
         setError('Authentication failed. Try again.');
         return;
       }
+<<<<<<< HEAD
 
       await tokenService.set({ accessToken, refreshToken });
 
@@ -114,6 +130,39 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       setError('Something went wrong. Try again.');
     } finally {
       setIsVerifying(false);
+=======
+      await tokenService.set({
+        accessToken:accessToken,
+        refreshToken:refreshToken
+      })
+      // ✅ Save token globally
+      setAuthToken(accessToken);
+ 
+      // 🔍 Check registration status
+      const initResult = await initializeRiderApi(accessToken);
+ 
+      console.log(initResult)
+ 
+      if (initResult.status === 200) {
+        const isFullyRegistered = initResult?.data?.status;
+ 
+        if (isFullyRegistered === "FULLY_REGISTERED") {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          });
+        } else {
+          navigation.navigate(AppPermissionScreen);
+        }
+      } else {
+        setError('Unable to check registration status.');
+      }
+ 
+    } else if (result.status === 401) {
+      setError('Invalid or expired OTP');
+    } else {
+      setError('Failed to verify OTP. Try again.');
+>>>>>>> ef61a0265fec4b21e0cf42c7ecbe9a690478dd31
     }
   };
 
