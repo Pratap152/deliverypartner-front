@@ -100,3 +100,9 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
+import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const EarningsClient = fetchBaseQuery({
+  baseUrl: WEBSITE_URL,
+});

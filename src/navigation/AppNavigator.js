@@ -27,6 +27,7 @@ import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
 import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
 import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";
 import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
+import EarningsHistory from "../screens/earnings/EarningsHistory"
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -92,6 +93,10 @@ const AppNavigator = () => {
       <Stack.Screen
         name="SlotHistoryScreen"
         component={SlotHistoryScreen}
+      />
+      <Stack.Screen
+        name="EarningsHistory"
+        component={EarningsHistory}
       />
        {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />

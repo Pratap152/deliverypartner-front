@@ -1,22 +1,22 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { apiClient } from '../../services/apiClient';
+import { EarningsClient } from '../services/ApiClient';
 
 export const earningsApi = createApi({
   reducerPath: 'earningsApi',
-  baseQuery: apiClient,
+  baseQuery: EarningsClient,
   endpoints: b => ({
     getMonth: b.query({
-      query: m => `/earnings/${m}`,
+      query: m => `/api/earnings/${m}`,
     }),
     getWeek: b.query({
       query: ({ start, end }) =>
-        `/earnings/week?start=${start}&end=${end}`,
+        `/api/earnings/week?start=${start}&end=${end}`,
     }),
     getDay: b.query({
-      query: d => `/earnings/${d}`,
+      query: d => `/api/earnings/${d}`,
     }),
     getOrder: b.query({
-      query: id => `/earnings/orders/${id}`,
+      query: id => `/api/earnings/orders/${id}`,
     }),
   }),
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, View, Text } from 'react-native';
-import { spacing, colors } from '../../../theme';
+import { spacing } from '../../utils/spacing';
+import { colors } from '../../utils/colors';
 
 export const ListRow = ({ title, amount, onPress }) => (
   <TouchableOpacity onPress={onPress}>

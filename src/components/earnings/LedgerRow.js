@@ -1,7 +1,8 @@
 import React from 'react';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import { View, Text } from 'react-native';
-import { spacing, colors } from '../../../theme';
+import { spacing} from '../../utils/spacing';
+import { colors } from '../../utils/colors';
 
 export const LedgerRow = ({ title, subtitle, amount }) => (
   <Animated.View entering={FadeInRight}>

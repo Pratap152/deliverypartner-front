@@ -1,10 +1,18 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
+import { EarningsHistory } from '../earnings/EarningsHistory';
 
 const EarningsScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Coming Soon...</Text>
+      <Pressable
+              onPress={() => {
+                navigation.navigate('EarningsHistory');
+              }}
+            >
+              <Text> Go to EarningsHistory</Text>
+            </Pressable>
     </View>
   );
 };

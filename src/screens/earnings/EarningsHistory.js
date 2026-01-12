@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { View, FlatList, ActivityIndicator } from 'react-native';
-import { useGetMonthQuery, useGetWeekQuery, useGetDayQuery } from './earnings.api';
-import { EarningsCard } from './components/EarningsCard';
-import { ListRow } from './components/ListRow';
-import { LedgerRow } from './components/LedgerRow';
-import { EmptyState } from './components/EmptyState';
-import { spacing } from '../../theme';
+import { useGetMonthQuery, useGetWeekQuery, useGetDayQuery } from '../../api/earnings.api';
+import { EarningsCard } from '../../components/earnings/EarningsCard';
+import { ListRow } from '../../components/earnings/ListRow';
+import { LedgerRow } from '../../components/earnings/LedgerRow';
+import { EmptyState } from '../../components/earnings/EmptyState';
+import { spacing } from '../../utils/spacing';
 
 export function EarningsHistory() {
   const [level, setLevel] = useState('MONTH');
   const [payload, setPayload] = useState(null);
 
-  const month = useGetMonthQuery('jan', { skip: level !== 'MONTH' });
+  const month = useGetMonthQuery({}, { skip: level !== 'MONTH' });
   const week = useGetWeekQuery(payload || {}, { skip: level !== 'WEEK' });
   const day = useGetDayQuery(payload, { skip: level !== 'DAY' });
 

@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { colors, spacing, radius, typography } from '../../../theme';
+import { colors } from '../../utils/colors';
+import { radius } from '../../utils/radius';
+import { spacing } from '../../utils/spacing';
+import { typography } from '../../utils/typography';
 
 export const EarningsCard = ({ title, amount }) => (
   <View style={{
