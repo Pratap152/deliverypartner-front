@@ -18,7 +18,7 @@ import paytmImage from '../../assets/paytm-logo.jpg';
 import razorPayImage from '../../assets/razor-pay-logo.jpg';
 import upiImage from '../../assets/upi-logo.png';
 
-import api from '../../api/ApiClient';
+import api from '../../services/ApiClient';
 
 import { COLORS } from '../../utils/colors';
 import { TextInput } from 'react-native';

@@ -7,40 +7,38 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-// ✅ NEW IMAGE PICKER
 import { launchCamera } from 'react-native-image-picker';
 
 export default function FaceInstructionScreen({ navigation }) {
-  const openCamera = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        cameraType: 'front',
-        quality: 0.8,
-        saveToPhotos: false,
-      },
-      response => {
-        if (response.didCancel) {
-          console.log('Camera cancelled');
-          return;
-        }
+  const openCamera = async () => {
+    const options = {
+      mediaType: 'photo',
+      cameraType: 'front',
+      quality: 0.8,
+      saveToPhotos: false,
+    };
 
-        if (response.errorCode) {
-          Alert.alert(
-            'Camera Error',
-            response.errorMessage || 'Unable to open camera',
-          );
-          return;
-        }
+    launchCamera(options, response => {
+      if (response.didCancel) {
+        console.log('Camera cancelled');
+        return;
+      }
 
-        const asset = response.assets?.[0];
-        if (asset?.uri) {
-          navigation.navigate('FaceVerificationScreen', {
-            photoUri: asset.uri,
-          });
-        }
-      },
-    );
+      if (response.errorCode) {
+        console.log('Camera error:', response.errorMessage);
+        return;
+      }
+
+      const asset = response.assets && response.assets[0];
+
+      if (asset?.uri) {
+        navigation.navigate('FaceVerificationScreen', {
+          photoUri: asset.uri,
+        });
+      } else {
+        console.log('No image returned');
+      }
+    });
   };
 
   return (
@@ -76,19 +74,27 @@ export default function FaceInstructionScreen({ navigation }) {
         </Text>
 
         {/* GUIDELINES */}
-        <View style={{ marginLeft: wp('5%'), marginTop: hp('2%') }}>
+        <View
+          style={{
+            marginLeft: wp('5%'),
+            marginTop: hp('2%'),
+          }}
+        >
           {[
             'Show full face clearly',
             'Use good lighting',
             'Hold camera at eye level',
             'Look straight',
-          ].map((item, index) => (
+          ].map((text, index) => (
             <View
               key={index}
-              style={{ flexDirection: 'row', marginBottom: hp('0.8%') }}
+              style={{
+                flexDirection: 'row',
+                marginBottom: hp('0.8%'),
+              }}
             >
               <Ionicons name="caret-forward-outline" size={18} color="black" />
-              <Text style={{ fontSize: wp('4%') }}> {item}</Text>
+              <Text style={{ fontSize: wp('4%') }}> {text}</Text>
             </View>
           ))}
         </View>

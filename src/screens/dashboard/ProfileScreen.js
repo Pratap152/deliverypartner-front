@@ -247,11 +247,7 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('BankAC')}
-            >
+            <TouchableOpacity style={styles.listItemReduced} activeOpacity={0.7}>
               <View style={styles.listLeft}>
                 <Image
                   source={require('../../assets/profile/Bank.png')}
@@ -311,10 +307,7 @@ export default function ProfileScreen({ navigation }) {
           {/* HISTORY & ACTIVITY */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>HISTORY & ACTIVITY</Text>
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.listItemReduced} activeOpacity={0.7}>
               <View style={styles.listLeft}>
                 <Image
                   source={require('../../assets/profile/Order.png')}
@@ -329,11 +322,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7} 
-              onPress={() => navigation.navigate('SlotHistory')}
-            >
+            <TouchableOpacity style={styles.listItemReduced} activeOpacity={0.7}>
               <View style={styles.listLeft}>
                 <Image
                   source={require('../../assets/profile/Slot.png')}
