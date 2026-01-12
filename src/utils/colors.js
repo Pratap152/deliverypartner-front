@@ -9,4 +9,11 @@ export const COLORS = {
   textPrimary: '#2B2E35',
   textSecondary: '#57585A',
   error: '#D32F2F',
+   primary1: '#7C3AED',
+  
+  bg: '#F8FAFC',
+  card: '#FFFFFF',
+  divider: '#E5E7EB',
+  text: '#0F172A',
+  muted: '#64748B',
 };
