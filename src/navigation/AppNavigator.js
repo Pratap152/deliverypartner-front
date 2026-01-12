@@ -25,7 +25,7 @@ import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
 import ReportIssue from '../screens/Home/ReportIssue';
 // import CustomerNotResponding from '../screens/Home/CustomerNotResponding';
-import AddBankDetails from '../screens/Home/BankDetail';
+import AddBankDetails from '../screens/Home/AddBankDetails';
 import ReferEarn from '../screens/Home/ReferEarn';
 import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';

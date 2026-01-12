@@ -82,16 +82,19 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
+  Pressable
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_WIDTH = wp('90%');
 
-const BannerCarousel = ({ data }) => {
+const BannerCarousel = ({ data}) => {
+    const navigation = useNavigation();
   const flatListRef = useRef(null);
   const currentIndex = useRef(0);
 
@@ -113,16 +116,26 @@ const BannerCarousel = ({ data }) => {
 
   if (!data || data.length === 0) return null;
 
-  const renderItem = ({ item }) => (
-    <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>{item.subtitle}</Text>
+ const renderItem = ({ item }) => {
+  const handlePress = () => {
+    if (item.id === 'bank') {
+      navigation.navigate('AddBankDetails');
+    }
+  };
 
-      <View style={styles.cta}>
-        <Text style={styles.ctaText}>{item.cta}</Text>
+  return (
+    <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
+      <View>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.subtitle}>{item.subtitle}</Text>
       </View>
+
+      <Pressable onPress={handlePress} style={styles.cta}>
+        <Text style={styles.ctaText}>{item.cta}</Text>
+      </Pressable>
     </View>
   );
+};
 
   return (
     <View style={styles.wrapper}>

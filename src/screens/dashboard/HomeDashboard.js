@@ -339,7 +339,7 @@
 
 // export default HomeDashboard;
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView,TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -352,7 +352,7 @@ import PeakHoursBanner from '../../components/home/PeakHoursBanner';
 import WeeklyStatsCard from '../../components/home/WeeklyStatsCard';
 import { banners, todayStats, weeklyStats } from '../../components/home/data/home.mock';
 
-const HomeDashboard = () => {
+const HomeDashboard = ({navigation}) => {
   const [isOnline, setIsOnline] = useState(false);
 
   return (
@@ -372,7 +372,7 @@ const HomeDashboard = () => {
             />
 
             <View style={styles.carouselWrapper}>
-              <BannerCarousel data={banners} />
+              <BannerCarousel data={banners}/>
             </View>
           </>
         ) : (
@@ -391,6 +391,11 @@ const HomeDashboard = () => {
           ))}
         </View>
 
+        <View style={styles.banner}>
+         <TouchableOpacity onPress={()=>{navigation.navigate("OrderPopupScreen")}}>
+             <Text>Navigate to OrderPopupScreen</Text>
+       </TouchableOpacity>
+        </View>
         <ActiveShiftBanner />
         <PeakHoursBanner />
 
@@ -432,6 +437,12 @@ const styles = StyleSheet.create({
     fontSize: wp('4.2%'),
     fontWeight: '700',
     marginBottom: hp('1%'),
+  },
+   banner: {
+    backgroundColor: "#4CC9C0",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
   },
 });
 

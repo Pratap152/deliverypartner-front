@@ -27,7 +27,7 @@ const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
       </View>
 
       {/* Stats */}
-      <StatRow label="Total Earnings" value={`₹${earnings}`} percent={12} />
+      <StatRow label="Total Earnings" value={10} percent={12} />
       <StatRow label="Orders Delivered" value={orders} percent={8} />
       <StatRow label="Online Hours" value={hours} percent={5} />
     </View>
@@ -60,8 +60,12 @@ const styles = StyleSheet.create({
 
   link: {
     fontSize: wp('3.2%'),
-    color: '#16A34A',
+    color: 'white',
     fontWeight: '600',
+    backgroundColor:'#16A34A',
+    paddingVertical: wp('1%'),
+    paddingHorizontal: wp('3%'),
+    borderRadius: wp('2%'),
   },
 
   row: {
