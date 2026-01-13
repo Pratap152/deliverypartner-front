@@ -153,7 +153,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
       <Text style={styles.label}>Enter OTP</Text>
 
-      <OtpInput
+       <OtpInput
         otp={otp}
         inputRefs={inputRefs}
         handleChange={handleChange}
