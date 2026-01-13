@@ -10,6 +10,8 @@ import CashBalance from '../screens/profile/CashBalance';
 import CameraScreen from '../screens/profile/CameraScreen';
 import BankAC from '../screens/profile/BankAC'
 import SlotHistory from '../screens/profile/SlotHistory'
+import RewardsScreen from '../screens/profile/Rewards'
+
 
 const Stack = createNativeStackNavigator();
 

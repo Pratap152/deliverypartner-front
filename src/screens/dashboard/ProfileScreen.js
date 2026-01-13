@@ -245,6 +245,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
 
+              
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
@@ -289,11 +290,7 @@ export default function ProfileScreen({ navigation }) {
           {/* PERFORMANCE & REWARDS */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>PERFORMANCE & REWARDS</Text>
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('RewardsScreen')}
-            >
+            <TouchableOpacity style={styles.listItemReduced} activeOpacity={0.7} onPress={() => navigation.navigate("RewardsScreen")}>
               <View style={styles.listLeft}>
                 <Image
                   source={require('../../assets/profile/Rewards.png')}
@@ -492,9 +489,9 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: '#FFFFFF',
-    fontSize: wp('6.4%'),
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontSize: wp("6.4%"),
+    fontWeight: "600",
   },
 
   profileCard: {
@@ -528,15 +525,15 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    fontSize: wp('4.8%'),
-    fontWeight: '600',
-    color: '#222',
+    fontSize: wp("4.8%"), 
+    fontWeight: "600",
+    color: "#222",
   },
 
   partnerId: {
-    fontSize: wp('3.5%'),
-    color: '#777',
-    marginTop: hp('0.3%'),
+    fontSize: wp("3.5%"), 
+    color: "#777",
+    marginTop: hp("0.3%"),
   },
 
   activeBadge: {
@@ -547,11 +544,10 @@ const styles = StyleSheet.create({
     paddingVertical: hp('0.4%'),
     borderRadius: wp('3%'),
   },
-
   activeText: {
-    fontSize: wp('3.3%'),
-    color: '#2E7D32',
-    fontWeight: '500',
+    fontSize: wp("3.3%"), 
+    color: "#2E7D32",
+    fontWeight: "500",
   },
 
   divider: {
@@ -571,15 +567,15 @@ const styles = StyleSheet.create({
   },
 
   statValue: {
-    fontSize: wp('4.9%'),
-    fontWeight: '600',
-    color: '#222',
+    fontSize: wp("4.9%"), 
+    fontWeight: "600",
+    color: "#222",
   },
 
   statLabel: {
-    fontSize: wp('3.3%'),
-    color: '#777',
-    marginTop: hp('0.5%'),
+    fontSize: wp("3.3%"),
+    color: "#777",
+    marginTop: hp("0.5%"),
   },
 
   verticalDivider: {
@@ -594,13 +590,13 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontWeight: '400',
-    fontSize: wp('3.7%'),
-    lineHeight: hp('2.7%'),
+    fontWeight: "400",
+    fontSize: wp("3.7%"), 
+    lineHeight: hp("2.7%"),
     letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: '#9AA0A6',
-    marginBottom: hp('1%'),
+    textTransform: "uppercase",
+    color: "#9AA0A6",
+    marginBottom: hp("1%"),
   },
 
   listItemReduced: {
@@ -619,20 +615,20 @@ const styles = StyleSheet.create({
   },
 
   listTitle: {
-    fontSize: wp('4.3%'),
-    fontWeight: '500',
-    color: '#222',
+    fontSize: wp("4.3%"), 
+    fontWeight: "500",
+    color: "#222",
   },
 
   listSubtitle: {
-    fontSize: wp('3.5%'),
-    color: '#777',
-    marginTop: hp('0.3%'),
+    fontSize: wp("3.5%"), 
+    color: "#777",
+    marginTop: hp("0.3%"),
   },
 
   arrow: {
-    fontSize: wp('5.4%'),
-    color: '#9AA0A6',
+    fontSize: wp("5.4%"), 
+    color: "#9AA0A6",
   },
 
   logoutButton: {
@@ -652,9 +648,9 @@ const styles = StyleSheet.create({
   },
 
   logoutText: {
-    color: '#FFFFFF',
-    fontSize: wp('4.3%'),
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontSize: wp("4.3%"), 
+    fontWeight: "600",
   },
 
   logoutIcon: {
