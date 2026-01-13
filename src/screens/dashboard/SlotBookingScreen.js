@@ -4,6 +4,7 @@ import { useSlots } from '../../hooks/useSlots';
 import { useSlotSelection } from '../../hooks/useSlotSelection';
 import { TABS, FILTERS } from '../../utils/constants/slotConstants';
 import { extractSlotIds } from '../../utils/slotHelpers';
+import { getWeekNumber } from '../../services/slots/slots.service';
 
 // Components
 import SlotBookingHeader from '../../components/dashboard/slots/SlotBookingHeader';
@@ -24,6 +25,7 @@ export default function SlotBookingScreen() {
     weeks,
     slots,
     slotsLoading,
+    weeksLoading,
     loadWeeks,
     loadSlots,
     bookSlot,
@@ -55,21 +57,38 @@ export default function SlotBookingScreen() {
 
   // Effect: Auto-select first week
   useEffect(() => {
-    if (weeks?.length > 0 && !selectedWeek) {
+    // Only select if weeks loaded and we aren't currently loading new ones
+    if (weeks?.length > 0 && !selectedWeek && !weeksLoading) {
+      console.log("tab change..... selecting first week");
       setSelectedWeek(weeks[0].date);
     }
-  }, [weeks, selectedWeek]);
+  }, [weeks, selectedWeek, activeTab, weeksLoading]);
 
   // Effect: Load slots when week or filter changes
   useEffect(() => {
     if (selectedWeek) {
       loadSlots({ date: selectedWeek, filter });
     }
-  }, [selectedWeek, filter]);
+  }, [selectedWeek, filter,]);
 
   // Handlers
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+
+    // Clear selection when changing tabs
+    setSelectedWeek(null);
+    clearSelection();
+
+    if (tab === TABS.CURRENT) {
+      // Load current week
+      loadWeeks({ weekNumber: undefined });
+    } else if (tab === TABS.NEXT) {
+      // Load next week (current + 1)
+      const currentWeekNum = getWeekNumber();
+      const nextWeekNum = currentWeekNum + 1;
+      loadWeeks({ weekNumber: nextWeekNum });
+    }
+    // For UPCOMING, we don't need to load slots as it shows LockedWeekView
   };
 
   const handleWeekSelect = (date) => {
@@ -131,7 +150,9 @@ export default function SlotBookingScreen() {
       <SlotBookingHeader activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Main Content */}
-      {activeTab === TABS.CURRENT ? (
+      {activeTab === TABS.UPCOMING ? (
+        <LockedWeekView />
+      ) : (
         <SlotsList
           weeks={weeks}
           slots={slots}
@@ -145,17 +166,15 @@ export default function SlotBookingScreen() {
           loading={slotsLoading}
           onRefresh={handleRefresh}
         />
-      ) : (
-        <LockedWeekView />
       )}
 
       {/* Floating Footer */}
       <SlotBookingFooter
         selectedCount={selectedCount}
         onBook={handleBookingOpen}
-        visible={activeTab === TABS.CURRENT}
+        visible={activeTab !== TABS.UPCOMING}
       />
-    
+
       {/* Modals */}
       <BookSlotModal
         visible={bookModalVisible}
@@ -168,6 +187,7 @@ export default function SlotBookingScreen() {
       <CancelSlotModal
         visible={cancelModalVisible}
         slot={activeSlot}
+        date={selectedWeek}
         onClose={() => setCancelModalVisible(false)}
         onConfirm={handleCancelConfirm}
       />
@@ -176,7 +196,7 @@ export default function SlotBookingScreen() {
         visible={successVisible}
         onClose={() => setSuccessVisible(false)}
       />
-      
+
     </View>
   );
 }

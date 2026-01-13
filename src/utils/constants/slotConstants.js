@@ -3,6 +3,7 @@
 export const TABS = {
     CURRENT: 'current',
     NEXT: 'next',
+    UPCOMING: 'upcoming',
 };
 
 export const FILTERS = {
