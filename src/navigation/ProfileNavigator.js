@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ProfileScreen from '../screens/dashboard/ProfileScreen';
+import ProfileScreen from '../screens/profile/ProfileScreen';
 import PersonalDetails from '../screens/profile/PersonalDetails';
 import RiderAssets from '../screens/profile/RiderAssets';
 import Documents from '../screens/profile/Documents';
