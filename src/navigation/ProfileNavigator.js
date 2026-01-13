@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ProfileScreen from '../screens/dashboard/ProfileScreen';
+import ProfileScreen from '../screens/profile/ProfileScreen';
 import PersonalDetails from '../screens/profile/PersonalDetails';
 import RiderAssets from '../screens/profile/RiderAssets';
 import Documents from '../screens/profile/Documents';
@@ -8,7 +8,11 @@ import Insurance from '../screens/profile/Insurance';
 import Wallet from '../screens/profile/Wallet';
 import CashBalance from '../screens/profile/CashBalance';
 import CameraScreen from '../screens/profile/CameraScreen';
-import OrderHistory from '../screens/profile/OrderHistory';
+import BankAC from '../screens/profile/BankAC'
+import SlotHistory from '../screens/profile/SlotHistory'
+import RewardsScreen from '../screens/profile/Rewards'
+
+
 const Stack = createNativeStackNavigator();
 
 export default function ProfileNavigator() {
@@ -21,8 +25,9 @@ export default function ProfileNavigator() {
       <Stack.Screen name="Insurance" component={Insurance} />
       <Stack.Screen name="Wallet" component={Wallet} />
       <Stack.Screen name="CashBalance" component={CashBalance} />
-      <Stack.Screen name="OrderHistory" component={OrderHistory} />
       <Stack.Screen name="CameraScreen" component={CameraScreen} />
+      <Stack.Screen name="BankAC" component={BankAC} />
+      <Stack.Screen name="SlotHistory" component={SlotHistory} />
     </Stack.Navigator>
   );
 }

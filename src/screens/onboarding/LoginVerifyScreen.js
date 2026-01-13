@@ -54,7 +54,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     clearOtp,
     setOtpFromAutoFill,
   } = useOtp(6);
-
+ 
   const [timer, setTimer] = useState(50);
   const [isResendEnabled, setIsResendEnabled] = useState(false);
   const [error, setError] = useState('');
@@ -70,7 +70,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     const interval = setInterval(() => setTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
   }, [timer]);
-
+ 
   useFocusEffect(
     React.useCallback(() => {
       clearOtp();
@@ -81,7 +81,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   /* ================= VERIFY OTP ================= */
   const handleVerify = async () => {
     if (isVerifying) return;
-
+ 
     const fullOtp = otp.join('');
     if (fullOtp.length < 6) {
       setError('Please enter a valid 6-digit OTP.');
@@ -120,7 +120,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   /* ================= RESEND OTP ================= */
   const handleResendOtp = async () => {
     if (!isResendEnabled) return;
-
+ 
     if (resendCount >= 3) {
       setError('You have reached the resend limit. Try again later.');
       return;
@@ -153,7 +153,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
       <Text style={styles.label}>Enter OTP</Text>
 
-      <OtpInput
+       <OtpInput
         otp={otp}
         inputRefs={inputRefs}
         handleChange={handleChange}
@@ -247,5 +247,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
 });
-
+ 
 export default LoginVerifyScreen;
+ 
+ 
