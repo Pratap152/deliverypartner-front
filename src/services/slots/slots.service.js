@@ -8,6 +8,24 @@ import WEBSITE_URL from "../../utils/host";
 // 🔹 Common API configuration (previously apiClient)
 // replace with real URL
 const TIMEOUT = 15000;
+export function getWeekNumber() {
+
+  const currentDate = new Date();
+  console.log("current date.... ", currentDate);
+
+  // Convert Sunday (0) to 7
+  const day = currentDate.getDay() || 7;
+
+  // Move date to Thursday of the current week
+  currentDate.setDate(currentDate.getDate() + 4 - day);
+
+  const yearStart = new Date(currentDate.getFullYear(), 0, 4);
+
+  const diffInMs = currentDate - yearStart;
+  const diffInDays = Math.floor(diffInMs / (24 * 60 * 60 * 1000));
+
+  return Math.floor(diffInDays / 7) + 2;
+}
 
 export const getAuthHeaders = async () => {
   const token = await tokenService.get();
@@ -19,13 +37,19 @@ export const getAuthHeaders = async () => {
   };
 };
 export const loadWeeksApi = async (payload = {}) => {
-  console.log("loadsweekapi......", payload);
+  /* 
+   * Priority: 
+   * 1. payload.weekNumber (if provided)
+   * 2. getWeekNumber() (calculated current week)
+   */
+  const weekNumber = payload.weekNumber || getWeekNumber();
 
-  const { city = "Hyderabad", zone = "Gachibowli", weekNumber = "49", year = "2025" } = payload;
+
+  const { city = "Hyderabad", zone = "Gachibowli", year = "2026" } = payload;
   console.log("city zone weekNumber year.....", city, zone, weekNumber, year);
 
   const headers = await getAuthHeaders();
-  console.log("entered into loadweeks api...");
+  console.log("entered into loadweeks api...", weekNumber);
   return axios.get(`${WEBSITE_URL}/api/slots/week?city=${city}&zone=${zone}&weekNumber=${weekNumber}&year=${year}`, {
     timeout: TIMEOUT,
     headers,

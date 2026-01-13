@@ -2,6 +2,7 @@ import { View, Text, StatusBar } from 'react-native';
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator';
+
 import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
@@ -23,6 +24,9 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
+
+import ProfileNavigator from './ProfileNavigator';
+
 import AddBankDetailsScreen from '../screens/wallets/BankDetailsScreen';
 import KitPickupSelection from "../screens/kitSelection/KitPickupSelection";
 import KitSelectionScreen from "../screens/kitSelection/KitSelectionScreen";

@@ -1,4 +1,5 @@
-import { Text, View, TouchableOpacity, Image } from 'react-native';
+import React from 'react';
+import { Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {
