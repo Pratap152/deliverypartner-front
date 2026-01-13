@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,7 @@ import {
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import WEBSITE_URL from '../../utils/host';
-import { tokenService } from '../../services/TokenService';
+import apiClient from '../../services/ApiClient';
 
 const PAGE_SIZE = 10;
 
@@ -37,62 +36,56 @@ const SlotHistory = ({ navigation }) => {
 
   useEffect(() => {
     fetchSlotHistory('all', 1, true);
-  }, []);
+  }, [fetchSlotHistory]);
 
   /* ---------------- FETCH API ---------------- */
 
-  const fetchSlotHistory = async (
-    filterType,
-    pageNo = 1,
-    firstLoad = false,
-  ) => {
-    if (listLoading) return;
+  const fetchSlotHistory = useCallback(
+    async (filterType, pageNo = 1, firstLoad = false) => {
+      if (listLoading) return;
 
-    try {
-      const token = await tokenService.getAccessToken();
-      if (!token) {
-        Alert.alert('Session expired', 'Please login again');
-        return;
-      }
+      try {
+        if (!apiClient) {
+          Alert.alert('Session expired', 'Please login again');
+          return;
+        }
 
-      if (firstLoad) {
-        setInitialLoading(true);
-      } else {
-        setListLoading(true);
-      }
+        if (firstLoad) {
+          setInitialLoading(true);
+        } else {
+          setListLoading(true);
+        }
 
-      const res = await axios.get(`${WEBSITE_URL}/api/profile/slots/history`, {
-        params: {
-          filter: filterType === 'all' ? undefined : filterType,
-          page: pageNo,
-          limit: PAGE_SIZE,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.data?.success) {
-        const newData = res.data.data || [];
-
-        // ⚡ Optimistic UI + Pagination merge
-        setSlots(prev => (pageNo === 1 ? newData : [...prev, ...newData]));
-
-        setSummary({
-          totalSlots: Number(res.data.totalSlots ?? 0),
-          totalEarnings: Number(res.data.totalEarnings ?? 0),
+        const res = await apiClient.get(`/api/profile/slots/history`, {
+          params: {
+            filter: filterType === 'all' ? undefined : filterType,
+            page: pageNo,
+            limit: PAGE_SIZE,
+          },
         });
 
-        setHasMore(newData.length === PAGE_SIZE);
-        setPage(pageNo);
+        if (res.data?.success) {
+          const newData = res.data.data || [];
+
+          setSlots(prev => (pageNo === 1 ? newData : [...prev, ...newData]));
+
+          setSummary({
+            totalSlots: Number(res.data.totalSlots ?? 0),
+            totalEarnings: Number(res.data.totalEarnings ?? 0),
+          });
+
+          setHasMore(newData.length === PAGE_SIZE);
+          setPage(pageNo);
+        }
+      } catch (e) {
+        Alert.alert('Error', 'Failed to fetch slot history');
+      } finally {
+        setInitialLoading(false);
+        setListLoading(false);
       }
-    } catch (e) {
-      Alert.alert('Error', 'Failed to fetch slot history');
-    } finally {
-      setInitialLoading(false);
-      setListLoading(false);
-    }
-  };
+    },
+    [listLoading],
+  );
 
   /* ---------------- GROUP DATA ---------------- */
 

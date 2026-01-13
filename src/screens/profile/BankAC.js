@@ -18,8 +18,7 @@ import {
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
-import WEBSITE_URL from '../../utils/host';
-import { tokenService } from '../../services/TokenService';
+import apiClient from '../../services/ApiClient';
 
 const BankAC = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -43,13 +42,7 @@ const BankAC = ({ navigation }) => {
   /* ================= FETCH BANK DETAILS ================= */
   const fetchBankDetails = async () => {
     try {
-      const token = await tokenService.getAccessToken();
-
-      const res = await axios.get(`${WEBSITE_URL}/api/profile/bank-details`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await apiClient.get(`/api/profile/bank-details`);
 
       if (res?.data?.success) {
         const data = res.data.data;
@@ -80,8 +73,6 @@ const BankAC = ({ navigation }) => {
   /* ================= UPDATE BANK DETAILS ================= */
   const updateBankDetails = async () => {
     try {
-      const token = await tokenService.getAccessToken();
-
       const payload = {
         bankDetails: {
           bankName: bankDetails.bankName,
@@ -93,16 +84,7 @@ const BankAC = ({ navigation }) => {
         },
       };
 
-      const res = await axios.put(
-        `${WEBSITE_URL}/api/profile/bank-details`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      const res = await apiClient.put(`/api/profile/bank-details`, payload);
 
       if (res?.data?.success) {
         // Alert.alert('Success', 'Bank details updated successfully');
