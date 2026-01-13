@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { TABS } from '../../../utils/constants/slotConstants';
 
@@ -23,23 +23,38 @@ export default function SlotBookingHeader({ activeTab, onTabChange }) {
 
             {/* Tab Container */}
             <View style={styles.tabContainer}>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === TABS.CURRENT && styles.activeTab]}
-                    onPress={() => onTabChange(TABS.CURRENT)}
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollContent}
                 >
-                    <Text style={[styles.tabText, activeTab === TABS.CURRENT && styles.activeTabText]}>
-                        Current Week
-                    </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === TABS.CURRENT && styles.activeTab]}
+                        onPress={() => onTabChange(TABS.CURRENT)}
+                    >
+                        <Text style={[styles.tabText, activeTab === TABS.CURRENT && styles.activeTabText]}>
+                            Current Week
+                        </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === TABS.NEXT && styles.activeTab]}
-                    onPress={() => onTabChange(TABS.NEXT)}
-                >
-                    <Text style={[styles.tabText, activeTab === TABS.NEXT && styles.activeTabText]}>
-                        Next Week
-                    </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === TABS.NEXT && styles.activeTab]}
+                        onPress={() => onTabChange(TABS.NEXT)}
+                    >
+                        <Text style={[styles.tabText, activeTab === TABS.NEXT && styles.activeTabText]}>
+                            Next Week
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === TABS.UPCOMING && styles.activeTab]}
+                        onPress={() => onTabChange(TABS.UPCOMING)}
+                    >
+                        <Text style={[styles.tabText, activeTab === TABS.UPCOMING && styles.activeTabText]}>
+                            Upcoming Week
+                        </Text>
+                    </TouchableOpacity>
+                </ScrollView>
             </View>
         </View>
     );
@@ -69,13 +84,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 12,
+        borderRadius: 12,
         padding: 4,
     },
     tab: {
-        flex: 1,
         paddingVertical: 10,
+        paddingHorizontal: 16,
         alignItems: 'center',
         borderRadius: 10,
+        marginRight: 8,
     },
     activeTab: {
         backgroundColor: '#FFF',

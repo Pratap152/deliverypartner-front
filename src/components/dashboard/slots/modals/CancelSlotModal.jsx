@@ -13,7 +13,7 @@ import SlotDetailsCard from '../SlotDetailsCard';
  * @param {function} onClose - Handler for closing modal
  * @param {function} onConfirm - Handler for confirming cancellation
  */
-export default function CancelSlotModal({ visible, slot, onClose, onConfirm }) {
+export default function CancelSlotModal({ visible, slot, date, onClose, onConfirm }) {
   if (!slot) return null;
 
   return (
@@ -29,7 +29,7 @@ export default function CancelSlotModal({ visible, slot, onClose, onConfirm }) {
       onSecondaryPress={onClose}
     >
       {/* --- SLOT INFO --- */}
-      <SlotDetailsCard slot={slot} />
+      <SlotDetailsCard slot={slot} selectedDate={date} />
 
       {/* --- CANCELLATION CHARGES BOX --- */}
       <View style={styles.chargesBox}>
