@@ -213,6 +213,7 @@ const DocumentsScreen = ({ navigation }) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        
         {/* SUMMARY */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Document Status</Text>
