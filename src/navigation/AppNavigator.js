@@ -40,6 +40,10 @@ import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
 import LiveTracking from '../../src/screens/Home/LiveTracking'; 
 import MapScreen from '../screens/Home/MapScreen';
+import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
+import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
+//import ProfileScreen from '../screens/dashboard/ProfileScreen';
+import ProfileNavigator from './ProfileNavigator';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -95,8 +99,8 @@ const AppNavigator = () => {
       <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
       <Stack.Screen
-        name="AddBankDetailsScreen"
-        component={AddBankDetailsScreen}
+        name="AddBankDetails"
+        component={AddBankDetails}
       />
       
       <Stack.Screen
@@ -107,8 +111,6 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
-    
-      <Stack.Screen name="AddBankDetails" component={AddBankDetails} />
       <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
       <Stack.Screen name='ReferEarn' component={ReferEarn} />
       <Stack.Screen name='ReferFrd' component={ReferFrd} />
@@ -117,12 +119,14 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="Timer" component={Timer}/> */}
       {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
-      <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       {/* <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} /> */}
       <Stack.Screen name='OrderPopupScreen' component={OrderPopupScreen} />
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="LiveTracking" component={LiveTracking} />
+      <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
+        {/* <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> */}
+        <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
     </Stack.Navigator>
   );
 };

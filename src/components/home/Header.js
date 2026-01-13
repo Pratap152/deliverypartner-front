@@ -4,16 +4,21 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ProfileScreen from '../../screens/profile/ProfileScreen';
+import { useNavigation } from '@react-navigation/native';
+import ProfileNavigator from '../../navigation/ProfileNavigator';
 
 const Header = () => {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       {/* Left Section */}
       <View style={styles.left}>
         <View style={styles.profileIcon}>
-          <Ionicons name="person-outline" size={18} color="#1F2937" />
+          <TouchableOpacity onPress={()=>navigation.navigate(ProfileNavigator)}>
+          <Ionicons name="person-outline" size={18} color="#1F2937"  />
+          </TouchableOpacity>
         </View>
-
         <Text style={styles.name}>Rajesh</Text>
       </View>
 
