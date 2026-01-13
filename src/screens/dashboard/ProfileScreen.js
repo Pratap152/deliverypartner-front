@@ -252,6 +252,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
+              onPress={() => navigation.navigate('BankAC')}
             >
               <View style={styles.listLeft}>
                 <Image
@@ -333,6 +334,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
+              onPress={() => navigation.navigate('SlotHistory')}
             >
               <View style={styles.listLeft}>
                 <Image
@@ -542,7 +544,6 @@ const styles = StyleSheet.create({
     paddingVertical: hp('0.4%'),
     borderRadius: wp('3%'),
   },
-
   activeText: {
     fontSize: wp("3.3%"), 
     color: "#2E7D32",

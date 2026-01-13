@@ -11,12 +11,9 @@ import {
   TextInput,
   Modal,
 } from "react-native";
-import axios from "axios";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import { launchImageLibrary } from "react-native-image-picker";
-import WEBSITE_URL from "../../utils/host";
-import { tokenService } from "../../services/TokenService";
 import apiClient from "../../services/ApiClient";
 
 import {
@@ -86,7 +83,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     try {
-      const token = await tokenService.getAccessToken();
 
       const payload = {
         phone: {
@@ -108,9 +104,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
         selfie: form.selfie,
       };
 
-      await axios.put(`${WEBSITE_URL}/api/profile/update`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await apiClient.put(`/api/profile/update`, payload);
 
       Alert.alert("Success", "Profile updated successfully");
       setIsEditing(false);
