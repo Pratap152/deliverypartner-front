@@ -24,8 +24,9 @@ export default function SlotHistoryScreen({navigation}){
     // FETCHING API DATA
     const fetchSlotHistory = async (weekNumber, isRefresh = false) =>{
         // FETCHING TOKEN
-        //const access = await tokenService.getAccessToken();
-        const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzM1MTMzNn0.-oxahATt8sxeT6BLjWB0z6u5_bTfcx6jIfWowMkqtqc";
+        const { accessToken } = await tokenService.get();
+        console.log('Using Access Token:', accessToken);
+        //const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzM1MTMzNn0.-oxahATt8sxeT6BLjWB0z6u5_bTfcx6jIfWowMkqtqc";
         try{
             if (!isRefresh){
                 setLoading(true);
@@ -39,7 +40,7 @@ export default function SlotHistoryScreen({navigation}){
                         weekNumber:weekNumber,
                     },
                     headers:{
-                        Authorization:`Bearer ${access}`,
+                        Authorization:`Bearer ${accessToken}`,
                     },
                 }
             );
