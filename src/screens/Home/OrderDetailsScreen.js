@@ -17,6 +17,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [status, setStatus] = React.useState(
     route?.params?.status ?? ORDER_STATUS.PICKUP_ASSIGNED
   );
+  
 
   const ui = orderUIConfig[status];
 

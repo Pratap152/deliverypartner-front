@@ -1,37 +1,4 @@
-// import React from 'react';
-// import { View, Text, StyleSheet } from 'react-native';
-// import {
-//   widthPercentageToDP as wp,
-//   heightPercentageToDP as hp,
-// } from 'react-native-responsive-screen';
 
-
-// const StatsCard = ({ value, label }) => (
-//   <View style={styles.card}>
-//     <Text style={styles.value}>{value}</Text>
-//     <Text style={styles.label}>{label}</Text>
-//   </View>
-// );
-
-// const styles = StyleSheet.create({
-//   card: {
-//     width: wp('28%'),
-//     backgroundColor: '#fff',
-//     borderRadius: wp('4%'),
-//     padding: wp('4%'),
-//     alignItems: 'center',
-//   },
-//   value: {
-//     fontSize: wp('4.5%'),
-//     fontWeight: '700',
-//   },
-//   label: {
-//     fontSize: wp('3.2%'),
-//     marginTop: wp('1%'),
-//   },
-// });
-
-// export default React.memo(StatsCard);
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import {
