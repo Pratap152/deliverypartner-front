@@ -41,7 +41,7 @@ import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
 import LiveTracking from '../../src/screens/Home/LiveTracking'; 
 import MapScreen from '../screens/Home/MapScreen';
 import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
-
+import EarningsHistoryScreen from '../screens/earnings/EarningsHistoryScreen';
 
 import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
 //import ProfileScreen from '../screens/dashboard/ProfileScreen';
@@ -109,7 +109,10 @@ const AppNavigator = () => {
         name="SlotHistoryScreen"
         component={SlotHistoryScreen}
       />
-      
+      <Stack.Screen
+        name="EarningsHistoryScreen"
+        component={EarningsHistoryScreen}
+      />
        {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
