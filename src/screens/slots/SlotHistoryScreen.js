@@ -5,78 +5,33 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import React, {useState, useEffect} from 'react';
-import axios from 'axios';
-import { tokenService } from '../../services/TokenService';
+import React, {useState} from 'react';
+
+import {useSlotHistory} from '../../hooks/useSlotHistory';
+
 
 
 export default function SlotHistoryScreen({navigation}){
     const [selectedWeek, setSelectedWeek] = useState(6);
-    const [summary, setSummary]  =useState(null);
-    const [days, setDays] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [expandedDates, setExpandedDates] = useState([]);
+    const [expandedDates, setExpandedDates] = useState([]);// allows multiple open days
     const [isWeekSheetOpen, setIsWeekSheetOpen] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
+   
+    // Slot history data & loading state handled via custom hook
+    const {
+        summary,
+        days,
+        loading,
+        refreshing,
+        onRefresh,
+        } = useSlotHistory(selectedWeek);
 
-
-
-    // FETCHING API DATA
-    const fetchSlotHistory = async (weekNumber, isRefresh = false) =>{
-        // FETCHING TOKEN
-        // const access = await tokenService.getAccessToken();
-        const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NzM1MTMzNn0.-oxahATt8sxeT6BLjWB0z6u5_bTfcx6jIfWowMkqtqc";
-        try{
-            if (!isRefresh){
-                setLoading(true);
-            }
-            
-            // API CALL 
-            const response = await axios.get(
-                'https://delivarypartner.onrender.com/api/slots/history',
-                {
-                    params:{
-                        weekNumber:weekNumber,
-                    },
-                    headers:{
-                        Authorization:`Bearer ${access}`,
-                    },
-                }
-            );
-            const data = response.data;
-
-            setSummary(data.summary);
-            setDays(data.days);
-        }
-        catch (error){
-            if (error.response){
-                console.log('API Error:',error.response.data.message);
-                console.log('data', error.response.data);
-            }
-            else{
-                console.log('Network Error:',error.message)
-            }
-        }
-        finally{
-            if (!isRefresh) {
-                setLoading(false);
-            }
-        }
-    };
-
-    useEffect(()=>{
-        fetchSlotHistory(selectedWeek);
-    },[selectedWeek]);
-
-    // PREVIOUS WEEKS
+    // PREVIOUS WEEKS RANGE
     const totalWeeks = 6;
     const weeks = Array.from({ length: totalWeeks }, (_, i) => totalWeeks - i);
 
-
-    // WEEK RANGE
+    //  Week helpers (date range & formatting)
     const getWeekRange = (days) => {
         if (!days || days.length === 0) return '';
-
         const format = (dateString) => {
             const date = new Date(dateString);
             return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
@@ -84,12 +39,9 @@ export default function SlotHistoryScreen({navigation}){
 
         const start = days[0].date;
         const end = days[days.length - 1].date;
-
         return `${format(start)} - ${format(end)}`;
         };
         
-
-    // FORMATTING DATE
     const formatDate = (dateString) => {
         const date = new Date(dateString);
 
@@ -100,9 +52,25 @@ export default function SlotHistoryScreen({navigation}){
         return `${day} ${month} - ${weekday}`;
         };
 
+    const getWeekRangeByWeekNumber = (weekNumber) => {
+        const year = new Date().getFullYear();
+        // ISO week calculation (Monday start)
+        const firstThursday = new Date(year, 0, 4);
+        const weekStart = new Date(firstThursday);
+        weekStart.setDate(firstThursday.getDate() + (weekNumber - 1) * 7);
+        weekStart.setDate(weekStart.getDate() - (weekStart.getDay() || 7) + 1);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const format = (date) =>
+            `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
+
+        return `${format(weekStart)} - ${format(weekEnd)}`;
+        };
 
 
-    // LIST HEADER
+    // Header shown above the slot list (week selector + summary)
     const ListHeader = () =>{
        return(
         <View>
@@ -120,8 +88,7 @@ export default function SlotHistoryScreen({navigation}){
                                     style={{paddingTop:hp(0.5)}}
                                     />
                         </TouchableOpacity>  
-                    </View>
-                    
+                    </View>   
                 </View>
 
                 {/* SUMMARY */}
@@ -149,9 +116,7 @@ export default function SlotHistoryScreen({navigation}){
         );
     };
     
-    
-
-    // DAY ROWS
+    // Renders a single day row with expandable slot details
     const renderDay = ({ item: day }) => {
         return (
             <View>
@@ -206,48 +171,15 @@ export default function SlotHistoryScreen({navigation}){
                     ))}
                 </View>
             )}
-
-            </View>
+         </View>
         );
         };
-
-    const getWeekRangeByWeekNumber = (weekNumber) => {
-        const year = new Date().getFullYear();
-
-        // ISO week calculation (Monday start)
-        const firstThursday = new Date(year, 0, 4);
-        const weekStart = new Date(firstThursday);
-        weekStart.setDate(firstThursday.getDate() + (weekNumber - 1) * 7);
-        weekStart.setDate(weekStart.getDate() - (weekStart.getDay() || 7) + 1);
-
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-
-        const format = (date) =>
-            `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
-
-        return `${format(weekStart)} - ${format(weekEnd)}`;
-        };
-
-    
-    const onRefresh = async () =>{
-        console.log('PULL TO REFRESH TRIGGERED');
-        try{
-            setRefreshing(true);
-            await fetchSlotHistory(selectedWeek, true);
-        }
-        finally{
-            setRefreshing(false);
-        }
-    };
 
     
 
     // STYLING
     return(
-
         <SafeAreaView style={{flex:1}}>
-
             <View style={styles.header}>
                 <TouchableOpacity 
                                 onPress={()=>navigation.goBack()}>
@@ -258,7 +190,6 @@ export default function SlotHistoryScreen({navigation}){
                 <Text style={{fontSize:wp(6),fontWeight:'500'}}>Slots History</Text>
             </View>
                 
-
                 {/* DAYS LIST */}
                 <FlatList
                     data={days}
@@ -308,9 +239,7 @@ export default function SlotHistoryScreen({navigation}){
                                                 <Text style={styles.this_week}>
                                                     This Week
                                                 </Text>
-                                                }
-                                                    
-                                       
+                                                }     
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -322,9 +251,7 @@ export default function SlotHistoryScreen({navigation}){
                             </TouchableOpacity>
                         </View>
                     </View>
-                    )}
-
-    
+                    )}  
         </SafeAreaView>
     );
 }

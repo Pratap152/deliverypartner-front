@@ -3,286 +3,262 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Image,
   FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { BarChart } from 'react-native-gifted-charts';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-import {
-  WeeklyEarningsBarChart,
-  weeklyData,
-} from '../../components/dashboard/earnings/Charts';
+import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
+import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 
 export default function EarningsScreen() {
+  const { data, loading, refreshing, onRefresh } =
+    useEarningsDashboard();
+  
 
-  // Card & chart sizing 
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#00A63E" />
+      </View>
+    );
+  }
+
+  const {
+    earningsSummary = {},
+    wallet = {},
+    incentives = [],
+  } = data;
+
+
+  const today = earningsSummary.today || {};
+  const week = earningsSummary.week || {};
+  const month = earningsSummary.month || {};
+
   const cardWidth = wp(90);
   const cardPadding = wp(4);
-  const chartHeight = Math.min(
-                          hp(28),
-                          Math.max(hp(16), cardWidth * 0.45)
-                        );
+  const chartHeight = hp(22);
   const yAxisWidth = wp(15);
 
 
-  const incentiveData = [
-  {
-    id: '1',
-    title: 'Peak Hour Bonus',
-    value: '₹50 extra / order',
-    subtitle: '7:00 PM – 10:00 PM',
-    accentColor: '#FFF7ED',
-    badgeText: 'Active',
-  },
-  {
-    id: '2',
-    title: 'Daily Guarantee',
-    value: 'Earn at least ₹900',
-    subtitle: 'Complete 10 orders',
-    accentColor: '#EFF6FF',
-  },
-  {
-    id: '3',
-    title: 'Weekend Special',
-    value: '₹200 bonus',
-    subtitle: 'Saturday & Sunday',
-    accentColor: '#FAF5FF',
-  },
+  const weeklyEarnings = [
+  { label: 'Mon', value: 120 },
+  { label: 'Tue', value: 180 },
+  { label: 'Wed', value: 90 },
+  { label: 'Thu', value: 220 },
+  { label: 'Fri', value: 150 },
+  { label: 'Sat', value: 260 },
+  { label: 'Sun', value: 110 },
 ];
 
-  const renderHeader = () => (
-      <View style={styles.container}>
 
-      {/* HEADER */}
+  /* HEADER IS A STABLE ELEMENT — NOT A FUNCTION */
+  const HEADER = (
+    <View style={{ backgroundColor: '#F4F6F8' }}>
+      {/* TOP GRADIENT */}
       <LinearGradient
         colors={['#00A63E', '#009966']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={styles.header}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      > 
-      <View style={styles.heading}>
-        <Text style={styles.title}>Earnings</Text>
-        <TouchableOpacity onPress={()=>console.log('Chat is clicked')}>
-                            <Image 
-                            source={require('../../assets/chat.png')}
-                            style={styles.chat_icon} />
-          </TouchableOpacity> 
-      </View>
-        
+      >
+        <View style={styles.heading}>
+          <Text style={styles.title}>Earnings</Text>
+          <TouchableOpacity>
+            <Image
+              source={require('../../assets/chat.png')}
+              style={styles.chat_icon}
+            />
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity style={styles.daily_summary}>
-            
-            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-around',gap:wp(10)}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
-                <View style={[styles.daily_details_container,{marginTop:wp(2),}]}>
+                <View style={[styles.daily_details_container, { marginTop: wp(2) }]}>
                   <Text style={styles.daily_details}>Orders</Text>
-                  <Text style={styles.daily_details}>Tips </Text>
-                  <Text style={styles.daily_details}>Bonus</Text>
+                  {/* <Text style={styles.daily_details}>Tips </Text> */}
                 </View>
                 <View style={[styles.daily_details_container]}>
-                  <Text style={styles.daily_details}>10</Text>
-                  <Text style={[styles.daily_details,{marginLeft:wp(5)}]}>₹50</Text>
-                  <Text style={[styles.daily_details,{marginRight:wp(2)}]}>₹100</Text>
+                  <Text style={styles.daily_details}>{today.orders}</Text>
+                  {/* <Text style={[styles.daily_details, { marginLeft: wp(5) }]}>₹50</Text> */}
                 </View>
               </View>
               <View>
-                <Text style={{fontSize:wp(6),color:'#FFFFFF',fontWeight:'600'}}> ₹500</Text>
+                <Text style={{ fontSize: wp(6), color: '#FFFFFF', fontWeight: '600' }}> ₹{today.earnings}</Text>
               </View>
             </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
       </LinearGradient>
 
-
-      {/* CHART CARD */}
+      {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding }]}>
-
-        {/* CARD HEADER */}
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>This Week</Text>
-          <Text style={styles.cardValue}>₹8050</Text>
+          <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
 
-        {/* CHART */}
-        <View style={{ height: chartHeight }}>
-          <WeeklyEarningsBarChart
-            width={cardWidth - (cardPadding * 2 )- yAxisWidth}
-            height={chartHeight}
-            data={weeklyData}
-          />
-        </View>
+        <BarChart
+          data={weeklyEarnings}
+          width={cardWidth - cardPadding * 2 - yAxisWidth}
+          height={chartHeight}
+          barWidth={wp(5)}
+          spacing={wp(4)}
+          frontColor="#22C55E"
+          hideRules
+          roundedTop
+          noOfSections={5}
+          initialSpacing={wp(2)}
+        />
       </View>
 
       {/* WALLET */}
-      <TouchableOpacity
-        onPress={()=>console.log('wallet is pressed')}>
-        <LinearGradient
-            colors={['#4F39F6', '#155DFC']}
-            style={styles.wallet}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            >
-            <View style={styles.wallet_heading}>
-              <Ionicons name='wallet-outline' size={20} color='#FFFFFF' />
-              <Text style={{color:'#FFFFFF',fontSize:wp(4)}}>Wallet Balance</Text>
-            </View>
-            <View style={styles.amount_withdraw}>
-              <Text style={{color:'#FFFFFF',fontSize:wp(5),fontWeight:'600'}}>₹2,500</Text>
-              <TouchableOpacity style={styles.withdraw_button}
-                                onPress={()=> console.log('withdraw is pressed')}>
-                <Text style={{color:'#4F39F6',alignSelf:'center',fontSize:wp(4)}}>Withdraw</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={{color:'#FFFFFF',marginLeft:wp(8)}}>Available for withdrawal</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      {/* INCENTIVES */}
-      <View>
-        <Text style={{fontSize:wp(4),fontWeight:'600',marginLeft:wp(5),marginTop:hp(3),paddingBottom:hp(1)}}>
-          Extra Earnings Offers
+      <LinearGradient
+        colors={['#4F39F6', '#155DFC']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={styles.wallet}
+      >
+        <View style={styles.walletRow}>
+          <Ionicons name="wallet-outline" size={20} color="#fff" />
+          <Text style={styles.walletHeading}>Wallet</Text>
+          <TouchableOpacity style={styles.withdraw_button} onPress={() => console.log('withdraw is pressed')}>
+                <Text style={{ color: '#4F39F6', alignSelf: 'center', fontSize: wp(4) }}>Withdraw</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.walletText}>
+            Wallet Balance: ₹{wallet.balance}
+          </Text>
+        <Text style={styles.walletText}>
+            Total Earned : ₹{wallet.totalEarned}
         </Text>
-      </View>
-      
+        <Text style={styles.walletText}>
+            Total Withdrawn : ₹{wallet.totalWithdrawn}
+        </Text>
+      </LinearGradient>
 
-      
+      <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
     </View>
   );
 
-  const renderFooter = () => (
-          <TouchableOpacity
-              onPress={()=> console.log('monthly earnings is pressed')}>
-                <Text>This Month</Text>
-
-      </TouchableOpacity>
+  /*  FOOTER IS ALSO A STABLE ELEMENT */
+  const FOOTER = (
+    <MonthlySummaryCard summary={month} />
   );
 
   return (
-      
-      <FlatList
-          data={incentiveData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <IncentiveCard item={item} />}
-          ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
-          contentContainerStyle={{ paddingBottom: hp(4) }}
-          showsVerticalScrollIndicator={false}
-        />
-
-    
+    <FlatList
+      data={incentives}
+      keyExtractor={(item, index) => `${item.title}-${index}`}
+      renderItem={({ item }) => <IncentiveCard item={item} />}
+      ListHeaderComponent={HEADER}
+      ListFooterComponent={FOOTER}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      showsVerticalScrollIndicator={false}
+      removeClippedSubviews={false}
+    />
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
+  loader: {
     flex: 1,
-    backgroundColor: '#F4F6F8',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
   header: {
-    paddingVertical:hp(4),
-    paddingHorizontal: wp(5),
+    paddingVertical: hp(4), 
+    paddingHorizontal: wp(5) 
   },
-  heading:{
-    flexDirection:'row',
+  heading: {
+    flexDirection: 'row',
     alignItems:'center',
-    justifyContent:'space-between'
+    justifyContent: 'space-between',
   },
   title: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: wp(6),
     fontWeight: '500',
   },
-  chat_icon:{
-            width:wp(6),
-            height:wp(5),
-            
+  chat_icon: {
+    width: wp(6),
+    height: wp(5),
   },
-  daily_summary: {
+    daily_summary: {
     marginTop: hp(2),
     borderWidth: 1,
     borderColor: '#FFFFFF',
     borderRadius: wp(3),
     paddingVertical: hp(1.5),
-    width:wp('90'),
-    alignSelf:'center',
-    
-    
-  },
-  daily_text: {
-    color: '#FFFFFF',
-    fontSize: wp(4),
-    fontWeight:'500'
-  },
-  daily_details_container:{
-      flexDirection:'row',
-      alignItems:'center',
-      justifyContent:'space-between',
-      width:wp(40)
-      
-  },
-  daily_details:{
-    color:'#FFFFFF',
-    
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
+    width: wp('90'),
     alignSelf: 'center',
-    marginTop: hp(2),
+  },
+  daily_text: { color: '#FFFFFF', fontSize: wp(4), fontWeight: '500' },
+  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40) },
+  daily_details: { color: '#FFFFFF' },
+  card: {
+    backgroundColor: '#fff',
+    alignSelf: 'center',
     borderRadius: wp(4),
-    elevation: 4,
-    paddingBottom:hp(5)
+    marginTop: hp(2),
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: hp(1.5),
+    marginBottom: hp(1),
   },
   cardTitle: {
     fontSize: wp(4),
-    color: '#666',
+    fontWeight: '500',
   },
   cardValue: {
     fontSize: wp(4),
     fontWeight: '600',
-    color: '#000',
   },
-  wallet:{
-    paddingVertical:hp(2),
-    width:wp(90),
-    alignSelf:'center',
-    marginTop:hp(2),
-    borderRadius:wp(5)
+  wallet: {
+    width: wp(90),
+    alignSelf: 'center',
+    marginTop: hp(4),
+    borderRadius: wp(4),
+    padding: hp(2),
   },
-  wallet_heading:{
-    flexDirection:'row',
-    alignItems:'center',
-    marginLeft:wp(5),
-    gap:wp(2),
+  walletRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    marginBottom:hp(1),
+    marginLeft:wp(1),
+  },
+  walletHeading: {
+    color: '#fff',
+    fontSize: wp(5),
+    fontWeight: '600',
     
-
   },
-
-  amount_withdraw:{
-    flexDirection:'row',
-    alignItems:'center',
-    justifyContent:'space-around',
-    gap:wp(15),
-    marginTop:hp(1)
+  walletText: {
+    marginLeft:wp(1),
+    color: '#fff',
+    fontSize: wp(4),
+    
   },
-  withdraw_button:{
-      backgroundColor:'#FFFFFF',
-      borderRadius:wp(2),
-      width:wp(25),
-      paddingVertical:hp(1)
-  }
+  withdraw_button: { backgroundColor: '#FFFFFF', borderRadius: wp(2), width: wp(25), paddingVertical: hp(1),marginLeft:wp(25), },
   
 
+  incentiveTitle: {
+    fontSize: wp(4),
+    fontWeight: '600',
+    marginLeft: wp(5),
+    marginTop: hp(4),
+    marginBottom: hp(1)
+  },
 });
+
+
