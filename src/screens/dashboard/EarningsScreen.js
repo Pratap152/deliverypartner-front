@@ -19,11 +19,14 @@ import {
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
+import { useNavigation } from '@react-navigation/native';
+import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
 
 export default function EarningsScreen() {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
   
+  const navigation = useNavigation();
 
   if (loading) {
     return (
@@ -79,7 +82,7 @@ export default function EarningsScreen() {
             />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.daily_summary}>
+        <TouchableOpacity style={styles.daily_summary} onPress={()=>navigation.navigate(EarningsHistoryScreen)}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
@@ -101,7 +104,9 @@ export default function EarningsScreen() {
 
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding }]}>
+        <TouchableOpacity onPress={()=>navigation.navigate(EarningsHistoryScreen)}>
         <View style={styles.cardHeader}>
+          
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
@@ -118,6 +123,7 @@ export default function EarningsScreen() {
           noOfSections={5}
           initialSpacing={wp(2)}
         />
+        </TouchableOpacity>
       </View>
 
       {/* WALLET */}
@@ -150,7 +156,9 @@ export default function EarningsScreen() {
 
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
-    <MonthlySummaryCard summary={month} />
+    <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={()=>navigation.navigate(EarningsHistoryScreen)}>
+    <MonthlySummaryCard summary={month}  />
+    </TouchableOpacity>
   );
 
   return (
@@ -164,6 +172,7 @@ export default function EarningsScreen() {
       onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews={false}
+      
     />
   );
 }

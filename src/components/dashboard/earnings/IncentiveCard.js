@@ -1,16 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useNavigation } from '@react-navigation/native';
 
 export default function IncentiveCard({ item }) {
+  const navigation = useNavigation();
   return (
+
         <View style={[styles.card,{backgroundColor:item.accentColor}]}>
+          <TouchableOpacity onPress={()=>navigation.navigate('IncentiveDetails', { incentiveId: item.onPress })} >
             <View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
 
             <Text style={styles.value}>{item.value}</Text>
+          </TouchableOpacity>
         </View>
     
   );

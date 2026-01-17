@@ -1,4 +1,4 @@
-import apiClient from '../../api/ApiClient';
+import apiClient from '../../services/ApiClient';
 
 /**
  * Get rider wallet details

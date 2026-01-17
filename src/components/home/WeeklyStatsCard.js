@@ -24,7 +24,7 @@ const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>This Week</Text>
-        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen')}>
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsScreen')}>
           <Text style={styles.link}>View Details</Text>
         </TouchableOpacity>
       </View>
