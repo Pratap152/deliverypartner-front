@@ -15,7 +15,7 @@ import OrdersPopupScreen from '../Home/OrdersPopupScreen';
 import SwipeOnlineToggle from '../../components/home/SwipeOnlineToggle';
 import ShiftStartedBanner from '../../components/home/ShiftStartedBanner';
 import { useGPS } from '../../context/GPSContext';
-import BannerCarousel  from '../../components/home/BannerCarousel';
+import BannerCarousel from '../../components/home/BannerCarousel';
 
 const HomeDashboard = ({ navigation }) => {
   const { gpsEnabled, showPopup } = useGPS();
@@ -23,31 +23,31 @@ const HomeDashboard = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+   <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Header />
         <View>
-  <SwipeOnlineToggle
-    gpsEnabled={gpsEnabled}
-    isOnline={isOnline}
-    onSwipeOnline={() => {
-      if (!gpsEnabled) return;
-      setIsOnline(true);
-    }}
-    onSwipeOffline={() => {
-      setIsOnline(false);
-    }}
-  />
+          <SwipeOnlineToggle
+            gpsEnabled={gpsEnabled}
+            isOnline={isOnline}
+            onSwipeOnline={() => {
+              if (!gpsEnabled) return;
+              setIsOnline(true);
+            }}
+            onSwipeOffline={() => {
+              setIsOnline(false);
+            }}
+          />
 
-  {/* Shift started banner */}
-  {isOnline && <ShiftStartedBanner />}
+          {/* Shift started banner */}
+          {isOnline && <ShiftStartedBanner />}
 
-  {/* Banner details only when ONLINE & NOT completed */}
-  {isOnline && (
-    <View style={styles.carouselWrapper}>
-      <BannerCarousel data={banners} />
-    </View>
-  )}
-</View>
+          {/* Banner details only when ONLINE & NOT completed */}
+          {isOnline && (
+            <View style={styles.carouselWrapper}>
+              <BannerCarousel data={banners} />
+            </View>
+          )}
+        </View>
 
 
         <Text style={styles.sectionTitle}>Today's Progress</Text>
@@ -77,9 +77,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F6FBFF',
   },
-  container: {
-    paddingHorizontal: wp('5%'),
-  },
+ scrollContent: {
+  paddingHorizontal: wp('5%'),
+  paddingBottom: hp('5%'), 
+},
+
   carouselWrapper: {
     marginTop: hp('2%'),
   },
