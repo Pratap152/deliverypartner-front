@@ -6,8 +6,13 @@ import {
   getWeeklyIncentives,
   getDailyIncentives,
 } from '../services/earnings/incentiveService';
+import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
+import WeekEarnings from '../screens/incentives/WeekEarnings';
+import DailyGuarentee from '../screens/incentives/DailyGuarentee';
+import { Link, useNavigation } from '@react-navigation/native';
 
 export default function useEarningsDashboard() {
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -108,6 +113,7 @@ const mapIncentives = (
         subtitle: `${item.condition?.startTime} - ${item.condition?.endTime}`,
         value: `₹${item.rewardValue}`,
         accentColor: '#FFF7ED',
+        
       });
     });
   }

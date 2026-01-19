@@ -19,11 +19,14 @@ import {
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
+import { useNavigation } from '@react-navigation/native';
+import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
 
 export default function EarningsScreen() {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
   
+  const navigation = useNavigation();
 
   if (loading) {
     return (
@@ -61,6 +64,7 @@ export default function EarningsScreen() {
 ];
 
 
+
   /* HEADER IS A STABLE ELEMENT — NOT A FUNCTION */
   const HEADER = (
     <View style={{ backgroundColor: '#F4F6F8' }}>
@@ -79,7 +83,7 @@ export default function EarningsScreen() {
             />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.daily_summary}>
+        <TouchableOpacity style={styles.daily_summary} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'DAY'})} >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
@@ -101,7 +105,9 @@ export default function EarningsScreen() {
 
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding }]}>
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
         <View style={styles.cardHeader}>
+          
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
@@ -118,6 +124,7 @@ export default function EarningsScreen() {
           noOfSections={5}
           initialSpacing={wp(2)}
         />
+        </TouchableOpacity>
       </View>
 
       {/* WALLET */}
@@ -150,20 +157,48 @@ export default function EarningsScreen() {
 
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
-    <MonthlySummaryCard summary={month} />
+    <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'MONTH'})} >
+    <MonthlySummaryCard summary={month}  />
+    </TouchableOpacity>
   );
+
+  const handleItemPress = (item) => {
+  const peakId = `peak-${item.title}`;
+
+  if (item.id === peakId) {
+    navigation.navigate('PeakHourBonusScreen', {
+      title: item.title
+    });
+    return;
+  }
+
+  if (item.id === 'weekly-incentive') {
+    navigation.navigate('WeekEarnings');
+    return;
+  }
+
+  if (item.id === 'daily-incentive') {
+    navigation.navigate('DailyGuarentee');
+    return;
+  }
+};
+
 
   return (
     <FlatList
       data={incentives}
       keyExtractor={(item, index) => `${item.title}-${index}`}
-      renderItem={({ item }) => <IncentiveCard item={item} />}
+      renderItem={({ item }) => <TouchableOpacity
+      onPress={() => handleItemPress(item)}
+    ><IncentiveCard item={item} /></TouchableOpacity>}
+      
       ListHeaderComponent={HEADER}
       ListFooterComponent={FOOTER}
       refreshing={refreshing}
       onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews={false}
+      
     />
   );
 }

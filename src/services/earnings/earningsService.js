@@ -1,4 +1,4 @@
-import apiClient from '../../api/ApiClient';
+import apiClient from '../../services/ApiClient';
 
 /**
  * Dashboard summary (today, week, month)

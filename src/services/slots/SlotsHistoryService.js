@@ -1,4 +1,4 @@
-import apiClient from  '../../api/ApiClient';
+import apiClient from  '../../services/ApiClient';
 
 export const fetchSlotHistory = (weekNumber) => {
   return apiClient.get('/api/slots/history', {
