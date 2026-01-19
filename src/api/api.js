@@ -1,4 +1,4 @@
-import apiClient from "../services/ApiClient"; // 👈 change path to yours
+import apiClient from "../services/ApiClient";
 
 function logResponse(tag, res) {
   console.log(`API HIT: ${tag}`);

@@ -8,14 +8,11 @@ export default function IncentiveCard({ item }) {
   return (
 
         <View style={[styles.card,{backgroundColor:item.accentColor}]}>
-          <TouchableOpacity onPress={()=>navigation.navigate('IncentiveDetails', { incentiveId: item.onPress })} >
             <View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
-
             <Text style={styles.value}>{item.value}</Text>
-          </TouchableOpacity>
         </View>
     
   );

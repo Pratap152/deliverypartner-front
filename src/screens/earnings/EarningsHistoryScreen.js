@@ -13,8 +13,9 @@ import { EarningsAPI } from '../../api/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getShortMonthKey, getWeekdayName } from '../../utils/helpers';
 
-export default function EarningsHistoryScreen({ navigation }) {
-  const [level, setLevel] = useState('MONTH');
+export default function EarningsHistoryScreen({ navigation, route }) {
+  const { selectedLevel } = route.params || {};
+  const [level, setLevel] = useState(selectedLevel || 'MONTH');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);

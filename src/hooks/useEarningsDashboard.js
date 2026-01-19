@@ -9,7 +9,7 @@ import {
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
-import { useNavigation } from '@react-navigation/native';
+import { Link, useNavigation } from '@react-navigation/native';
 
 export default function useEarningsDashboard() {
   const navigation = useNavigation();
@@ -113,7 +113,7 @@ const mapIncentives = (
         subtitle: `${item.condition?.startTime} - ${item.condition?.endTime}`,
         value: `₹${item.rewardValue}`,
         accentColor: '#FFF7ED',
-        onPress: () => navigation.navigate(PeakHourBonusScreen),
+        
       });
     });
   }
@@ -128,7 +128,6 @@ const mapIncentives = (
         ? `₹${weeklyRes.data.maxRewardPerRider}`
         : 'In Progress',
       accentColor: '#EFF6FF',
-      onPress: () => navigation.navigate(WeekEarnings),
     });
   }
 
@@ -142,7 +141,6 @@ const mapIncentives = (
         ? `₹${dailyRes.data.maxRewardPerRider}`
         : 'In Progress',
       accentColor: '#F5F3FF',
-      onPress: () => navigation.navigate(DailyGuarentee),
     });
   }
 
