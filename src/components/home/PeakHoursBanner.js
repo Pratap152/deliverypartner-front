@@ -43,8 +43,10 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useNavigation } from '@react-navigation/native';
 
 const PeakHourBonusBanner = () => {
+  const navigation=useNavigation();
   return (
     <LinearGradient
       colors={['#0EA5E9', '#0284C7']}
@@ -62,7 +64,7 @@ const PeakHourBonusBanner = () => {
           Complete orders between 7 PM – 10 PM and earn extra rewards
         </Text>
 
-        <TouchableOpacity activeOpacity={0.85} style={styles.button}>
+        <TouchableOpacity activeOpacity={0.85} style={styles.button} onPress={()=>navigation.navigate('PeakHourBonusScreen')}>
           <Text style={styles.buttonText}>View Details</Text>
         </TouchableOpacity>
       </View>
