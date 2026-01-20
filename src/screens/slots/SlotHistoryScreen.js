@@ -93,23 +93,23 @@ export default function SlotHistoryScreen({navigation}){
 
                 {/* SUMMARY */}
                 <View style={styles.summary_container}>
-                    <View style={styles.summary}>
-                        <Text style={styles.summary_text}>Completed</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.completed:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#cdf5d5'}]}>
+                        <Text style={[styles.summary_text,]}>Completed</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.completed:0}</Text>
                     </View>
-                    <View style={styles.summary}>
-                        <Text style={styles.summary_text}>Missed</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.noShow:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#d5f1f7'}]}>
+                        <Text style={[styles.summary_text,]}>Missed</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.noShow:0}</Text>
                     </View>
                 </View>
                 <View style={[styles.summary_container,{marginBottom:hp(2)}]}>
-                    <View style={styles.summary}>
-                        <Text style={styles.summary_text}>Cancelled</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.cancelled:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#FFCECE'}]}>
+                        <Text style={[styles.summary_text,]}>Cancelled</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.cancelled:0}</Text>
                     </View>
-                    <View style={styles.summary} >
-                        <Text style={styles.summary_text}>Failed</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.failed:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#f4eda6'}]}>
+                        <Text style={[styles.summary_text,]}>Failed</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.failed:0}</Text>
                     </View>
                 </View>
             </View>
@@ -308,7 +308,6 @@ const styles = StyleSheet.create({
         flexDirection:'row',
     },
     summary:{
-        backgroundColor:'#FFFFFF',
         marginLeft:wp(3),
         marginTop:hp(2),
         paddingVertical:hp(3),
