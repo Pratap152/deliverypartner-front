@@ -26,7 +26,7 @@ export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
   
-  const navigation = useNavigation();
+  
 
   if (loading) {
     return (
