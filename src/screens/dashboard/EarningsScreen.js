@@ -26,7 +26,7 @@ export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
   
-  const navigation = useNavigation();
+  
 
   if (loading) {
     return (
@@ -104,6 +104,7 @@ export default function EarningsScreen({navigation}) {
 
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
         <View style={styles.cardHeader}>
           
           <Text style={styles.cardTitle}>This Week</Text>
@@ -148,8 +149,7 @@ export default function EarningsScreen({navigation}) {
             },
           }}
         />
-
-
+    </TouchableOpacity>
  
 
       </View>
