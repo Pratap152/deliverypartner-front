@@ -26,7 +26,7 @@ export default function EarningsScreen() {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
   
-  const navigation = useNavigation();
+  
 
   if (loading) {
     return (
@@ -104,7 +104,7 @@ export default function EarningsScreen() {
       </LinearGradient>
 
       {/* WEEKLY CARD */}
-      <View style={[styles.card, { width: cardWidth, padding: cardPadding }]}>
+      <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
         <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
         <View style={styles.cardHeader}>
           
@@ -124,7 +124,9 @@ export default function EarningsScreen() {
           noOfSections={5}
           initialSpacing={wp(2)}
         />
-        </TouchableOpacity>
+    </TouchableOpacity>
+ 
+
       </View>
 
       {/* WALLET */}
