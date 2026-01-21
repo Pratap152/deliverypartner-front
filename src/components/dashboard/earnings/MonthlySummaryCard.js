@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     
   },
   title: {
-    fontSize: wp(4.5),
+    fontSize: wp(4),
     fontWeight: '500',
     marginBottom: wp(2),
   },

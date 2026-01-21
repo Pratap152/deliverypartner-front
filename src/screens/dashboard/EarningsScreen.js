@@ -22,7 +22,7 @@ import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySumma
 import { useNavigation } from '@react-navigation/native';
 import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
 
-export default function EarningsScreen({navigation}) {
+export default function EarningsScreen() {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
   
@@ -49,7 +49,7 @@ export default function EarningsScreen({navigation}) {
 
   const cardWidth = wp(90);
   const cardPadding = wp(4);
-  const chartHeight = hp(30);
+  const chartHeight = hp(22);
   const yAxisWidth = wp(15);
 
 
@@ -59,7 +59,7 @@ export default function EarningsScreen({navigation}) {
   { label: 'Wed', value: 90 },
   { label: 'Thu', value: 220 },
   { label: 'Fri', value: 150 },
-  { label: 'Sat', value: 290 },
+  { label: 'Sat', value: 260 },
   { label: 'Sun', value: 110 },
 ];
 
@@ -72,7 +72,8 @@ export default function EarningsScreen({navigation}) {
       <LinearGradient
         colors={['#00A63E', '#009966']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={styles.header}>
+        style={styles.header}
+      >
         <View style={styles.heading}>
           <Text style={styles.title}>Earnings</Text>
           <TouchableOpacity>
@@ -103,7 +104,8 @@ export default function EarningsScreen({navigation}) {
       </LinearGradient>
 
       {/* WEEKLY CARD */}
-      <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
+      <View style={[styles.card, { width: cardWidth, padding: cardPadding }]}>
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
         <View style={styles.cardHeader}>
           
           <Text style={styles.cardTitle}>This Week</Text>
@@ -112,75 +114,42 @@ export default function EarningsScreen({navigation}) {
 
         <BarChart
           data={weeklyEarnings}
-          barWidth={22}
-          spacing={18}
-          height={220}
-          roundedTop
-          hideRules
-          noOfSections={4}
+          width={cardWidth - cardPadding * 2 - yAxisWidth}
+          height={chartHeight}
+          barWidth={wp(5)}
+          spacing={wp(4)}
           frontColor="#22C55E"
-
-          pointerConfig={{
-            pointerStripHeight: hp(20),
-            pointerStripColor: '#22C55E',
-            pointerStripWidth: 2,
-            pointerColor: '#22C55E',
-            radius: 6,
-
-            activatePointersOnLongPress: false,
-            activatePointersOnPress: true,
-
-            pointerLabelComponent: items => {
-              return (
-                <View
-                  style={{
-                    backgroundColor: '#111',
-                    padding: 6,
-                    width:wp(10),
-                    borderRadius: 6,
-                    marginBottom: 6, // pushes tooltip up
-                  }}>
-                  <Text style={{ color: '#fff', fontSize: wp(3),alignSelf:'center' }}>
-                    ₹{items[0].value}
-                  </Text>
-                </View>
-              );
-            },
-          }}
+          hideRules
+          roundedTop
+          noOfSections={5}
+          initialSpacing={wp(2)}
         />
-
-
- 
-
+        </TouchableOpacity>
       </View>
 
       {/* WALLET */}
-      <TouchableOpacity 
-                      onPress={()=>navigation.navigate('Wallet')}>
-        <LinearGradient
-            colors={['#4F39F6', '#155DFC']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.wallet}
-          >
-            <View style={styles.walletRow}>
-              <Ionicons name="wallet-outline" size={20} color="#fff" />
-              <Text style={styles.walletHeading}>Wallet</Text>
-              <TouchableOpacity style={styles.withdraw_button} onPress={() => navigation.navigate('Wallet')}>
-                    <Text style={{ color: '#4F39F6', alignSelf: 'center', fontSize: wp(4) }}>Withdraw</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.walletText}>
-                Wallet Balance: ₹{wallet.balance}
-              </Text>
-            <Text style={styles.walletText}>
-                Total Earned : ₹{wallet.totalEarned}
-            </Text>
-            <Text style={styles.walletText}>
-                Total Withdrawn : ₹{wallet.totalWithdrawn}
-            </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      
+      <LinearGradient
+        colors={['#4F39F6', '#155DFC']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={styles.wallet}
+      >
+        <View style={styles.walletRow}>
+          <Ionicons name="wallet-outline" size={20} color="#fff" />
+          <Text style={styles.walletHeading}>Wallet</Text>
+          <TouchableOpacity style={styles.withdraw_button} onPress={() => console.log('withdraw is pressed')}>
+                <Text style={{ color: '#4F39F6', alignSelf: 'center', fontSize: wp(4) }}>Withdraw</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.walletText}>
+            Wallet Balance: ₹{wallet.balance}
+          </Text>
+        <Text style={styles.walletText}>
+            Total Earned : ₹{wallet.totalEarned}
+        </Text>
+        <Text style={styles.walletText}>
+            Total Withdrawn : ₹{wallet.totalWithdrawn}
+        </Text>
+      </LinearGradient>
 
       <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
     </View>
@@ -267,9 +236,9 @@ const styles = StyleSheet.create({
     width: wp('90'),
     alignSelf: 'center',
   },
-  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '500' },
+  daily_text: { color: '#FFFFFF', fontSize: wp(4), fontWeight: '500' },
   daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40) },
-  daily_details: { color: '#FFFFFF',fontSize:wp(4) },
+  daily_details: { color: '#FFFFFF' },
   card: {
     backgroundColor: '#fff',
     alignSelf: 'center',
@@ -279,14 +248,14 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: hp(3)
+    marginBottom: hp(1),
   },
   cardTitle: {
-    fontSize: wp(4.5),
+    fontSize: wp(4),
     fontWeight: '500',
   },
   cardValue: {
-    fontSize: wp(4.5),
+    fontSize: wp(4),
     fontWeight: '600',
   },
   wallet: {
@@ -305,7 +274,7 @@ const styles = StyleSheet.create({
   },
   walletHeading: {
     color: '#fff',
-    fontSize: wp(4.5),
+    fontSize: wp(5),
     fontWeight: '600',
     
   },
@@ -313,14 +282,13 @@ const styles = StyleSheet.create({
     marginLeft:wp(1),
     color: '#fff',
     fontSize: wp(4),
-    paddingBottom:hp(0.5)
     
   },
-  withdraw_button: { backgroundColor: '#FFFFFF', borderRadius: wp(2), width: wp(23), paddingVertical: hp(1),marginLeft:wp(30), },
+  withdraw_button: { backgroundColor: '#FFFFFF', borderRadius: wp(2), width: wp(25), paddingVertical: hp(1),marginLeft:wp(25), },
   
 
   incentiveTitle: {
-    fontSize: wp(4.5),
+    fontSize: wp(4),
     fontWeight: '600',
     marginLeft: wp(5),
     marginTop: hp(4),

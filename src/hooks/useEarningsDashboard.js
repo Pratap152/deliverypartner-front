@@ -97,54 +97,50 @@ const mapWallet = res => ({
   totalWithdrawn: res.data?.totalWithdrawn ?? 0,
 });
 
-const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
+const mapIncentives = (
+  peakRes,
+  weeklyRes,
+  dailyRes
+) => {
   const incentives = [];
 
-  // PEAK
+  // Peak Hour
   if (peakRes?.incentives?.length) {
     peakRes.incentives.forEach(item => {
       incentives.push({
         id: `peak-${item.title}`,
         title: item.title,
-        subtitle: `${item.condition.startTime} - ${item.condition.endTime}`,
-        completedOrders: item.completedOrders ?? 0,
-        requiredOrders: item.requiredOrders ?? 0,
+        subtitle: `${item.condition?.startTime} - ${item.condition?.endTime}`,
         value: `₹${item.rewardValue}`,
         accentColor: '#FFF7ED',
-        type:'peak'
+        
       });
     });
   }
 
-  // WEEKLY
+  // Weekly Incentive
   if (weeklyRes?.data) {
     incentives.push({
       id: 'weekly-incentive',
       title: weeklyRes.data.title,
-      subtitle: 'Weekly Target',
-      completedOrders: weeklyRes.data.completedOrders ?? 0,
-      requiredOrders: weeklyRes.data.requiredOrders ?? 0, 
+      subtitle: `Completed ${weeklyRes.data.completedOrders}/${weeklyRes.data.requiredOrders} orders`,
       value: weeklyRes.data.achieved
         ? `₹${weeklyRes.data.maxRewardPerRider}`
         : 'In Progress',
       accentColor: '#EFF6FF',
-      type:'weekly'
     });
   }
 
-  // DAILY
+  // Daily Incentive
   if (dailyRes?.data) {
     incentives.push({
       id: 'daily-incentive',
       title: dailyRes.data.title,
-      subtitle: 'Daily Target',
-      completedOrders: dailyRes.data.completedOrders ?? 0,
-      requiredOrders: dailyRes.data.requiredOrders ?? 0,
+      subtitle: `Completed ${dailyRes.data.completedOrders}/${dailyRes.data.requiredOrders} orders`,
       value: dailyRes.data.achieved
         ? `₹${dailyRes.data.maxRewardPerRider}`
         : 'In Progress',
       accentColor: '#F5F3FF',
-      type:'daily'
     });
   }
 
