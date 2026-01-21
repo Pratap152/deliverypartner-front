@@ -108,7 +108,7 @@ export default function EarningsScreen() {
         <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
         <View style={styles.cardHeader}>
           
-          <Text style={styles.cardTitle}>This Week</Text>
+          <Text style={styles.cardTitle}>This WeeK</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
 
