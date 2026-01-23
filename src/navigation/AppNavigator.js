@@ -52,6 +52,7 @@ import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
+import Wallet from '../screens/profile/Wallet';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -145,6 +146,7 @@ const AppNavigator = () => {
         <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
         <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
         <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} /> 
+        <Stack.Screen name="Wallet" component ={Wallet}/>
     </Stack.Navigator>
   );
 };
