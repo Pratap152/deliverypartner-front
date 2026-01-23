@@ -113,9 +113,10 @@ export default function EarningsScreen({navigation}) {
 
         <BarChart
           data={weeklyEarnings}
-          barWidth={22}
-          spacing={18}
-          height={220}
+          width={cardWidth - cardPadding * 2 - yAxisWidth}
+          height={chartHeight}
+          barWidth={wp(5)}
+          spacing={wp(4)}
           roundedTop
           hideRules
           noOfSections={4}
