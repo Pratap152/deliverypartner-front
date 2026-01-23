@@ -29,6 +29,7 @@ import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
 import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
 import ProfileNavigator from './ProfileNavigator';
 import HomeNavigator from './HomeNavigator';
+import MapScreen from '../screens/Home/MapScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -90,6 +91,7 @@ const AppNavigator = () => {
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
         <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
         <Stack.Screen name='HomeNavigator' component={HomeNavigator}/>
+        <Stack.Screen name="MapScreen" component={MapScreen} />
     </Stack.Navigator>
   );
 };

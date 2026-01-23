@@ -1,11 +1,11 @@
-  import React, { useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Animated, PanResponder } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { View, Text, StyleSheet, Animated, PanResponder} from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const SWIPE_WIDTH = wp("87%");     // responsive width
+const SWIPE_WIDTH = wp("87%");     
 const TRACK_HEIGHT = hp("7.5%");
 const THUMB_SIZE = hp("6.5%");
 const MAX_SWIPE = SWIPE_WIDTH - THUMB_SIZE;
@@ -63,7 +63,7 @@ const SwipeOnlineToggle = ({
             duration: 200,
             useNativeDriver: true,
           }).start(onSwipeOffline);
-        }
+        }  
       },
     })
   ).current;
@@ -138,3 +138,4 @@ const styles = StyleSheet.create({
     color: "#16A34A",
   },
 });
+ 

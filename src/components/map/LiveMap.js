@@ -14,7 +14,7 @@ const DEST = { latitude: 19.1015, longitude: 72.8743 };
 const LiveMap = ({ riderRef }) => {
   return (
     <MapView
-      style={{ flex: 1 }}
+       style={{ flex: 1 }}
       initialRegion={{
         latitude: SOURCE.latitude,
         longitude: SOURCE.longitude,

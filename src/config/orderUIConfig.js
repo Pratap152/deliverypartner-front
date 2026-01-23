@@ -8,7 +8,7 @@ export const orderUIConfig = {
         label: 'Navigate to Pickup',
         type: 'primary',
         nextStatus: 'AT_RESTAURANT', // Map should direct here
-        navigateTo: 'Map',
+        navigateTo: 'MapScreen',
       },
     ],
   },
@@ -34,7 +34,7 @@ export const orderUIConfig = {
         label: 'Navigate to Drop',
         type: 'primary',
         nextStatus: 'QR_SCAN_REQUIRED', // Map should direct to QR Scanner
-        navigateTo: 'Map',
+        navigateTo: 'MapScreen',
       },
     ],
   },
