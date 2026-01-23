@@ -30,13 +30,13 @@ import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
 import ProfileNavigator from './ProfileNavigator';
 import HomeNavigator from './HomeNavigator';
 import MapScreen from '../screens/Home/MapScreen';
+import OrderDetailsScreen  from '../screens/Home/OrderDetailsScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="MainTabs"
-      
+      initialRouteName="MainTabs"      
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
@@ -90,11 +90,12 @@ const AppNavigator = () => {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
         <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
-<<<<<<< Updated upstream
         <Stack.Screen name='HomeNavigator' component={HomeNavigator}/>
         <Stack.Screen name="MapScreen" component={MapScreen} />
-=======
->>>>>>> Stashed changes
+        <Stack.Screen
+    name="OrderDetailsScreen"
+    component={OrderDetailsScreen}
+  />
     </Stack.Navigator>
   );
 };
