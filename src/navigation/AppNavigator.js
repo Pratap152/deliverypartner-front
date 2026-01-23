@@ -35,7 +35,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="HomeNavigator"
+      initialRouteName="MainTabs"
       
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
@@ -90,8 +90,11 @@ const AppNavigator = () => {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
         <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
+<<<<<<< Updated upstream
         <Stack.Screen name='HomeNavigator' component={HomeNavigator}/>
         <Stack.Screen name="MapScreen" component={MapScreen} />
+=======
+>>>>>>> Stashed changes
     </Stack.Navigator>
   );
 };

@@ -13,6 +13,11 @@ import OrderEarningsCard from '../../components/order/OrderEarningsCard';
 import SwipeButton from '../../components/common/SwipeButton';
 import { orderService } from '../../services/order/OrderService';
 import LiveMap from '../../components/map/LiveMap';
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 const OrderDetailsScreen = ({ route, navigation }) => {
   const [status, setStatus] = React.useState(
     route?.params?.status ?? ORDER_STATUS.PICKUP_ASSIGNED
@@ -44,7 +49,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       });
     } else {
       // Fallback or specific logic if needed
-      navigation.navigate('Map', { nextStatus: status }); // Just view map
+      navigation.navigate(' MapScreen', { nextStatus: status }); // Just view map
     }
   };
 
@@ -120,6 +125,16 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
           <OrderEarningsCard basePay={500} distancePay={100} bonus={45} />
 
+<<<<<<< Updated upstream
+=======
+          {/* Map Placeholder: Visible only if config says showMap: true */}
+         {/* Map Placeholder: Visible only if config says showMap: true */}
+{ui.showMap && (
+  <View style={styles.mapWrapper}>
+    <View style={styles.mapPlaceholder}>
+     <LiveMap/>
+    </View>
+>>>>>>> Stashed changes
 
           {ui.showMap && (
             <View style={styles.mapWrapper}>

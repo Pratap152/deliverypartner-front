@@ -8,7 +8,7 @@ import { ORDER_STATUS } from '../../config/orderStates';
 import { orderService } from '../../services/order/OrderService';
 import LiveMap from '../../components/map/LiveMap';
 import SwipeButton from '../../components/common/SwipeButton';
-
+import LiveMap from '../../components/map/LiveMap';
 const MapScreen = ({ route, navigation }) => {
   const { nextStatus } = route.params;
 
@@ -36,6 +36,7 @@ const MapScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       {/* Fake Map */}
       <View style={styles.mapPlaceholder}>
+<<<<<<< Updated upstream
         {/* <Image
           source={require('../../assets/map.png')}
           style={styles.mapImage}
@@ -44,6 +45,9 @@ const MapScreen = ({ route, navigation }) => {
         <LiveMap/>
         {/* <Text style={styles.mapText}>🗺 Full Map Navigation</Text>
         <Text style={styles.etaText}>ETA: 5 mins</Text> */}
+=======
+          <LiveMap/>
+>>>>>>> Stashed changes
       </View>
 
       {/* Swipe to Confirm Arrival */}

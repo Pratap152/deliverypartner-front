@@ -42,7 +42,7 @@ const HomeDashboard = ({ navigation }) => {
           {isOnline && <ShiftStartedBanner />}
 
           {/* Banner details only when ONLINE & NOT completed */}
-          {isOnline && (
+          {!isOnline && (
             <View style={styles.carouselWrapper}>
               <BannerCarousel data={banners} />
             </View>
@@ -63,10 +63,12 @@ const HomeDashboard = ({ navigation }) => {
             <Text>Navigate to OrderPopupScreen</Text>
           </TouchableOpacity>
         </View>
+       
         <ActiveShiftBanner />
         <PeakHoursBanner />
 
         <WeeklyStatsCard />
+        
       </ScrollView>
     </SafeAreaView>
   );

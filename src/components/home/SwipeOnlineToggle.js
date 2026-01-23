@@ -1,5 +1,9 @@
 import React, { useRef, useEffect } from "react";
+<<<<<<< Updated upstream
 import { View, Text, StyleSheet, Animated, PanResponder} from "react-native";
+=======
+import { View, Text, StyleSheet, Animated, PanResponder } from "react-native";
+>>>>>>> Stashed changes
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
