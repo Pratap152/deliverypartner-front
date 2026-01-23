@@ -2,7 +2,6 @@ import { View, Text, StatusBar } from 'react-native';
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator';
-
 import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
@@ -24,27 +23,12 @@ import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
-import HomeDashboard from '../screens/dashboard/HomeDashboard';
-import ReportIssue from '../screens/Home/ReportIssue';
-// import CustomerNotResponding from '../screens/Home/CustomerNotResponding';
-import AddBankDetails from '../screens/Home/AddBankDetails';
-import ReferEarn from '../screens/Home/ReferEarn';
-import IncentiveDetails from '../screens/Home/IncentiveDetails';
-import ReferFrd from '../screens/Home/ReferFrd';
-import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
-// import SwipeOnlineOffline from '../screens/Home/SwipeOnlineOffline';
 import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
-import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
-import QRScannerScreen from '../screens/Home/QRScannerScreen';
-import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
-import LiveTracking from '../../src/screens/Home/LiveTracking'; 
-import MapScreen from '../screens/Home/MapScreen';
 import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
 import EarningsHistoryScreen from '../screens/earnings/EarningsHistoryScreen';
 import OrderHistory from '../screens/profile/OrderHistory';
 import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
-//import ProfileScreen from '../screens/dashboard/ProfileScreen';
 import ProfileNavigator from './ProfileNavigator';
 import EarningsScreen from '../screens/dashboard/EarningsScreen';
 import SlotHistory from '../screens/profile/SlotHistory';
@@ -52,19 +36,19 @@ import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
+import HomeNavigator from './HomeNavigator';
+import MapScreen from '../screens/Home/MapScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="SplashScreen"
+      initialRouteName="MainTabs"
       
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
-      <Stack.Screen name='HomeDashboard' component={HomeDashboard} />
-      {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
       <Stack.Screen name="LoginVerifyScreen" component={LoginVerifyScreen} />
@@ -108,10 +92,6 @@ const AppNavigator = () => {
 
       <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
-      <Stack.Screen
-        name="AddBankDetails"
-        component={AddBankDetails}
-      />
       
       <Stack.Screen
         name="SlotHistoryScreen"
@@ -125,26 +105,8 @@ const AppNavigator = () => {
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
-      <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
-      <Stack.Screen name='ReferEarn' component={ReferEarn} />
-      <Stack.Screen name='ReferFrd' component={ReferFrd} />
-      <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: true, title: "Incentive Details" }}/>
-      <Stack.Screen name="Map" component={MapScreen}  options={{ headerShown: false }}/>
-      {/* <Stack.Screen name="Timer" component={Timer}/> */}
-      {/* <Stack.Screen name="CustomerNotResponding" component={CustomerNotResponding}/> */}
-      <Stack.Screen name="ReportIssue" component={ReportIssue} />
-      {/* <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} /> */}
-      <Stack.Screen name='OrderPopupScreen' component={OrderPopupScreen} />
-      <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
-      <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
-      <Stack.Screen name="LiveTracking" component={LiveTracking} />
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
-        {/* <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> */}
         <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
-        <Stack.Screen name="EarningsScreen" component={EarningsScreen} /> 
-        <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
-        <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
-        <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} /> 
     </Stack.Navigator>
   );
 };

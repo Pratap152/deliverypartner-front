@@ -4,40 +4,51 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '../../components/home/Header';
-import SwipeAction from '../../components/home/SwipeAction';
-import BannerCarousel from '../../components/home/BannerCarousel';
+// import SwipeAction from '../../components/home/SwipeAction';
+// import BannerCarousel from '../../components/home/BannerCarousel';
 import StatsCard from '../../components/home/StatsCard';
 import ActiveShiftBanner from '../../components/home/ActiveShiftBanner';
 import PeakHoursBanner from '../../components/home/PeakHoursBanner';
 import WeeklyStatsCard from '../../components/home/WeeklyStatsCard';
 import { banners, todayStats, weeklyStats } from '../../components/home/data/home.mock';
+import OrdersPopupScreen from '../Home/OrdersPopupScreen';
+import SwipeOnlineToggle from '../../components/home/SwipeOnlineToggle';
+import ShiftStartedBanner from '../../components/home/ShiftStartedBanner';
+import { useGPS } from '../../context/GPSContext';
+import BannerCarousel from '../../components/home/BannerCarousel';
 
 const HomeDashboard = ({ navigation }) => {
+  const { gpsEnabled, showPopup } = useGPS();
   const [isOnline, setIsOnline] = useState(false);
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+   <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Header />
-        {!isOnline ? (
-          <>
-            <SwipeAction
-              label="Swipe For Online"
-              backgroundColor="#22C55E"
-              onSwipeSuccess={() => setIsOnline(true)}
-            />
+        <View>
+          <SwipeOnlineToggle
+            gpsEnabled={gpsEnabled}
+            isOnline={isOnline}
+            onSwipeOnline={() => {
+              if (!gpsEnabled) return;
+              setIsOnline(true);
+            }}
+            onSwipeOffline={() => {
+              setIsOnline(false);
+            }}
+          />
 
+          {/* Shift started banner */}
+          {isOnline && <ShiftStartedBanner />}
+
+          {/* Banner details only when ONLINE & NOT completed */}
+          {!isOnline && (
             <View style={styles.carouselWrapper}>
               <BannerCarousel data={banners} />
             </View>
-          </>
-        ) : (
-          <SwipeAction
-            label="Swipe For Offline"
-            backgroundColor="#6B7280"
-            onSwipeSuccess={() => setIsOnline(false)}
-          />
-        )}
+          )}
+        </View>
+
 
         <Text style={styles.sectionTitle}>Today's Progress</Text>
 
@@ -48,14 +59,16 @@ const HomeDashboard = ({ navigation }) => {
         </View>
 
         <View style={styles.banner}>
-          <TouchableOpacity onPress={() => { navigation.navigate("OrderPopupScreen") }}>
+          <TouchableOpacity onPress={() => { navigation.navigate(OrdersPopupScreen) }}>
             <Text>Navigate to OrderPopupScreen</Text>
           </TouchableOpacity>
         </View>
+       
         <ActiveShiftBanner />
         <PeakHoursBanner />
 
         <WeeklyStatsCard />
+        
       </ScrollView>
     </SafeAreaView>
   );
@@ -66,9 +79,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F6FBFF',
   },
-  container: {
-    paddingHorizontal: wp('5%'),
-  },
+ scrollContent: {
+  paddingHorizontal: wp('5%'),
+  paddingBottom: hp('5%'), 
+},
+
   carouselWrapper: {
     marginTop: hp('2%'),
   },
