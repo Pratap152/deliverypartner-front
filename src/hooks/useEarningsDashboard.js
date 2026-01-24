@@ -131,15 +131,28 @@ const mapIncentives = (
 
   // Daily Incentive
   if (dailyRes?.data) {
-    incentives.push({
-      id: 'daily-incentive',
-      title: dailyRes.data.title,
-      subtitle: 'Daily Target',
-      completedOrders: dailyRes.data.ordersCompleted ?? 0,
-      value: `₹${dailyRes.data.rewardAmount}`,
-      accentColor: '#F5F3FF',
-    });
-  }
+  incentives.push({
+    id: 'daily-incentive',
+    type: 'daily',
+
+    title: dailyRes.data.title,
+    subtitle: dailyRes.eligible
+      ? 'Target achieved'
+      : 'Complete today target',
+
+    completedOrders: dailyRes.data.ordersCompleted ?? 0,
+
+    //  TEMP / CONFIG VALUE
+    requiredOrders: 8,   
+
+    value: dailyRes.eligible
+      ? `Earned ₹${dailyRes.data.rewardAmount}`
+      : 'In Progress',
+
+    accentColor: '#F5F3FF',
+  });
+}
+
 
   return incentives;
 };

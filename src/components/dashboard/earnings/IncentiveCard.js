@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet,Image } from 'react-native';
+import { widthPercentageToDP as wp,heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import ProgressBar from './ProgressBar';
 
 export default function IncentiveCard({ item }) {
 const isPeak = item.type === 'peak';
@@ -115,31 +115,53 @@ const meta = Incentive_logo[item.type] ?? Incentive_logo.daily;
 
 const styles = StyleSheet.create({
   card: {
+    width: wp(90),
+    alignSelf: 'center',
     borderRadius: wp(4),
-    padding: wp(5),
+    padding: wp(3),
     marginBottom: wp(3),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width:wp(90),
-    alignSelf:'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    
   },
   title: {
     fontSize: wp(4),
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#111',
   },
   subtitle: {
-    fontSize: wp(3.4),
-    color: '#666',
-    marginTop: wp(1),
+    fontSize: wp(3.5),
+    color: '#6B7280',
+    marginTop: 4,
   },
-  value: {
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: hp(1),
+  },
+  progressText: {
+    fontSize: wp(3.2),
+    color: '#374151',
+  },
+  reward: {
+    marginTop: 10,
     fontSize: wp(4),
     fontWeight: '700',
     color: '#111',
+    alignSelf: 'flex-end',
   },
+  logo_row:{
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent:'space-between',
+    marginBottom:hp(1)
+  },
+  logo:{
+    height:hp('2.5'),
+    width:wp('5.5'),
+    
+  },
+  logo_text:{
+    color:'#F54900',
+    backgroundColor:'#FFFFFF',
+    paddingHorizontal:wp(2),
+    borderRadius:wp(1)
+  }
 });

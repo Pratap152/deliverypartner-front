@@ -225,6 +225,11 @@ const handleItemPress = (item) => {
     navigation.navigate('DailyGuarentee', {
       id: item.id,
       title: item.title,
+      subtitle: item.subtitle,
+      value: item.value,
+      completedOrders: item.completedOrders,
+      requiredOrders: item.requiredOrders,
+      accentColor: item.accentColor,
     });
   }
 };
