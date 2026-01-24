@@ -193,29 +193,52 @@ export default function EarningsScreen({navigation}) {
     <MonthlySummaryCard summary={month}  />
     </TouchableOpacity>
   );
- 
-  const handleItemPress = (item) => {
-  const peakId = `peak-${item.title}`;
- 
-  if (item.id === peakId) {
+
+const handleItemPress = (item) => {
+  if (item.type === 'peak') {
     navigation.navigate('PeakHourBonusScreen', {
-      title: item.title
+      id: item.id,
+      type: item.type,
+      title: item.title,
+      subtitle: item.subtitle,
+      slabs: item.slabs ?? [],
+      accentColor: item.accentColor,
     });
     return;
   }
- 
-  if (item.id === 'weekly-incentive') {
-    navigation.navigate('WeekEarnings');
+
+  if (item.type === 'weekly') {
+    navigation.navigate('WeekEarnings', {
+      id: item.id,
+      type: item.type,
+      title: item.title,
+      subtitle: item.subtitle,
+      value: item.value,
+      completedOrders: item.completedOrders,
+      requiredOrders: item.requiredOrders,
+      accentColor: item.accentColor,
+    });
     return;
   }
- 
-  if (item.id === 'daily-incentive') {
-    navigation.navigate('DailyGuarentee');
-    return;
+
+  if (item.type === 'daily') {
+    navigation.navigate('DailyGuarentee', {
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle,
+      value: item.value,
+      completedOrders: item.completedOrders,
+      requiredOrders: item.requiredOrders,
+      accentColor: item.accentColor,
+    });
   }
 };
- 
- 
+
+
+
+  
+
+
   return (
     <FlatList
       data={incentives}

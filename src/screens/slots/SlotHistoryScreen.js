@@ -24,11 +24,11 @@ export default function SlotHistoryScreen({navigation}){
         refreshing,
         onRefresh,
         } = useSlotHistory(selectedWeek);
- 
-    // PREVIOUS WEEKS RANGE
-    const totalWeeks = 4;
-    const weeks = Array.from({ length: totalWeeks }, (_, i) => totalWeeks - i);
- 
+
+    const totalWeeks = 4; // current + 3 previous
+    const weeks = Array.from({ length: totalWeeks }, (_, i) => currentWeek - i);
+
+
     //  Week helpers (date range & formatting)
     const getWeekRange = (days) => {
         if (!days || days.length === 0) return '';
@@ -68,19 +68,16 @@ export default function SlotHistoryScreen({navigation}){
  
         return `${format(weekStart)} - ${format(weekEnd)}`;
         };
- 
     // Current calendar week number (ISO week)
     const getCurrentWeek = () => {
     const today = new Date();
     const firstThursday = new Date(today.getFullYear(), 0, 4);
     const current = new Date(today);
- 
     current.setDate(
         current.getDate() +
         3 -
         ((current.getDay() + 6) % 7)
     );
- 
     return (
         1 +
         Math.round(
@@ -88,11 +85,11 @@ export default function SlotHistoryScreen({navigation}){
         )
     );
     };
- 
+
     const currentWeek = getCurrentWeek();
- 
- 
- 
+
+
+
     // Header shown above the slot list (week selector + summary)
     const ListHeader = () =>{
        return(
@@ -265,8 +262,8 @@ export default function SlotHistoryScreen({navigation}){
                                                 {week === currentWeek && (
                                                     <Text style={styles.this_week}>This Week</Text>
                                                     )}
- 
- 
+
+
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -320,6 +317,9 @@ const styles = StyleSheet.create({
         fontSize:wp(4),
         fontWeight:'500'
        
+    },
+    this_week_placeholder:{
+      width:wp(25),  
     },
     this_week_placeholder:{
       width:wp(25),  
