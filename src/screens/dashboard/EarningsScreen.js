@@ -15,7 +15,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-
+ 
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
@@ -25,9 +25,9 @@ import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
 export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
-  
-  
-
+ 
+ 
+ 
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -35,24 +35,24 @@ export default function EarningsScreen({navigation}) {
       </View>
     );
   }
-
+ 
   const {
     earningsSummary = {},
     wallet = {},
     incentives = [],
   } = data;
-
-
+ 
+ 
   const today = earningsSummary.today || {};
   const week = earningsSummary.week || {};
   const month = earningsSummary.month || {};
-
+ 
   const cardWidth = wp(90);
   const cardPadding = wp(4);
   const chartHeight = hp(30);
   const yAxisWidth = wp(15);
-
-
+ 
+ 
   const weeklyEarnings = [
   { label: 'Mon', value: 120 },
   { label: 'Tue', value: 180 },
@@ -62,9 +62,9 @@ export default function EarningsScreen({navigation}) {
   { label: 'Sat', value: 290 },
   { label: 'Sun', value: 110 },
 ];
-
-
-
+ 
+ 
+ 
   /* HEADER IS A STABLE ELEMENT — NOT A FUNCTION */
   const HEADER = (
     <View style={{ backgroundColor: '#F4F6F8' }}>
@@ -101,7 +101,7 @@ export default function EarningsScreen({navigation}) {
             </View>
           </TouchableOpacity>
       </LinearGradient>
-
+ 
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
         <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
@@ -110,7 +110,7 @@ export default function EarningsScreen({navigation}) {
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
-
+ 
         <BarChart
           data={weeklyEarnings}
           width={cardWidth - cardPadding * 2 - yAxisWidth}
@@ -121,17 +121,17 @@ export default function EarningsScreen({navigation}) {
           hideRules
           noOfSections={4}
           frontColor="#22C55E"
-
+ 
           pointerConfig={{
             pointerStripHeight: hp(20),
             pointerStripColor: '#22C55E',
             pointerStripWidth: 2,
             pointerColor: '#22C55E',
             radius: 6,
-
+ 
             activatePointersOnLongPress: false,
             activatePointersOnPress: true,
-
+ 
             pointerLabelComponent: items => {
               return (
                 <View
@@ -152,11 +152,11 @@ export default function EarningsScreen({navigation}) {
         />
     </TouchableOpacity>
  
-
+ 
       </View>
-
+ 
       {/* WALLET */}
-      <TouchableOpacity 
+      <TouchableOpacity
                       onPress={()=>navigation.navigate('Wallet')}>
         <LinearGradient
             colors={['#4F39F6', '#155DFC']}
@@ -181,12 +181,12 @@ export default function EarningsScreen({navigation}) {
             </Text>
         </LinearGradient>
       </TouchableOpacity>
-      
-
+     
+ 
       <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
     </View>
   );
-
+ 
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
     <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'MONTH'})} >
@@ -241,18 +241,18 @@ const handleItemPress = (item) => {
       renderItem={({ item }) => <TouchableOpacity
       onPress={() => handleItemPress(item)}
     ><IncentiveCard item={item} /></TouchableOpacity>}
-      
+     
       ListHeaderComponent={HEADER}
       ListFooterComponent={FOOTER}
       refreshing={refreshing}
       onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews={false}
-      
+     
     />
   );
 }
-
+ 
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
@@ -260,8 +260,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    paddingVertical: hp(4), 
-    paddingHorizontal: wp(5) 
+    paddingVertical: hp(4),
+    paddingHorizontal: wp(5)
   },
   heading: {
     flexDirection: 'row',
@@ -326,18 +326,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: wp(4.5),
     fontWeight: '600',
-    
+   
   },
   walletText: {
     marginLeft:wp(1),
     color: '#fff',
     fontSize: wp(4),
     paddingBottom:hp(0.5)
-    
+   
   },
   withdraw_button: { backgroundColor: '#FFFFFF', borderRadius: wp(2), width: wp(23), paddingVertical: hp(1),marginLeft:wp(30), },
-  
-
+ 
+ 
   incentiveTitle: {
     fontSize: wp(4.5),
     fontWeight: '600',
@@ -346,5 +346,3 @@ const styles = StyleSheet.create({
     marginBottom: hp(1)
   },
 });
-
-

@@ -97,7 +97,11 @@ const mapWallet = res => ({
   totalWithdrawn: res.data?.totalWithdrawn ?? 0,
 });
 
-const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
+const mapIncentives = (
+  peakRes,
+  weeklyRes,
+  dailyRes
+) => {
   const incentives = [];
 
   if (peakRes?.data) {
@@ -111,7 +115,7 @@ const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
     });
   }
 
-  // WEEKLY
+  // Weekly Incentive
   if (weeklyRes?.data) {
     incentives.push({
       id: 'weekly-incentive',
@@ -122,11 +126,10 @@ const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
       completedOrders: weeklyRes.data.progress.eligibleDays,
       requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',
-      type:'weekly'
     });
   }
 
-  // DAILY
+  // Daily Incentive
   if (dailyRes?.data) {
     incentives.push({
       id: 'daily-incentive',
@@ -135,7 +138,6 @@ const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
       completedOrders: dailyRes.data.ordersCompleted ?? 0,
       value: `₹${dailyRes.data.rewardAmount}`,
       accentColor: '#F5F3FF',
-      type:'daily'
     });
   }
 
