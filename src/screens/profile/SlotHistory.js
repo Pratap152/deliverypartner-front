@@ -9,7 +9,7 @@ import {
   Image,
   FlatList,
 } from 'react-native';
-import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
@@ -19,10 +19,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import apiClient from '../../services/ApiClient';
 
 const PAGE_SIZE = 10;
+const CACHE_KEY = 'SLOT_HISTORY_CACHE';
+
+/* ================= MEMORY CACHE ================= */
+let memoryCache = null;
 
 const SlotHistory = ({ navigation }) => {
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [listLoading, setListLoading] = useState(false);
   const [slots, setSlots] = useState([]);
   const [summary, setSummary] = useState({
     totalSlots: 0,
@@ -30,33 +32,52 @@ const SlotHistory = ({ navigation }) => {
   });
   const [activeFilter, setActiveFilter] = useState('all');
 
-  // 🔥 Pagination states
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
+  const [initialRendered, setInitialRendered] = useState(false);
+
+  /* ================= LOAD CACHE FIRST ================= */
 
   useEffect(() => {
-    fetchSlotHistory('all', 1, true);
-  }, [fetchSlotHistory]);
-
-  /* ---------------- FETCH API ---------------- */
-
-  const fetchSlotHistory = useCallback(
-    async (filterType, pageNo = 1, firstLoad = false) => {
-      if (listLoading) return;
-
+    const loadCache = async () => {
       try {
-        if (!apiClient) {
-          Alert.alert('Session expired', 'Please login again');
+        // 1️⃣ memory cache (fastest)
+        if (memoryCache) {
+          setSlots(memoryCache.slots);
+          setSummary(memoryCache.summary);
+          setInitialRendered(true);
           return;
         }
 
-        if (firstLoad) {
-          setInitialLoading(true);
-        } else {
-          setListLoading(true);
+        // 2️⃣ AsyncStorage cache
+        const cached = await AsyncStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          memoryCache = parsed;
+          setSlots(parsed.slots || []);
+          setSummary(parsed.summary || { totalSlots: 0, totalEarnings: 0 });
         }
+      } catch (e) {
+        // ignore cache errors safely
+      } finally {
+        setInitialRendered(true);
+      }
+    };
 
-        const res = await apiClient.get(`/api/profile/slots/history`, {
+    loadCache();
+  }, []);
+
+  /* ================= FETCH API ================= */
+
+  const fetchSlotHistory = useCallback(
+    async (filterType, pageNo = 1) => {
+      if (listLoading) return;
+
+      try {
+        setListLoading(true);
+
+        const res = await apiClient.get('/api/profile/slots/history', {
           params: {
             filter: filterType === 'all' ? undefined : filterType,
             page: pageNo,
@@ -67,33 +88,47 @@ const SlotHistory = ({ navigation }) => {
         if (res.data?.success) {
           const newData = res.data.data || [];
 
-          setSlots(prev => (pageNo === 1 ? newData : [...prev, ...newData]));
+          const updatedSlots = pageNo === 1 ? newData : [...slots, ...newData];
 
-          setSummary({
+          const updatedSummary = {
             totalSlots: Number(res.data.totalSlots ?? 0),
             totalEarnings: Number(res.data.totalEarnings ?? 0),
-          });
+          };
 
+          setSlots(updatedSlots);
+          setSummary(updatedSummary);
           setHasMore(newData.length === PAGE_SIZE);
           setPage(pageNo);
+
+          // update cache
+          const cachePayload = {
+            slots: updatedSlots,
+            summary: updatedSummary,
+          };
+          memoryCache = cachePayload;
+          AsyncStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
         }
       } catch (e) {
         Alert.alert('Error', 'Failed to fetch slot history');
       } finally {
-        setInitialLoading(false);
         setListLoading(false);
       }
     },
-    [listLoading],
+    [listLoading, slots],
   );
 
-  /* ---------------- GROUP DATA ---------------- */
+  /* ================= INITIAL FETCH ================= */
+
+  useEffect(() => {
+    fetchSlotHistory('all', 1);
+  }, []);
+
+  /* ================= GROUP DATA (UNCHANGED LOGIC) ================= */
 
   const groupedSlots = useMemo(() => {
     return slots.reduce((acc, slot) => {
-      const dateKey = slot.date;
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(slot);
+      if (!acc[slot.date]) acc[slot.date] = [];
+      acc[slot.date].push(slot);
       return acc;
     }, {});
   }, [slots]);
@@ -103,16 +138,30 @@ const SlotHistory = ({ navigation }) => {
   }, [groupedSlots]);
 
   const flatData = useMemo(() => {
+    if (!sortedDates.length) return [];
+
     return sortedDates.flatMap(date => [
-      { type: 'header', date },
+      { type: 'header', id: `h-${date}`, date },
       ...groupedSlots[date].map(slot => ({
-        type: 'slot',
         ...slot,
+        id: slot.slotBookingId,
+        type: 'slot',
       })),
     ]);
   }, [sortedDates, groupedSlots]);
 
-  /* ---------------- HELPERS ---------------- */
+  /* ================= SKELETON DATA ================= */
+
+  const skeletonData = useMemo(
+    () =>
+      Array.from({ length: 6 }).map((_, i) => ({
+        id: `skeleton-${i}`,
+        type: 'skeleton',
+      })),
+    [],
+  );
+
+  /* ================= HELPERS (UNCHANGED) ================= */
 
   const formatDateMMDDYYYY = date => {
     const d = new Date(date);
@@ -150,7 +199,7 @@ const SlotHistory = ({ navigation }) => {
     });
   };
 
-  /* ---------------- STATUS ---------------- */
+  /* ================= STATUS CONFIG ================= */
 
   const STATUS_CONFIG = {
     COMPLETED: {
@@ -179,14 +228,31 @@ const SlotHistory = ({ navigation }) => {
     },
   };
 
-  const renderSlot = slot => {
-    const status = STATUS_CONFIG[slot.slotStatus] || STATUS_CONFIG.ACTIVE;
+  /* ================= RENDER ITEM ================= */
+
+  const renderItem = ({ item }) => {
+    if (item.type === 'skeleton') {
+      return <View style={styles.slotCard} />;
+    }
+
+    if (item.type === 'header') {
+      return (
+        <View style={styles.dateRow}>
+          <Text style={styles.todayText}>{getLeftLabel(item.date)}</Text>
+          <Text style={styles.dateHeaderRight}>
+            {formatDateMMDDYYYY(item.date)}
+          </Text>
+        </View>
+      );
+    }
+
+    const status = STATUS_CONFIG[item.slotStatus] || STATUS_CONFIG.ACTIVE;
 
     return (
       <View style={styles.slotCard}>
         <View style={styles.rowBetween}>
           <Text style={styles.timeText}>
-            {slot.startTime} - {slot.endTime}
+            {item.startTime} - {item.endTime}
           </Text>
 
           <View
@@ -205,30 +271,14 @@ const SlotHistory = ({ navigation }) => {
         </View>
 
         <View style={[styles.rowBetween, { marginTop: rh(0.6) }]}>
-          <Text style={styles.subText}>Orders: {slot.totalOrders}</Text>
-          <Text style={styles.earningText}>Earnings: ₹{slot.slotEarnings}</Text>
+          <Text style={styles.subText}>Orders: {item.totalOrders}</Text>
+          <Text style={styles.earningText}>Earnings: ₹{item.slotEarnings}</Text>
         </View>
       </View>
     );
   };
 
-  /* ---------------- INITIAL LOADER ---------------- */
-
-  if (initialLoading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#0DBE61" />
-      </View>
-    );
-  }
-
-  const EmptySlots = () => (
-    <View style={{ alignItems: 'center', marginTop: rh(8) }}>
-      <Text style={styles.emptyText}>No slots available</Text>
-    </View>
-  );
-
-  /* ---------------- UI ---------------- */
+  /* ================= UI ================= */
 
   return (
     <View style={styles.container}>
@@ -246,7 +296,7 @@ const SlotHistory = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* FILTERS + SUMMARY (UNCHANGED UI) */}
+      {/* BANNER (FILTERS + SUMMARY) */}
       <View style={{ padding: rw(4) }}>
         <View style={styles.filterRow}>
           {[
@@ -262,7 +312,7 @@ const SlotHistory = ({ navigation }) => {
                 activeFilter === item.value && styles.activeFilterTab,
               ]}
               onPress={() => {
-                setActiveFilter(item.value); // ⚡ Optimistic UI
+                setActiveFilter(item.value);
                 setPage(1);
                 setHasMore(true);
                 fetchSlotHistory(item.value, 1);
@@ -303,46 +353,27 @@ const SlotHistory = ({ navigation }) => {
 
       {/* LIST */}
       <FlatList
-        data={flatData}
-        keyExtractor={(item, index) =>
-          item.type === 'header' ? `header-${item.date}` : item.slotBookingId
+        data={
+          !initialRendered
+            ? skeletonData
+            : flatData.length
+            ? flatData
+            : skeletonData
         }
-        renderItem={({ item }) =>
-          item.type === 'header' ? (
-            <View style={styles.dateRow}>
-              <Text style={styles.todayText}>{getLeftLabel(item.date)}</Text>
-              <Text style={styles.dateHeaderRight}>
-                {formatDateMMDDYYYY(item.date)}
-              </Text>
-            </View>
-          ) : (
-            renderSlot(item)
-          )
-        }
-        ListEmptyComponent={!initialLoading && <EmptySlots />}
-        refreshing={listLoading}
-        onRefresh={() => {
-          setPage(1);
-          setHasMore(true);
-          fetchSlotHistory(activeFilter, 1);
-        }}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: rw(4) }}
         onEndReached={() => {
           if (hasMore && !listLoading) {
             fetchSlotHistory(activeFilter, page + 1);
           }
         }}
         onEndReachedThreshold={0.3}
-        contentContainerStyle={{ padding: rw(4) }}
-
-        // ListFooterComponent={
-        //   listLoading && hasMore ? (
-        //     <ActivityIndicator
-        //       size="small"
-        //       color="#12B5CB"
-        //       style={{ marginVertical: rh(2) }}
-        //     />
-        //   ) : null
-        // }
+        ListFooterComponent={
+          listLoading && (
+            <ActivityIndicator size="small" style={{ marginVertical: rh(2) }} />
+          )
+        }
       />
     </View>
   );
@@ -350,17 +381,10 @@ const SlotHistory = ({ navigation }) => {
 
 export default SlotHistory;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F4F6F8',
-  },
+/* ================= STYLES (UNCHANGED FROM ORIGINAL) ================= */
 
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6F8' },
 
   header: {
     height: rh(8),
@@ -372,10 +396,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  headerTitle: {
-    fontSize: rf(2.3),
-    fontWeight: '600',
-  },
+  headerTitle: { fontSize: rf(2.3), fontWeight: '600' },
 
   robotIcon: {
     width: rw(12),
@@ -398,9 +419,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  activeFilterTab: {
-    backgroundColor: '#12B5CB',
-  },
+  activeFilterTab: { backgroundColor: '#12B5CB' },
 
   filterText: {
     fontSize: rf(1.6),
@@ -408,10 +427,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  activeFilterText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  activeFilterText: { color: '#fff', fontWeight: '600' },
 
   summaryRow: {
     flexDirection: 'row',
@@ -428,9 +444,7 @@ const styles = StyleSheet.create({
   green: { backgroundColor: '#00A63E' },
   orange: { backgroundColor: '#F54900' },
 
-  summaryIcon: {
-    color: '#FFFFFF',
-  },
+  summaryIcon: { resizeMode: 'contain' },
 
   summaryValue: {
     color: '#FFFFFF',
@@ -443,63 +457,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: rh(0.5),
     fontSize: rf(1.6),
-  },
-
-  dateHeader: {
-    marginVertical: rh(1),
-    fontSize: rf(1.8),
-    fontWeight: '600',
-    color: '#555',
-  },
-
-  slotCard: {
-    backgroundColor: '#fff',
-    padding: rw(4),
-    borderRadius: 8,
-    marginBottom: rh(1),
-  },
-
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  timeText: {
-    fontSize: rf(1.8),
-    fontWeight: '600',
-  },
-
-  subText: {
-    fontSize: rf(1.6),
-    color: '#555',
-  },
-
-  earningText: {
-    fontSize: rf(1.6),
-    color: '#4A5565',
-    fontWeight: '600',
-  },
-
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: rw(2.5),
-    paddingVertical: rh(0.4),
-    borderRadius: 14,
-  },
-
-  statusText: {
-    fontSize: rf(1.4),
-    fontWeight: '600',
-    color: '#0DBE61',
-  },
-
-  emptyText: {
-    textAlign: 'center',
-    marginTop: rh(5),
-    fontSize: rf(1.8),
-    color: '#777',
   },
 
   dateRow: {
@@ -520,4 +477,37 @@ const styles = StyleSheet.create({
     color: '#555',
     fontWeight: '500',
   },
+
+  slotCard: {
+    backgroundColor: '#fff',
+    padding: rw(4),
+    borderRadius: 8,
+    marginBottom: rh(1),
+  },
+
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  timeText: { fontSize: rf(1.8), fontWeight: '600' },
+
+  subText: { fontSize: rf(1.6), color: '#555' },
+
+  earningText: {
+    fontSize: rf(1.6),
+    color: '#4A5565',
+    fontWeight: '600',
+  },
+
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: rw(2.5),
+    paddingVertical: rh(0.4),
+    borderRadius: 14,
+  },
+
+  statusText: { fontSize: rf(1.4), fontWeight: '600' },
 });

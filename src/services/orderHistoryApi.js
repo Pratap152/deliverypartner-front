@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { tokenService } from '../services/TokenService';
 import WEBSITE_URL from '../utils/host';
+import apiClient from './ApiClient';
 
 export const getOrderHistory = async ({
   filter = 'weekly',
@@ -14,15 +15,9 @@ export const getOrderHistory = async ({
       return;
     }
 
-    const response = await axios.get(
-      `${WEBSITE_URL}/api/profile/orders/history`,
-      {
-        params: { filter, page, limit },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
+    const response = await apiClient.get(`/api/rider/orders/history`, {
+      params: { filter, page, limit },
+    });
 
     return response.data;
   } catch (error) {

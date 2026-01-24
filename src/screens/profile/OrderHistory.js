@@ -16,7 +16,12 @@ import {
 
 import { useOrderHistory } from '../../hooks/useOrderHistory';
 
-const FILTERS = ['today', 'weekly', 'monthly', 'all'];
+const FILTERS = [
+  { label: 'All', value: 'all' },
+  { label: 'Today', value: 'today' },
+  { label: 'Week', value: 'weekly' },
+  { label: 'Month', value: 'monthly' },
+];
 
 const OrderHistory = ({ navigation }) => {
   const [selectedFilter, setSelectedFilter] = useState('weekly');
@@ -24,41 +29,37 @@ const OrderHistory = ({ navigation }) => {
   const { orders, summary, loading, loadingMore, loadMore } =
     useOrderHistory(selectedFilter);
 
-  const renderFilter = filter => (
-    <TouchableOpacity
-      key={filter}
-      style={[
-        styles.filterBtn,
-        selectedFilter === filter && styles.activeFilter,
-      ]}
-      onPress={() => setSelectedFilter(filter)}
-    >
-      <Text
-        style={[
-          styles.filterText,
-          selectedFilter === filter && styles.activeFilterText,
-        ]}
-      >
-        {filter.charAt(0).toUpperCase() + filter.slice(1)}
-      </Text>
-    </TouchableOpacity>
-  );
-
   const renderOrder = ({ item }) => (
     <View style={styles.orderCard}>
-      <View style={styles.orderHeader}>
+      <View style={styles.rowBetween}>
         <Text style={styles.restaurant}>{item.restaurantName}</Text>
         <Text style={styles.earning}>₹{item.earning}</Text>
       </View>
 
       <Text style={styles.orderId}>{item.orderId}</Text>
 
-      <View style={styles.metaRow}>
-        <Text style={styles.metaText}>{item.paymentMode}</Text>
-        <Text style={styles.metaText}>{item.date}</Text>
+      <Text style={styles.metaText}>
+        {item.customerName} → {item.area}
+      </Text>
+
+      <View style={styles.rowBetween}>
+        <View style={styles.row}>
+          <Text style={styles.metaSmall}>{item.distance} km</Text>
+          <View style={styles.starRow}>
+            <Ionicons name="star" size={14} color="#F5A623" />
+            <Text style={styles.metaSmall}>{item.rating}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.metaSmall}>{item.time}</Text>
       </View>
 
-      <Text style={styles.status}>{item.status}</Text>
+      {item.tip ? (
+        <View style={styles.tipRow}>
+          <Text style={styles.tipLabel}>Customer Tip</Text>
+          <Text style={styles.tipValue}>+₹{item.tip}</Text>
+        </View>
+      ) : null}
     </View>
   );
 
@@ -82,7 +83,27 @@ const OrderHistory = ({ navigation }) => {
       </View>
 
       {/* FILTERS */}
-      <View style={styles.filterRow}>{FILTERS.map(renderFilter)}</View>
+      <View style={styles.filterRow}>
+        {FILTERS.map(item => (
+          <TouchableOpacity
+            key={item.value}
+            style={[
+              styles.filterChip,
+              selectedFilter === item.value && styles.filterChipActive,
+            ]}
+            onPress={() => setSelectedFilter(item.value)}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                selectedFilter === item.value && styles.filterTextActive,
+              ]}
+            >
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* SUMMARY */}
       <View style={styles.summaryGrid}>
@@ -108,9 +129,6 @@ const OrderHistory = ({ navigation }) => {
             <ActivityIndicator style={{ marginVertical: 20 }} />
           ) : null
         }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No orders found</Text>
-        }
       />
     </View>
   );
@@ -124,6 +142,9 @@ const SummaryCard = ({ label, value }) => (
 );
 
 export default OrderHistory;
+
+/* ================= STYLES ================= */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -149,33 +170,35 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  /* FILTERS */
   filterRow: {
     flexDirection: 'row',
     marginBottom: rh(2),
   },
 
-  filterBtn: {
+  filterChip: {
     paddingHorizontal: rw(4),
     paddingVertical: rh(0.8),
     borderRadius: 20,
-    backgroundColor: '#F1F1F1',
+    backgroundColor: '#F1F3F5',
     marginRight: rw(2),
   },
 
-  activeFilter: {
+  filterChipActive: {
     backgroundColor: '#19A7CE',
   },
 
   filterText: {
-    fontSize: rf(1.7),
+    fontSize: rf(1.6),
     color: '#555',
   },
 
-  activeFilterText: {
+  filterTextActive: {
     color: '#fff',
     fontWeight: '600',
   },
 
+  /* SUMMARY */
   summaryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -185,11 +208,11 @@ const styles = StyleSheet.create({
 
   summaryCard: {
     width: '48%',
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: rw(4),
     marginBottom: rh(1.5),
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
 
   summaryValue: {
@@ -203,17 +226,13 @@ const styles = StyleSheet.create({
     marginTop: rh(0.5),
   },
 
+  /* ORDER CARD */
   orderCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: rw(4),
     marginBottom: rh(1.5),
-    elevation: 2,
-  },
-
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
 
   restaurant: {
@@ -233,21 +252,48 @@ const styles = StyleSheet.create({
     marginVertical: rh(0.5),
   },
 
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-
   metaText: {
     fontSize: rf(1.4),
     color: '#555',
   },
 
-  status: {
-    marginTop: rh(0.8),
-    fontSize: rf(1.5),
+  metaSmall: {
+    fontSize: rf(1.3),
+    color: '#555',
+  },
+
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  starRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: rw(2),
+  },
+
+  tipRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: rh(1),
+  },
+
+  tipLabel: {
+    fontSize: rf(1.4),
+    color: '#777',
+  },
+
+  tipValue: {
+    fontSize: rf(1.4),
     color: '#1BA672',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 
   emptyText: {

@@ -1,88 +1,79 @@
 import { useEffect, useState } from 'react';
-import { getOrderHistory } from '../services/orderHistoryApi';
-
-const PAGE_SIZE = 10;
+import apiClient from '../services/ApiClient';
 
 export const useOrderHistory = filter => {
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({
     totalOrders: 0,
     totalEarnings: 0,
-    rating: 4.8,
+    rating: 0,
     km: 0,
   });
 
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    resetAndFetch();
-  }, [filter]);
+  const PAGE_SIZE = 10;
 
-  const resetAndFetch = async () => {
-    setPage(1);
-    setHasMore(true);
-    setOrders([]);
-    await fetchOrders(1, true);
-  };
-
-  const fetchOrders = async (pageNo, isInitial = false) => {
+  const fetchOrders = async (pageNo = 1) => {
     try {
-      isInitial ? setLoading(true) : setLoadingMore(true);
+      pageNo === 1 ? setLoading(true) : setLoadingMore(true);
 
-      const res = await getOrderHistory({
-        filter,
-        page: pageNo,
-        limit: PAGE_SIZE,
+      const res = await apiClient.get('/api/profile/orders/history', {
+        params: {
+          filter,
+          page: pageNo,
+          limit: PAGE_SIZE,
+        },
       });
 
-      const mappedOrders = res.data.map(item => ({
-        id: item._id,
-        orderId: item.orderId,
-        restaurantName: item.vendorShopName,
-        earning: item.riderEarning.amount,
-        paymentMode: item.payment.mode,
-        status: item.orderStatus,
-        date: new Date(item.createdAt).toLocaleDateString(),
-      }));
+      if (res.data?.success) {
+        const mappedOrders = res.data.data.map(item => ({
+          id: item.orderId,
+          orderId: item.orderId,
+          restaurantName: item.items?.[0]?.itemName ?? 'Order',
+          earning: item.pricing.totalAmount,
+          distance: item.distanceTravelled,
+          rating: item.rating,
+          time: new Date(item.deliveredAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          customerName: item.pickupAddress,
+          area: item.deliveredAddress,
+          tip: item.customerTip,
+        }));
 
-      setOrders(prev =>
-        pageNo === 1 ? mappedOrders : [...prev, ...mappedOrders],
-      );
-
-      // SUMMARY (calculated once on first page)
-      if (pageNo === 1) {
-        const totalEarnings = res.data.reduce(
-          (sum, item) => sum + item.riderEarning.amount,
-          0,
+        setOrders(prev =>
+          pageNo === 1 ? mappedOrders : [...prev, ...mappedOrders],
         );
 
         setSummary({
-          totalOrders: res.totalOrders,
-          totalEarnings,
-          rating: 4.8,
-          km: 0,
+          totalOrders: res.data.totalOrders,
+          totalEarnings: res.data.totalEarnings,
+          rating: res.data.avgRating,
+          km: Math.round(res.data.totalDistance),
         });
-      }
 
-      if (mappedOrders.length < PAGE_SIZE) {
-        setHasMore(false);
+        setHasMore(mappedOrders.length === PAGE_SIZE);
+        setPage(pageNo);
       }
-
-      setPage(pageNo + 1);
-    } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
   };
 
+  useEffect(() => {
+    setPage(1);
+    fetchOrders(1);
+  }, [filter]);
+
   const loadMore = () => {
     if (!loadingMore && hasMore) {
-      fetchOrders(page);
+      fetchOrders(page + 1);
     }
   };
 
