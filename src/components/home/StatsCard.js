@@ -1,19 +1,26 @@
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import EarningsScreen from '../../screens/dashboard/EarningsScreen';
+import SlotHistory from '../../screens/profile/SlotHistory';
+import OrderHistory from '../../screens/profile/OrderHistory';
 
-const StatItem = ({ icon, value, label, bgColor }) => {
+const StatItem = ({ icon, value, label, bgColor, screen }) => {
+ const navigation = useNavigation();
   return (
     <View style={styles.card}>
+      <TouchableOpacity onPress={()=>navigation.navigate(screen)}>
       <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
         <Ionicons name={icon} size={wp('5%')} color="#fff" />
       </View>
       <Text style={styles.value}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -27,18 +34,22 @@ const StatsCard = () => {
           value="₹842"
           label="Earnings"
           bgColor="#2ECC71" // green
+          screen={EarningsScreen}
+
         />
         <StatItem
           icon="time-outline"
           value="4h 23m"
           label="Online"
           bgColor="#8E7CF3" // purple
+          screen={SlotHistory}
         />
         <StatItem
           icon="cart-outline"
           value="12"
           label="Orders"
           bgColor="#FF6FAE" // pink
+          screen={OrderHistory}
         />
       </View>
     </View>

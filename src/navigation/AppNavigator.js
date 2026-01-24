@@ -26,17 +26,25 @@ import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
 import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
+import EarningsHistoryScreen from '../screens/earnings/EarningsHistoryScreen';
+import OrderHistory from '../screens/profile/OrderHistory';
 import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
 import ProfileNavigator from './ProfileNavigator';
+import EarningsScreen from '../screens/dashboard/EarningsScreen';
+import SlotHistory from '../screens/profile/SlotHistory';
+import WeekEarnings from '../screens/incentives/WeekEarnings';
+import DailyGuarentee from '../screens/incentives/DailyGuarentee';
+import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
+// import Timer from '../screens/Home/Timer';
 import HomeNavigator from './HomeNavigator';
 import MapScreen from '../screens/Home/MapScreen';
+import OrderDetailsScreen  from '../screens/Home/OrderDetailsScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="MainTabs"
-      
+      initialRouteName="MainTabs"      
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
@@ -79,6 +87,8 @@ const AppNavigator = () => {
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
 
       <Stack.Screen name="HelpCenter" component={HelpCenterList} />
+      <Stack.Screen name="OrderHistory" component={OrderHistory} />
+      <Stack.Screen name="SlotHistory" component={SlotHistory} />
 
       <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
@@ -87,11 +97,22 @@ const AppNavigator = () => {
         name="SlotHistoryScreen"
         component={SlotHistoryScreen}
       />
+      <Stack.Screen
+        name="EarningsHistoryScreen"
+        component={EarningsHistoryScreen}
+      />
+       {/* <Stack.Screen name="" component={} />
+      <Stack.Screen name="" component={} />
+      <Stack.Screen name="" component={} />  */}
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
         <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
         <Stack.Screen name='HomeNavigator' component={HomeNavigator}/>
         <Stack.Screen name="MapScreen" component={MapScreen} />
+        <Stack.Screen
+    name="OrderDetailsScreen"
+    component={OrderDetailsScreen}
+  />
     </Stack.Navigator>
   );
 };

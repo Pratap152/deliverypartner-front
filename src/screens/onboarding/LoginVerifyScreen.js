@@ -107,6 +107,12 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       }
 
       await tokenService.set({ accessToken, refreshToken });
+      console.log(
+        'OTP verified, tokens stored. accessToken:',
+        accessToken,
+        'refreshToken:',
+        refreshToken,
+      );
 
       // ✅ Let SplashScreen decide next route
       navigation.replace('SplashScreen');
@@ -153,7 +159,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
       <Text style={styles.label}>Enter OTP</Text>
 
-       <OtpInput
+      <OtpInput
         otp={otp}
         inputRefs={inputRefs}
         handleChange={handleChange}

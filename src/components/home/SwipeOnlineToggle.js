@@ -1,13 +1,11 @@
 import React, { useRef, useEffect } from "react";
-<<<<<<< Updated upstream
 import { View, Text, StyleSheet, Animated, PanResponder} from "react-native";
-=======
-import { View, Text, StyleSheet, Animated, PanResponder } from "react-native";
->>>>>>> Stashed changes
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+
+import { useRider } from "../../context/RiderContext";
 
 const SWIPE_WIDTH = wp("87%");     
 const TRACK_HEIGHT = hp("7.5%");
@@ -15,7 +13,6 @@ const THUMB_SIZE = hp("6.5%");
 const MAX_SWIPE = SWIPE_WIDTH - THUMB_SIZE;
 
 const SwipeOnlineToggle = ({
-  isOnline,
   onSwipeOnline,
   onSwipeOffline,
   gpsEnabled,
@@ -23,7 +20,8 @@ const SwipeOnlineToggle = ({
   const translateX = useRef(
     new Animated.Value(isOnline ? MAX_SWIPE : 0)
   ).current;
-
+  
+const { isOnline } = useRider();
   const startX = useRef(0);
 
   useEffect(() => {

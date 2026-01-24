@@ -8,7 +8,6 @@ import { ORDER_STATUS } from '../../config/orderStates';
 import { orderService } from '../../services/order/OrderService';
 import LiveMap from '../../components/map/LiveMap';
 import SwipeButton from '../../components/common/SwipeButton';
-import LiveMap from '../../components/map/LiveMap';
 const MapScreen = ({ route, navigation }) => {
   const { nextStatus } = route.params;
 

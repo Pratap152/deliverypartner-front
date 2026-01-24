@@ -6,5 +6,5 @@ export const store = configureStore({
   reducer: {
     address: addressReducer,
     vehicle: vehicleReducer,
-  },
+}
 });
