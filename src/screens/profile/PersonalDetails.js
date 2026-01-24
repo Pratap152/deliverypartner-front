@@ -117,23 +117,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
     selfie: data?.selfie || null,
   });
 
-  /* ========== HELPERS ========== */
-  const mapProfileToForm = data => ({
-    fullName: data?.personalInfo?.fullName || '',
-    email: data?.personalInfo?.email || '',
-    dob: data?.personalInfo?.dob
-      ? new Date(data.personalInfo.dob).toISOString().slice(0, 10)
-      : '',
-    phoneNumber: data?.phone?.number || '',
-    countryCode: data?.phone?.countryCode || '+91',
-    streetAddress: data?.location?.streetAddress || '',
-    area: data?.location?.area || '',
-    city: data?.location?.city || '',
-    state: data?.location?.state || '',
-    pincode: data?.location?.pincode || '',
-    selfie: data?.selfie || null,
-  });
-
   /* ---------------- HELPERS ---------------- */
   const handleChange = (key, value) =>
     setForm(prev => ({ ...prev, [key]: value }));
