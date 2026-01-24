@@ -42,6 +42,7 @@ import { useNavigation } from '@react-navigation/native';
 import EarningsScreen from '../../screens/dashboard/EarningsScreen';
 import SlotHistory from '../../screens/profile/SlotHistory';
 import OrderHistory from '../../screens/profile/OrderHistory';
+import EarningsNavigator from '../../navigation/EarningsNavigator';
 
 const StatItem = ({ icon, value, label, bgColor, screen }) => {
  const navigation = useNavigation();
@@ -67,7 +68,7 @@ const StatsCard = () => {
           value="₹842"
           label="Earnings"
           bgColor="#2ECC71" // green
-          screen={EarningsScreen}
+          screen={EarningsNavigator}
 
         />
         <StatItem

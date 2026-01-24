@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import SlotBookingScreen from '../../screens/dashboard/SlotBookingScreen';
+import SlotsNavigator from '../../navigation/SlotsNavigator';
 const ActiveShiftBanner = (
 ) => {
   const navigation = useNavigation();
@@ -12,7 +13,7 @@ const ActiveShiftBanner = (
       <Text style={styles.subtitle}>Evening Peak • 6:00 PM - 11:00 PM</Text>
       <Text style={styles.info}>Earn up to 2x during peak hours</Text>
 
-      <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate(SlotBookingScreen)}>
+      <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate(SlotsNavigator)}>
         <Text style={styles.buttonText}>Book now and go online</Text>
       </TouchableOpacity>
     </View>
