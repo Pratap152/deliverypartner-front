@@ -117,6 +117,24 @@ const PersonalDetailsScreen = ({ navigation }) => {
     selfie: data?.selfie || null,
   });
 
+  /* ========== HELPERS ========== */
+  const mapProfileToForm = data => ({
+    fullName: data?.personalInfo?.fullName || '',
+    email: data?.personalInfo?.email || '',
+    dob: data?.personalInfo?.dob
+      ? new Date(data.personalInfo.dob).toISOString().slice(0, 10)
+      : '',
+    phoneNumber: data?.phone?.number || '',
+    countryCode: data?.phone?.countryCode || '+91',
+    streetAddress: data?.location?.streetAddress || '',
+    area: data?.location?.area || '',
+    city: data?.location?.city || '',
+    state: data?.location?.state || '',
+    pincode: data?.location?.pincode || '',
+    selfie: data?.selfie || null,
+  });
+
+  /* ---------------- HELPERS ---------------- */
   const handleChange = (key, value) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
@@ -197,10 +215,9 @@ const PersonalDetailsScreen = ({ navigation }) => {
         <View style={styles.profileCard}>
           <TouchableOpacity
             onPress={() =>
-              isEditing
-                ? pickImage()
-                : profile?.selfie?.url && setImageModal(true)
+              isEditing ? pickImage() : form.selfie && setImageModal(true)
             }
+            activeOpacity={0.8}
           >
             <Image
               source={
@@ -312,17 +329,29 @@ const PersonalDetailsScreen = ({ navigation }) => {
         <View style={{ height: rh(4) }} />
       </ScrollView>
 
-      <Modal visible={imageModal} transparent>
-        <TouchableOpacity
-          style={styles.modal}
-          onPress={() => setImageModal(false)}
-        >
-          <Image
-            source={{ uri: profile?.selfie?.url }}
-            style={styles.fullImage}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+      {/* IMAGE MODAL */}
+      <Modal
+        visible={imageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImageModal(false)}
+      >
+        <View style={styles.modal}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setImageModal(false)}
+          >
+            <Ionicons name="close" size={rf(3)} color="#FFF" />
+          </TouchableOpacity>
+
+          {form.selfie && (
+            <Image
+              source={{ uri: form.selfie }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
       </Modal>
     </View>
   );
@@ -404,7 +433,6 @@ const styles = StyleSheet.create({
     color: '#00B2C9',
   },
 
-  /* PROFILE CARD */
   profileCard: {
     backgroundColor: '#FFF',
     flexDirection: 'row',
@@ -418,13 +446,12 @@ const styles = StyleSheet.create({
 
   avatar: {
     width: rw(20),
+    width: rw(20),
     height: rw(20),
     borderRadius: rw(10),
   },
 
-  profileInfo: {
-    marginLeft: rw(4),
-  },
+  profileInfo: { marginLeft: rw(4) },
 
   name: {
     fontSize: rf(2.2),
@@ -470,7 +497,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  /* INPUT */
   input: {
     borderWidth: 1,
     borderColor: '#D0D5DD',
@@ -518,8 +544,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  fullImage: {
+  fullImage: { width: '100%', height: '100%' },
+
+  placeholder: {
+    width: rw(20),
+    height: rw(20),
+    borderRadius: rw(10),
+    backgroundColor: '#F2F4F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarOuterWrapper: {
+    width: rw(20),
+    height: rw(20),
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarWrapper: {
     width: '100%',
     height: '100%',
+    borderRadius: rw(10),
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  addIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#00B2C9',
+    width: rw(6),
+    height: rw(6),
+    borderRadius: rw(3),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: rh(5),
+    right: rw(4),
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: rw(10),
+    height: rw(10),
+    borderRadius: rw(5),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

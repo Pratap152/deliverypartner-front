@@ -1,8 +1,10 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useNavigation } from '@react-navigation/native';
 
 const StatRow = ({ label, value, percent }) => {
+  
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -16,12 +18,13 @@ const StatRow = ({ label, value, percent }) => {
 };
 
 const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>This Week</Text>
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsScreen')}>
           <Text style={styles.link}>View Details</Text>
         </TouchableOpacity>
       </View>

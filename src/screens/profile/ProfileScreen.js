@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,10 +16,15 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { authService } from '../../services/AuthService';
+import apiClient from '../../services/ApiClient';
+
 export default function ProfileScreen({ navigation }) {
+  const [profile, setProfile] = useState(null);
+
   const onLogoutPress = () => {
     authService.logout();
   };
+
   const openCamera = async () => {
     try {
       let permission = await Camera.getCameraPermissionStatus();
@@ -46,6 +51,19 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const fetchProfile = async () => {
+    try {
+      const res = await apiClient.get('/api/profile/rider/profile');
+      setProfile(res.data?.data);
+    } catch (e) {
+      console.log('Profile fetch error', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   return (
     <View style={styles.root}>
       <StatusBar backgroundColor="#13ACBE" barStyle="light-content" />
@@ -63,27 +81,25 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatar}>
                   <Image
-                    source={require('../../assets/profile/profileicon.png')}
+                    source={
+                      profile?.selfie
+                        ? { uri: profile.selfie }
+                        : require('../../assets/profile/profileicon.png')
+                    }
                     style={styles.avatarImage}
                   />
                 </View>
-
-                <TouchableOpacity
-                  style={styles.cameraIconWrapper}
-                  activeOpacity={0.8}
-                  onPress={openCamera}
-                >
-                  <Image
-                    source={require('../../assets/profile/Camera.png')}
-                    style={styles.cameraIcon}
-                  />
-                </TouchableOpacity>
               </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name}>Rajesh Kumar</Text>
-                <Text style={styles.partnerId}>Partner ID: DP482763</Text>
+              <View style={{ flex: 1, marginLeft: wp('4%') }}>    
+                <Text style={styles.name}>
+                  {profile?.personalInfo?.fullName || '—'}
+                </Text>
 
+                <Text style={styles.driverId}>
+                  Driver ID: DRV123456
+                </Text>
+                
                 <View style={styles.activeBadge}>
                   <Text style={styles.activeText}>Active</Text>
                 </View>
@@ -519,20 +535,21 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: wp('15%'),
-    height: wp('15%'),
-    borderRadius: wp('7.5%'),
-    backgroundColor: '#13ACBE',
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp('4%'),
+    backgroundColor: '#F2F2F2',
   },
 
   avatarImage: {
-    width: wp('9%'),
-    height: wp('9%'),
-    resizeMode: 'contain',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
+
 
   name: {
     fontSize: wp('4.8%'),
@@ -669,4 +686,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: wp('3%'),
   },
+  driverId: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 4,
+  },
+
 });
