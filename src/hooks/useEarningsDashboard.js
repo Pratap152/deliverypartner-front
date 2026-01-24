@@ -118,7 +118,7 @@ const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
       type: 'weekly',
       title: weeklyRes.data.title,
       subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
-      value: `₹${weeklyRes.data.maxRewardPerWeek}`,
+      value: `Earn ₹${weeklyRes.data.maxRewardPerWeek}`,
       completedOrders: weeklyRes.data.progress.eligibleDays,
       requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',

@@ -194,40 +194,44 @@ export default function EarningsScreen({navigation}) {
     </TouchableOpacity>
   );
 
-  const handleItemPress = (item) => {
- 
-
-  if (item.id === 'peak-slot') {
+const handleItemPress = (item) => {
+  if (item.type === 'peak') {
     navigation.navigate('PeakHourBonusScreen', {
-      id: 'peak-slot',
-      type: 'peak',
-      title: peakRes.data.title,
-      subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
-      slabs: peakRes.data.slabs ?? [],
-      accentColor: '#FFF7ED',
+      id: item.id,
+      type: item.type,
+      title: item.title,
+      subtitle: item.subtitle,
+      slabs: item.slabs ?? [],
+      accentColor: item.accentColor,
     });
     return;
   }
 
-  if (item.id === 'weekly-incentive') {
-    navigation.navigate('WeekEarnings',{
-      id: 'weekly-incentive',
-      type: 'weekly',
-      title: weeklyRes.data.title,
-      subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
-      value: `₹${weeklyRes.data.maxRewardPerWeek}`,
-      completedOrders: weeklyRes.data.progress.eligibleDays,
-      requiredOrders: weeklyRes.data.progress.totalDaysRequired,
-      accentColor: '#EFF6FF',
+  if (item.type === 'weekly') {
+    navigation.navigate('WeekEarnings', {
+      id: item.id,
+      type: item.type,
+      title: item.title,
+      subtitle: item.subtitle,
+      value: item.value,
+      completedOrders: item.completedOrders,
+      requiredOrders: item.requiredOrders,
+      accentColor: item.accentColor,
     });
     return;
   }
 
-  if (item.id === 'daily-incentive') {
-    navigation.navigate('DailyGuarentee');
-    return;
+  if (item.type === 'daily') {
+    navigation.navigate('DailyGuarentee', {
+      id: item.id,
+      title: item.title,
+    });
   }
 };
+
+
+
+  
 
 
   return (
