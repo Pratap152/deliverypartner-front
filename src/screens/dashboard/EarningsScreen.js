@@ -21,7 +21,7 @@ import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import { useNavigation } from '@react-navigation/native';
 import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
- 
+
 export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
@@ -106,7 +106,7 @@ export default function EarningsScreen({navigation}) {
       <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
         <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
         <View style={styles.cardHeader}>
-         
+          
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
