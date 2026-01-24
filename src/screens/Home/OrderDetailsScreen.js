@@ -424,6 +424,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               />
             </>
           ) : (
+            /* Show only Drop location (Deliver To) after pickup */
             <OrderAddressCard
               title="Deliver To"
               name={orderDetails.deliveryAddress.name}
@@ -455,6 +456,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               <TouchableOpacity
                 style={styles.navigateBtn}
                 onPress={handleNavigate}
+                activeOpacity={0.8}
               >
                 <Text style={styles.navigateBtnText}>Navigate to Pickup 📍</Text>
               </TouchableOpacity>
