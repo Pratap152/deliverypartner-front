@@ -34,31 +34,35 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const fetchProfile = async () => {
     try {
       if (!fetchedOnce.current) setLoading(true);
-      const res = await apiClient.get(
-        `/api/profile/rider/profile`,
-      );
 
+      const res = await apiClient.get("/api/profile/rider/profile");
       const data = res.data?.data;
-      setProfile(data);
 
+      if (!data) {
+        Alert.alert("Error", "Profile data is missing");
+        return;
+      }
+
+      setProfile(data);
       setForm({
-        fullName: data?.personalInfo?.fullName || "",
-        email: data?.personalInfo?.email || "",
-        dob: data?.personalInfo?.dob
+        fullName: data.personalInfo?.fullName || "",
+        email: data.personalInfo?.email || "",
+        dob: data.personalInfo?.dob
           ? new Date(data.personalInfo.dob).toISOString().slice(0, 10)
           : "",
-        phoneNumber: data?.phone?.number || "",
-        countryCode: data?.phone?.countryCode || "+91",
-        streetAddress: data?.location?.streetAddress || "",
-        area: data?.location?.area || "",
-        city: data?.location?.city || "",
-        state: data?.location?.state || "",
-        pincode: data?.location?.pincode || "",
-        selfie: data?.selfie || null,
+        phoneNumber: data.phone?.number || "",
+        countryCode: data.phone?.countryCode || "+91",
+        streetAddress: data.location?.streetAddress || "",
+        area: data.location?.area || "",
+        city: data.location?.city || "",
+        state: data.location?.state || "",
+        pincode: data.location?.pincode || "",
+        selfie: data.selfie || "",
       });
 
       fetchedOnce.current = true;
-    } catch {
+    } catch (e) {
+      console.log("Fetch Profile Error:", e);
       Alert.alert("Error", "Failed to fetch profile");
     } finally {
       setLoading(false);
@@ -71,46 +75,66 @@ const PersonalDetailsScreen = ({ navigation }) => {
     }, [])
   );
 
+  /* ---------------- HELPERS ---------------- */
   const handleChange = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const pickImage = async () => {
     const res = await launchImageLibrary({ mediaType: "photo", quality: 0.7 });
     if (!res.didCancel && res.assets?.length > 0) {
-      handleChange("selfie", res.assets[0]);
+      handleChange("selfie", res.assets[0].uri);
     }
   };
 
   const handleSave = async () => {
     try {
+      setLoading(true);
 
-      const payload = {
-        phone: {
-          countryCode: form.countryCode,
-          number: form.phoneNumber,
-        },
-        personalInfo: {
-          fullName: form.fullName,
-          email: form.email,
-          dob: form.dob,
-        },
-        location: {
-          streetAddress: form.streetAddress,
-          area: form.area,
-          city: form.city,
-          state: form.state,
-          pincode: form.pincode,
-        },
-        selfie: form.selfie,
-      };
+      const formData = new FormData();
 
-      await apiClient.put(`/api/profile/update`, payload);
+      if (form.email) formData.append("email", form.email);
+      if (form.countryCode) formData.append("countryCode", form.countryCode);
+      if (form.phoneNumber) formData.append("phoneNumber", form.phoneNumber);
+      if (form.streetAddress)
+        formData.append("streetAddress", form.streetAddress);
+      if (form.area) formData.append("area", form.area);
+      if (form.city) formData.append("city", form.city);
+      if (form.state) formData.append("state", form.state);
+      if (form.pincode) formData.append("pincode", form.pincode);
 
-      Alert.alert("Success", "Profile updated successfully");
-      setIsEditing(false);
-      fetchProfile();
-    } catch {
-      Alert.alert("Error", "Failed to update profile");
+      if (form.selfie?.startsWith("file://")) {
+        formData.append("selfie", {
+          uri: form.selfie,
+          name: "selfie.jpg",
+          type: "image/jpeg",
+        });
+      }
+
+      const res = await apiClient.put(
+        "/api/profile/update",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      if (res.data?.success) {
+        setProfile((prev) => ({ ...prev, ...res.data.data }));
+        setForm((prev) => ({
+          ...prev,
+          ...res.data.data,
+          selfie: res.data.data.selfie || prev.selfie,
+        }));
+
+        setIsEditing(false);
+        Alert.alert("Success", "Profile updated successfully");
+      }
+    } catch (err) {
+      console.log("Update Profile Error:", err?.response?.data || err);
+      Alert.alert(
+        "Error",
+        err?.response?.data?.message || "Failed to update profile"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,7 +158,12 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
         <Text style={styles.headerTitle}>Personal Information</Text>
 
-        <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+        <TouchableOpacity
+          onPress={() => {
+            if (isEditing) fetchProfile();
+            setIsEditing(!isEditing);
+          }}
+        >
           <Text style={styles.editText}>
             {isEditing ? "Cancel" : "Edit"}
           </Text>
@@ -146,21 +175,34 @@ const PersonalDetailsScreen = ({ navigation }) => {
         <View style={styles.profileCard}>
           <TouchableOpacity
             onPress={() =>
-              isEditing
-                ? pickImage()
-                : profile?.selfie?.url && setImageModal(true)
+              isEditing ? pickImage() : form.selfie && setImageModal(true)
             }
+            activeOpacity={0.8}
           >
-            <Image
-              source={
-                form.selfie?.uri
-                  ? { uri: form.selfie.uri }
-                  : form.selfie?.url
-                  ? { uri: form.selfie.url }
-                  : require("../../assets/profile/profileicon.png")
-              }
-              style={styles.avatar}
-            />
+            <View style={styles.avatarOuterWrapper}>
+              <View style={styles.avatarWrapper}>
+                {form.selfie ? (
+                  <Image
+                    source={{ uri: form.selfie }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={styles.placeholder}>
+                    <Ionicons
+                      name="person"
+                      size={rf(6)}
+                      color="#98A2B3"
+                    />
+                  </View>
+                )}
+              </View>
+
+              {isEditing && (
+                <View style={styles.addIcon}>
+                  <Ionicons name="camera" size={rf(2)} color="#FFF" />
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
 
           <View style={styles.profileInfo}>
@@ -234,17 +276,29 @@ const PersonalDetailsScreen = ({ navigation }) => {
         <View style={{ height: rh(4) }} />
       </ScrollView>
 
-      <Modal visible={imageModal} transparent>
-        <TouchableOpacity
-          style={styles.modal}
-          onPress={() => setImageModal(false)}
-        >
-          <Image
-            source={{ uri: profile?.selfie?.url }}
-            style={styles.fullImage}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+      {/* IMAGE MODAL */}
+      <Modal
+        visible={imageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImageModal(false)}
+      >
+        <View style={styles.modal}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setImageModal(false)}
+          >
+            <Ionicons name="close" size={rf(3)} color="#FFF" />
+          </TouchableOpacity>
+
+          {form.selfie && (
+            <Image
+              source={{ uri: form.selfie }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
       </Modal>
     </View>
   );
@@ -292,16 +346,8 @@ const Field = ({ editable, style, ...props }) => (
 export default PersonalDetailsScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F6F8",
-  },
-
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#F4F6F8" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   header: {
     height: rh(8),
@@ -309,11 +355,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: rw(4),
-    backgroundColor: "#FFFFFF", 
+    backgroundColor: "#FFFFFF",
   },
 
   headerTitle: {
-    fontSize: rf(2.3),   
+    fontSize: rf(2.3),
     fontWeight: "600",
     color: "#101828",
   },
@@ -324,7 +370,6 @@ const styles = StyleSheet.create({
     color: "#00B2C9",
   },
 
-  /* PROFILE CARD */
   profileCard: {
     backgroundColor: "#FFF",
     flexDirection: "row",
@@ -337,14 +382,12 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: rw(20),     
+    width: rw(20),
     height: rw(20),
     borderRadius: rw(10),
   },
 
-  profileInfo: {
-    marginLeft: rw(4),
-  },
+  profileInfo: { marginLeft: rw(4) },
 
   name: {
     fontSize: rf(2.2),
@@ -390,31 +433,22 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  /* INPUT */
   input: {
     borderWidth: 1,
     borderColor: "#D0D5DD",
     borderRadius: rw(2),
     paddingHorizontal: rw(3.5),
     paddingVertical: rh(1.5),
-    fontSize: rf(1.9),   // ⬆️ readable input text
+    fontSize: rf(1.9),
     marginBottom: rh(1.8),
     backgroundColor: "#FFF",
     color: "#101828",
   },
 
-  disabledInput: {
-    backgroundColor: "#F9FAFB",
-  },
+  disabledInput: { backgroundColor: "#F9FAFB" },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  rowInput: {
-    width: "48%",
-  },
+  row: { flexDirection: "row", justifyContent: "space-between" },
+  rowInput: { width: "48%" },
 
   saveButton: {
     backgroundColor: "#00B2C9",
@@ -438,8 +472,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  fullImage: {
+  fullImage: { width: "100%", height: "100%" },
+
+  placeholder: {
+    width: rw(20),
+    height: rw(20),
+    borderRadius: rw(10),
+    backgroundColor: "#F2F4F7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  avatarOuterWrapper: {
+    width: rw(20),
+    height: rw(20),
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  avatarWrapper: {
     width: "100%",
     height: "100%",
+    borderRadius: rw(10),
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  addIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#00B2C9",
+    width: rw(6),
+    height: rw(6),
+    borderRadius: rw(3),
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFF",
+  },
+
+  closeButton: {
+    position: "absolute",
+    top: rh(5),
+    right: rw(4),
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: rw(10),
+    height: rw(10),
+    borderRadius: rw(5),
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
