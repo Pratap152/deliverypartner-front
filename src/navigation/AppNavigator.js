@@ -90,11 +90,8 @@ const AppNavigator = () => {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
         <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
-<<<<<<< Updated upstream
         <Stack.Screen name='HomeNavigator' component={HomeNavigator}/>
         <Stack.Screen name="MapScreen" component={MapScreen} />
-=======
->>>>>>> Stashed changes
     </Stack.Navigator>
   );
 };
