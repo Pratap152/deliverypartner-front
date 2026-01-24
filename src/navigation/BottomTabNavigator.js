@@ -8,12 +8,11 @@ import {
 } from 'react-native-responsive-dimensions';
 // import ProfileScreen from "../screens/dashboard/ProfileScreen";
 
-
+import SlotsNavigator from './SlotsNavigator';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
 import ProfileNavigator from "./ProfileNavigator";
 import NotificationScreen from '../screens/dashboard/NotificationScreen';
-import EarningsScreen from '../screens/dashboard/EarningsScreen';
-import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
+import EarningsNavigator from './EarningsNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -64,8 +63,8 @@ const BottomTabNavigator = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeDashboard} />
-      <Tab.Screen name="Earnings" component={EarningsScreen} />
-      <Tab.Screen name="SlotBooking" component={SlotBookingScreen} />
+      <Tab.Screen name="Earnings" component={EarningsNavigator} />
+      <Tab.Screen name="SlotBooking" component={SlotsNavigator} />
       <Tab.Screen name="Alerts" component={NotificationScreen} />
       {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
       <Tab.Screen name="Profile" component={ProfileNavigator} />

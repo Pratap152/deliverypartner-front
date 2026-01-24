@@ -1,7 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { View, Text, TouchableOpacity,Image, StyleSheet, ScrollView } from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 import { TABS } from '../../../utils/constants/slotConstants';
+
 
 /**
  * SlotBookingHeader Component
@@ -17,7 +21,11 @@ export default function SlotBookingHeader({ activeTab, onTabChange }) {
             <View style={styles.headerTop}>
                 <Text style={styles.headerTitle}>My Slots</Text>
                 <TouchableOpacity>
-                    <Ionicons name="headset" size={24} color="#FFF" />
+                <Image
+                    source={require('../../../assets/chat.png')}
+                    style={styles.chat_icon}
+                    resizeMode="contain"
+                />
                 </TouchableOpacity>
             </View>
 
@@ -69,6 +77,10 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
     },
+    chat_icon: {
+        width: wp(6),
+        height: wp(5),
+      },
     headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',

@@ -104,17 +104,14 @@ const mapIncentives = (
 ) => {
   const incentives = [];
 
-  // Peak Hour
-  if (peakRes?.incentives?.length) {
-    peakRes.incentives.forEach(item => {
-      incentives.push({
-        id: `peak-${item.title}`,
-        title: item.title,
-        subtitle: `${item.condition?.startTime} - ${item.condition?.endTime}`,
-        value: `₹${item.rewardValue}`,
-        accentColor: '#FFF7ED',
-        
-      });
+  if (peakRes?.data) {
+    incentives.push({
+      id: 'peak-slot',
+      type: 'peak',
+      title: peakRes.data.title,
+      subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
+      slabs: peakRes.data.slabs ?? [],
+      accentColor: '#FFF7ED',
     });
   }
 
@@ -122,27 +119,40 @@ const mapIncentives = (
   if (weeklyRes?.data) {
     incentives.push({
       id: 'weekly-incentive',
+      type: 'weekly',
       title: weeklyRes.data.title,
-      subtitle: `Completed ${weeklyRes.data.completedOrders}/${weeklyRes.data.requiredOrders} orders`,
-      value: weeklyRes.data.achieved
-        ? `₹${weeklyRes.data.maxRewardPerRider}`
-        : 'In Progress',
+      subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
+      value: `Earn ₹${weeklyRes.data.maxRewardPerWeek}`,
+      completedOrders: weeklyRes.data.progress.eligibleDays,
+      requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',
     });
   }
 
   // Daily Incentive
   if (dailyRes?.data) {
-    incentives.push({
-      id: 'daily-incentive',
-      title: dailyRes.data.title,
-      subtitle: `Completed ${dailyRes.data.completedOrders}/${dailyRes.data.requiredOrders} orders`,
-      value: dailyRes.data.achieved
-        ? `₹${dailyRes.data.maxRewardPerRider}`
-        : 'In Progress',
-      accentColor: '#F5F3FF',
-    });
-  }
+  incentives.push({
+    id: 'daily-incentive',
+    type: 'daily',
+
+    title: dailyRes.data.title,
+    subtitle: dailyRes.eligible
+      ? 'Target achieved'
+      : 'Complete today target',
+
+    completedOrders: dailyRes.data.ordersCompleted ?? 0,
+
+    //  TEMP / CONFIG VALUE
+    requiredOrders: 8,   
+
+    value: dailyRes.eligible
+      ? `Earned ₹${dailyRes.data.rewardAmount}`
+      : 'In Progress',
+
+    accentColor: '#F5F3FF',
+  });
+}
+
 
   return incentives;
 };
