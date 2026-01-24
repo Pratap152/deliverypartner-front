@@ -52,6 +52,15 @@ import { RiderProvider } from "./src/context/RiderContext";
 import AppNavigator from "./src/navigation/AppNavigator";
 
 const App = () => {
+  useEffect(() => {
+    const unsubscribe = authEvents.subscribe(event => {
+      if (event === AUTH_EVENTS.FORCE_LOGOUT) {
+        authService.forceLogout();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
   return (
     <GPSProvider>
       <Provider store={store}>
