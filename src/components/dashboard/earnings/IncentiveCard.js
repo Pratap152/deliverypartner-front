@@ -4,11 +4,24 @@ import { widthPercentageToDP as wp,heightPercentageToDP as hp } from 'react-nati
 import ProgressBar from './ProgressBar';
 
 export default function IncentiveCard({ item }) {
-  const completed = Number(item.completedOrders ?? 0);
-  const required = Number(item.requiredOrders ?? 0);
+const isPeak = item.type === 'peak';
 
-  const progress =
-    required > 0 ? Math.min((completed / required) * 100, 100) : 0;
+const completed = Number(
+  item.ordersCompleted ??
+  item.progress?.totalOrders ??
+  0
+);
+
+const required = Number(
+  item.requiredOrders ??
+  item.progress?.totalDaysRequired ??
+  0
+);
+
+const progress =
+  !isPeak && required > 0
+    ? Math.min((completed / required) * 100, 100)
+    : 0;
 
   const progressColor =
     item.type === 'peak'
@@ -64,15 +77,30 @@ const meta = Incentive_logo[item.type] ?? Incentive_logo.daily;
 
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.subtitle}>{item.subtitle}</Text>
+      {/* PEAK SLABS */}
+      {item.type === 'peak' && Array.isArray(item.slabs) && (
+        <View style={{ marginTop: hp(1) }}>
+          {item.slabs.map((slab, index) => (
+            <View key={index} style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
+              <Text  style={styles.slabText}>
+                Complete {slab.orders} Orders                           
+              </Text>
+              <Text style={styles.reward}>
+                Earn ₹{slab.rewardAmount}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
     
       {/* Progress Row */}
       {required > 0 && (
         <>
-          <View style={styles.progressRow}>
+          {/* <View style={styles.progressRow}>
             <Text style={styles.progressText}>
-              {completed}/{required} Orders
+              {completed}/{required} orders
             </Text>
-          </View>
+          </View> */}
 
           <ProgressBar
             progress={progress}

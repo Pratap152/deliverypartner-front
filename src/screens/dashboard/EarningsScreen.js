@@ -195,17 +195,31 @@ export default function EarningsScreen({navigation}) {
   );
 
   const handleItemPress = (item) => {
-  const peakId = `peak-${item.title}`;
+ 
 
-  if (item.id === peakId) {
+  if (item.id === 'peak-slot') {
     navigation.navigate('PeakHourBonusScreen', {
-      title: item.title
+      id: 'peak-slot',
+      type: 'peak',
+      title: peakRes.data.title,
+      subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
+      slabs: peakRes.data.slabs ?? [],
+      accentColor: '#FFF7ED',
     });
     return;
   }
 
   if (item.id === 'weekly-incentive') {
-    navigation.navigate('WeekEarnings');
+    navigation.navigate('WeekEarnings',{
+      id: 'weekly-incentive',
+      type: 'weekly',
+      title: weeklyRes.data.title,
+      subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
+      value: `₹${weeklyRes.data.maxRewardPerWeek}`,
+      completedOrders: weeklyRes.data.progress.eligibleDays,
+      requiredOrders: weeklyRes.data.progress.totalDaysRequired,
+      accentColor: '#EFF6FF',
+    });
     return;
   }
 

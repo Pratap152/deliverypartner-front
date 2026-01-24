@@ -100,19 +100,14 @@ const mapWallet = res => ({
 const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
   const incentives = [];
 
-  // PEAK
-  if (peakRes?.incentives?.length) {
-    peakRes.incentives.forEach(item => {
-      incentives.push({
-        id: `peak-${item.title}`,
-        title: item.title,
-        subtitle: `${item.condition.startTime} - ${item.condition.endTime}`,
-        completedOrders: item.completedOrders ?? 0,
-        requiredOrders: item.requiredOrders ?? 0,
-        value: `₹${item.rewardValue}`,
-        accentColor: '#FFF7ED',
-        type:'peak'
-      });
+  if (peakRes?.data) {
+    incentives.push({
+      id: 'peak-slot',
+      type: 'peak',
+      title: peakRes.data.title,
+      subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
+      slabs: peakRes.data.slabs ?? [],
+      accentColor: '#FFF7ED',
     });
   }
 
@@ -120,13 +115,12 @@ const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
   if (weeklyRes?.data) {
     incentives.push({
       id: 'weekly-incentive',
+      type: 'weekly',
       title: weeklyRes.data.title,
-      subtitle: 'Weekly Target',
-      completedOrders: weeklyRes.data.completedOrders ?? 0,
-      requiredOrders: weeklyRes.data.requiredOrders ?? 0, 
-      value: weeklyRes.data.achieved
-        ? `₹${weeklyRes.data.maxRewardPerRider}`
-        : 'In Progress',
+      subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
+      value: `₹${weeklyRes.data.maxRewardPerWeek}`,
+      completedOrders: weeklyRes.data.progress.eligibleDays,
+      requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',
       type:'weekly'
     });
@@ -138,11 +132,8 @@ const mapIncentives = (peakRes, weeklyRes, dailyRes) => {
       id: 'daily-incentive',
       title: dailyRes.data.title,
       subtitle: 'Daily Target',
-      completedOrders: dailyRes.data.completedOrders ?? 0,
-      requiredOrders: dailyRes.data.requiredOrders ?? 0,
-      value: dailyRes.data.achieved
-        ? `₹${dailyRes.data.maxRewardPerRider}`
-        : 'In Progress',
+      completedOrders: dailyRes.data.ordersCompleted ?? 0,
+      value: `₹${dailyRes.data.rewardAmount}`,
       accentColor: '#F5F3FF',
       type:'daily'
     });
