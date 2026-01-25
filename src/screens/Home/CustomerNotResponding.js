@@ -158,4 +158,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "600",
   },
+
+  disabledBtn: {
+    backgroundColor: "#CCCCCC",
+    opacity: 0.6,
+  },
 });

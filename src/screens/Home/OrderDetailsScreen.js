@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Modal
 } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -26,6 +27,7 @@ import SwipeButton from '../../components/common/SwipeButton';
 import LiveMap from '../../components/map/LiveMap';
 import { getDistance } from '../../utils/mapUtils';
 import { orderService } from '../../services/order/OrderService';
+import CustomerNotResponding from './CustomerNotResponding';
 
 const OrderDetailsScreen = ({ route, navigation }) => {
 
@@ -37,6 +39,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [error, setError] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
   const [distanceToTarget, setDistanceToTarget] = useState(null);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
   const mapRef = useRef(null);
 
   const ui = orderUIConfig[status] || {};
@@ -270,8 +273,58 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             />
           )}
 
+          {/* Secondary Buttons (e.g., Customer Not Responding) */}
+          {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
+            <View style={{ marginTop: 10 }}>
+              {ui.secondaryButtons.map((button, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.secondaryButton}
+                  onPress={() => {
+                    if (button.action === 'openModal') {
+                      setShowCustomerModal(true);
+                    }
+                  }}
+                >
+                  <Text style={styles.secondaryButtonText}>{button.label}</Text>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
         </View>
       </ScrollView>
+
+      {/* Customer Not Responding Modal */}
+      <Modal
+        visible={showCustomerModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowCustomerModal(false)}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowCustomerModal(false)}>
+              <MaterialCommunityIcons name="arrow-left" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.modalHeaderText}>Order Details</Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          <CustomerNotResponding
+            duration={120}
+            onCallPress={() => {
+              // Handle call customer logic
+              Alert.alert("Call", "Calling customer...");
+            }}
+            onMarkIssuePress={() => {
+              setShowCustomerModal(false);
+              navigation.navigate('ReportIssue', { orderId });
+            }}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -401,5 +454,35 @@ const styles = StyleSheet.create({
     fontSize: wp('3.6%'),
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: hp('1.8%'),
+    paddingHorizontal: wp('4%'),
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: wp('12%'),
+    backgroundColor: '#FFF',
+  },
+  secondaryButtonText: {
+    fontSize: wp('3.6%'),
+    fontWeight: '600',
+    color: '#333',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp('4%'),
+    paddingVertical: hp('2%'),
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalHeaderText: {
+    fontSize: wp('4.5%'),
+    fontWeight: '600',
+    color: '#333',
   },
 });

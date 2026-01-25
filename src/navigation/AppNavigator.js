@@ -40,6 +40,7 @@ import HomeNavigator from './HomeNavigator';
 import MapScreen from '../screens/Home/MapScreen';
 import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
+import ReportIssue from '../screens/Home/ReportIssue';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -115,6 +116,7 @@ const AppNavigator = () => {
         component={OrderDetailsScreen}
       />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
+      <Stack.Screen name="ReportIssue" component={ReportIssue} />
     </Stack.Navigator>
   );
 };

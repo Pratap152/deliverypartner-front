@@ -53,6 +53,13 @@ export const orderUIConfig = {
         nextStatus: 'ORDER_DELIVERED',
       },
     ],
+    secondaryButtons: [
+      {
+        label: 'Customer Not Responding',
+        type: 'secondary',
+        action: 'openModal', // Opens CustomerNotResponding modal
+      },
+    ],
   },
 
   ORDER_DELIVERED: {
