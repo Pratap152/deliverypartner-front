@@ -39,3 +39,28 @@ export const EarningsAPI = {
     return res.data;
   },
 };
+
+export const OrdersAPI = {
+  async acceptOrder(orderId, riderId) {
+    const res = await apiClient.patch(`/api/orders/${orderId}/accept`, {
+      riderId,
+    });
+    logResponse(`PATCH /api/orders/${orderId}/accept`, res);
+    return res.data;
+  },
+
+  async rejectOrder(orderId, riderId, reason) {
+    const res = await apiClient.patch(`/api/orders/${orderId}/reject`, {
+      riderId,
+      reason,
+    });
+    logResponse(`PATCH /api/orders/${orderId}/reject`, res);
+    return res.data;
+  },
+
+  async getDetails(orderId) {
+    const res = await apiClient.get(`/api/orders/${orderId}/details`);
+    logResponse(`GET /api/orders/${orderId}/details`, res);
+    return res.data;
+  },
+};

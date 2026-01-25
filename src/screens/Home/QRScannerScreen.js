@@ -21,8 +21,13 @@ const QRScannerScreen = ({ navigation, route }) => {
 
     const handleScanSuccess = async (nextStatus) => {
         try {
-            await orderService.updateOrderStatus('DR-2864', nextStatus);
-            navigation.replace('OrderDetailsScreen', { status: nextStatus });
+            const { orderId } = route.params || {};
+            if (!orderId) {
+                console.error("No Order ID provided");
+                return;
+            }
+            await orderService.updateOrderStatus(orderId, nextStatus);
+            navigation.replace('OrderDetailsScreen', { status: nextStatus, orderId });
         } catch (error) {
             console.error("Scan failed", error);
         }

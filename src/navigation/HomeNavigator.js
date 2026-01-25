@@ -11,21 +11,21 @@ import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
 import MapScreen from '../screens/Home/MapScreen';
 
 const Stack = createNativeStackNavigator();
-function HomeNavigator(){
-    return(
+function HomeNavigator() {
+    return (
         <>
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
-      <Stack.Screen name='OrdersPopupScreen' component={OrdersPopupScreen}/>
-      <Stack.Screen name='OrderDetailsScreen' component={OrderDetailsScreen}/>
-      <Stack.Screen name='QRScannerScreen' component={QRScannerScreen}/>
-      <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered}/>
-      <Stack.Screen name='AddBankDetails' component={AddBankDetails}/>
-      <Stack.Screen name='KitSelectionScreen' component={KitSelectionScreen}/>
-      {/* <Stack.Screen name='LiveTracking' component={LiveTracking}/> */}
-      {/* <Stack.Screen name='LiveMap' component={LiveMap}/> */}
-      <Stack.Screen name='MapScreen' component={MapScreen}/>
-    </Stack.Navigator>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
+                <Stack.Screen name='OrdersPopupScreen' component={OrdersPopupScreen} />
+                <Stack.Screen name='OrderDetailsScreen' component={OrderDetailsScreen} />
+                <Stack.Screen name='QRScannerScreen' component={QRScannerScreen} />
+                <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
+                <Stack.Screen name='AddBankDetails' component={AddBankDetails} />
+                <Stack.Screen name='KitSelectionScreen' component={KitSelectionScreen} />
+                {/* <Stack.Screen name='LiveTracking' component={LiveTracking}/> */}
+                {/* <Stack.Screen name='LiveMap' component={LiveMap}/> */}
+                <Stack.Screen name='MapScreen' component={MapScreen} />
+            </Stack.Navigator>
         </>
     )
 }

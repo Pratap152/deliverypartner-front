@@ -1,106 +1,9 @@
-// import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-// import { navigate } from "../navigation/RootNavigation";
-// import { ORDER_STATUS } from "../config/orderStates";
-
-// const RiderContext = createContext();
-
-// const WS_URL =
-//   "wss://delivarypartner.onrender.com/ws?type=RIDER_NOTIFICATION&riderId=696b6787f212b183b5dffe60";
-
-// export const RiderProvider = ({ children }) => {
-//   const socketRef = useRef(null);
-
-//   const [isOnline, setIsOnline] = useState(false);
-//   const [order, setOrder] = useState(null);
-
-//   /** ---------------------------
-//    * ONLINE / OFFLINE HANDLER
-//    * --------------------------*/
-//   useEffect(() => {
-//     if (isOnline) {
-//       connectSocket();
-//     } else {
-//       disconnectSocket();
-//     }
-
-//     return () => disconnectSocket();
-//   }, [isOnline]);
-
-//   const connectSocket = () => {
-//     if (socketRef.current) return;
-
-//     const ws = new WebSocket(WS_URL);
-//     socketRef.current = ws;
-
-//     ws.onopen = () => {
-//       console.log("🟢 Rider socket connected");
-//     };
-
-//     ws.onmessage = event => {
-//       const data = JSON.parse(event.data);
-
-//       if (data.type === "ORDER_POPUP") {
-//         setOrder(data);
-//       }
-//     };
-
-//     ws.onerror = e => {
-//       console.log("🔴 WS error", e);
-//     };
-
-//     ws.onclose = () => {
-//       console.log("⚪ WS closed");
-//       socketRef.current = null;
-//     };
-//   };
-
-//   const disconnectSocket = () => {
-//     socketRef.current?.close();
-//     socketRef.current = null;
-//     setOrder(null);
-//   };
-
-//   /** ---------------------------
-//    * ORDER ACTIONS
-//    * --------------------------*/
-//   const acceptOrder = async () => {
-//     try {
-//       setOrder(null);
-
-//       navigate("OrderDetailsScreen", {
-//         status: ORDER_STATUS.PICKUP_ASSIGNED,
-//       });
-//     } catch (e) {
-//       console.log("Accept failed", e);
-//     }
-//   };
-
-//   const rejectOrder = () => {
-//     setOrder(null);
-//   };
-
-//   return (
-//     <RiderContext.Provider
-//       value={{
-//         isOnline,
-//         setIsOnline,
-//         order,
-//         acceptOrder,
-//         rejectOrder,
-//       }}
-//     >
-//       {children}
-//     </RiderContext.Provider>
-//   );
-// };
-
-// export const useRider = () => useContext(RiderContext);
-
 import React, { createContext, useContext, useRef, useState, useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { navigate } from "../navigation/RootNavigation"; // Root navigation
 import { ORDER_STATUS } from "../config/orderStates";
 import WEBSITE_URL from '../../src/utils/host';
+import { OrdersAPI } from "../api/api";
 const RiderContext = createContext();
 
 const WS_URL =
@@ -162,9 +65,7 @@ export const RiderProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      // Example API call, replace with your backend `${WEBSITE_URL}/api/bank/bank-details`,
-      const res = await fetch(`${WEBSITE_URL}/api/orders/${order.orderId}/accept`, { method: "PATCH", headers: { "Content-Type": "application/json" } });
-      const result = await res.json();
+      const res = await OrdersAPI.acceptOrder(order.orderId, "696b6787f212b183b5dffe60"); // TODO: dynamic riderId
       console.log("✅ Order Accepted:", order.orderId);
 
       setOrder(null);
@@ -179,9 +80,16 @@ export const RiderProvider = ({ children }) => {
     }
   };
 
-  const rejectOrder = () => {
-    console.log("❌ Order Rejected:", order?.orderId);
-    setOrder(null);
+  const rejectOrder = async (reason = "Timeout") => {
+    try {
+      if (order) {
+        await OrdersAPI.rejectOrder(order.orderId, "696b6787f212b183b5dffe60", reason); // TODO: dynamic riderId
+        console.log("❌ Order Rejected:", order.orderId);
+      }
+      setOrder(null);
+    } catch (err) {
+      console.log("❌ Reject failed", err);
+    }
   };
 
   /** ---------------------------

@@ -50,7 +50,9 @@ import { AuthProvider } from "./src/hooks/useAuth";
 import { GPSProvider } from "./src/context/GPSContext";
 import { RiderProvider } from "./src/context/RiderContext";
 import AppNavigator from "./src/navigation/AppNavigator";
-
+import { useEffect } from "react";
+import { authEvents, AUTH_EVENTS } from "./src/services/AuthEvents";
+import { authService } from "./src/services/AuthService";
 const App = () => {
   useEffect(() => {
     const unsubscribe = authEvents.subscribe(event => {

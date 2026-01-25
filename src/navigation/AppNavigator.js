@@ -38,13 +38,14 @@ import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
 import HomeNavigator from './HomeNavigator';
 import MapScreen from '../screens/Home/MapScreen';
-import OrderDetailsScreen  from '../screens/Home/OrderDetailsScreen';
+import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
+import QRScannerScreen from '../screens/Home/QRScannerScreen';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="MainTabs"      
+      initialRouteName="MainTabs"
     >
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
@@ -81,7 +82,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AadharEntryScreen" component={AadharEntryScreen} />
       <Stack.Screen name="AadharVerifyScreen" component={AadharVerifyScreen} />
       <Stack.Screen name="PanUploadScreen" component={PanUploadScreen} />
-      <Stack.Screen name="LicenseUploadScreen" component={LicenseUploadScreen}/>
+      <Stack.Screen name="LicenseUploadScreen" component={LicenseUploadScreen} />
       <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
@@ -92,7 +93,7 @@ const AppNavigator = () => {
 
       <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
-      
+
       <Stack.Screen
         name="SlotHistoryScreen"
         component={SlotHistoryScreen}
@@ -101,18 +102,19 @@ const AppNavigator = () => {
         name="EarningsHistoryScreen"
         component={EarningsHistoryScreen}
       />
-       {/* <Stack.Screen name="" component={} />
+      {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
-      <Stack.Screen name="MainTabs" component={BottomTabNavigator} /> 
+      <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
-        <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
-        <Stack.Screen name='HomeNavigator' component={HomeNavigator}/>
-        <Stack.Screen name="MapScreen" component={MapScreen} />
-        <Stack.Screen
-    name="OrderDetailsScreen"
-    component={OrderDetailsScreen}
-  />
+      <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
+      <Stack.Screen name='HomeNavigator' component={HomeNavigator} />
+      <Stack.Screen name="MapScreen" component={MapScreen} />
+      <Stack.Screen
+        name="OrderDetailsScreen"
+        component={OrderDetailsScreen}
+      />
+      <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
     </Stack.Navigator>
   );
 };

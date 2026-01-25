@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -69,29 +69,29 @@ export default function CustomerNotResponding({
       <Text style={styles.subText}>Wait for {duration} Seconds</Text>
 
       {/* Buttons */}
-<TouchableOpacity
-  style={[
-    styles.callBtn,
-    timeLeft !== 0 && styles.disabledBtn
-  ]}
-  disabled={timeLeft !== 0}
-  onPress={onCallPress}
->
-  <Ionicons name="call-outline" size={18} color="#fff" />
-  <Text style={styles.btnText}>Call Customer</Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.callBtn,
+          timeLeft !== 0 && styles.disabledBtn
+        ]}
+        disabled={timeLeft !== 0}
+        onPress={onCallPress}
+      >
+        <Ionicons name="call-outline" size={18} color="#fff" />
+        <Text style={styles.btnText}>Call Customer</Text>
+      </TouchableOpacity>
 
-<TouchableOpacity
-  style={[
-    styles.issueBtn,
-    timeLeft !== 0 && styles.disabledBtn
-  ]}
-  disabled={timeLeft !== 0}
-  onPress={onMarkIssuePress}
->
-  <Ionicons name="alert-circle-outline" size={18} color="#fff" />
-  <Text style={styles.btnText}>Mark as Issue</Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.issueBtn,
+          timeLeft !== 0 && styles.disabledBtn
+        ]}
+        disabled={timeLeft !== 0}
+        onPress={onMarkIssuePress}
+      >
+        <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+        <Text style={styles.btnText}>Mark as Issue</Text>
+      </TouchableOpacity>
 
     </View>
   );
