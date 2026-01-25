@@ -21,18 +21,20 @@ export const orderUIConfig = {
       {
         label: 'Order Picked up',
         type: 'primary',
-        nextStatus: 'ORDER_PICKED_UP',
+        navigateTo: 'MapScreen',
+        nextStatus: 'AT_DROP', // Will navigate to drop location
       },
     ],
   },
 
   ORDER_PICKED_UP: {
+    // This state exists for API compatibility but shouldn't be visited in normal flow
     showMap: false,
     headerIcon: 'bike',
-    label: "Order Details",
+    label: "Out for Delivery",
     bottomButtons: [
       {
-        label: 'Navigate',
+        label: 'Navigate to Drop',
         type: 'primary',
         navigateTo: 'MapScreen',
         nextStatus: 'AT_DROP',
@@ -46,7 +48,7 @@ export const orderUIConfig = {
     label: "Arrived to Drop Location",
     bottomButtons: [
       {
-        label: 'Arrived at Drop Location',
+        label: 'Order Delivered',
         type: 'primary',
         nextStatus: 'ORDER_DELIVERED',
       },
