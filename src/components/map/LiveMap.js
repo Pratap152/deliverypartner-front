@@ -98,6 +98,7 @@
 // };
 
 // export default React.memo(LiveMap);
+// ----------------------------------------------------------------------
 import React, { useImperativeHandle, forwardRef, useRef } from 'react';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
@@ -134,25 +135,6 @@ const LiveMap = forwardRef(({
 
   const origin = riderPosition || pickup;
   const destination = drop || pickup;
-
-  // Decide what to show as the destination for the route
-  // If we are picking up, destination is Pickup. If we have picked up, destination is Drop.
-  // This logic is better handled by passing explicit "routeOrigin" and "routeDestination" props, 
-  // but for now let's assume if we pass both Pickup and Drop, and Rider is there, 
-  // we might want to show route from Rider -> Pickup or Rider -> Drop.
-
-  // Let's simplify: Parent passes exactly what to route.
-  // actually, let's keep it flexible:
-  // If pickup is valid and drop is NOT valid (or we are in pickup phase), route Rider -> Pickup
-  // If pickup is valid AND drop is valid (assuming we picked up), route Rider -> Drop
-  // But wait, the previous code had 'route' prop. 
-
-  // Best approach: Parent controls what "pickup" and "drop" means in context of the route, OR we add specific props.
-  // Let's use the props passed: "pickup" as the target for the first leg, "drop" as target for second.
-  // We will need a way to know WHICH leg we are on.
-
-  // FOR NOW: We will just render the markers. The parent `DeliveryScreen` will likely want to control the route.
-  // However, `MapViewDirections` needs origin and destination.
 
   return (
     <MapView
