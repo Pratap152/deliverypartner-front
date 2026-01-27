@@ -65,6 +65,7 @@ export default function SlotCard({
           </View>
         </View>
 
+
         {/* Right Content */}
         <View style={styles.rightContent}>
           {/* TRASH ICON (Top-Right) for Booked Slots */}
@@ -76,7 +77,7 @@ export default function SlotCard({
 
           {/* Checkbox for Available slots */}
           {isAvailable && selectable && (
-            <Checkbox checked={selected} />
+            <Checkbox checked={selected} onPress={selectable ? onSelect : null}  />
           )}
         </View>
       </View>
