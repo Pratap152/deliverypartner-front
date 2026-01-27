@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getEarningsSummary} from '../services/earnings/earningsService';
+import { getEarningsSummary,getWeeklyBarChart} from '../services/earnings/earningsService';
 import { getWalletDetails } from '../services/earnings/walletService';
 import {
   getPeakHourIncentives,
@@ -10,6 +10,7 @@ import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import { Link, useNavigation } from '@react-navigation/native';
+import { BarChart } from 'react-native-gifted-charts';
 
 export default function useEarningsDashboard() {
   const navigation = useNavigation();
@@ -28,6 +29,9 @@ export default function useEarningsDashboard() {
   try {
     const summaryRes = await getEarningsSummary();
     console.log('SUMMARY OK');
+
+    const weeklyChart = await getWeeklyBarChart();
+    console.log('WEEK BAR CHART OK');
 
     let walletRes = null;
     try {
@@ -63,6 +67,7 @@ export default function useEarningsDashboard() {
 
     setData({
       earningsSummary: mapEarningsSummary(summaryRes),
+      weeklyBarChart: mapWeeklyChart(weeklyChart),
       wallet: walletRes ? mapWallet(walletRes) : {},
       incentives: mapIncentives(peakRes, weeklyRes, dailyRes),
     });
@@ -78,18 +83,33 @@ export default function useEarningsDashboard() {
 
   const mapEarningsSummary = res => ({
     today: {
-      orders: res.today?.ordersCompleted,
-      earnings: res.today?.totalEarnings,
+      orders: res.today?.orders ?? 0,
+      baseEarnings: res.today?. baseEarnings ?? 0,
+      incentives:res.today?.incentives ??0,
+      tips:res.today?.tips ?? 0,
+      earnings: res.today?.total ?? 0,
     },
     week: {
-      orders: res.week?.ordersCompleted,
-      earnings: res.week?.totalEarnings,
+      earnings: res.week?.total ?? 0,
     },
     month: {
-      orders: res.month?.ordersCompleted ?? 0,
-      earnings: res.month?.totalEarnings ?? 0,
+      baseEarnings: res.today?. baseEarnings ?? 0,
+      incentives:res.today?.incentives ??0,
+      tips:res.today?.tips ?? 0,
+      earnings: res.month?.total ?? 0,
     },
   });
+
+const mapWeeklyChart = (res) => {
+  if (!Array.isArray(res?.week)) return [];
+
+  return res.week.map(item => ({
+    label: item.day,          // "Mon"
+    value: item.amount,       // earnings for bar height
+    orders: item.orders,      // extra info (tooltip use)
+  }));
+};
+
 
 const mapWallet = res => ({
   balance: res.data?.balance ?? 0,
@@ -134,15 +154,12 @@ const mapIncentives = (
   incentives.push({
     id: 'daily-incentive',
     type: 'daily',
-
     title: dailyRes.data.title,
     subtitle: dailyRes.eligible
       ? 'Target achieved'
       : 'Complete today target',
-
     completedOrders: dailyRes.data.ordersCompleted ?? 0,
-
-    //  TEMP / CONFIG VALUE
+   //  TEMP VALUE
     requiredOrders: 8,   
 
     value: dailyRes.eligible
