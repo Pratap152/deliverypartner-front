@@ -72,7 +72,8 @@ const SlotHistory = ({ navigation }) => {
 
   const fetchSlotHistory = useCallback(
     async (filterType, pageNo = 1) => {
-      if (listLoading) return;
+      // ❗ allow filter reset even if loading
+      if (listLoading && pageNo !== 1) return;
 
       try {
         setListLoading(true);
@@ -88,39 +89,42 @@ const SlotHistory = ({ navigation }) => {
         if (res.data?.success) {
           const newData = res.data.data || [];
 
-          const updatedSlots = pageNo === 1 ? newData : [...slots, ...newData];
+          // ✅ FIX: derive from previous state
+          setSlots(prevSlots =>
+            pageNo === 1 ? newData : [...prevSlots, ...newData],
+          );
 
           const updatedSummary = {
             totalSlots: Number(res.data.totalSlots ?? 0),
             totalEarnings: Number(res.data.totalEarnings ?? 0),
           };
 
-          setSlots(updatedSlots);
           setSummary(updatedSummary);
           setHasMore(newData.length === PAGE_SIZE);
           setPage(pageNo);
 
-          // update cache
+          // ✅ cache update (safe)
           const cachePayload = {
-            slots: updatedSlots,
+            slots: pageNo === 1 ? newData : [...slots, ...newData],
             summary: updatedSummary,
           };
+
           memoryCache = cachePayload;
           AsyncStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
         }
       } catch (e) {
-        Alert.alert('Error', 'Failed to fetch slot history');
+        console.log('Slot history error:', e?.response?.data || e.message);
+        Alert.alert('Error', 'Unable to fetch the data');
       } finally {
         setListLoading(false);
       }
     },
-    [listLoading, slots],
+    [listLoading],
   );
-
   /* ================= INITIAL FETCH ================= */
 
   useEffect(() => {
-    fetchSlotHistory('all', 1);
+    fetchSlotHistory(activeFilter, 1);
   }, []);
 
   /* ================= GROUP DATA (UNCHANGED LOGIC) ================= */
