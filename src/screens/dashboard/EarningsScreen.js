@@ -26,8 +26,6 @@ export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
  
- 
- 
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -38,6 +36,7 @@ export default function EarningsScreen({navigation}) {
  
   const {
     earningsSummary = {},
+    weeklyBarChart = {},
     wallet = {},
     incentives = [],
   } = data;
@@ -46,22 +45,19 @@ export default function EarningsScreen({navigation}) {
   const today = earningsSummary.today || {};
   const week = earningsSummary.week || {};
   const month = earningsSummary.month || {};
- 
+
+  const barChart = Array.isArray(data.weeklyBarChart)
+  ? data.weeklyBarChart
+  : [];
+
+  
   const cardWidth = wp(90);
   const cardPadding = wp(4);
   const chartHeight = hp(30);
   const yAxisWidth = wp(15);
  
  
-  const weeklyEarnings = [
-  { label: 'Mon', value: 120 },
-  { label: 'Tue', value: 180 },
-  { label: 'Wed', value: 90 },
-  { label: 'Thu', value: 220 },
-  { label: 'Fri', value: 150 },
-  { label: 'Sat', value: 290 },
-  { label: 'Sun', value: 110 },
-];
+  
  
  
  
@@ -86,13 +82,17 @@ export default function EarningsScreen({navigation}) {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
+                <Text style={[styles.daily_details,{marginTop:hp(1),fontWeight:500}]}>Base Earnings : ₹{today.baseEarnings}</Text>
                 <View style={[styles.daily_details_container, { marginTop: wp(2) }]}>
                   <Text style={styles.daily_details}>Orders</Text>
-                  {/* <Text style={styles.daily_details}>Tips </Text> */}
+                  <Text style={styles.daily_details}>Tips </Text>
+                  <Text style={styles.daily_details}>Incentives</Text>
                 </View>
                 <View style={[styles.daily_details_container]}>
                   <Text style={styles.daily_details}>{today.orders}</Text>
-                  {/* <Text style={[styles.daily_details, { marginLeft: wp(5) }]}>₹50</Text> */}
+                  <Text style={[styles.daily_details, { marginLeft: wp(5) }]}>₹{today.tips}</Text>
+                  <Text style={[styles.daily_details, { marginRight:wp(10) }]}>₹{today.incentives}</Text>
+
                 </View>
               </View>
               <View>
@@ -112,7 +112,7 @@ export default function EarningsScreen({navigation}) {
         </View>
  
         <BarChart
-          data={weeklyEarnings}
+          data={barChart}
           width={cardWidth - cardPadding * 2 - yAxisWidth}
           height={chartHeight}
           barWidth={wp(5)}
@@ -189,8 +189,8 @@ export default function EarningsScreen({navigation}) {
  
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
-    <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'MONTH'})} >
-    <MonthlySummaryCard summary={month}  />
+    <TouchableOpacity style={{ marginBottom: hp(4) }} >
+      <MonthlySummaryCard summary={month}  />
     </TouchableOpacity>
   );
 
@@ -291,8 +291,8 @@ const styles = StyleSheet.create({
     width: wp('90'),
     alignSelf: 'center',
   },
-  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '500' },
-  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40) },
+  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '600' },
+  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40),gap:wp(2) },
   daily_details: { color: '#FFFFFF',fontSize:wp(4) },
   card: {
     backgroundColor: '#fff',

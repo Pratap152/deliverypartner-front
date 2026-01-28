@@ -8,22 +8,19 @@ export default function MonthlySummaryCard({summary}) {
     <View style={styles.card}>
       <Text style={styles.title}>This Month</Text>
 
+
         <View style={styles.grid}>
-            <SummaryItem label="Total Orders"/> 
-            <SummaryItem value={summary.orders} />
+            <SummaryItem label="Base Earnings" />
+            <SummaryItem value={`₹${summary.baseEarnings}`} />
         </View>
-        <View style={styles.grid}>
-            <SummaryItem label="Earnings" />
-            <SummaryItem value={`₹${summary.earnings}`} />
-        </View>
-        {/* <View style={styles.grid}>
+         <View style={styles.grid}>
             <SummaryItem label="Incentives"/>
-            <SummaryItem value="₹2,100" />
+            <SummaryItem value={`₹${summary.incentives}`} />
         </View>
         <View style={styles.grid}>
             <SummaryItem label="Tips"/>
-            <SummaryItem value="₹500" />
-        </View> */}
+            <SummaryItem value={`₹${summary.tips}`} />
+        </View> 
         <View style={[styles.grid,{marginTop:hp(1),borderTopWidth:wp(0.5),borderColor:'#E2E8F0'}]}>
            <SummaryItem label="Total Earnings" />
            <SummaryItem value={`₹${summary.earnings}`} />
