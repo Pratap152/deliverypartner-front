@@ -1,4 +1,4 @@
-import { getEarningsSummary} from './earningsService';
+import { getEarningsSummary,getWeeklyBarChart} from './earningsService';
 import { getWalletDetails } from './walletService';
 import {
   getPeakHourIncentives,
@@ -9,12 +9,14 @@ import {
 export const getEarningsDashboardData = async () => {
   const [
     summary,
+    weeklyChart,
     wallet,
     peakIncentives,
     dailyIncentives,
     weeklyIncentives,
   ] = await Promise.all([
     getEarningsSummary(),
+    getWeeklyBarChart(),
     getWalletDetails(),
     getPeakHourIncentives(),
     getDailyIncentives(),
@@ -23,6 +25,7 @@ export const getEarningsDashboardData = async () => {
 
   return {
     summary,
+    weeklyChart,
     wallet,
     peakIncentives,
     dailyIncentives,
