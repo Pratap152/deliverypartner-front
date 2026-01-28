@@ -7,14 +7,23 @@ import MultiLevelProgressBar from './MultiLevelProgressBar';
 
 export default function IncentiveCard({ item }) {
  
-  const completed = Number(item.completedOrders ?? item.ordersCompleted ?? 0);
-  const required = Number(item.requiredOrders ?? 0);
+  const isDaily = item.type === 'daily';
+  const isWeekly = item.type === 'weekly';
+  const isPeak = item.type === 'peak';
+
+  // weekly progress
+  const completedDays = item.completedOrders ?? 0;
+  const requiredDays = item.requiredOrders ?? 0;
+
+  // daily slot progress
+  const peakCompleted = item.peakCompleted ?? 0;
+  const peakRequired = item.peakRequired ?? 0;
+  const normalCompleted = item.normalCompleted ?? 0;
+  const normalRequired = item.normalRequired ?? 0;
+
+
   const progressColor =
     item.type === 'peak' ? '#F54900' : item.type === 'weekly' ? '#155DFC' : '#9810FA';
-
-  // peak-specific data
-  const isPeak = item.type === 'peak';
-  const peakSlabs = Array.isArray(item.slabs) ? item.slabs : item.data?.slabs ?? [];
 
   const Incentive_logo = {
       peak: {
@@ -37,8 +46,12 @@ export default function IncentiveCard({ item }) {
         icon:require('../../../assets/surge.png'),
         color:'#F13926'
       },
-    };
-const meta = Incentive_logo[item.type] ?? Incentive_logo.daily;
+    };  
+ const meta = Incentive_logo[item.type] ?? Incentive_logo.daily;
+
+ const peakSlabs = Array.isArray(item.slabs) ? item.slabs : item.data?.slabs ?? [];
+
+ 
 
   return (
     <View style={[styles.card, { backgroundColor: item.accentColor }]}>
@@ -50,46 +63,57 @@ const meta = Incentive_logo[item.type] ?? Incentive_logo.daily;
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.subtitle}>{item.subtitle}</Text>
 
-      {/* Peak: use multi level bar */}
-      {isPeak && peakSlabs && peakSlabs.length > 0 ? (
-        <>
-          {/* Optional small label showing completed orders */}
-          <View style={{ marginTop: hp(1), marginBottom: hp(0.5) }}>
-            <Text style={{ color: '#374151', fontSize: wp(3.2) }}>
-              {completed}/{peakSlabs[peakSlabs.length - 1].orders} Orders
-            </Text>
-          </View>
-
+      {/* PEAK INCENTIVE */}
+        {isPeak && peakSlabs.length > 0 && (
           <MultiLevelProgressBar
             slabs={peakSlabs}
-            completedOrders={completed}
             height={hp(1.6)}
             fillColor={progressColor}
           />
-        </>
-      ) : (
-        required > 0 && (
-          <>
-            {/*  Hide orders text ONLY for weekly */}
-            {item.type !== 'weekly' && (
-              <View style={styles.progressRow}>
-                <Text style={styles.progressText}>
-                  {completed}/{required} orders
-                </Text>
-              </View>
-            )}
+        )}
 
-            {/*  Progress bar stays for ALL */}
+        {/* DAILY INCENTIVE  */}
+        {isDaily && (
+          <>
+            {/* Peak slots */}
+            <Text style={styles.progressText}>
+              Peak Slots {peakCompleted}/{peakRequired}
+            </Text>
             <ProgressBar
-              progress={(completed / required) * 100}
-              accentColor={progressColor}
+              progress={
+                peakRequired > 0
+                  ? (peakCompleted / peakRequired) * 100
+                  : 0
+              }
+              accentColor="#F54900"
+            />
+
+            {/* Normal slots */}
+            <Text style={styles.progressText}>
+              Normal Slots {normalCompleted}/{normalRequired}
+            </Text>
+            <ProgressBar
+              progress={
+                normalRequired > 0
+                  ? (normalCompleted / normalRequired) * 100
+                  : 0
+              }
+              accentColor="#9810FA"
             />
           </>
-        )
+        )}
 
-      )}
-
-      <Text style={styles.reward}>{item.value ?? item.rewardText ?? ''}</Text>
+        {/* WEEKLY INCENTIVE  */}
+        {isWeekly && requiredDays > 0 && (
+          <ProgressBar
+            progress={(completedDays / requiredDays) * 100}
+            accentColor="#155DFC"
+          />
+        )}
+            
+      <Text style={styles.reward}>
+        {item.value ?? item.rewardText ?? ''}
+      </Text>
     </View>
   );
 }
@@ -105,7 +129,7 @@ const styles = StyleSheet.create({
   title: { fontSize: wp(4), fontWeight: '500', color: '#111' },
   subtitle: { fontSize: wp(3.5), color: '#6B7280', marginTop: 4 },
   progressRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(1) },
-  progressText: { fontSize: wp(3.2), color: '#374151' },
+  progressText: { fontSize: wp(3.2), color: '#374151',marginTop:hp(1) },
   reward: { marginTop: 10, fontSize: wp(4), fontWeight: '700', color: '#111', alignSelf: 'flex-end' },
   logo_row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: hp(1) },
   logo: { height: hp('2.5'), width: wp('5.5') },

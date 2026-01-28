@@ -161,12 +161,12 @@ if (dailyRes?.success) {
       ? 'Target achieved'
       : 'Daily target in progress',
     value: dailyRes.eligible
-      ? `₹${dailyRes.rewardAmount}`
+      ? `₹${dailyRes.totalRewardAmount}`
       : 'In Progress',
-    completedOrders: dailyRes.completedOrders,
-    requiredOrders:
-      (dailyRes.slabs?.peak?.[0]?.minOrders ?? 0) +
-      (dailyRes.slabs?.normal?.[0]?.minOrders ?? 0),
+    peakCompleted: dailyRes.peakCompleted ?? 0,
+    peakRequired: dailyRes.slotRules?.minPeakSlots ?? 0,
+    normalCompleted: dailyRes.normalCompleted ?? 0,
+    normalRequired: dailyRes.slotRules?.minNormalSlots ?? 0,
     accentColor: '#F5F3FF',
     daily_data: dailyRes.data
   });
