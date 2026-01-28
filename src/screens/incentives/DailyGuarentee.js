@@ -13,6 +13,84 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+/* --- PROGRESS COMPONENTS --- */
+const SlotProgressBar = ({ label, current, target, color1, color2, icon, iconBgStyle, iconColor }) => {
+  const progress = Math.min((current / target) * 100, 100);
+  const isCompleted = current >= target;
+
+  return (
+    <View style={styles.slotProgressContainer}>
+      <View style={styles.slotHeaderRow}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={[styles.miniIconBox, iconBgStyle]}>
+            <Ionicons name={icon} size={14} color={iconColor} />
+          </View>
+          <Text style={styles.slotLabel}>{label}</Text>
+        </View>
+        <Text style={styles.slotCount}>
+          {current} / {target}
+        </Text>
+      </View>
+
+      <View style={styles.barContainer}>
+        <View style={styles.track}>
+          <LinearGradient
+            colors={[color1, color2]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.barFill, { width: `${progress}%` }]}
+          />
+        </View>
+
+        {/* Lock / Tick Indicator - Now Inside/On Track End */}
+        <View style={[styles.statusIconWrapper, isCompleted && styles.statusIconCompleted]}>
+          <Ionicons
+            name={isCompleted ? "checkmark" : "lock-closed"}
+            size={10}
+            color={isCompleted ? "#FFF" : "#777"}
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const OverallProgressBar = ({ percentage }) => {
+  const checkpoints = [20, 40, 60, 80, 100];
+  return (
+    <View style={styles.overallContainer}>
+      <Text style={styles.overallTitle}>Overall Completion</Text>
+      <View style={styles.overallTrackWrapper}>
+        <View style={styles.overallTrack} />
+        <LinearGradient
+          colors={["#4F39F6", "#3B28C7"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.overallFill, { width: `${percentage}%` }]}
+        />
+        {checkpoints.map((cp, index) => {
+          const isReached = percentage >= cp;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.checkpoint,
+                { left: `${cp}%` },
+                isReached && styles.checkpointActive,
+              ]}
+            >
+              <Text style={[styles.checkpointText, isReached && styles.checkpointTextActive]}>
+                {cp}%
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+      <Text style={styles.overallValue}>{Math.round(percentage)}%</Text>
+    </View>
+  );
+};
+
 const DailyGuarentee = ({ route, navigation }) => {
   // Safe extraction with default values
   const params = route.params || {};
@@ -20,6 +98,15 @@ const DailyGuarentee = ({ route, navigation }) => {
   // Slot Rules Defaults
   const minPeakSlots = params.slotRules?.minPeakSlots || 2;
   const minNormalSlots = params.slotRules?.minNormalSlots || 3;
+
+  // New Progress Data Calculations
+  const peakCompleted = params.peakCompleted || params.completedPeakSlots || 0;
+  const normalCompleted = params.normalCompleted || params.completedNormalSlots || 0;
+
+  // Weighted Calculation: Peak = 40%, Normal = 60%
+  const peakProgressRaw = Math.min(peakCompleted / minPeakSlots, 1);
+  const normalProgressRaw = Math.min(normalCompleted / minNormalSlots, 1);
+  const overallPercentage = (peakProgressRaw * 40) + (normalProgressRaw * 60);
 
   // Order Rules Defaults (Drilling down safely)
   // Peak Slab: Try to get first slab's minOrders, else default to 5
@@ -131,18 +218,42 @@ const DailyGuarentee = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* --- PROGRESS SECTION --- */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Overall Progress</Text>
-            <Text style={styles.progressValue}>{completedOrders} / {totalTarget}</Text>
+        {/* --- ADVANCED PROGRESS SECTION --- */}
+        <View style={styles.newProgressWrapper}>
+          {/* 1. Peak Slot Progress */}
+          <View style={styles.innerProgressCard}>
+            <SlotProgressBar
+              label="Peak Slots"
+              icon="flash"
+              iconBgStyle={styles.peakIconBox}
+              iconColor="#FF6A00"
+              current={peakCompleted}
+              target={minPeakSlots}
+              color1="#FF9966"
+              color2="#FF5E62"
+            />
+            <Text style={styles.contextText}>*Must also deliver {peakMinOrders}+ orders to unlock</Text>
           </View>
-          <View style={styles.track}>
-            <View style={[styles.bar, { width: `${progressPercent}%` }]} />
+
+          {/* 2. Normal Slot Progress */}
+          <View style={styles.innerProgressCard}>
+            <SlotProgressBar
+              label="Normal Slots"
+              icon="bicycle"
+              iconBgStyle={styles.normalIconBox}
+              iconColor="#00A63E"
+              current={normalCompleted}
+              target={minNormalSlots}
+              color1="#56ab2f"
+              color2="#a8e063"
+            />
+            <Text style={styles.contextText}>*Must also deliver {normalMinOrders}+ orders to unlock</Text>
           </View>
-          <Text style={styles.progressHint}>
-            Complete all targets to unlock the bonus!
-          </Text>
+
+          {/* 3. Overall Progress */}
+          <View style={styles.innerProgressCard}>
+            <OverallProgressBar percentage={overallPercentage} />
+          </View>
         </View>
 
       </View>
@@ -356,5 +467,49 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     fontStyle: 'italic',
-  }
+  },
+
+  /* --- NEW PROGRESS STYLES --- */
+  newProgressWrapper: { marginBottom: hp("2%") },
+  innerProgressCard: {
+    backgroundColor: "#FFF", borderRadius: 16, padding: 16, marginBottom: 12,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2,
+  },
+  contextText: { fontSize: 11, color: "#999", marginTop: 8, fontStyle: 'italic', marginLeft: 24 },
+
+  slotProgressContainer: {},
+  slotHeaderRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, alignItems: 'center' },
+  slotLabel: { fontSize: 13, fontWeight: "700", color: "#333" },
+  slotCount: { fontSize: 13, fontWeight: "700", color: "#333" },
+
+  miniIconBox: {
+    width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 8,
+  },
+
+  barContainer: { height: 16, justifyContent: 'center', marginTop: 4 },
+  track: { height: 12, backgroundColor: "#EEF0F4", borderRadius: 6, width: '100%', overflow: 'hidden' },
+  barFill: { height: "100%", borderRadius: 6 },
+
+  statusIconWrapper: {
+    position: 'absolute', right: 0, width: 20, height: 20, borderRadius: 10,
+    backgroundColor: "#EEE", borderWidth: 2, borderColor: "#FFF", justifyContent: 'center', alignItems: 'center',
+    top: -2, // Center vertically relative to 16px container (bar is 12px)
+    elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1,
+  },
+  statusIconCompleted: { backgroundColor: "#00A63E", borderColor: "#FFF" },
+
+  overallContainer: { minHeight: 60 },
+  overallTitle: { fontSize: 15, fontWeight: "700", color: "#333", marginBottom: 24 },
+  overallTrackWrapper: { height: 16, marginBottom: 8, position: 'relative', marginTop: 10, marginHorizontal: 10 },
+  overallTrack: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "#EEF0F4", borderRadius: 8 },
+  overallFill: { height: "100%", borderRadius: 8 },
+  checkpoint: {
+    position: 'absolute', top: -4, width: 2, height: 24, backgroundColor: "#DDD", marginLeft: -3, zIndex: 1,
+  },
+  checkpointActive: { backgroundColor: "#00A63E" },
+  checkpointText: {
+    position: 'absolute', top: -20, left: -25, width: 40, fontSize: 10, fontWeight: '600', color: "#AAA", textAlign: 'center'
+  },
+  checkpointTextActive: { color: "#00A63E", fontWeight: '700' },
+  overallValue: { fontSize: 24, fontWeight: "800", color: "#4F39F6", textAlign: "right", marginTop: 4 },
 });
