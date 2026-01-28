@@ -201,39 +201,21 @@ export default function EarningsScreen({navigation}) {
 const handleItemPress = (item) => {
   if (item.type === 'peak') {
     navigation.navigate('PeakHourBonusScreen', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      slabs: item.slabs ?? [],
-      accentColor: item.accentColor,
+      incentive: item.peak_data
     });
     return;
   }
 
   if (item.type === 'weekly') {
     navigation.navigate('WeekEarnings', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      incentive: item.weekly_data
     });
     return;
   }
 
   if (item.type === 'daily') {
     navigation.navigate('DailyGuarentee', {
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      incentive:item.daily_data
     });
   }
 };
