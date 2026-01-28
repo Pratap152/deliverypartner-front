@@ -57,7 +57,6 @@ export default function EarningsScreen({navigation}) {
   const yAxisWidth = wp(15);
  
  
-  
  
  
  
@@ -110,6 +109,7 @@ export default function EarningsScreen({navigation}) {
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
+        
  
         <BarChart
           data={barChart}
@@ -119,7 +119,7 @@ export default function EarningsScreen({navigation}) {
           spacing={wp(4)}
           roundedTop
           hideRules
-          noOfSections={4}
+          noOfSections={5}
           frontColor="#22C55E"
  
           pointerConfig={{
