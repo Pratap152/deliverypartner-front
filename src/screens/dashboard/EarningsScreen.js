@@ -19,8 +19,7 @@ import {
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
-import { useNavigation } from '@react-navigation/native';
-import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
@@ -57,7 +56,6 @@ export default function EarningsScreen({navigation}) {
   const yAxisWidth = wp(15);
  
  
-  
  
  
  
@@ -71,14 +69,19 @@ export default function EarningsScreen({navigation}) {
         style={styles.header}>
         <View style={styles.heading}>
           <Text style={styles.title}>Earnings</Text>
+          <View style={{justifyContent:'space-between',flexDirection:'row'}}>
+          <TouchableOpacity style={{paddingRight:5}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
+            <MaterialIcons name="history" size={28} color="rgb(252, 251, 251)"/>
+          </TouchableOpacity>
           <TouchableOpacity>
             <Image
               source={require('../../assets/chat.png')}
               style={styles.chat_icon}
             />
           </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity style={styles.daily_summary} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'DAY'})} >
+        <TouchableOpacity style={styles.daily_summary} onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'DAY'})} >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
@@ -104,12 +107,13 @@ export default function EarningsScreen({navigation}) {
  
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
-        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'WEEK'})} >
         <View style={styles.cardHeader}>
           
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
+        
  
         <BarChart
           data={barChart}
@@ -119,7 +123,7 @@ export default function EarningsScreen({navigation}) {
           spacing={wp(4)}
           roundedTop
           hideRules
-          noOfSections={4}
+          noOfSections={5}
           frontColor="#22C55E"
  
           pointerConfig={{
@@ -197,39 +201,21 @@ export default function EarningsScreen({navigation}) {
 const handleItemPress = (item) => {
   if (item.type === 'peak') {
     navigation.navigate('PeakHourBonusScreen', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      slabs: item.slabs ?? [],
-      accentColor: item.accentColor,
+      incentive: item.peak_data
     });
     return;
   }
 
   if (item.type === 'weekly') {
     navigation.navigate('WeekEarnings', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      incentive: item.weekly_data
     });
     return;
   }
 
   if (item.type === 'daily') {
     navigation.navigate('DailyGuarentee', {
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      incentive:item.daily_data
     });
   }
 };
