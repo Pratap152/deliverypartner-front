@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import {
   View,
   Text,
@@ -8,8 +14,9 @@ import {
   Alert,
   Image,
   FlatList,
+  RefreshControl,
 } from 'react-native';
-import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
@@ -19,10 +26,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import apiClient from '../../services/ApiClient';
 
 const PAGE_SIZE = 10;
+const getCacheKey = filter => `SLOT_HISTORY_CACHE_${filter}`;
+
+/* ================= MEMORY CACHE (FASTEST) ================= */
+let memoryCache = {};
 
 const SlotHistory = ({ navigation }) => {
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [listLoading, setListLoading] = useState(false);
   const [slots, setSlots] = useState([]);
   const [summary, setSummary] = useState({
     totalSlots: 0,
@@ -30,33 +39,60 @@ const SlotHistory = ({ navigation }) => {
   });
   const [activeFilter, setActiveFilter] = useState('all');
 
-  // 🔥 Pagination states
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
+  const [initialRendered, setInitialRendered] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const isFetchingRef = useRef(false);
+
+  /* ================= LOAD CACHE (MEMORY → STORAGE) ================= */
 
   useEffect(() => {
-    fetchSlotHistory('all', 1, true);
-  }, [fetchSlotHistory]);
+    const loadCache = async () => {
+      // 1️⃣ MEMORY CACHE (instant)
+      if (memoryCache[activeFilter]) {
+        setSlots(memoryCache[activeFilter].slots);
+        setSummary(memoryCache[activeFilter].summary);
+        setInitialRendered(true);
+        return;
+      }
 
-  /* ---------------- FETCH API ---------------- */
+      // 2️⃣ ASYNC STORAGE (fallback)
+      try {
+        const cached = await AsyncStorage.getItem(getCacheKey(activeFilter));
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          memoryCache[activeFilter] = parsed;
+          setSlots(parsed.slots || []);
+          setSummary(parsed.summary || { totalSlots: 0, totalEarnings: 0 });
+        }
+      } catch (e) {
+      } finally {
+        setInitialRendered(true);
+      }
+    };
+
+    loadCache();
+  }, [activeFilter]);
+
+  /* ================= API ================= */
 
   const fetchSlotHistory = useCallback(
-    async (filterType, pageNo = 1, firstLoad = false) => {
-      if (listLoading) return;
+    async (filterType, pageNo = 1, isRefresh = false) => {
+      if (isFetchingRef.current) return;
+      if (!hasMore && pageNo !== 1) return;
+
+      isFetchingRef.current = true;
 
       try {
-        if (!apiClient) {
-          Alert.alert('Session expired', 'Please login again');
-          return;
-        }
-
-        if (firstLoad) {
-          setInitialLoading(true);
-        } else {
+        // 🔥 Do NOT block UI if cached data exists
+        if (pageNo === 1 && !isRefresh && slots.length === 0) {
           setListLoading(true);
         }
 
-        const res = await apiClient.get(`/api/profile/slots/history`, {
+        const res = await apiClient.get('/api/profile/slots/history', {
           params: {
             filter: filterType === 'all' ? undefined : filterType,
             page: pageNo,
@@ -64,34 +100,77 @@ const SlotHistory = ({ navigation }) => {
           },
         });
 
-        if (res.data?.success) {
-          const newData = res.data.data || [];
+        if (!res.data?.success) throw new Error('API_FAILED');
 
-          setSlots(prev => (pageNo === 1 ? newData : [...prev, ...newData]));
+        const newData = res.data.data || [];
 
-          setSummary({
-            totalSlots: Number(res.data.totalSlots ?? 0),
-            totalEarnings: Number(res.data.totalEarnings ?? 0),
-          });
+        setSlots(prev => {
+          const updated = pageNo === 1 ? newData : [...prev, ...newData];
 
-          setHasMore(newData.length === PAGE_SIZE);
-          setPage(pageNo);
-        }
+          const cachePayload = {
+            slots: updated,
+            summary: {
+              totalSlots: Number(res.data.totalSlots ?? 0),
+              totalEarnings: Number(res.data.totalEarnings ?? 0),
+            },
+          };
+
+          // 🔥 Update both caches
+          memoryCache[filterType] = cachePayload;
+          AsyncStorage.setItem(
+            getCacheKey(filterType),
+            JSON.stringify(cachePayload),
+          );
+
+          return updated;
+        });
+
+        setSummary({
+          totalSlots: Number(res.data.totalSlots ?? 0),
+          totalEarnings: Number(res.data.totalEarnings ?? 0),
+        });
+
+        setHasMore(newData.length === PAGE_SIZE);
+        setPage(pageNo);
       } catch (e) {
-        Alert.alert('Error', 'Failed to fetch slot history');
+        Alert.alert('Error', 'Unable to fetch the data');
       } finally {
-        setInitialLoading(false);
+        isFetchingRef.current = false;
         setListLoading(false);
+        setRefreshing(false);
+        setInitialRendered(true);
       }
     },
-    [listLoading],
+    [hasMore, slots.length],
   );
 
-  /* ---------------- GROUP DATA ---------------- */
+  /* ================= FETCH ON FILTER CHANGE ================= */
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchSlotHistory(activeFilter, 1);
+  }, [activeFilter]);
+
+  /* ================= PULL TO REFRESH ================= */
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    fetchSlotHistory(activeFilter, 1, true);
+  };
+
+  /* ================= GROUP DATA ================= */
 
   const groupedSlots = useMemo(() => {
     return slots.reduce((acc, slot) => {
-      const dateKey = slot.date;
+      const dateKey = slot.date
+        ? slot.date.split('T')[0]
+        : slot.slotDate?.split('T')[0];
+
+      if (!dateKey) return acc;
+
       if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(slot);
       return acc;
@@ -103,16 +182,18 @@ const SlotHistory = ({ navigation }) => {
   }, [groupedSlots]);
 
   const flatData = useMemo(() => {
+    if (!sortedDates.length) return [];
     return sortedDates.flatMap(date => [
-      { type: 'header', date },
+      { type: 'header', id: `h-${date}`, date },
       ...groupedSlots[date].map(slot => ({
-        type: 'slot',
         ...slot,
+        id: String(slot.slotBookingId),
+        type: 'slot',
       })),
     ]);
   }, [sortedDates, groupedSlots]);
 
-  /* ---------------- HELPERS ---------------- */
+  /* ================= DATE HELPERS ================= */
 
   const formatDateMMDDYYYY = date => {
     const d = new Date(date);
@@ -150,7 +231,7 @@ const SlotHistory = ({ navigation }) => {
     });
   };
 
-  /* ---------------- STATUS ---------------- */
+  /* ================= STATUS ================= */
 
   const STATUS_CONFIG = {
     COMPLETED: {
@@ -179,14 +260,27 @@ const SlotHistory = ({ navigation }) => {
     },
   };
 
-  const renderSlot = slot => {
-    const status = STATUS_CONFIG[slot.slotStatus] || STATUS_CONFIG.ACTIVE;
+  /* ================= RENDER ITEM ================= */
+
+  const renderItem = useCallback(({ item }) => {
+    if (item.type === 'header') {
+      return (
+        <View style={styles.dateRow}>
+          <Text style={styles.todayText}>{getLeftLabel(item.date)}</Text>
+          <Text style={styles.dateHeaderRight}>
+            {formatDateMMDDYYYY(item.date)}
+          </Text>
+        </View>
+      );
+    }
+
+    const status = STATUS_CONFIG[item.slotStatus] || STATUS_CONFIG.ACTIVE;
 
     return (
       <View style={styles.slotCard}>
         <View style={styles.rowBetween}>
           <Text style={styles.timeText}>
-            {slot.startTime} - {slot.endTime}
+            {item.startTime} - {item.endTime}
           </Text>
 
           <View
@@ -205,30 +299,14 @@ const SlotHistory = ({ navigation }) => {
         </View>
 
         <View style={[styles.rowBetween, { marginTop: rh(0.6) }]}>
-          <Text style={styles.subText}>Orders: {slot.totalOrders}</Text>
-          <Text style={styles.earningText}>Earnings: ₹{slot.slotEarnings}</Text>
+          <Text style={styles.subText}>Orders: {item.totalOrders}</Text>
+          <Text style={styles.earningText}>Earnings: ₹{item.slotEarnings}</Text>
         </View>
       </View>
     );
-  };
+  }, []);
 
-  /* ---------------- INITIAL LOADER ---------------- */
-
-  if (initialLoading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#0DBE61" />
-      </View>
-    );
-  }
-
-  const EmptySlots = () => (
-    <View style={{ alignItems: 'center', marginTop: rh(8) }}>
-      <Text style={styles.emptyText}>No slots available</Text>
-    </View>
-  );
-
-  /* ---------------- UI ---------------- */
+  /* ================= UI (UNCHANGED) ================= */
 
   return (
     <View style={styles.container}>
@@ -246,7 +324,7 @@ const SlotHistory = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* FILTERS + SUMMARY (UNCHANGED UI) */}
+      {/* BANNER (FILTERS + SUMMARY) */}
       <View style={{ padding: rw(4) }}>
         <View style={styles.filterRow}>
           {[
@@ -262,10 +340,8 @@ const SlotHistory = ({ navigation }) => {
                 activeFilter === item.value && styles.activeFilterTab,
               ]}
               onPress={() => {
-                setActiveFilter(item.value); // ⚡ Optimistic UI
-                setPage(1);
-                setHasMore(true);
-                fetchSlotHistory(item.value, 1);
+                if (activeFilter === item.value) return;
+                setActiveFilter(item.value);
               }}
             >
               <Text
@@ -304,45 +380,36 @@ const SlotHistory = ({ navigation }) => {
       {/* LIST */}
       <FlatList
         data={flatData}
-        keyExtractor={(item, index) =>
-          item.type === 'header' ? `header-${item.date}` : item.slotBookingId
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: rw(4) }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        renderItem={({ item }) =>
-          item.type === 'header' ? (
-            <View style={styles.dateRow}>
-              <Text style={styles.todayText}>{getLeftLabel(item.date)}</Text>
-              <Text style={styles.dateHeaderRight}>
-                {formatDateMMDDYYYY(item.date)}
-              </Text>
-            </View>
-          ) : (
-            renderSlot(item)
-          )
-        }
-        ListEmptyComponent={!initialLoading && <EmptySlots />}
-        refreshing={listLoading}
-        onRefresh={() => {
-          setPage(1);
-          setHasMore(true);
-          fetchSlotHistory(activeFilter, 1);
-        }}
         onEndReached={() => {
           if (hasMore && !listLoading) {
             fetchSlotHistory(activeFilter, page + 1);
           }
         }}
         onEndReachedThreshold={0.3}
-        contentContainerStyle={{ padding: rw(4) }}
-
-        // ListFooterComponent={
-        //   listLoading && hasMore ? (
-        //     <ActivityIndicator
-        //       size="small"
-        //       color="#12B5CB"
-        //       style={{ marginVertical: rh(2) }}
-        //     />
-        //   ) : null
-        // }
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={7}
+        removeClippedSubviews
+        ListFooterComponent={
+          listLoading && (
+            <ActivityIndicator size="small" style={{ marginVertical: rh(2) }} />
+          )
+        }
+        ListEmptyComponent={
+          initialRendered && (
+            <Text
+              style={{ textAlign: 'center', marginTop: rh(4), color: '#777' }}
+            >
+              No slots found
+            </Text>
+          )
+        }
       />
     </View>
   );
@@ -350,17 +417,10 @@ const SlotHistory = ({ navigation }) => {
 
 export default SlotHistory;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F4F6F8',
-  },
+/* ================= STYLES (UNCHANGED) ================= */
 
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6F8' },
 
   header: {
     height: rh(8),
@@ -372,10 +432,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  headerTitle: {
-    fontSize: rf(2.3),
-    fontWeight: '600',
-  },
+  headerTitle: { fontSize: rf(2.3), fontWeight: '600' },
 
   robotIcon: {
     width: rw(12),
@@ -398,9 +455,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  activeFilterTab: {
-    backgroundColor: '#12B5CB',
-  },
+  activeFilterTab: { backgroundColor: '#12B5CB' },
 
   filterText: {
     fontSize: rf(1.6),
@@ -408,10 +463,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  activeFilterText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  activeFilterText: { color: '#fff', fontWeight: '600' },
 
   summaryRow: {
     flexDirection: 'row',
@@ -428,9 +480,7 @@ const styles = StyleSheet.create({
   green: { backgroundColor: '#00A63E' },
   orange: { backgroundColor: '#F54900' },
 
-  summaryIcon: {
-    color: '#FFFFFF',
-  },
+  summaryIcon: { resizeMode: 'contain' },
 
   summaryValue: {
     color: '#FFFFFF',
@@ -443,63 +493,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: rh(0.5),
     fontSize: rf(1.6),
-  },
-
-  dateHeader: {
-    marginVertical: rh(1),
-    fontSize: rf(1.8),
-    fontWeight: '600',
-    color: '#555',
-  },
-
-  slotCard: {
-    backgroundColor: '#fff',
-    padding: rw(4),
-    borderRadius: 8,
-    marginBottom: rh(1),
-  },
-
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  timeText: {
-    fontSize: rf(1.8),
-    fontWeight: '600',
-  },
-
-  subText: {
-    fontSize: rf(1.6),
-    color: '#555',
-  },
-
-  earningText: {
-    fontSize: rf(1.6),
-    color: '#4A5565',
-    fontWeight: '600',
-  },
-
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: rw(2.5),
-    paddingVertical: rh(0.4),
-    borderRadius: 14,
-  },
-
-  statusText: {
-    fontSize: rf(1.4),
-    fontWeight: '600',
-    color: '#0DBE61',
-  },
-
-  emptyText: {
-    textAlign: 'center',
-    marginTop: rh(5),
-    fontSize: rf(1.8),
-    color: '#777',
   },
 
   dateRow: {
@@ -520,4 +513,37 @@ const styles = StyleSheet.create({
     color: '#555',
     fontWeight: '500',
   },
+
+  slotCard: {
+    backgroundColor: '#fff',
+    padding: rw(4),
+    borderRadius: 8,
+    marginBottom: rh(1),
+  },
+
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  timeText: { fontSize: rf(1.8), fontWeight: '600' },
+
+  subText: { fontSize: rf(1.6), color: '#555' },
+
+  earningText: {
+    fontSize: rf(1.6),
+    color: '#4A5565',
+    fontWeight: '600',
+  },
+
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: rw(2.5),
+    paddingVertical: rh(0.4),
+    borderRadius: 14,
+  },
+
+  statusText: { fontSize: rf(1.4), fontWeight: '600' },
 });

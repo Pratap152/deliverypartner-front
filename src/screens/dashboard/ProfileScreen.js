@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  StatusBar,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, Image, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, Linking } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
@@ -20,7 +12,6 @@ import apiClient from '../../services/ApiClient';
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
-
   const onLogoutPress = () => {
     authService.logout();
   };
@@ -51,6 +42,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  /* ---------------- FETCH PROFILE ---------------- */
   const fetchProfile = async () => {
     try {
       const res = await apiClient.get('/api/profile/rider/profile');
@@ -91,7 +83,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
 
-              <View style={{ flex: 1, marginLeft: wp('4%') }}>    
+              <View style={{ flex: 1, marginLeft: wp('4%') }}>
                 <Text style={styles.name}>
                   {profile?.personalInfo?.fullName || '—'}
                 </Text>
@@ -99,7 +91,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.driverId}>
                   Driver ID: DRV123456
                 </Text>
-                
+
                 <View style={styles.activeBadge}>
                   <Text style={styles.activeText}>Active</Text>
                 </View>
@@ -692,4 +684,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-});
+});  
