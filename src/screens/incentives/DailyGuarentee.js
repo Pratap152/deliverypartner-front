@@ -7,281 +7,354 @@ import {
   TouchableOpacity,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-
 const DailyGuarentee = ({ route, navigation }) => {
-  const data = route.params || {};
+  // Safe extraction with default values
+  const params = route.params || {};
 
-  /* ---------------- DERIVED DATA ---------------- */
-  const completed = data.completedOrders || 0;
-  const total = data.totalOrders || data.requiredOrders || 1;
-  const progress = Math.min((completed / total) * 100, 100);
-  const rewardValue = data.rewardValue || data.value || 0;
+  // Slot Rules Defaults
+  const minPeakSlots = params.slotRules?.minPeakSlots || 2;
+  const minNormalSlots = params.slotRules?.minNormalSlots || 3;
+
+  // Order Rules Defaults (Drilling down safely)
+  // Peak Slab: Try to get first slab's minOrders, else default to 5
+  const peakMinOrders = params.slabs?.peak?.[0]?.minOrders || 5;
+  const peakMaxOrders = params.slabs?.peak?.[0]?.maxOrders || 8;
+
+  // Normal Slab: Try to get first slab's minOrders, else default to 8
+  const normalMinOrders = params.slabs?.normal?.[0]?.minOrders || 8;
+  const normalMaxOrders = params.slabs?.normal?.[0]?.maxOrders || 12;
+
+  // Progress Data
+  const completedOrders = params.completedOrders || 0;
+  // We can sum the targets for a rough "Total Goal" visual, or just use a fixed max if mapped
+  const totalTarget = peakMinOrders + normalMinOrders;
+  const progressPercent = Math.min((completedOrders / totalTarget) * 100, 100);
+
+  const status = params.status || "ACTIVE";
+  const rewardAmount = params.rewardAmount || params.value || 0;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* HEADER */}
-      <Text style={styles.title}>
-        {data?.title || "Daily Guarentee"}
-      </Text>
-      <Text style={styles.subTitle}>
-        {data?.description || "Earn More During Busy Times"}
-      </Text>
-
-      {/* TIME CARD */}
-      <View style={styles.card}>
-        <View style={styles.iconCircle}>
-          <Text style={styles.icon}>⏰</Text>
-        </View>
-
-        <View>
-          <Text style={styles.cardTitle}>
-            {data?.timeWindow || "10:00 PM – 8:00 PM (Today)"}
-          </Text>
-          <Text style={styles.cardSubText}>
-            Active only during busy hours.
-          </Text>
-        </View>
-      </View>
-
-      {/* BONUS CARD */}
-      <View style={styles.card}>
-        <View style={[styles.iconCircle, { backgroundColor: "#2563EB" }]}>
-          <Text style={styles.icon}>🎯</Text>
-        </View>
-
-        <View>
-          <Text style={styles.cardTitle}>
-            Complete {total} orders and earn extra ₹{rewardValue}
-          </Text>
-          <Text style={styles.cardSubText}>
-            Bonus credited instantly after completing your
-            target during the active time window.
-          </Text>
-        </View>
-      </View>
-
-      {/* PROGRESS */}
-      <View style={styles.progressCard}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>Your Progress</Text>
-
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor:
-                  data?.status === "ACTIVE" ? "#D1FAE5" : "#FEE2E2",
-              },
-            ]}
-          >
-            <Text
-              style={{
-                color:
-                  data?.status === "ACTIVE" ? "#065F46" : "#991B1B",
-                fontSize: 12,
-                fontWeight: "600",
-              }}
-            >
-              {data?.status === "ACTIVE" ? "On Track" : "Inactive"}
+      {/* --- HERO HEADER --- */}
+      <LinearGradient
+        colors={["#4F39F6", "#3B28C7"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.heroHeader}
+      >
+        <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <View style={[styles.statusBadge, status !== "ACTIVE" && styles.inactiveBadge]}>
+            <Text style={[styles.statusText, status !== "ACTIVE" && styles.inactiveText]}>
+              {status}
             </Text>
           </View>
         </View>
 
-        <View style={styles.progressBar}>
-          <View
-            style={[styles.progressFill, { width: `${progress}%` }]}
-          />
+        <Text style={styles.heroTitle}>{params.title || "Daily Target Bonus"}</Text>
+        <Text style={styles.heroSubtitle}>
+          {params.description || "Complete targets to earn extra rewards"}
+        </Text>
+
+        <View style={styles.rewardPill}>
+          <Text style={styles.rewardLabel}>Potential Earnings</Text>
+          <Text style={styles.rewardValue}>₹{rewardAmount}</Text>
         </View>
-
-        <Text style={styles.progressText}>
-          {completed} / {total} orders completed
-        </Text>
-      </View>
-
-      {/* EARNING CTA */}
-      <LinearGradient
-        colors={["#FFC107", "#FF7A00"]}
-        style={styles.earnBtn}
-      >
-        <Text style={styles.earnText}>
-          Earn up to ₹{data?.maxRewardPerRider || 1500} today!
-        </Text>
       </LinearGradient>
 
-      {/* ELIGIBLE AREAS */}
-      <View style={styles.cardColumn}>
-        <Text style={styles.cardTitle}>Eligible Areas</Text>
-        <View style={styles.mapPlaceholder} />
-        <Text style={styles.cardSubText}>
-          {data?.eligibleAreas?.join(", ") ||
-            "Koramangala, Indiranagar, Whitefield"}
-        </Text>
-      </View>
+      <View style={styles.contentContainer}>
+        <Text style={styles.sectionTitle}>Your Daily Mission</Text>
 
-      {/* START BUTTON */}
-      <TouchableOpacity
-        disabled={data?.status !== "ACTIVE"}
-        style={[
-          styles.startBtn,
-          { opacity: data?.status === "ACTIVE" ? 1 : 0.5 },
-        ]}
-      >
-        <Text style={styles.startText}>Start Earning Bonus →</Text>
-      </TouchableOpacity>
+        {/* --- ZONE 1: PEAK PERFORMANCE (Warm Schema) --- */}
+        <View style={[styles.ruleCard, styles.peakCard]}>
+          <View style={styles.cardHeaderRow}>
+            <View style={[styles.iconBox, styles.peakIconBox]}>
+              <Ionicons name="flash" size={20} color="#FF6A00" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Peak Zone Targets</Text>
+              <Text style={styles.cardSubtitle}>High demand hours</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Rule Rows */}
+          <View style={styles.ruleRow}>
+            <Ionicons name="calendar-outline" size={18} color="#555" style={styles.ruleIcon} />
+            <Text style={styles.ruleText}>
+              Book & Complete <Text style={styles.boldPeak}>{minPeakSlots} Peak Slots</Text>
+            </Text>
+          </View>
+          <View style={styles.ruleRow}>
+            <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+            <Text style={styles.ruleText}>
+              Deliver <Text style={styles.boldPeak}>{peakMinOrders}+ Orders</Text> in peak hours
+            </Text>
+          </View>
+        </View>
+
+        {/* --- ZONE 2: NORMAL PERFORMANCE (Cool Schema) --- */}
+        <View style={[styles.ruleCard, styles.normalCard]}>
+          <View style={styles.cardHeaderRow}>
+            <View style={[styles.iconBox, styles.normalIconBox]}>
+              <Ionicons name="bicycle" size={20} color="#00A63E" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Standard Zone Targets</Text>
+              <Text style={styles.cardSubtitle}>Regular hours</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Rule Rows */}
+          <View style={styles.ruleRow}>
+            <Ionicons name="calendar-outline" size={18} color="#555" style={styles.ruleIcon} />
+            <Text style={styles.ruleText}>
+              Book & Complete <Text style={styles.boldNormal}>{minNormalSlots} Normal Slots</Text>
+            </Text>
+          </View>
+          <View style={styles.ruleRow}>
+            <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+            <Text style={styles.ruleText}>
+              Deliver <Text style={styles.boldNormal}>{normalMinOrders}+ Orders</Text> in normal hours
+            </Text>
+          </View>
+        </View>
+
+        {/* --- PROGRESS SECTION --- */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.progressLabel}>Overall Progress</Text>
+            <Text style={styles.progressValue}>{completedOrders} / {totalTarget}</Text>
+          </View>
+          <View style={styles.track}>
+            <View style={[styles.bar, { width: `${progressPercent}%` }]} />
+          </View>
+          <Text style={styles.progressHint}>
+            Complete all targets to unlock the bonus!
+          </Text>
+        </View>
+
+      </View>
     </ScrollView>
   );
 };
 
 export default DailyGuarentee;
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#E9D8FD",
-    padding: wp("4%"),
+    backgroundColor: "#F4F7FB", // Light gray-blue bg
   },
-
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  heroHeader: {
+    paddingTop: hp("3%"),
+    paddingBottom: hp("4%"),
+    paddingHorizontal: wp("5%"),
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-
-  title: {
-    fontSize: wp("6.5%"),
-    fontWeight: "800",
-    textAlign: "center",
-  },
-
-  subTitle: {
-    fontSize: wp("3.5%"),
-    textAlign: "center",
-    color: "#555",
-    marginBottom: hp("2.5%"),
-  },
-
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: wp("4.5%"),
-    padding: wp("4%"),
-    marginBottom: hp("2%"),
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  cardColumn: {
-    backgroundColor: "#FFF",
-    borderRadius: wp("4.5%"),
-    padding: wp("4%"),
-    marginBottom: hp("2%"),
-  },
-
-  iconCircle: {
-    width: wp("11%"),
-    height: wp("11%"),
-    borderRadius: wp("5.5%"),
-    backgroundColor: "#10B981",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: wp("3%"),
-  },
-
-  icon: {
-    fontSize: wp("4.5%"),
-    color: "#FFF",
-  },
-
-  cardTitle: {
-    fontSize: wp("4%"),
-    fontWeight: "600",
-    marginBottom: hp("0.5%"),
-  },
-
-  cardSubText: {
-    fontSize: wp("3.2%"),
-    color: "#6B7280",
-  },
-
-  progressCard: {
-    backgroundColor: "#FFF",
-    borderRadius: wp("4.5%"),
-    padding: wp("4%"),
-    marginBottom: hp("2%"),
-  },
-
-  progressHeader: {
+  headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: hp("1.5%"),
-    alignItems: "center",
-  },
-
-  progressTitle: {
-    fontSize: wp("4%"),
-    fontWeight: "600",
-  },
-
-  statusBadge: {
-    paddingHorizontal: wp("2.5%"),
-    paddingVertical: hp("0.5%"),
-    borderRadius: wp("3%"),
-  },
-
-  progressBar: {
-    height: hp("1%"),
-    backgroundColor: "#E5E7EB",
-    borderRadius: wp("2%"),
-    overflow: "hidden",
-    marginBottom: hp("0.5%"),
-  },
-
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#2563EB",
-  },
-
-  progressText: {
-    fontSize: wp("3%"),
-    color: "#6B7280",
-  },
-
-  earnBtn: {
-    borderRadius: wp("7%"),
-    paddingVertical: hp("1.8%"),
     alignItems: "center",
     marginBottom: hp("2%"),
   },
-
-  earnText: {
+  statusBadge: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  inactiveBadge: {
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+  statusText: {
+    color: "#AAFFAA", // Light green text for active
+    fontWeight: "700",
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
+  inactiveText: {
+    color: "#CCC",
+  },
+  heroTitle: {
+    fontSize: wp("6.5%"),
+    fontWeight: "800",
     color: "#FFF",
-    fontSize: wp("4%"),
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: wp("3.8%"),
+    color: "rgba(255,255,255,0.9)",
+    marginBottom: hp("2.5%"),
+  },
+  rewardPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)'
+  },
+  rewardLabel: {
+    color: '#E0E0E0',
+    fontSize: 13,
+    marginRight: 8,
+  },
+  rewardValue: {
+    color: '#FFD700', // Gold
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  contentContainer: {
+    padding: wp("5%"),
+  },
+  sectionTitle: {
+    fontSize: wp("4.5%"),
     fontWeight: "700",
+    color: "#333",
+    marginBottom: hp("2%"),
+    marginLeft: 4,
   },
 
-  mapPlaceholder: {
-    height: hp("15%"),
-    backgroundColor: "#E0F2FE",
-    borderRadius: wp("3%"),
-    marginVertical: hp("1%"),
-  },
-
-  startBtn: {
+  /* Card Styles */
+  ruleCard: {
     backgroundColor: "#FFF",
-    paddingVertical: hp("1.8%"),
-    borderRadius: wp("8%"),
-    alignItems: "center",
-    marginBottom: hp("5%"),
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: hp("2%"),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    borderLeftWidth: 4,
+  },
+  peakCard: {
+    borderLeftColor: "#FF6A00", // Orange Accent
+  },
+  normalCard: {
+    borderLeftColor: "#00A63E", // Green Accent
   },
 
-  startText: {
-    color: "#0EA5E9",
-    fontSize: wp("4%"),
-    fontWeight: "700",
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  peakIconBox: {
+    backgroundColor: "#FFF0E0",
+  },
+  normalIconBox: {
+    backgroundColor: "#E0F5E9",
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F2937",
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#EFF0F6",
+    marginBottom: 12,
+  },
+
+  ruleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ruleIcon: {
+    marginRight: 10,
+    opacity: 0.7,
+  },
+  ruleText: {
+    fontSize: 14,
+    color: "#4B5563",
+    flex: 1,
+    lineHeight: 20,
+  },
+  boldPeak: {
+    fontWeight: "700",
+    color: "#E65100",
+  },
+  boldNormal: {
+    fontWeight: "700",
+    color: "#15803D",
+  },
+
+  /* Progress Styles */
+  progressContainer: {
+    marginTop: hp("1%"),
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  progressValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4F39F6',
+  },
+  track: {
+    height: 10,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  bar: {
+    height: '100%',
+    backgroundColor: '#4F39F6',
+    borderRadius: 5,
+  },
+  progressHint: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  }
 });
