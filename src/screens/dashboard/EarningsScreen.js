@@ -230,7 +230,6 @@ export default function EarningsScreen({ navigation }) {
 
 
 
-
   return (
     <FlatList
       data={incentives}
