@@ -1,69 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-import axios from "axios";
-import WEBSITE_URL from '../../utils/host';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
 
-const PeakHourBonusScreen = ({ navigation, route }) => {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState(null);
-  const item = route.params;
-  console.log("peak hour bonus item", item);
-
-  /* ---------------- API CALL ---------------- */
-  const fetchPeakHour = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        `${WEBSITE_URL}/api/home/peakhours-incentives`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0ZmEzZGY0OGJjMjVlMTQwMzRhYWYxIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2ODIxNTY1NX0.JFKM8gpj_g4SP7SZnxSY7MLuCvjAQnmWk9Mk1-OlxH4",
-          },
-        }
-      );
-
-      setData(res.data);
-    } catch (err) {
-      Alert.alert(
-        "Error",
-        err?.response?.data?.message || "Unable to load incentive"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPeakHour();
-  }, []);
+const PeakHourBonusScreen = ({ route, navigation }) => {
+  const data = route.params || {};
 
   /* ---------------- DERIVED DATA ---------------- */
-  const completed = data?.completedOrders || 0;
-  const total = data?.totalOrders || 1;
+  const completed = data.completedOrders || 0;
+  const total = data.totalOrders || data.requiredOrders || 1;
   const progress = Math.min((completed / total) * 100, 100);
-
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#6C4EF6" />
-      </View>
-    );
-  }
+  const rewardValue = data.rewardValue || data.value || 0;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -99,7 +56,7 @@ const PeakHourBonusScreen = ({ navigation, route }) => {
 
         <View>
           <Text style={styles.cardTitle}>
-            Complete {total} orders and earn extra ₹{data?.rewardValue}
+            Complete {total} orders and earn extra ₹{rewardValue}
           </Text>
           <Text style={styles.cardSubText}>
             Bonus credited instantly after completing your
