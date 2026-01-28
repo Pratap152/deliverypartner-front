@@ -63,7 +63,7 @@ const OrderHistory = ({ navigation }) => {
     </View>
   );
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" />
@@ -121,9 +121,16 @@ const OrderHistory = ({ navigation }) => {
         data={orders}
         keyExtractor={item => item.id}
         renderItem={renderOrder}
-        onEndReached={loadMore}
+        onEndReached={() => {
+          if (!loadingMore) loadMore();
+        }}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
+        /* 🔥 PERFORMANCE */
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={7}
+        removeClippedSubviews
         ListFooterComponent={
           loadingMore ? (
             <ActivityIndicator style={{ marginVertical: 20 }} />
