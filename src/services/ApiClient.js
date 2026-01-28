@@ -118,6 +118,7 @@
 // );
 
 // export default apiClient;
+// services/apiClient.js
 import axios from 'axios';
 import WEBSITE_URL from '../utils/host';
 import { tokenService } from './TokenService';
@@ -126,7 +127,7 @@ import { authEvents, AUTH_EVENTS } from './AuthEvents';
 let isRefreshing = false;
 let queue = [];
 
-// process queued requests
+// ================= QUEUE =================
 const processQueue = (token, error = null) => {
   queue.forEach(promise => {
     if (error) promise.reject(error);
@@ -137,14 +138,15 @@ const processQueue = (token, error = null) => {
 
 const apiClient = axios.create({
   baseURL: WEBSITE_URL,
-  timeout: 15000,
+  timeout: 60000,
 });
 
-// ================= REQUEST =================
-apiClient.interceptors.request.use(async config => {
+// ================= REQUEST (FAST) =================
+apiClient.interceptors.request.use(config => {
   if (config.skipAuth) return config;
 
-  const { accessToken } = await tokenService.get();
+  // ⚡ NO await, NO AsyncStorage
+  const { accessToken } = tokenService.getSync();
 
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -166,7 +168,7 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      // ⏳ Refresh already running → queue
+      // ⏳ Refresh already running
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           queue.push({
@@ -182,6 +184,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        // 🔑 refresh token (async is OK here)
         const { refreshToken } = await tokenService.get();
 
         if (!refreshToken) {
@@ -194,27 +197,24 @@ apiClient.interceptors.response.use(
           { skipAuth: true },
         );
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-          res.data.data;
+        const { accessToken, refreshToken: newRefresh } = res.data.data;
 
         await tokenService.set({
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
+          accessToken,
+          refreshToken: newRefresh,
         });
 
-        processQueue(newAccessToken);
+        processQueue(accessToken);
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (err) {
         processQueue(null, err);
 
-        // 🌐 NETWORK ERROR → LOGOUT
         if (err.request && !err.response) {
           authEvents.emit(AUTH_EVENTS.FORCE_LOGOUT);
         }
 
-        // 🔐 REFRESH TOKEN INVALID → LOGOUT
         const isRefreshCall = err.config?.url?.includes('refresh-token');
 
         if (
@@ -235,9 +235,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-
-import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
-export const EarningsClient = fetchBaseQuery({
-  baseUrl: WEBSITE_URL,
-});
