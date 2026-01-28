@@ -59,44 +59,55 @@
 //     return expiry && expiry - Date.now() <= buffer;
 //   },
 // };
+// services/TokenService.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ACCESS_KEY = 'accessToken';
 const REFRESH_KEY = 'refreshToken';
 
-// 🔥 In-memory cache (instant access)
+// 🔥 In-memory cache
 let memoryAccessToken = null;
 let memoryRefreshToken = null;
+let hydrated = false;
+
+async function hydrateOnce() {
+  if (hydrated) return;
+
+  const [access, refresh] = await Promise.all([
+    AsyncStorage.getItem(ACCESS_KEY),
+    AsyncStorage.getItem(REFRESH_KEY),
+  ]);
+
+  memoryAccessToken = access;
+  memoryRefreshToken = refresh;
+  hydrated = true;
+}
 
 export const tokenService = {
+  // 🔥 ASYNC (used ONLY at app start / refresh)
   async get() {
-    // ✅ First priority: memory
-    if (memoryAccessToken) {
-      return {
-        accessToken: memoryAccessToken,
-        refreshToken: memoryRefreshToken,
-      };
+    if (!hydrated) {
+      await hydrateOnce();
     }
 
-    // 🔄 Fallback to storage
-    const [accessToken, refreshToken] = await Promise.all([
-      AsyncStorage.getItem(ACCESS_KEY),
-      AsyncStorage.getItem(REFRESH_KEY),
-    ]);
+    return {
+      accessToken: memoryAccessToken,
+      refreshToken: memoryRefreshToken,
+    };
+  },
 
-    memoryAccessToken = accessToken;
-    memoryRefreshToken = refreshToken;
-    console.log('Retrieved tokens from storage:', {
-      accessToken,
-      refreshToken,
-    });
-
-    return { accessToken, refreshToken };
+  // ⚡ SYNC (used inside interceptors)
+  getSync() {
+    return {
+      accessToken: memoryAccessToken,
+      refreshToken: memoryRefreshToken,
+    };
   },
 
   async set({ accessToken, refreshToken }) {
     memoryAccessToken = accessToken;
     memoryRefreshToken = refreshToken;
+    hydrated = true;
 
     await Promise.all([
       AsyncStorage.setItem(ACCESS_KEY, accessToken),
@@ -107,6 +118,7 @@ export const tokenService = {
   async clear() {
     memoryAccessToken = null;
     memoryRefreshToken = null;
+    hydrated = true;
 
     await AsyncStorage.multiRemove([ACCESS_KEY, REFRESH_KEY]);
   },
