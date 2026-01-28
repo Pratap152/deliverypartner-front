@@ -45,6 +45,9 @@ export default function EarningsScreen({navigation}) {
   const today = earningsSummary.today || {};
   const week = earningsSummary.week || {};
   const month = earningsSummary.month || {};
+  console.log("today",today);
+  console.log("week",week);
+  console.log("month",month);
 
   const barChart = Array.isArray(data.weeklyBarChart)
   ? data.weeklyBarChart
@@ -197,39 +200,21 @@ export default function EarningsScreen({navigation}) {
 const handleItemPress = (item) => {
   if (item.type === 'peak') {
     navigation.navigate('PeakHourBonusScreen', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      slabs: item.slabs ?? [],
-      accentColor: item.accentColor,
+      item,
     });
     return;
   }
 
   if (item.type === 'weekly') {
     navigation.navigate('WeekEarnings', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      item,
     });
     return;
   }
 
   if (item.type === 'daily') {
     navigation.navigate('DailyGuarentee', {
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      item,
     });
   }
 };
