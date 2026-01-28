@@ -19,14 +19,11 @@ import {
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
-import { useNavigation } from '@react-navigation/native';
-import EarningsHistoryScreen from '../earnings/EarningsHistoryScreen';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function EarningsScreen({navigation}) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
- 
- 
  
   if (loading) {
     return (
@@ -38,6 +35,7 @@ export default function EarningsScreen({navigation}) {
  
   const {
     earningsSummary = {},
+    weeklyBarChart = {},
     wallet = {},
     incentives = [],
   } = data;
@@ -46,22 +44,18 @@ export default function EarningsScreen({navigation}) {
   const today = earningsSummary.today || {};
   const week = earningsSummary.week || {};
   const month = earningsSummary.month || {};
- 
+
+  const barChart = Array.isArray(data.weeklyBarChart)
+  ? data.weeklyBarChart
+  : [];
+
+  
   const cardWidth = wp(90);
   const cardPadding = wp(4);
   const chartHeight = hp(30);
   const yAxisWidth = wp(15);
  
  
-  const weeklyEarnings = [
-  { label: 'Mon', value: 120 },
-  { label: 'Tue', value: 180 },
-  { label: 'Wed', value: 90 },
-  { label: 'Thu', value: 220 },
-  { label: 'Fri', value: 150 },
-  { label: 'Sat', value: 290 },
-  { label: 'Sun', value: 110 },
-];
  
  
  
@@ -75,24 +69,33 @@ export default function EarningsScreen({navigation}) {
         style={styles.header}>
         <View style={styles.heading}>
           <Text style={styles.title}>Earnings</Text>
+          <View style={{justifyContent:'space-between',flexDirection:'row'}}>
+          <TouchableOpacity style={{paddingRight:5}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
+            <MaterialIcons name="history" size={28} color="rgb(252, 251, 251)"/>
+          </TouchableOpacity>
           <TouchableOpacity>
             <Image
               source={require('../../assets/chat.png')}
               style={styles.chat_icon}
             />
           </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity style={styles.daily_summary} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'DAY'})} >
+        <TouchableOpacity style={styles.daily_summary} onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'DAY'})} >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
+                <Text style={[styles.daily_details,{marginTop:hp(1),fontWeight:500}]}>Base Earnings : ₹{today.baseEarnings}</Text>
                 <View style={[styles.daily_details_container, { marginTop: wp(2) }]}>
                   <Text style={styles.daily_details}>Orders</Text>
-                  {/* <Text style={styles.daily_details}>Tips </Text> */}
+                  <Text style={styles.daily_details}>Tips </Text>
+                  <Text style={styles.daily_details}>Incentives</Text>
                 </View>
                 <View style={[styles.daily_details_container]}>
                   <Text style={styles.daily_details}>{today.orders}</Text>
-                  {/* <Text style={[styles.daily_details, { marginLeft: wp(5) }]}>₹50</Text> */}
+                  <Text style={[styles.daily_details, { marginLeft: wp(5) }]}>₹{today.tips}</Text>
+                  <Text style={[styles.daily_details, { marginRight:wp(10) }]}>₹{today.incentives}</Text>
+
                 </View>
               </View>
               <View>
@@ -104,22 +107,23 @@ export default function EarningsScreen({navigation}) {
  
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
-        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'WEEK'})} >
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'WEEK'})} >
         <View style={styles.cardHeader}>
           
           <Text style={styles.cardTitle}>This Week</Text>
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
+        
  
         <BarChart
-          data={weeklyEarnings}
+          data={barChart}
           width={cardWidth - cardPadding * 2 - yAxisWidth}
           height={chartHeight}
           barWidth={wp(5)}
           spacing={wp(4)}
           roundedTop
           hideRules
-          noOfSections={4}
+          noOfSections={5}
           frontColor="#22C55E"
  
           pointerConfig={{
@@ -189,47 +193,29 @@ export default function EarningsScreen({navigation}) {
  
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
-    <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={()=>navigation.navigate('EarningsHistoryScreen',{selectedLevel:'MONTH'})} >
-    <MonthlySummaryCard summary={month}  />
+    <TouchableOpacity style={{ marginBottom: hp(4) }} >
+      <MonthlySummaryCard summary={month}  />
     </TouchableOpacity>
   );
 
 const handleItemPress = (item) => {
   if (item.type === 'peak') {
     navigation.navigate('PeakHourBonusScreen', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      slabs: item.slabs ?? [],
-      accentColor: item.accentColor,
+      incentive: item.peak_data
     });
     return;
   }
 
   if (item.type === 'weekly') {
     navigation.navigate('WeekEarnings', {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      incentive: item.weekly_data
     });
     return;
   }
 
   if (item.type === 'daily') {
     navigation.navigate('DailyGuarentee', {
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle,
-      value: item.value,
-      completedOrders: item.completedOrders,
-      requiredOrders: item.requiredOrders,
-      accentColor: item.accentColor,
+      incentive:item.daily_data
     });
   }
 };
@@ -291,8 +277,8 @@ const styles = StyleSheet.create({
     width: wp('90'),
     alignSelf: 'center',
   },
-  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '500' },
-  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40) },
+  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '600' },
+  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40),gap:wp(2) },
   daily_details: { color: '#FFFFFF',fontSize:wp(4) },
   card: {
     backgroundColor: '#fff',

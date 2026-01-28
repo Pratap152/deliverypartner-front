@@ -5,30 +5,47 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
  
 import {useSlotHistory} from '../../hooks/useSlotHistory';
  
  
  
 export default function SlotHistoryScreen({navigation}){
-    const [selectedWeek, setSelectedWeek] = useState(4);
+   
     const [expandedDates, setExpandedDates] = useState([]);// allows multiple open days
     const [isWeekSheetOpen, setIsWeekSheetOpen] = useState(false);
-   
-    // Slot history data & loading state handled via custom hook
+
+    // at top of SlotHistoryScreen (inside component but before useState that depends on currentWeek)
+    const getCurrentWeek = () => {
+    const today = new Date();
+    // find Monday of week 1 via Jan 4 trick (ISO)
+    const jan4 = new Date(today.getFullYear(), 0, 4);
+    const week1Monday = new Date(jan4);
+    week1Monday.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+    const todayCopy = new Date(today);
+    todayCopy.setHours(0,0,0,0);
+    const weekNumber = 1 + Math.floor((todayCopy - week1Monday) / (7 * 24 * 60 * 60 * 1000));
+    return weekNumber;
+    };
+
+    const currentWeek = getCurrentWeek();
+
+    // init selectedWeek with currentWeek (safe because currentWeek computed synchronously)
+    const [selectedWeek, setSelectedWeek] = useState(currentWeek);
+
     const {
-        summary,
-        days,
-        loading,
-        refreshing,
-        onRefresh,
-        } = useSlotHistory(selectedWeek);
- 
-    // PREVIOUS WEEKS RANGE
-    const totalWeeks = 4;
-    const weeks = Array.from({ length: totalWeeks }, (_, i) => totalWeeks - i);
- 
+    summary,
+    days,
+    loading,
+    refreshing,
+    onRefresh,
+    availableWeeks,
+    preloadPastWeeks
+    } = useSlotHistory(selectedWeek);
+
+
+   
     //  Week helpers (date range & formatting)
     const getWeekRange = (days) => {
         if (!days || days.length === 0) return '';
@@ -68,31 +85,13 @@ export default function SlotHistoryScreen({navigation}){
  
         return `${format(weekStart)} - ${format(weekEnd)}`;
         };
+    
+    
+
  
-    // Current calendar week number (ISO week)
-    const getCurrentWeek = () => {
-    const today = new Date();
-    const firstThursday = new Date(today.getFullYear(), 0, 4);
-    const current = new Date(today);
+    
  
-    current.setDate(
-        current.getDate() +
-        3 -
-        ((current.getDay() + 6) % 7)
-    );
- 
-    return (
-        1 +
-        Math.round(
-        (current - firstThursday) / (7 * 24 * 60 * 60 * 1000)
-        )
-    );
-    };
- 
-    const currentWeek = getCurrentWeek();
- 
- 
- 
+
     // Header shown above the slot list (week selector + summary)
     const ListHeader = () =>{
        return(
@@ -108,7 +107,9 @@ export default function SlotHistoryScreen({navigation}){
                                 <View style={styles.this_week_placeholder} />
                             )}
                         <TouchableOpacity style={styles.change_week}
-                                          onPress={() => setIsWeekSheetOpen(true)}>
+                                          onPress={()=>{
+                                            setIsWeekSheetOpen(true);
+                                            preloadPastWeeks(6);}}>
                             <Text style={{fontSize:wp(4.5),fontWeight:'500',}}>Change</Text>
                             <Ionicons name='chevron-forward-outline'
                                     size={18}
@@ -244,38 +245,43 @@ export default function SlotHistoryScreen({navigation}){
                 {isWeekSheetOpen && (
                     <View style={styles.sheet_overlay}>
                         <View style={styles.sheet_container}>
-                            <Text style={styles.sheet_title}>Select Week</Text>
+                            <Text style={styles.sheet_title}>Select Week</Text>                             
                             <ScrollView
                                 style={{ maxHeight: hp(50) }}
                                 showsVerticalScrollIndicator={false}
                                 >
-                                {weeks.map(week => (
+                                {(availableWeeks ?? []).map(week => (
                                     <TouchableOpacity
-                                        key={week}
+                                        key={`week-${week}`}
                                         style={styles.week_item}
                                         onPress={() => {
                                             setSelectedWeek(week);
                                             setIsWeekSheetOpen(false);
-                                        }}>
-                                       
-                                            <Text
-                                                style={{ fontWeight: week === selectedWeek ? '700' : '400',fontSize:wp(4) }}>
-                                                {getWeekRangeByWeekNumber(week)}  
-                                             </Text>
-                                                {week === currentWeek && (
-                                                    <Text style={styles.this_week}>This Week</Text>
-                                                    )}
- 
- 
+                                        }}
+                                        >
+                                        <Text
+                                            style={{
+                                            fontWeight: week === selectedWeek ? '700' : '400',
+                                            fontSize: wp(4),
+                                            }}
+                                        >
+                                            {getWeekRangeByWeekNumber(week)}
+                                        </Text>
+
+                                        {week === currentWeek && (
+                                            <Text style={styles.this_week}>This Week</Text>
+                                        )}
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
+
  
                             <TouchableOpacity
                                 style={styles.sheet_cancel}
                                 onPress={() => setIsWeekSheetOpen(false)}>
                                 <Text style={{fontSize:wp(4),fontWeight:'500'}}>Cancel</Text>
                             </TouchableOpacity>
+
                         </View>
                     </View>
                     )}  
