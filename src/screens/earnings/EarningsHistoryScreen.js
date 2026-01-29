@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,235 +7,549 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { EarningsAPI } from '../../api/api';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getShortMonthKey, getWeekdayName } from '../../utils/helpers';
+} from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import NetInfo from "@react-native-community/netinfo";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+import { EarningsNewAPI } from "../../api/api";
+import { EarningsCache } from "../../utils/earningsCache";
+import { Analytics } from "../../utils/analytics";
+import SelectModal from "../../components/dashboard/earnings/SelectModal";
+
+/**
+ * MODES: TODAY | WEEK | HISTORY
+ * VIEWS: ROOT | DAY | ORDER
+ */
 
 export default function EarningsHistoryScreen({ navigation, route }) {
-  const { selectedLevel } = route.params || {};
-  const [level, setLevel] = useState(selectedLevel || 'MONTH');
+  const mode = route?.params?.mode || "TODAY";
+
+  // ------------------ STATE (STABLE ORDER, DO NOT CHANGE) ------------------
+  const [view, setView] = useState("ROOT");
+
   const [loading, setLoading] = useState(false);
+  const [skeleton, setSkeleton] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [isOffline, setIsOffline] = useState(false);
 
-  const [monthData, setMonthData] = useState(null);
   const [weekData, setWeekData] = useState(null);
   const [dayData, setDayData] = useState(null);
-  const [orderDetails, setOrderDetails] = useState(null);
+  const [orderData, setOrderData] = useState(null);
 
-  const currentMonthKey = useMemo(() => getShortMonthKey(new Date()), []);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedWeek, setSelectedWeek] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
 
-  useEffect(() => {
-    loadMonthSafe();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [ledgerItems, setLedgerItems] = useState([]);
+
+  // Modals
+  const [yearModal, setYearModal] = useState(false);
+  const [weekModal, setWeekModal] = useState(false);
+  const [calendarVisible, setCalendarVisible] = useState(false);
+
+  const currentWeekNumber = useMemo(() => getBackendWeekNumber(new Date()), []);
+
+  // ------------------ CONSTANTS ------------------
+
+  const years = useMemo(() => {
+    const now = new Date().getFullYear();
+    return [now, now - 1, now - 2];
   }, []);
 
-  const safeApi = async fn => {
-    try {
+  const weeks = useMemo(
+  () => getWeeksOfYear_BackendCompatible(selectedYear),
+  [selectedYear]
+);
+
+
+
+  // ------------------ NETWORK ------------------
+
+  useEffect(() => {
+    const unsub = NetInfo.addEventListener((state) => {
+      setIsOffline(!state.isConnected);
+    });
+    return () => unsub();
+  }, []);
+
+  // ------------------ SAFE API WITH CACHE ------------------
+
+  const safeApiCached = useCallback(
+    async (key, fn, force = false) => {
       setError(null);
-      setLoading(true);
-      const res = await fn();
-      return res;
-    } catch (e) {
-      console.error('API ERROR:', e?.response?.status, e?.message);
-      setError('Something went wrong. Please try again.');
-      if (e?.response?.status === 401) {
-        Alert.alert('Session expired', 'Please login again.');
+
+      if (!force) {
+        const cached = await EarningsCache.get(key);
+        if (cached) return cached;
       }
-      return null;
-    } finally {
-      setLoading(false);
+
+      if (isOffline) {
+        const cached = await EarningsCache.get(key);
+        if (cached) return cached;
+        setError("No internet connection");
+        return null;
+      }
+
+      try {
+        const res = await fn();
+        const data = res?.data;
+        if (data) {
+          await EarningsCache.set(key, data);
+        }
+        return data;
+      } catch (e) {
+        console.error("API ERROR:", e?.response?.status, e?.message);
+        if (e?.response?.status === 401) {
+          Alert.alert("Session expired", "Please login again.");
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
+
+        const cached = await EarningsCache.get(key);
+        if (cached) return cached;
+
+        return null;
+      }
+    },
+    [isOffline]
+  );
+
+  // ------------------ BOOTSTRAP ------------------
+
+  useEffect(() => {
+    bootstrap();
+  }, []);
+
+  const bootstrap = async () => {
+    Analytics.track("earnings_screen_open", { mode });
+    setSkeleton(true);
+
+    if (mode === "TODAY") await loadToday(true);
+    else if (mode === "WEEK") await loadCurrentWeek(true);
+    else if (mode === "HISTORY") {
+      const w = getWeekNumber(new Date());
+      setSelectedWeek(w);
+      await loadHistoryWeek(w, selectedYear, true);
+    }
+
+    setSkeleton(false);
+  };
+
+  // ------------------ LOADERS ------------------
+
+  const loadToday = async (force = false) => {
+    setLoading(true);
+    const data = await safeApiCached("today", () => EarningsNewAPI.getToday(), force);
+    setLoading(false);
+
+    if (data) {
+      setDayData(data);
+      setLedgerItems(data.items || []);
+      setHasMore(false);
+      setView("DAY");
     }
   };
 
-  const loadMonthSafe = useCallback(async () => {
-    const res = await safeApi(() => EarningsAPI.getMonthly(currentMonthKey));
-    if (res) setMonthData(res);
-  }, [currentMonthKey]);
+  const loadCurrentWeek = async (force = false) => {
+    setLoading(true);
+    const data = await safeApiCached("currentWeek", () => EarningsNewAPI.getCurrentWeek(), force);
+    setLoading(false);
 
-  const loadWeekSafe = useCallback(async (from, to) => {
-    const res = await safeApi(() => EarningsAPI.getWeekly(from, to));
-    if (res) setWeekData(res);
-  }, []);
-
-  const loadDaySafe = useCallback(async date => {
-    const res = await safeApi(() => EarningsAPI.getDaily(date));
-    if (res) setDayData(res);
-  }, []);
-
-  const loadOrderSafe = useCallback(async orderId => {
-    const res = await safeApi(() => EarningsAPI.getOrderBreakdown(orderId));
-    if (res) {
-      setOrderDetails(res);
-      setLevel('ORDER');
+    if (data) {
+      setWeekData(data);
+      setView("ROOT");
     }
-  }, []);
+  };
 
-  const onBack = useCallback(() => {
-    if (level === 'ORDER') {
-      setLevel('DAY');
-      setOrderDetails(null);
-    } else if (level === 'DAY') {
-      setLevel('WEEK');
+  const loadHistoryWeek = async (week, year, force = false) => {
+    setLoading(true);
+    const key = `week_${year}_${week}`;
+    const data = await safeApiCached(key, () => EarningsNewAPI.getWeekByNumber(week, year), force);
+    setLoading(false);
+
+    if (data) {
+      setWeekData(data);
+      setView("ROOT");
+      prefetchNextWeek(week, year);
+    }
+  };
+
+  const loadDay = async (date, reset = true, force = false) => {
+    if (reset) {
+      setPage(1);
+      setLedgerItems([]);
+      setHasMore(true);
+    }
+
+    if (!hasMore && !reset) return;
+
+    setLoading(true);
+    const key = `day_${date}_${reset ? 1 : page}`;
+    const data = await safeApiCached(
+      key,
+      () => EarningsNewAPI.getDailyByDate(date, reset ? 1 : page),
+      force
+    );
+    setLoading(false);
+
+    if (data) {
+      const items = data.items || [];
+      setDayData(data);
+      setLedgerItems((prev) => (reset ? items : [...prev, ...items]));
+
+      if (items.length < 20) setHasMore(false);
+      else setPage((p) => p + 1);
+
+      setView("DAY");
+      prefetchNextDay(date);
+    }
+  };
+
+  const loadOrder = async (orderId) => {
+    Analytics.track("earnings_open_order", { orderId });
+
+    setLoading(true);
+    const key = `order_${orderId}`;
+    const data = await safeApiCached(key, () => EarningsNewAPI.getOrder(orderId));
+    setLoading(false);
+
+    if (data) {
+      setOrderData(data);
+      setView("ORDER");
+    }
+  };
+
+  // ------------------ PREFETCH ------------------
+
+  const prefetchNextWeek = async (week, year) => {
+    const nextWeek = week + 1;
+    if (nextWeek > 53) return;
+    const key = `week_${year}_${nextWeek}`;
+    const cached = await EarningsCache.get(key);
+    if (cached) return;
+
+    safeApiCached(key, () => EarningsNewAPI.getWeekByNumber(nextWeek, year));
+  };
+
+  const prefetchNextDay = async (dateStr) => {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + 1);
+    const next = d.toISOString().split("T")[0];
+
+    const key = `day_${next}_1`;
+    const cached = await EarningsCache.get(key);
+    if (cached) return;
+
+    safeApiCached(key, () => EarningsNewAPI.getDailyByDate(next, 1));
+  };
+
+  // ------------------ REFRESH ------------------
+
+  const onRefresh = async () => {
+    Analytics.track("earnings_refresh", { mode, view });
+    setRefreshing(true);
+
+    if (mode === "TODAY") await loadToday(true);
+    else if (mode === "WEEK") await loadCurrentWeek(true);
+    else if (mode === "HISTORY") await loadHistoryWeek(selectedWeek, selectedYear, true);
+
+    setRefreshing(false);
+  };
+
+  // ------------------ BACK ------------------
+
+  const onBack = () => {
+    if (view === "ORDER") {
+      setView("DAY");
+      setOrderData(null);
+    } else if (view === "DAY") {
+      setView("ROOT");
       setDayData(null);
-    } else if (level === 'WEEK') {
-      setLevel('MONTH');
-      setWeekData(null);
     } else {
-      navigation?.goBack?.();
+      navigation.goBack();
     }
-  }, [level, navigation]);
+  };
+
+  function getWeeksOfYear_BackendCompatible(year) {
+  const weeks = [];
+
+  // Find Jan 1
+  const jan1 = new Date(year, 0, 1);
+
+  // Find Monday of the week that contains Jan 1
+  const day = jan1.getDay(); // 0=Sun,1=Mon,...
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const firstWeekStart = new Date(jan1);
+  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
+
+  let current = new Date(firstWeekStart);
+  let week = 1;
+
+  while (true) {
+    const start = new Date(current);
+    const end = new Date(current);
+    end.setDate(end.getDate() + 6);
+
+    // Stop if this week is completely after the year
+    if (start.getFullYear() > year && end.getFullYear() > year) {
+      break;
+    }
+
+    const today = new Date();
+const isFuture = start > today;
+
+weeks.push({
+  week,
+  startDate: start.toISOString().split("T")[0],
+  endDate: end.toISOString().split("T")[0],
+  startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  isFuture,
+});
+
+
+    current.setDate(current.getDate() + 7);
+    week++;
+  }
+
+  return weeks;
+}
+
+function getBackendWeekNumber(date) {
+  const d = new Date(date);
+
+  const year = d.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+
+  // Find Monday of week containing Jan 1
+  const day = jan1.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const firstWeekStart = new Date(jan1);
+  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
+
+  const diffDays = Math.floor(
+    (d.setHours(0,0,0,0) - firstWeekStart.setHours(0,0,0,0)) / 86400000
+  );
+
+  return Math.floor(diffDays / 7) + 1;
+}
+
+
+
+
+  // ------------------ HEADER ------------------
 
   const headerTitle = useMemo(() => {
-    if (level === 'MONTH') {
-      return new Date().toLocaleString('en-US', {
-        month: 'short',
-        year: 'numeric',
-      });
-    }
-    if (level === 'WEEK') return 'Weekly Earnings';
-    if (level === 'DAY') return 'Daily Earnings';
-    if (level === 'ORDER') return 'Delivery';
-  }, [level]);
+    if (view === "ORDER") return "Delivery";
+    if (view === "DAY") return "Daily Earnings";
+    if (mode === "TODAY") return "Today's Earnings";
+    if (mode === "WEEK") return "Weekly Earnings";
+    if (mode === "HISTORY") return "Earnings History";
+    return "Earnings";
+  }, [mode, view]);
 
-  const cardTotal = useMemo(() => {
-    if (level === 'MONTH') return monthData?.totalEarnings ?? 0;
-    if (level === 'WEEK') return weekData?.totalEarnings ?? 0;
-    if (level === 'DAY')
-      return (
-        dayData?.orders?.reduce((s, o) => s + (o?.earnings?.total || 0), 0) ?? 0
-      );
-    if (level === 'ORDER') return orderDetails?.earnings?.total ?? 0;
-    return 0;
-  }, [level, monthData, weekData, dayData, orderDetails]);
+  // ------------------ UI RENDERERS ------------------
 
-  const renderMonth = () => (
-    <FlatList
-      data={monthData?.weeks || []}
-      keyExtractor={(item, index) => item.from + index}
-      refreshing={refreshing}
-      onRefresh={loadMonthSafe}
-      ListEmptyComponent={<EmptyState />}
-      renderItem={({ item }) => {
-        const total =
-          item?.orders?.reduce((s, o) => s + (o?.earnings?.total || 0), 0) ?? 0;
-        return (
-          <Row
-            title={`${item.from} → ${item.to}`}
-            right={`₹${total}`}
-            onPress={() => {
-              loadWeekSafe(item.from, item.to);
-              setLevel('WEEK');
-            }}
-          />
-        );
-      }}
-    />
+  const renderHistorySelectors = () => (
+    <View style={styles.selectorRow}>
+      <Dropdown label={`Year: ${selectedYear}`} onPress={() => {
+        Analytics.track("earnings_open_year_selector");
+        setYearModal(true);
+      }} />
+      <Dropdown label={`Week: ${selectedWeek}`} onPress={() => {
+        Analytics.track("earnings_open_week_selector");
+        setWeekModal(true);
+      }} />
+      <Dropdown label={selectedDay ? `Day: ${selectedDay}` : "Pick Day"} onPress={() => {
+        Analytics.track("earnings_open_day_picker");
+        setCalendarVisible(true);
+      }} />
+    </View>
   );
 
-  const renderWeek = () => (
-    <FlatList
-      data={weekData?.days || []}
-      keyExtractor={item => item.date}
-      ListEmptyComponent={<EmptyState />}
-      renderItem={({ item }) => {
-        const total =
-          item?.orders?.reduce((s, o) => s + (o?.earnings?.total || 0), 0) ?? 0;
-        return (
+  const renderWeekRoot = () => {
+    if (!weekData) return <EmptyState />;
+
+    return (
+      <FlatList
+        data={weekData.days || []}
+        keyExtractor={(item) => item.date}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        ListHeaderComponent={
+          <>
+            {mode === "HISTORY" && renderHistorySelectors()}
+            <TotalCard title="Total" amount={weekData.total || 0} />
+          </>
+        }
+        renderItem={({ item }) => (
           <Row
-            title={getWeekdayName(item.date)}
-            right={`₹${total}`}
+            title={`${item.day} (${item.date})`}
+            subtitle={`${item.ordersCount || 0} orders`}
+            right={`₹${item.amount || 0}`}
             onPress={() => {
-              loadDaySafe(item.date);
-              setLevel('DAY');
+              Analytics.track("earnings_select_day", { date: item.date });
+              setSelectedDay(item.date);
+              loadDay(item.date, true);
             }}
           />
-        );
-      }}
-    />
-  );
+        )}
+      />
+    );
+  };
 
   const renderDay = () => (
     <FlatList
-      data={dayData?.orders || []}
-      keyExtractor={item => item.orderId}
+      data={ledgerItems}
+      keyExtractor={(item, idx) => (item.orderId || idx) + "_" + idx}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      ListHeaderComponent={
+        <TotalCard title="Total Earnings" amount={dayData?.totalEarnings || 0} />
+      }
       ListEmptyComponent={<EmptyState />}
+      onEndReached={() => loadDay(selectedDay, false)}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} /> : null
+      }
       renderItem={({ item }) => (
         <Row
-          title={item.orderId}
-          subtitle={new Date(item.completedAt).toLocaleTimeString()}
-          right={`₹${item?.earnings?.total || 0}`}
-          onPress={() => loadOrderSafe(item.orderId)}
+          title={item.type}
+          subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
+          right={`₹${item.amount || 0}`}
+          onPress={() => {
+            if (item.type === "DELIVERY") loadOrder(item.orderId);
+          }}
         />
       )}
     />
   );
 
   const renderOrder = () => {
-    const e = orderDetails?.earnings;
-    if (!e) return <EmptyState />;
+    if (!orderData) return <EmptyState />;
+
+    const b = orderData.breakup || {};
 
     return (
       <View style={{ padding: 16 }}>
-        <View style={[styles.card, { backgroundColor: '#9c50ff' }]}>
-          <Text style={{ color: '#E9FFF3' }}>Total Earnings</Text>
-          <Text style={{ fontSize: 28, fontWeight: '800', color: '#E9FFF3' }}>
-            ₹{e.total}
-          </Text>
-        </View>
-
-        <View
-          style={{ marginTop: 16, backgroundColor: '#fff', borderRadius: 8 }}
-        >
-          <BreakdownRow label="Base Pay" value={e.basePay} />
-          <BreakdownRow label="Distance Pay" value={e.distancePay} />
-          <BreakdownRow label="Surge Pay" value={e.surgePay} />
-          <BreakdownRow label="Tips" value={e.tips} />
-          <Divider />
-          <BreakdownRow label="Total" value={e.total} bold />
+        <TotalCard title="Total Earnings" amount={orderData.totalEarnings || 0} />
+        <View style={styles.box}>
+          <BreakRow label="Base Fare" value={b.baseFare} />
+          <BreakRow label="Distance Fare" value={b.distanceFare} />
+          <BreakRow label="Surge" value={b.surgePay} />
+          <BreakRow label="Incentive" value={b.incentive} />
+          <BreakRow label="Tips" value={b.tips} />
         </View>
       </View>
     );
   };
 
   const renderContent = () => {
-    if (level === 'MONTH') return renderMonth();
-    if (level === 'WEEK') return renderWeek();
-    if (level === 'DAY') return renderDay();
-    if (level === 'ORDER') return renderOrder();
-    return null;
+    if (skeleton) return <Skeleton />;
+
+    if (error) return <ErrorBox text={error} onRetry={() => {
+      Analytics.track("earnings_retry", { mode, view });
+      bootstrap();
+    }} />;
+
+    if (view === "ORDER") return renderOrder();
+    if (view === "DAY") return renderDay();
+    return renderWeekRoot();
   };
+
+  // ------------------ UI ------------------
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={26} color="#111" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{headerTitle}</Text>
+        {isOffline && <Text style={{ color: "red", marginLeft: 8 }}>Offline</Text>}
       </View>
 
-      {level !== 'ORDER' && (
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Total Earnings</Text>
-          <Text style={styles.cardAmount}>₹{cardTotal}</Text>
-        </View>
-      )}
+      {renderContent()}
 
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
+      {/* Year Modal */}
+      <SelectModal
+        visible={yearModal}
+        title="Select Year"
+        data={years}
+        onClose={() => setYearModal(false)}
+        onSelect={(y) => {
+          Analytics.track("earnings_select_year", { year: y });
+          setYearModal(false);
+          setSelectedYear(y);
+          loadHistoryWeek(selectedWeek, y, true);
+        }}
+      />
 
-      {loading ? (
-        <ActivityIndicator size="large" style={{ marginTop: 40 }} />
-      ) : (
-        renderContent()
-      )}
+      {/* Week Modal */}
+      <SelectModal
+  visible={weekModal}
+  title="Select Week"
+  data={weeks}
+  keyExtractor={(item) => String(item.week)}
+  labelExtractor={(item) =>
+    `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
+  }
+  selectedValue={selectedWeek}
+  isItemDisabled={(item) => item.isFuture}
+  isItemHighlighted={(item) => item.week === currentWeekNumber}
+  onClose={() => setWeekModal(false)}
+  onSelect={(item) => {
+    Analytics.track("earnings_select_week", {
+      week: item.week,
+      year: selectedYear,
+    });
+    setSelectedWeek(item.week);
+    loadHistoryWeek(item.week, selectedYear, true);
+  }}
+/>
+
+
+
+      {/* Calendar */}
+      <DateTimePickerModal
+        isVisible={calendarVisible}
+        mode="date"
+        onConfirm={(date) => {
+          setCalendarVisible(false);
+          const d = date.toISOString().split("T")[0];
+          Analytics.track("earnings_select_day", { date: d });
+          setSelectedDay(d);
+          loadDay(d, true, true);
+        }}
+        onCancel={() => setCalendarVisible(false)}
+      />
     </SafeAreaView>
+  );
+}
+
+// ------------------ SMALL UI ------------------
+
+function Dropdown({ label, onPress }) {
+  return (
+    <TouchableOpacity style={styles.dropdown} onPress={onPress}>
+      <Text>{label}</Text>
+      <Ionicons name="chevron-down" size={18} />
+    </TouchableOpacity>
+  );
+}
+
+function TotalCard({ title, amount }) {
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardLabel}>{title}</Text>
+      <Text style={styles.cardAmount}>₹{amount}</Text>
+    </View>
   );
 }
 
@@ -244,80 +558,130 @@ function Row({ title, subtitle, right, onPress }) {
     <TouchableOpacity onPress={onPress} style={styles.row}>
       <View>
         <Text style={styles.rowTitle}>{title}</Text>
-        {subtitle && <Text style={styles.rowSub}>{subtitle}</Text>}
+        {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
       </View>
       <Text style={styles.rowRight}>{right}</Text>
     </TouchableOpacity>
   );
 }
 
-function BreakdownRow({ label, value, bold }) {
+function BreakRow({ label, value }) {
   return (
     <View style={styles.breakRow}>
-      <Text style={{ fontWeight: bold ? '700' : '500' }}>{label}</Text>
-      <Text style={{ fontWeight: bold ? '800' : '600', color: '#0A9F5A' }}>
-        ₹{value ?? 0}
-      </Text>
+      <Text>{label}</Text>
+      <Text style={{ color: "#0A9F5A", fontWeight: "700" }}>₹{value || 0}</Text>
     </View>
   );
 }
 
-function Divider() {
+function Skeleton() {
   return (
-    <View style={{ height: 1, backgroundColor: '#eee', marginVertical: 8 }} />
+    <View style={{ padding: 16 }}>
+      <View style={[styles.card, { opacity: 0.3 }]} />
+      <View style={[styles.row, { opacity: 0.3 }]} />
+      <View style={[styles.row, { opacity: 0.3 }]} />
+      <View style={[styles.row, { opacity: 0.3 }]} />
+    </View>
   );
 }
 
 function EmptyState() {
   return (
-    <View style={{ padding: 40, alignItems: 'center' }}>
-      <Text style={{ color: '#777' }}>No data available</Text>
+    <View style={{ padding: 40, alignItems: "center" }}>
+      <Text style={{ color: "#777" }}>No data available</Text>
     </View>
   );
 }
 
+function ErrorBox({ text, onRetry }) {
+  return (
+    <View style={styles.errorBox}>
+      <Text style={styles.errorText}>{text}</Text>
+      <TouchableOpacity onPress={onRetry}>
+        <Text style={{ color: "#007AFF", marginTop: 8 }}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ------------------ UTILS ------------------
+
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+}
+
+// ------------------ STYLES ------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F7F8FA' },
+  container: { flex: 1, backgroundColor: "#F7F8FA" },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
   },
   backBtn: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '700', marginLeft: 8 },
+  headerTitle: { fontSize: 18, fontWeight: "700", marginLeft: 8 },
 
   card: {
     margin: 16,
     padding: 20,
     borderRadius: 12,
-    backgroundColor: '#9c50ff',
+    backgroundColor: "#9c50ff",
   },
-  cardLabel: { color: '#fff' },
-  cardAmount: { fontSize: 28, fontWeight: '800', color: '#fff' },
+  cardLabel: { color: "#fff" },
+  cardAmount: { fontSize: 28, fontWeight: "800", color: "#fff" },
 
   row: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderBottomColor: "#EEE",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  rowTitle: { fontSize: 15, fontWeight: '600' },
-  rowSub: { fontSize: 12, color: '#777', marginTop: 4 },
-  rowRight: { fontSize: 15, fontWeight: '700', color: '#24c77b' },
+  rowTitle: { fontSize: 15, fontWeight: "600" },
+  rowSub: { fontSize: 12, color: "#777", marginTop: 4 },
+  rowRight: { fontSize: 15, fontWeight: "700", color: "#24c77b" },
 
   breakRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 16,
   },
 
-  errorBox: {
-    marginHorizontal: 16,
-    padding: 12,
-    backgroundColor: '#FFECEC',
-    borderRadius: 8,
+  box: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginTop: 16,
+    overflow: "hidden",
   },
-  errorText: { color: '#C00' },
+
+  selectorRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 8,
+  },
+
+  dropdown: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: "#ddd",
+  },
+
+  errorBox: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: "#FFECEC",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  errorText: { color: "#C00" },
 });

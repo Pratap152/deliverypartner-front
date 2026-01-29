@@ -1,42 +1,42 @@
 import apiClient from "../services/ApiClient";
 
-function logResponse(tag, res) {
-  console.log(`API HIT: ${tag}`);
-  console.log("STATUS:", res.status);
-  console.log("RESPONSE:", JSON.stringify(res.data, null, 2));
-}
-
-export const EarningsAPI = {
-  async getSummary() {
-    const res = await apiClient.get("/api/earnings/summary");
-    logResponse("GET /api/earnings/summary", res);
-    return res.data;
+export const EarningsNewAPI = {
+  getToday: async () => {
+    console.log("🟡 HIT: GET /api/rider/earnings/new/daily");
+    const res = await apiClient.get("/api/rider/earnings/new/daily");
+    console.log("🟢 RESPONSE (Today):", JSON.stringify(res.data, null, 2));
+    return res;
   },
 
-  async getMonthly(monthKey) {
-    const res = await apiClient.get(`/api/earnings/${monthKey}`);
-    logResponse(`GET /api/earnings/${monthKey}`, res);
-    return res.data;
+  getDailyByDate: async (date, page = 1, limit = 20) => {
+    const url = `/api/rider/earnings/new/daily?date=${date}&page=${page}&limit=${limit}`;
+    console.log("🟡 HIT:", url);
+    const res = await apiClient.get(url);
+    console.log("🟢 RESPONSE (Daily):", JSON.stringify(res.data, null, 2));
+    return res;
   },
 
-  async getWeekly(from, to) {
-    const res = await apiClient.get(
-      `/api/earnings/week?start=${from}&end=${to}`
-    );
-    logResponse("GET /api/earnings/week", res);
-    return res.data;
+  getCurrentWeek: async () => {
+    console.log("🟡 HIT: GET /api/rider/earnings/new/weekly");
+    const res = await apiClient.get("/api/rider/earnings/new/weekly");
+    console.log("🟢 RESPONSE (Current Week):", JSON.stringify(res.data, null, 2));
+    return res;
   },
 
-  async getDaily(date) {
-    const res = await apiClient.get(`/api/earnings/${date}`);
-    logResponse(`GET /api/earnings/${date}`, res);
-    return res.data;
+  getWeekByNumber: async (week, year) => {
+    const url = `/api/rider/earnings/new/weekly?week=${week}&year=${year}`;
+    console.log("🟡 HIT:", url);
+    const res = await apiClient.get(url);
+    console.log("🟢 RESPONSE (Week):", JSON.stringify(res.data, null, 2));
+    return res;
   },
 
-  async getOrderBreakdown(orderId) {
-    const res = await apiClient.get(`/api/earnings/orders/${orderId}`);
-    logResponse(`GET /api/earnings/orders/${orderId}`, res);
-    return res.data;
+  getOrder: async (orderId) => {
+    const url = `/api/rider/earnings/new/delivery/${orderId}`;
+    console.log("🟡 HIT:", url);
+    const res = await apiClient.get(url);
+    console.log("🟢 RESPONSE (Order):", JSON.stringify(res.data, null, 2));
+    return res;
   },
 };
 

@@ -132,6 +132,7 @@ const mapIncentives = (
       subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
       slabs: peakRes.data.slabs ?? [],
       accentColor: '#FFF7ED',
+      peak_data: peakRes.data,
     });
   }
 
@@ -146,27 +147,28 @@ const mapIncentives = (
       completedOrders: weeklyRes.data.progress.eligibleDays,
       requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',
+      weekly_data: weeklyRes.data
     });
   }
 
-  // Daily Incentive
-  if (dailyRes?.data) {
+  // DAILY INCENTIVE
+if (dailyRes?.success) {
   incentives.push({
     id: 'daily-incentive',
     type: 'daily',
-    title: dailyRes.data.title,
+    title: dailyRes.title,
     subtitle: dailyRes.eligible
       ? 'Target achieved'
-      : 'Complete today target',
-    completedOrders: dailyRes.data.ordersCompleted ?? 0,
-   //  TEMP VALUE
-    requiredOrders: 8,   
-
+      : 'Daily target in progress',
     value: dailyRes.eligible
-      ? `Earned ₹${dailyRes.data.rewardAmount}`
+      ? `₹${dailyRes.totalRewardAmount}`
       : 'In Progress',
-
+    peakCompleted: dailyRes.peakCompleted ?? 0,
+    peakRequired: dailyRes.slotRules?.minPeakSlots ?? 0,
+    normalCompleted: dailyRes.normalCompleted ?? 0,
+    normalRequired: dailyRes.slotRules?.minNormalSlots ?? 0,
     accentColor: '#F5F3FF',
+    daily_data: dailyRes.data
   });
 }
 

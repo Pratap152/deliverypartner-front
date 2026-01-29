@@ -33,6 +33,9 @@ export default function SlotCard({
   // Get display status using utility
   const displayStatus = getDisplayStatus(slot, activeFilter);
 
+  // Check for peak slot (handle string or boolean)
+  const isPeakSlot = String(slot.isPeakSlot) === "true" || slot.isPeakSlot === true;
+
   const isBooked = displayStatus === DISPLAY_STATUS.BOOKED;
   const isCancelled = displayStatus === DISPLAY_STATUS.CANCELLED;
   const isAvailable = displayStatus === DISPLAY_STATUS.AVAILABLE;
@@ -43,6 +46,7 @@ export default function SlotCard({
       onPress={selectable ? onSelect : null}
       style={[
         styles.card,
+        isPeakSlot && styles.peakCard, // Apply peak style base
         selected && styles.selectedCard,
         isBooked && styles.bookedCard,
         isCancelled && styles.cancelledCard,
@@ -52,8 +56,8 @@ export default function SlotCard({
       <View style={styles.headerRow}>
         {/* Left: Icon + Time info */}
         <View style={styles.leftContent}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="flash" size={18} color="#FF6A00" />
+          <View style={[styles.iconWrapper, isPeakSlot && styles.peakIconWrapper]}>
+            <Ionicons name="flash" size={18} color={isPeakSlot ? "#4C4CFF" : "#FF6A00"} />
           </View>
           <View>
             <Text style={styles.time}>
@@ -62,8 +66,17 @@ export default function SlotCard({
             <Text style={styles.earn}>
               Duration {slot.durationInHours} hrs • Break {slot.breakInMinutes} mins
             </Text>
+
+            {/* Peak Slot Indicator */}
+            {isPeakSlot && (
+              <View style={styles.peakInfoContainer}>
+                <Ionicons name="wallet-outline" size={16} color="#4C4CFF" style={{ marginRight: 4 }} />
+                <Text style={styles.peakText}>Peak Slot • Get 20% more orders</Text>
+              </View>
+            )}
           </View>
         </View>
+
 
         {/* Right Content */}
         <View style={styles.rightContent}>
@@ -76,8 +89,14 @@ export default function SlotCard({
 
           {/* Checkbox for Available slots */}
           {isAvailable && selectable && (
-            <Checkbox checked={selected} />
+            <Checkbox checked={selected} onPress={selectable ? onSelect : null} />
           )}
+
+          {/* Status Badge (Moved to right for better layout if needed, or keep at bottom) */}
+          {/* The user didn't explicitly ask to move badge but image suggests a cleaner layout. 
+                 I'll keep badge at bottom for now to minimize structure change unless it looks bad. 
+                 Actually, let's keep the existing badge structure but maybe adjust if peak.
+             */}
         </View>
       </View>
 
@@ -103,6 +122,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  peakCard: {
+    backgroundColor: '#F5F5FF', // Very light blue background to match brand
+    borderColor: '#C7C7FF',     // Soft blue border
+  },
   selectedCard: {
     borderColor: '#4C4CFF',
     backgroundColor: '#F0F0FF',
@@ -123,11 +146,12 @@ const styles = StyleSheet.create({
   },
   leftContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start', // Changed to flex-start for multiline text alignment
     flex: 1,
   },
   rightContent: {
     paddingLeft: 10,
+    alignItems: 'flex-end',
   },
   trashBtn: {
     width: 32,
@@ -146,6 +170,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  peakIconWrapper: {
+    backgroundColor: '#E0E0FF', // Accented light blue for peak icon
+  },
   time: {
     fontSize: 16,
     fontWeight: '700',
@@ -155,11 +182,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
+    marginBottom: 4,
+  },
+
+  // Peak specific text styles
+  peakInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  peakText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4C4CFF', // Brand color for text
   },
 
   statusRow: {
     marginTop: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'center', // Keep centered as before
   },
 });
