@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import axios from "axios";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   responsiveWidth as rw,
@@ -27,7 +26,7 @@ const RiderAssets = ({ navigation }) => {
 
   const fetchAssets = async () => {
     try {
-      const res = await apiClient.get(`/api/profile/totalassets`,);
+      const res = await apiClient.get('/api/profile/totalassets');
 
       setAssetsData(res.data?.data);
     } catch (err) {
@@ -79,7 +78,6 @@ const RiderAssets = ({ navigation }) => {
               <Text style={styles.summaryLabel}>Issues</Text>
             </View>
           </View> */}
-
           <View style={styles.summaryRowSingle}>
   <View style={styles.summaryBoxSingle}>
     <Text style={styles.summaryValue}>{totalAssets || 0}</Text>
@@ -238,7 +236,6 @@ const styles = StyleSheet.create({
     color: "#475467",
     marginTop: rh(0.4),
   },
-
   summaryRowSingle: {
   flexDirection: "row",
   justifyContent: "center",
