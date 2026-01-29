@@ -17,6 +17,9 @@ export default function SelectModal({
   onClose,
   keyExtractor,
   labelExtractor,
+  selectedValue,
+  isItemDisabled,
+  isItemHighlighted,
 }) {
   return (
     <Modal
@@ -39,19 +42,40 @@ export default function SelectModal({
             keyExtractor={(item, idx) =>
               keyExtractor ? keyExtractor(item) : String(item) + idx
             }
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => {
-                  onSelect(item);
-                  onClose();
-                }}
-              >
-                <Text style={styles.text}>
-                  {labelExtractor ? labelExtractor(item) : String(item)}
-                </Text>
-              </TouchableOpacity>
-            )}
+            renderItem={({ item }) => {
+              const disabled = isItemDisabled?.(item);
+              const highlighted = isItemHighlighted?.(item);
+              const selected = selectedValue === item.week;
+
+              return (
+                <TouchableOpacity
+                  disabled={disabled}
+                  style={[
+                    styles.item,
+                    disabled && styles.disabledItem,
+                    highlighted && styles.highlightItem,
+                    selected && styles.selectedItem,
+                  ]}
+                  onPress={() => {
+                    if (!disabled) {
+                      onSelect(item);
+                      onClose();
+                    }
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.text,
+                      disabled && styles.disabledText,
+                      highlighted && styles.highlightText,
+                      selected && styles.selectedText,
+                    ]}
+                  >
+                    {labelExtractor ? labelExtractor(item) : String(item)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
           />
         </View>
       </SafeAreaView>
@@ -82,10 +106,39 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: "700" },
   close: { fontSize: 20 },
+
   item: {
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
+
+  disabledItem: {
+    backgroundColor: "#f5f5f5",
+  },
+
+  highlightItem: {
+    backgroundColor: "#ede3ff",
+  },
+
+  selectedItem: {
+    borderLeftWidth: 4,
+    borderLeftColor: "#9c50ff",
+  },
+
   text: { fontSize: 16 },
+
+  disabledText: {
+    color: "#aaa",
+  },
+
+  highlightText: {
+    fontWeight: "800",
+    color: "#6b2cff",
+  },
+
+  selectedText: {
+    color: "#9c50ff",
+    fontWeight: "700",
+  },
 });
