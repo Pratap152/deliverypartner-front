@@ -6,8 +6,6 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import ProfileScreen from "../screens/dashboard/ProfileScreen";
-
 import ProfileNavigator from "./ProfileNavigator";
 import NotificationScreen from '../screens/dashboard/NotificationScreen';
 import EarningsScreen from '../screens/dashboard/EarningsScreen';
