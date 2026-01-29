@@ -10,7 +10,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export default function CustomerNotResponding({
   title = "Customer Not Responding",
-  duration = 120,
+  duration = 20,
   onCallPress,
   onMarkIssuePress,
 }) {
@@ -98,12 +98,6 @@ export default function CustomerNotResponding({
 }
 
 const styles = StyleSheet.create({
-  // container: {
-  //   flex: 1,
-  //   backgroundColor: "#fff",
-  //   alignItems: "center",
-  //   paddingTop: 40,
-  // },
 container: {
   paddingHorizontal: 20,
   alignItems: "center",

@@ -289,15 +289,14 @@ import { ReportIssueService } from "../../services/issue/ReportIssueService";
 /* ================= ISSUE TYPE MAP ================= */
 
 const ISSUE_TYPE_MAP = {
-  "Customer not answering calls": "CUSTOMER_NOT_RESPONDING",
-  "Customer phone switched off": "CUSTOMER_NOT_RESPONDING",
-  "Wrong contact number provided": "WRONG_CONTACT_NUMBER",
-  "Customer not reachable at location": "CUSTOMER_NOT_RESPONDING",
-  "Customer rejected the call": "CUSTOMER_NOT_RESPONDING",
-  "Network issue while calling customer": "NETWORK_ISSUE",
-  "Other": "OTHER",
+  "CUSTOMER_NOT_RESPONDING":"CUSTOMER_NOT_RESPONDING",
+        "WRONG_ADDRESS":"WRONG_ADDRESS",
+        "UNSAFE_LOCATION":"UNSAFE_LOCATION",
+        "STORE_DELAY":"STORE_DELAY",
+        "ORDER_NOT_AVAILABLE":"ORDER_NOT_AVAILABLE",
+        "PAYMENT_ISSUE":"PAYMENT_ISSUE",
+        "OTHER":"OTHER"
 };
-
 /* ================= COMPONENT ================= */
 
 export default function ReportIssue({ route, navigation }) {
