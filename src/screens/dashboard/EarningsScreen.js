@@ -15,13 +15,13 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
- 
+
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-export default function EarningsScreen({navigation}) {
+export default function EarningsScreen({ navigation }) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
  
@@ -32,18 +32,21 @@ export default function EarningsScreen({navigation}) {
       </View>
     );
   }
- 
+
   const {
     earningsSummary = {},
     weeklyBarChart = {},
     wallet = {},
     incentives = [],
   } = data;
- 
- 
+
+
   const today = earningsSummary.today || {};
   const week = earningsSummary.week || {};
   const month = earningsSummary.month || {};
+  console.log("today",today);
+  console.log("week",week);
+  console.log("month",month);
 
   const barChart = Array.isArray(data.weeklyBarChart)
   ? data.weeklyBarChart
@@ -54,11 +57,20 @@ export default function EarningsScreen({navigation}) {
   const cardPadding = wp(4);
   const chartHeight = hp(30);
   const yAxisWidth = wp(15);
- 
- 
- 
- 
- 
+
+
+  const weeklyEarnings = [
+    { label: 'Mon', value: 120 },
+    { label: 'Tue', value: 180 },
+    { label: 'Wed', value: 90 },
+    { label: 'Thu', value: 220 },
+    { label: 'Fri', value: 150 },
+    { label: 'Sat', value: 290 },
+    { label: 'Sun', value: 110 },
+  ];
+
+
+
   /* HEADER IS A STABLE ELEMENT — NOT A FUNCTION */
   const HEADER = (
     <View style={{ backgroundColor: '#F4F6F8' }}>
@@ -69,8 +81,8 @@ export default function EarningsScreen({navigation}) {
         style={styles.header}>
         <View style={styles.heading}>
           <Text style={styles.title}>Earnings</Text>
-          <View style={{justifyContent:'space-between',flexDirection:'row'}}>
-          <TouchableOpacity style={{paddingRight:5}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
+          <View style={{alignItems:"flex-end", flexDirection:"row"}}>
+          <TouchableOpacity style={{paddingRight:10}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
             <MaterialIcons name="history" size={28} color="rgb(252, 251, 251)"/>
           </TouchableOpacity>
           <TouchableOpacity>
@@ -104,7 +116,7 @@ export default function EarningsScreen({navigation}) {
             </View>
           </TouchableOpacity>
       </LinearGradient>
- 
+
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
         <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'WEEK'})} >
@@ -158,71 +170,64 @@ export default function EarningsScreen({navigation}) {
  
  
       </View>
- 
+
       {/* WALLET */}
       <TouchableOpacity
-                      onPress={()=>navigation.navigate('Wallet')}>
+        onPress={() => navigation.navigate('Wallet')}>
         <LinearGradient
-            colors={['#4F39F6', '#155DFC']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.wallet}
-          >
-            <View style={styles.walletRow}>
-              <Ionicons name="wallet-outline" size={20} color="#fff" />
-              <Text style={styles.walletHeading}>Wallet</Text>
-              <TouchableOpacity style={styles.withdraw_button} onPress={() => navigation.navigate('Wallet')}>
-                    <Text style={{ color: '#4F39F6', alignSelf: 'center', fontSize: wp(4) }}>Withdraw</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.walletText}>
-                Wallet Balance: ₹{wallet.balance}
-              </Text>
-            <Text style={styles.walletText}>
-                Total Earned : ₹{wallet.totalEarned}
-            </Text>
-            <Text style={styles.walletText}>
-                Total Withdrawn : ₹{wallet.totalWithdrawn}
-            </Text>
+          colors={['#4F39F6', '#155DFC']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+          style={styles.wallet}
+        >
+          <View style={styles.walletRow}>
+            <Ionicons name="wallet-outline" size={20} color="#fff" />
+            <Text style={styles.walletHeading}>Wallet</Text>
+            <TouchableOpacity style={styles.withdraw_button} onPress={() => navigation.navigate('Wallet')}>
+              <Text style={{ color: '#4F39F6', alignSelf: 'center', fontSize: wp(4) }}>Withdraw</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.walletText}>
+            Wallet Balance: ₹{wallet.balance}
+          </Text>
+          <Text style={styles.walletText}>
+            Total Earned : ₹{wallet.totalEarned}
+          </Text>
+          <Text style={styles.walletText}>
+            Total Withdrawn : ₹{wallet.totalWithdrawn}
+          </Text>
         </LinearGradient>
       </TouchableOpacity>
-     
- 
+
+
       <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
     </View>
   );
- 
+
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
-    <TouchableOpacity style={{ marginBottom: hp(4) }} >
-      <MonthlySummaryCard summary={month}  />
+    <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={() => navigation.navigate('EarningsHistoryScreen', { selectedLevel: 'MONTH' })} >
+      <MonthlySummaryCard summary={month} />
     </TouchableOpacity>
   );
 
-const handleItemPress = (item) => {
-  if (item.type === 'peak') {
-    navigation.navigate('PeakHourBonusScreen', {
-      incentive: item.peak_data
-    });
-    return;
-  }
+  const handleItemPress = (item) => {
+    if (item.type === 'peak') {
+      navigation.navigate('PeakHourBonusScreen', { ...item });
+      return;
+    }
 
-  if (item.type === 'weekly') {
-    navigation.navigate('WeekEarnings', {
-      incentive: item.weekly_data
-    });
-    return;
-  }
+    if (item.type === 'weekly') {
+      navigation.navigate('WeekEarnings', { ...item });
+      return;
+    }
 
-  if (item.type === 'daily') {
-    navigation.navigate('DailyGuarentee', {
-      incentive:item.daily_data
-    });
-  }
-};
+    if (item.type === 'daily') {
+      navigation.navigate('DailyGuarentee', { ...item });
+    }
+  };
 
 
 
-  
 
 
   return (
@@ -230,20 +235,20 @@ const handleItemPress = (item) => {
       data={incentives}
       keyExtractor={(item, index) => `${item.title}-${index}`}
       renderItem={({ item }) => <TouchableOpacity
-      onPress={() => handleItemPress(item)}
-    ><IncentiveCard item={item} /></TouchableOpacity>}
-     
+        onPress={() => handleItemPress(item)}
+      ><IncentiveCard item={item} /></TouchableOpacity>}
+
       ListHeaderComponent={HEADER}
       ListFooterComponent={FOOTER}
       refreshing={refreshing}
       onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews={false}
-     
+
     />
   );
 }
- 
+
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
@@ -256,7 +261,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     flexDirection: 'row',
-    alignItems:'center',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
   title: {
@@ -265,10 +270,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chat_icon: {
-    width: wp(6),
-    height: wp(5),
+    width: wp(8),
+    height: wp(6.5),
   },
-    daily_summary: {
+  daily_summary: {
     marginTop: hp(2),
     borderWidth: 1,
     borderColor: '#FFFFFF',
@@ -277,9 +282,9 @@ const styles = StyleSheet.create({
     width: wp('90'),
     alignSelf: 'center',
   },
-  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '600' },
-  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40),gap:wp(2) },
-  daily_details: { color: '#FFFFFF',fontSize:wp(4) },
+  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '500' },
+  daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40) },
+  daily_details: { color: '#FFFFFF', fontSize: wp(4) },
   card: {
     backgroundColor: '#fff',
     alignSelf: 'center',
@@ -310,25 +315,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(3),
-    marginBottom:hp(1),
-    marginLeft:wp(1),
+    marginBottom: hp(1),
+    marginLeft: wp(1),
   },
   walletHeading: {
     color: '#fff',
     fontSize: wp(4.5),
     fontWeight: '600',
-   
+
   },
   walletText: {
-    marginLeft:wp(1),
+    marginLeft: wp(1),
     color: '#fff',
     fontSize: wp(4),
-    paddingBottom:hp(0.5)
-   
+    paddingBottom: hp(0.5)
+
   },
-  withdraw_button: { backgroundColor: '#FFFFFF', borderRadius: wp(2), width: wp(23), paddingVertical: hp(1),marginLeft:wp(30), },
- 
- 
+  withdraw_button: { backgroundColor: '#FFFFFF', borderRadius: wp(2), width: wp(23), paddingVertical: hp(1), marginLeft: wp(30), },
+
+
   incentiveTitle: {
     fontSize: wp(4.5),
     fontWeight: '600',
