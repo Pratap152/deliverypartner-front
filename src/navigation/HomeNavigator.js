@@ -22,8 +22,7 @@ function HomeNavigator() {
                 <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
                 <Stack.Screen name='AddBankDetails' component={AddBankDetails} />
                 <Stack.Screen name='KitSelectionScreen' component={KitSelectionScreen} />
-                {/* <Stack.Screen name='LiveTracking' component={LiveTracking}/> */}
-                {/* <Stack.Screen name='LiveMap' component={LiveMap}/> */}
+                
                 <Stack.Screen name='MapScreen' component={MapScreen}  options={{
           gestureEnabled: false, // Prevent swipe back
         }} />

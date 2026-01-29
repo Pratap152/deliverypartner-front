@@ -24,7 +24,7 @@ const FILTERS = [
 ];
 
 const OrderHistory = ({ navigation }) => {
-  const [selectedFilter, setSelectedFilter] = useState('weekly');
+  const [selectedFilter, setSelectedFilter] = useState('all');
 
   const { orders, summary, loading, loadingMore, loadMore } =
     useOrderHistory(selectedFilter);
@@ -73,7 +73,6 @@ const OrderHistory = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
@@ -82,7 +81,6 @@ const OrderHistory = ({ navigation }) => {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* FILTERS */}
       <View style={styles.filterRow}>
         {FILTERS.map(item => (
           <TouchableOpacity
@@ -105,7 +103,6 @@ const OrderHistory = ({ navigation }) => {
         ))}
       </View>
 
-      {/* SUMMARY */}
       <View style={styles.summaryGrid}>
         <SummaryCard label="Total Orders" value={summary.totalOrders} />
         <SummaryCard
@@ -116,17 +113,13 @@ const OrderHistory = ({ navigation }) => {
         <SummaryCard label="KM Traveled" value={summary.km} />
       </View>
 
-      {/* LIST */}
       <FlatList
         data={orders}
         keyExtractor={item => item.id}
         renderItem={renderOrder}
-        onEndReached={() => {
-          if (!loadingMore) loadMore();
-        }}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
-        /* 🔥 PERFORMANCE */
         initialNumToRender={6}
         maxToRenderPerBatch={6}
         windowSize={7}
@@ -147,7 +140,6 @@ const SummaryCard = ({ label, value }) => (
     <Text style={styles.summaryLabel}>{label}</Text>
   </View>
 );
-
 export default OrderHistory;
 
 /* ================= STYLES ================= */
