@@ -10,16 +10,20 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { BarChart } from 'react-native-gifted-charts';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
+
 
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+
+
 
 export default function EarningsScreen({ navigation }) {
   const { data, loading, refreshing, onRefresh } =
@@ -35,7 +39,7 @@ export default function EarningsScreen({ navigation }) {
 
   const {
     earningsSummary = {},
-    weeklyBarChart = {},
+    weeklyBarChart = [],
     wallet = {},
     incentives = [],
   } = data;
@@ -44,19 +48,9 @@ export default function EarningsScreen({ navigation }) {
   const today = earningsSummary.today || {};
   const week = earningsSummary.week || {};
   const month = earningsSummary.month || {};
-  console.log("today",today);
-  console.log("week",week);
-  console.log("month",month);
-
-  const barChart = Array.isArray(data.weeklyBarChart)
-  ? data.weeklyBarChart
-  : [];
-
   
-  const cardWidth = wp(90);
-  const cardPadding = wp(4);
-  const chartHeight = hp(30);
-  const yAxisWidth = wp(15);
+  const CARD_WIDTH = wp(95);
+  const CARD_PADDING = wp(4);
 
 
   const weeklyEarnings = [
@@ -65,7 +59,7 @@ export default function EarningsScreen({ navigation }) {
     { label: 'Wed', value: 90 },
     { label: 'Thu', value: 220 },
     { label: 'Fri', value: 150 },
-    { label: 'Sat', value: 290 },
+    { label: 'Sat', value: 300 },
     { label: 'Sun', value: 110 },
   ];
 
@@ -76,12 +70,12 @@ export default function EarningsScreen({ navigation }) {
     <View style={{ backgroundColor: '#F4F6F8' }}>
       {/* TOP GRADIENT */}
       <LinearGradient
-        colors={['#00A63E', '#009966']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        colors={['#047d4d', '#23b484']}
+        start={{ x: 0, y: 1 }} end={{ x: 1, y: 1 }}
         style={styles.header}>
         <View style={styles.heading}>
           <Text style={styles.title}>Earnings</Text>
-          <View style={{justifyContent:'space-between',flexDirection:'row'}}>
+          <View style={{justifyContent:'space-between',flexDirection:'row',alignItems:'center',gap:wp(3)}}>
           <TouchableOpacity style={{paddingRight:5}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
             <MaterialIcons name="history" size={28} color="rgb(252, 251, 251)"/>
           </TouchableOpacity>
@@ -97,28 +91,34 @@ export default function EarningsScreen({ navigation }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: wp(10) }}>
               <View>
                 <Text style={styles.daily_text}>Today's Earnings</Text>
-                <Text style={[styles.daily_details,{marginTop:hp(1),fontWeight:500}]}>Base Earnings : ₹{today.baseEarnings}</Text>
-                <View style={[styles.daily_details_container, { marginTop: wp(2) }]}>
-                  <Text style={styles.daily_details}>Orders</Text>
+                <View style={[styles.daily_details_container,{marginLeft:wp(2)}]}>
+                  <Text style={[styles.daily_details,{marginTop:hp(1)}]}>Base Earnings </Text>
+                  <Text style={[styles.daily_details,{marginTop:hp(1),}]}>Orders</Text>
+                </View>
+                <View style={[styles.daily_details_container,{marginLeft:wp(2)}]}>
+                    <Text style={[styles.daily_details, { marginLeft: wp(1) }]}>₹{today.baseEarnings}</Text>
+                    <Text style={[styles.daily_details, { marginRight:wp(8) }]}>{today.orders}</Text>
+                </View>
+                <View style={[styles.daily_details_container, { marginTop: hp(1) ,marginLeft:wp(2)}]}>
                   <Text style={styles.daily_details}>Tips </Text>
                   <Text style={styles.daily_details}>Incentives</Text>
                 </View>
                 <View style={[styles.daily_details_container]}>
-                  <Text style={styles.daily_details}>{today.orders}</Text>
-                  <Text style={[styles.daily_details, { marginLeft: wp(5) }]}>₹{today.tips}</Text>
+                  <Text style={[styles.daily_details, { marginLeft: wp(3) }]}>₹{today.tips}</Text>
                   <Text style={[styles.daily_details, { marginRight:wp(10) }]}>₹{today.incentives}</Text>
 
                 </View>
               </View>
               <View>
-                <Text style={{ fontSize: wp(6), color: '#FFFFFF', fontWeight: '600' }}> ₹{today.earnings}</Text>
+                <Text style={{color: '#FFFFFF', fontSize: wp(4.5),marginTop:hp(1),fontWeight:'600'}}>Total Earnings</Text>
+                <Text style={{ fontSize: wp(5), color: '#FFFFFF', fontWeight: '600' }}> ₹{today.earnings}</Text>
               </View>
             </View>
           </TouchableOpacity>
       </LinearGradient>
 
       {/* WEEKLY CARD */}
-      <View style={[styles.card, { width: cardWidth, padding: cardPadding, }]}>
+      <View style={[styles.card,{width:CARD_WIDTH, padding: CARD_PADDING}]}>
         <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'WEEK'})} >
         <View style={styles.cardHeader}>
           
@@ -126,46 +126,14 @@ export default function EarningsScreen({ navigation }) {
           <Text style={styles.cardValue}>₹{week.earnings}</Text>
         </View>
         
- 
-        <BarChart
-          data={barChart}
-          width={cardWidth - cardPadding * 2 - yAxisWidth}
-          height={chartHeight}
-          barWidth={wp(5)}
-          spacing={wp(4)}
-          roundedTop
-          hideRules
-          noOfSections={5}
-          frontColor="#22C55E"
- 
-          pointerConfig={{
-            pointerStripHeight: hp(20),
-            pointerStripColor: '#22C55E',
-            pointerStripWidth: 2,
-            pointerColor: '#22C55E',
-            radius: 6,
- 
-            activatePointersOnLongPress: false,
-            activatePointersOnPress: true,
- 
-            pointerLabelComponent: items => {
-              return (
-                <View
-                  style={{
-                    backgroundColor: '#111',
-                    padding: 6,
-                    width:wp(10),
-                    borderRadius: 6,
-                    marginBottom: 6, // pushes tooltip up
-                  }}>
-                  <Text style={{ color: '#fff', fontSize: wp(3),alignSelf:'center' }}>
-                    ₹{items[0].value}
-                  </Text>
-                </View>
-              );
-            },
-          }}
+        <WeeklyEarningsChart
+          data={weeklyEarnings}
+          width={CARD_WIDTH - CARD_PADDING * 2}
+          height={hp(30)}  
         />
+ 
+     
+
     </TouchableOpacity>
  
  
@@ -175,12 +143,12 @@ export default function EarningsScreen({ navigation }) {
       <TouchableOpacity
         onPress={() => navigation.navigate('Wallet')}>
         <LinearGradient
-          colors={['#4F39F6', '#155DFC']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+          colors={['#5d50c3', '#94b3f7']}
+          start={{ x: 0, y: 1 }} end={{ x: 1, y: 1 }}
           style={styles.wallet}
         >
           <View style={styles.walletRow}>
-            <Ionicons name="wallet-outline" size={20} color="#fff" />
+            <Ionicons name="wallet-outline" size={22} color="#fff" />
             <Text style={styles.walletHeading}>Wallet</Text>
             <TouchableOpacity style={styles.withdraw_button} onPress={() => navigation.navigate('Wallet')}>
               <Text style={{ color: '#4F39F6', alignSelf: 'center', fontSize: wp(4) }}>Withdraw</Text>
@@ -205,7 +173,7 @@ export default function EarningsScreen({ navigation }) {
 
   /*  FOOTER IS ALSO A STABLE ELEMENT */
   const FOOTER = (
-    <TouchableOpacity style={{ marginBottom: hp(4) }} onPress={() => navigation.navigate('EarningsHistoryScreen', { selectedLevel: 'MONTH' })} >
+    <TouchableOpacity style={{ marginBottom: hp(4) }} >
       <MonthlySummaryCard summary={month} />
     </TouchableOpacity>
   );
@@ -237,7 +205,6 @@ export default function EarningsScreen({ navigation }) {
       renderItem={({ item }) => <TouchableOpacity
         onPress={() => handleItemPress(item)}
       ><IncentiveCard item={item} /></TouchableOpacity>}
-
       ListHeaderComponent={HEADER}
       ListFooterComponent={FOOTER}
       refreshing={refreshing}
@@ -282,7 +249,7 @@ const styles = StyleSheet.create({
     width: wp('90'),
     alignSelf: 'center',
   },
-  daily_text: { color: '#FFFFFF', fontSize: wp(4.5), fontWeight: '500' },
+  daily_text: { color: '#FFFFFF', fontSize: wp(5), fontWeight: '600' },
   daily_details_container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: wp(40) },
   daily_details: { color: '#FFFFFF', fontSize: wp(4) },
   card: {
@@ -297,15 +264,15 @@ const styles = StyleSheet.create({
     marginBottom: hp(3)
   },
   cardTitle: {
-    fontSize: wp(4.5),
+    fontSize: wp(5),
     fontWeight: '500',
   },
   cardValue: {
-    fontSize: wp(4.5),
+    fontSize: wp(5),
     fontWeight: '600',
   },
   wallet: {
-    width: wp(90),
+    width: wp(95),
     alignSelf: 'center',
     marginTop: hp(4),
     borderRadius: wp(4),
@@ -314,13 +281,13 @@ const styles = StyleSheet.create({
   walletRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(3),
+    gap: wp(5),
     marginBottom: hp(1),
     marginLeft: wp(1),
   },
   walletHeading: {
     color: '#fff',
-    fontSize: wp(4.5),
+    fontSize: wp(5),
     fontWeight: '600',
 
   },
@@ -335,7 +302,7 @@ const styles = StyleSheet.create({
 
 
   incentiveTitle: {
-    fontSize: wp(4.5),
+    fontSize: wp(5),
     fontWeight: '600',
     marginLeft: wp(5),
     marginTop: hp(4),
