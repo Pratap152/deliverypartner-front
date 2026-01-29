@@ -5,30 +5,47 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import React, {useState} from 'react';
-
+import React, {useState, useEffect} from 'react';
+ 
 import {useSlotHistory} from '../../hooks/useSlotHistory';
-
-
-
+ 
+ 
+ 
 export default function SlotHistoryScreen({navigation}){
-    const [selectedWeek, setSelectedWeek] = useState(6);
+   
     const [expandedDates, setExpandedDates] = useState([]);// allows multiple open days
     const [isWeekSheetOpen, setIsWeekSheetOpen] = useState(false);
-   
-    // Slot history data & loading state handled via custom hook
+
+    // at top of SlotHistoryScreen (inside component but before useState that depends on currentWeek)
+    const getCurrentWeek = () => {
+    const today = new Date();
+    // find Monday of week 1 via Jan 4 trick (ISO)
+    const jan4 = new Date(today.getFullYear(), 0, 4);
+    const week1Monday = new Date(jan4);
+    week1Monday.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+    const todayCopy = new Date(today);
+    todayCopy.setHours(0,0,0,0);
+    const weekNumber = 1 + Math.floor((todayCopy - week1Monday) / (7 * 24 * 60 * 60 * 1000));
+    return weekNumber;
+    };
+
+    const currentWeek = getCurrentWeek();
+
+    // init selectedWeek with currentWeek (safe because currentWeek computed synchronously)
+    const [selectedWeek, setSelectedWeek] = useState(currentWeek);
+
     const {
-        summary,
-        days,
-        loading,
-        refreshing,
-        onRefresh,
-        } = useSlotHistory(selectedWeek);
+    summary,
+    days,
+    loading,
+    refreshing,
+    onRefresh,
+    availableWeeks,
+    preloadPastWeeks
+    } = useSlotHistory(selectedWeek);
 
-    // PREVIOUS WEEKS RANGE
-    const totalWeeks = 6;
-    const weeks = Array.from({ length: totalWeeks }, (_, i) => totalWeeks - i);
 
+   
     //  Week helpers (date range & formatting)
     const getWeekRange = (days) => {
         if (!days || days.length === 0) return '';
@@ -36,22 +53,22 @@ export default function SlotHistoryScreen({navigation}){
             const date = new Date(dateString);
             return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
         };
-
+ 
         const start = days[0].date;
         const end = days[days.length - 1].date;
         return `${format(start)} - ${format(end)}`;
         };
-        
+       
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-
+ 
         const day = date.getDate();  // 29
         const month = date.toLocaleString('en-US', { month: 'short' }); // Dec
         const weekday = date.toLocaleString('en-US', { weekday: 'short' }); // Mon
-
+ 
         return `${day} ${month} - ${weekday}`;
         };
-
+ 
     const getWeekRangeByWeekNumber = (weekNumber) => {
         const year = new Date().getFullYear();
         // ISO week calculation (Monday start)
@@ -59,16 +76,21 @@ export default function SlotHistoryScreen({navigation}){
         const weekStart = new Date(firstThursday);
         weekStart.setDate(firstThursday.getDate() + (weekNumber - 1) * 7);
         weekStart.setDate(weekStart.getDate() - (weekStart.getDay() || 7) + 1);
-
+ 
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
-
+ 
         const format = (date) =>
             `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
-
+ 
         return `${format(weekStart)} - ${format(weekEnd)}`;
         };
+    
+    
 
+ 
+    
+ 
 
     // Header shown above the slot list (week selector + summary)
     const ListHeader = () =>{
@@ -79,48 +101,54 @@ export default function SlotHistoryScreen({navigation}){
                         <Text style={styles.week_text}>
                             {getWeekRange(days)}
                         </Text>
-                        <Text style={styles.this_week}>This Week</Text>
+                        {selectedWeek === currentWeek ? (
+                                <Text style={styles.this_week}>This Week</Text>
+                            ) : (
+                                <View style={styles.this_week_placeholder} />
+                            )}
                         <TouchableOpacity style={styles.change_week}
-                                          onPress={() => setIsWeekSheetOpen(true)}>
+                                          onPress={()=>{
+                                            setIsWeekSheetOpen(true);
+                                            preloadPastWeeks(6);}}>
                             <Text style={{fontSize:wp(4.5),fontWeight:'500',}}>Change</Text>
-                            <Ionicons name='chevron-forward-outline' 
+                            <Ionicons name='chevron-forward-outline'
                                     size={18}
                                     style={{paddingTop:hp(0.5)}}
                                     />
                         </TouchableOpacity>  
-                    </View>   
+                    </View>  
                 </View>
-
+ 
                 {/* SUMMARY */}
                 <View style={styles.summary_container}>
-                    <View style={styles.summary}>
-                        <Text style={styles.summary_text}>Completed</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.completed:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#cdf5d5'}]}>
+                        <Text style={[styles.summary_text,]}>Completed</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.completed:0}</Text>
                     </View>
-                    <View style={styles.summary}>
-                        <Text style={styles.summary_text}>Missed</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.noShow:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#d5f1f7'}]}>
+                        <Text style={[styles.summary_text,]}>Missed</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.noShow:0}</Text>
                     </View>
                 </View>
                 <View style={[styles.summary_container,{marginBottom:hp(2)}]}>
-                    <View style={styles.summary}>
-                        <Text style={styles.summary_text}>Cancelled</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.cancelled:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#FFCECE'}]}>
+                        <Text style={[styles.summary_text,]}>Cancelled</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.cancelled:0}</Text>
                     </View>
-                    <View style={styles.summary} >
-                        <Text style={styles.summary_text}>Failed</Text>
-                        <Text style={styles.summary_count}>{summary ? summary.failed:0}</Text>
+                    <View style={[styles.summary,{backgroundColor:'#f4eda6'}]}>
+                        <Text style={[styles.summary_text,]}>Failed</Text>
+                        <Text style={[styles.summary_count,]}>{summary ? summary.failed:0}</Text>
                     </View>
                 </View>
             </View>
         );
     };
-    
+   
     // Renders a single day row with expandable slot details
     const renderDay = ({ item: day }) => {
         return (
             <View>
-
+ 
             {/* DAY ROW */}
                 <TouchableOpacity
                     style={styles.day_row}
@@ -131,7 +159,7 @@ export default function SlotHistoryScreen({navigation}){
                         }
                         return [...prev, day.date]; // open this day
                         })}>
-
+ 
                     <Text style={styles.day_row_text}>
                         {formatDate(day.date)}
                     </Text>
@@ -146,7 +174,7 @@ export default function SlotHistoryScreen({navigation}){
                     style={styles.day_icon}
                 />
                 </TouchableOpacity>
-
+ 
             {/* EXPANDED CONTENT */}
             {expandedDates.includes(day.date)&& (
                 <View style={{ marginLeft: wp(3), marginTop: hp(1) }}>
@@ -156,14 +184,14 @@ export default function SlotHistoryScreen({navigation}){
                             No Slots on this day
                         </Text>
                         )}
-
+ 
                     {/* SLOT CARDS */}
                     {day.slots.map(slot => (
                     <View key={slot._id} style={styles.slot_card}>
                         <Text style={styles.slot_time}>
                             {slot.startTime} - {slot.endTime}
                         </Text>
-
+ 
                         <Text style={styles.slot_status}>
                             {slot.status}
                         </Text>
@@ -174,22 +202,22 @@ export default function SlotHistoryScreen({navigation}){
          </View>
         );
         };
-
-    
-
+ 
+   
+ 
     // STYLING
     return(
         <SafeAreaView style={{flex:1}}>
             <View style={styles.header}>
-                <TouchableOpacity 
+                <TouchableOpacity
                                 onPress={()=>navigation.goBack()}>
-                    <Ionicons name='chevron-back-outline' 
+                    <Ionicons name='chevron-back-outline'
                             size={24}
                             />
                 </TouchableOpacity>
                 <Text style={{fontSize:wp(6),fontWeight:'500'}}>Slots History</Text>
             </View>
-                
+               
                 {/* DAYS LIST */}
                 <FlatList
                     data={days}
@@ -213,51 +241,56 @@ export default function SlotHistoryScreen({navigation}){
                         </>
                         }
                  />
-
+ 
                 {isWeekSheetOpen && (
                     <View style={styles.sheet_overlay}>
                         <View style={styles.sheet_container}>
-                            <Text style={styles.sheet_title}>Select Week</Text>
+                            <Text style={styles.sheet_title}>Select Week</Text>                             
                             <ScrollView
                                 style={{ maxHeight: hp(50) }}
                                 showsVerticalScrollIndicator={false}
                                 >
-                                {weeks.map(week => (
+                                {(availableWeeks ?? []).map(week => (
                                     <TouchableOpacity
-                                        key={week}
+                                        key={`week-${week}`}
                                         style={styles.week_item}
                                         onPress={() => {
                                             setSelectedWeek(week);
                                             setIsWeekSheetOpen(false);
-                                        }}>
-                                        
-                                            <Text
-                                                style={{ fontWeight: week === selectedWeek ? '700' : '400',fontSize:wp(4) }}>
-                                                {getWeekRangeByWeekNumber(week)}  
-                                             </Text>
-                                                {week === selectedWeek &&
-                                                <Text style={styles.this_week}>
-                                                    This Week
-                                                </Text>
-                                                }     
+                                        }}
+                                        >
+                                        <Text
+                                            style={{
+                                            fontWeight: week === selectedWeek ? '700' : '400',
+                                            fontSize: wp(4),
+                                            }}
+                                        >
+                                            {getWeekRangeByWeekNumber(week)}
+                                        </Text>
+
+                                        {week === currentWeek && (
+                                            <Text style={styles.this_week}>This Week</Text>
+                                        )}
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
 
+ 
                             <TouchableOpacity
                                 style={styles.sheet_cancel}
                                 onPress={() => setIsWeekSheetOpen(false)}>
                                 <Text style={{fontSize:wp(4),fontWeight:'500'}}>Cancel</Text>
                             </TouchableOpacity>
+
                         </View>
                     </View>
                     )}  
         </SafeAreaView>
     );
 }
-
-
-
+ 
+ 
+ 
 const styles = StyleSheet.create({
     header:{
         flexDirection:'row',
@@ -276,7 +309,7 @@ const styles = StyleSheet.create({
     week_selector:{
         flexDirection:'row',
         gap:wp(1)
-        
+       
     },
     week_text:{
         fontSize:wp(4.5),
@@ -292,7 +325,10 @@ const styles = StyleSheet.create({
         marginBottom:hp(2),
         fontSize:wp(4),
         fontWeight:'500'
-        
+       
+    },
+    this_week_placeholder:{
+      width:wp(25),  
     },
     date:{
         marginLeft:wp(5),
@@ -302,13 +338,12 @@ const styles = StyleSheet.create({
         alignItems:'center',
         marginLeft:wp(13),
         marginBottom:hp(1)
-        
+       
     },
     summary_container:{
         flexDirection:'row',
     },
     summary:{
-        backgroundColor:'#FFFFFF',
         marginLeft:wp(3),
         marginTop:hp(2),
         paddingVertical:hp(3),
@@ -318,13 +353,13 @@ const styles = StyleSheet.create({
     summary_text:{
         fontSize:wp(4.5),
         marginLeft:wp(2),
-        
+       
     },
     summary_count:{
         fontSize:wp(5),
         marginLeft:wp(2),
         fontWeight:'600'
-        
+       
     },
     day_row:{
         marginLeft:wp(3),
@@ -335,7 +370,7 @@ const styles = StyleSheet.create({
     },
     day_row_text:{
         fontSize:wp(4),
-        
+       
     },
     day_icon:{
         marginRight:wp(6)
@@ -351,18 +386,18 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-
+ 
     slot_time: {
         fontSize: wp(4),
         fontWeight: '500',
     },
-
+ 
     slot_status: {
         fontSize: wp(3.5),
         fontWeight: '600',
         color: '#677294',
     },
-
+ 
     empty_text: {
         marginTop: hp(1),
         marginLeft: wp(3),
@@ -377,33 +412,34 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'flex-end',
     },
-
+ 
     sheet_container: {
         backgroundColor: '#fff',
         borderTopLeftRadius: wp(6),
         borderTopRightRadius: wp(6),
         padding: wp(5),
     },
-
+ 
     sheet_title: {
         fontSize: wp(5),
         fontWeight: '500',
         marginBottom: hp(2),
     },
-
+ 
     week_item: {
         paddingVertical: hp(1.5),
         flexDirection:'row',
         gap:wp(2),
-        
+       
     },
-
+ 
     sheet_cancel: {
         marginTop: hp(2),
         alignItems: 'center',
-        
+       
     },
-
-
-
+ 
+ 
+ 
 });
+ 

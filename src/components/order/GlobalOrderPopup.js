@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, View, StyleSheet } from "react-native";
-import OrderCard from "../../screens/Home/OrderCard";
+import OrderCard from "../../screens/order/OrderCard";
 import { useRider } from "../../context/RiderContext";
 
 const GlobalOrderPopup = () => {

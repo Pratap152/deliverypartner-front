@@ -27,7 +27,7 @@ import SwipeButton from '../../components/common/SwipeButton';
 import LiveMap from '../../components/map/LiveMap';
 import { getDistance } from '../../utils/mapUtils';
 import { orderService } from '../../services/order/OrderService';
-import CustomerNotResponding from './CustomerNotResponding';
+import CustomerNotResponding from '../Home/CustomerNotResponding';
 
 const OrderDetailsScreen = ({ route, navigation }) => {
 
@@ -314,34 +314,29 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Customer Not Responding Modal */}
-      <Modal
-        visible={showCustomerModal}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setShowCustomerModal(false)}
-      >
-        <SafeAreaView style={{ flex: 1 }}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowCustomerModal(false)}>
-              <MaterialCommunityIcons name="arrow-left" size={24} color="#333" />
-            </TouchableOpacity>
-            <Text style={styles.modalHeaderText}>Order Details</Text>
-            <View style={{ width: 24 }} />
-          </View>
+       <Modal
+  visible={showCustomerModal}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setShowCustomerModal(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.centerModalCard}>
+      <CustomerNotResponding
+        duration={120}
+        onCallPress={() => {
+          Alert.alert("Call", "Calling customer...");
+        }}
+        onMarkIssuePress={() => {
+          setShowCustomerModal(false);
+          navigation.navigate('ReportIssue', { orderId });
+        }}
+      />
+    </View>
+  </View>
+</Modal>
 
-          <CustomerNotResponding
-            duration={120}
-            onCallPress={() => {
-              // Handle call customer logic
-              Alert.alert("Call", "Calling customer...");
-            }}
-            onMarkIssuePress={() => {
-              setShowCustomerModal(false);
-              navigation.navigate('ReportIssue', { orderId });
-            }}
-          />
-        </SafeAreaView>
-      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -502,4 +497,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.45)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+centerModalCard: {
+  width: '88%',           // LEFT & RIGHT SPACE ✅
+  backgroundColor: '#fff',
+  borderRadius: 16,
+  paddingVertical: 24,
+  paddingHorizontal: 20,
+  elevation: 8,           // Android shadow
+  shadowColor: '#000',    // iOS shadow
+  shadowOpacity: 0.2,
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 4 },
+},
+modalCard: {
+  backgroundColor: '#fff',
+  borderTopLeftRadius: 20,
+  borderTopRightRadius: 20,
+  paddingBottom: hp('4%'),
+  paddingTop: hp('2%'),
+},
+
 });

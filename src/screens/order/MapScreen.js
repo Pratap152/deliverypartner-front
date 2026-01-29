@@ -620,5 +620,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
-
-export default MapScreen;

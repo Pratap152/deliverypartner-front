@@ -4,7 +4,7 @@ import apiClient from '../../services/ApiClient';
  * Peak hour incentives (ACTIVE only)
  */
 export const getPeakHourIncentives = async () => {
-  const response = await apiClient.get('/api/home/peakhours-incentives');
+  const response = await apiClient.get('/api/admin/incentives/peak');
   return response.data;
 };
 
@@ -12,7 +12,7 @@ export const getPeakHourIncentives = async () => {
  * Daily incentive earnings
  */
 export const getDailyIncentives = async () => {
-  const response = await apiClient.get('/api/home/incentives/daily-earning');
+  const response = await apiClient.get('/api/rider/incentives/daily');
   return response.data;
 };
 
@@ -20,6 +20,6 @@ export const getDailyIncentives = async () => {
  * Weekly incentive earnings
  */
 export const getWeeklyIncentives = async () => {
-  const response = await apiClient.get('/api/home/incentives/weekly-earning');
+  const response = await apiClient.get('/api/incentives/get_weekly');
   return response.data;
 };

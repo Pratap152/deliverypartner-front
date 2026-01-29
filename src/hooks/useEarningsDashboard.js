@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getEarningsSummary} from '../services/earnings/earningsService';
+import { getEarningsSummary,getWeeklyBarChart} from '../services/earnings/earningsService';
 import { getWalletDetails } from '../services/earnings/walletService';
 import {
   getPeakHourIncentives,
@@ -10,6 +10,7 @@ import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import { Link, useNavigation } from '@react-navigation/native';
+import { BarChart } from 'react-native-gifted-charts';
 
 export default function useEarningsDashboard() {
   const navigation = useNavigation();
@@ -28,6 +29,9 @@ export default function useEarningsDashboard() {
   try {
     const summaryRes = await getEarningsSummary();
     console.log('SUMMARY OK');
+
+    const weeklyChart = await getWeeklyBarChart();
+    console.log('WEEK BAR CHART OK');
 
     let walletRes = null;
     try {
@@ -63,6 +67,7 @@ export default function useEarningsDashboard() {
 
     setData({
       earningsSummary: mapEarningsSummary(summaryRes),
+      weeklyBarChart: mapWeeklyChart(weeklyChart),
       wallet: walletRes ? mapWallet(walletRes) : {},
       incentives: mapIncentives(peakRes, weeklyRes, dailyRes),
     });
@@ -78,18 +83,33 @@ export default function useEarningsDashboard() {
 
   const mapEarningsSummary = res => ({
     today: {
-      orders: res.today?.ordersCompleted,
-      earnings: res.today?.totalEarnings,
+      orders: res.today?.orders ?? 0,
+      baseEarnings: res.today?. baseEarnings ?? 0,
+      incentives:res.today?.incentives ??0,
+      tips:res.today?.tips ?? 0,
+      earnings: res.today?.total ?? 0,
     },
     week: {
-      orders: res.week?.ordersCompleted,
-      earnings: res.week?.totalEarnings,
+      earnings: res.week?.total ?? 0,
     },
     month: {
-      orders: res.month?.ordersCompleted ?? 0,
-      earnings: res.month?.totalEarnings ?? 0,
+      baseEarnings: res.today?. baseEarnings ?? 0,
+      incentives:res.today?.incentives ??0,
+      tips:res.today?.tips ?? 0,
+      earnings: res.month?.total ?? 0,
     },
   });
+
+const mapWeeklyChart = (res) => {
+  if (!Array.isArray(res?.week)) return [];
+
+  return res.week.map(item => ({
+    label: item.day,          // "Mon"
+    value: item.amount,       // earnings for bar height
+    orders: item.orders,      // extra info (tooltip use)
+  }));
+};
+
 
 const mapWallet = res => ({
   balance: res.data?.balance ?? 0,
@@ -104,17 +124,14 @@ const mapIncentives = (
 ) => {
   const incentives = [];
 
-  // Peak Hour
-  if (peakRes?.incentives?.length) {
-    peakRes.incentives.forEach(item => {
-      incentives.push({
-        id: `peak-${item.title}`,
-        title: item.title,
-        subtitle: `${item.condition?.startTime} - ${item.condition?.endTime}`,
-        value: `₹${item.rewardValue}`,
-        accentColor: '#FFF7ED',
-        
-      });
+  if (peakRes?.data) {
+    incentives.push({
+      id: 'peak-slot',
+      type: 'peak',
+      title: peakRes.data.title,
+      subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
+      slabs: peakRes.data.slabs ?? [],
+      accentColor: '#FFF7ED',
     });
   }
 
@@ -122,27 +139,37 @@ const mapIncentives = (
   if (weeklyRes?.data) {
     incentives.push({
       id: 'weekly-incentive',
+      type: 'weekly',
       title: weeklyRes.data.title,
-      subtitle: `Completed ${weeklyRes.data.completedOrders}/${weeklyRes.data.requiredOrders} orders`,
-      value: weeklyRes.data.achieved
-        ? `₹${weeklyRes.data.maxRewardPerRider}`
-        : 'In Progress',
+      subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
+      value: `Earn ₹${weeklyRes.data.maxRewardPerWeek}`,
+      completedOrders: weeklyRes.data.progress.eligibleDays,
+      requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',
     });
   }
 
   // Daily Incentive
   if (dailyRes?.data) {
-    incentives.push({
-      id: 'daily-incentive',
-      title: dailyRes.data.title,
-      subtitle: `Completed ${dailyRes.data.completedOrders}/${dailyRes.data.requiredOrders} orders`,
-      value: dailyRes.data.achieved
-        ? `₹${dailyRes.data.maxRewardPerRider}`
-        : 'In Progress',
-      accentColor: '#F5F3FF',
-    });
-  }
+  incentives.push({
+    id: 'daily-incentive',
+    type: 'daily',
+    title: dailyRes.data.title,
+    subtitle: dailyRes.eligible
+      ? 'Target achieved'
+      : 'Complete today target',
+    completedOrders: dailyRes.data.ordersCompleted ?? 0,
+   //  TEMP VALUE
+    requiredOrders: 8,   
+
+    value: dailyRes.eligible
+      ? `Earned ₹${dailyRes.data.rewardAmount}`
+      : 'In Progress',
+
+    accentColor: '#F5F3FF',
+  });
+}
+
 
   return incentives;
 };
