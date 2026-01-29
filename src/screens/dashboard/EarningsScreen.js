@@ -81,8 +81,8 @@ export default function EarningsScreen({ navigation }) {
         style={styles.header}>
         <View style={styles.heading}>
           <Text style={styles.title}>Earnings</Text>
-          <View style={{justifyContent:'space-between',flexDirection:'row'}}>
-          <TouchableOpacity style={{paddingRight:5}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
+          <View style={{alignItems:"flex-end", flexDirection:"row"}}>
+          <TouchableOpacity style={{paddingRight:10}} onPress={()=>navigation.navigate("EarningsHistoryScreen",{mode:'HISTORY'})}>
             <MaterialIcons name="history" size={28} color="rgb(252, 251, 251)"/>
           </TouchableOpacity>
           <TouchableOpacity>
@@ -270,8 +270,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chat_icon: {
-    width: wp(6),
-    height: wp(5),
+    width: wp(8),
+    height: wp(6.5),
   },
   daily_summary: {
     marginTop: hp(2),

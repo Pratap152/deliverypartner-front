@@ -52,6 +52,8 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   const [weekModal, setWeekModal] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
 
+  const currentWeekNumber = useMemo(() => getBackendWeekNumber(new Date()), []);
+
   // ------------------ CONSTANTS ------------------
 
   const years = useMemo(() => {
@@ -298,19 +300,18 @@ export default function EarningsHistoryScreen({ navigation, route }) {
       break;
     }
 
-    weeks.push({
-      week,
-      startDate: start.toISOString().split("T")[0],
-      endDate: end.toISOString().split("T")[0],
-      startLabel: start.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-      endLabel: end.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-    });
+    const today = new Date();
+const isFuture = start > today;
+
+weeks.push({
+  week,
+  startDate: start.toISOString().split("T")[0],
+  endDate: end.toISOString().split("T")[0],
+  startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  isFuture,
+});
+
 
     current.setDate(current.getDate() + 7);
     week++;
@@ -318,6 +319,26 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
   return weeks;
 }
+
+function getBackendWeekNumber(date) {
+  const d = new Date(date);
+
+  const year = d.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+
+  // Find Monday of week containing Jan 1
+  const day = jan1.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const firstWeekStart = new Date(jan1);
+  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
+
+  const diffDays = Math.floor(
+    (d.setHours(0,0,0,0) - firstWeekStart.setHours(0,0,0,0)) / 86400000
+  );
+
+  return Math.floor(diffDays / 7) + 1;
+}
+
 
 
 
@@ -479,6 +500,9 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   labelExtractor={(item) =>
     `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
   }
+  selectedValue={selectedWeek}
+  isItemDisabled={(item) => item.isFuture}
+  isItemHighlighted={(item) => item.week === currentWeekNumber}
   onClose={() => setWeekModal(false)}
   onSelect={(item) => {
     Analytics.track("earnings_select_week", {
@@ -486,10 +510,10 @@ export default function EarningsHistoryScreen({ navigation, route }) {
       year: selectedYear,
     });
     setSelectedWeek(item.week);
-    setWeekModal(false);
     loadHistoryWeek(item.week, selectedYear, true);
   }}
 />
+
 
 
       {/* Calendar */}
