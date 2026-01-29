@@ -42,6 +42,7 @@ import MapScreen from '../screens/order/MapScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import ReportIssue from '../screens/Home/ReportIssue';
+import IncentiveDetails from '../screens/Home/IncentiveDetails';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -118,6 +119,10 @@ const AppNavigator = () => {
       />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
+      <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
+      <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
+      <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
+      <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} />
     </Stack.Navigator>
   );
 };
