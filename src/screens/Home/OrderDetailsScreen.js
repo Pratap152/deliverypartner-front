@@ -125,18 +125,35 @@ const OrderDetailsScreen = ({ route, navigation }) => {
    */
   const handleSwipeSuccess = async () => {
     const action = ui.bottomButtons && ui.bottomButtons[0];
-    if (!action) return;
+    // if (!action) return;
 
-    // SCENARIO 1: Navigate to MapScreen
-    if (action.navigateTo === 'MapScreen') {
-      navigation.navigate('MapScreen', {
-        orderId: orderId,
-        nextStatus: action.nextStatus,
-        orderDetails: orderDetails, // Pass full order details
-      });
-      return;
-    }
+    // // SCENARIO 1: Navigate to MapScreen
+    // if (action.navigateTo === 'MapScreen') {
+    //   navigation.navigate('MapScreen', {
+    //     orderId: orderId,
+    //     nextStatus: action.nextStatus,
+    //     orderDetails: orderDetails, // Pass full order details
+    //   });
+    //   return;
+    // }
 
+    if (!action?.navigateTo) {
+    return;
+  }
+
+  if (action.navigateTo === 'MapScreen') {
+    // Determine which map screen to show
+    const isPickup = status === ORDER_STATUS.PICKUP_ASSIGNED;
+    const destinationType = isPickup ? 'pickup' : 'drop';
+    
+    navigation.navigate('MapScreen', {
+      orderId: orderId,
+      nextStatus: action.nextStatus,
+      destinationType: destinationType,
+      // Pass order details if available
+      orderDetails: orderDetails,
+    });
+  }
     // SCENARIO 2: Navigate to other screens (e.g., QR Scanner)
     if (action.navigateTo) {
       navigation.navigate(action.navigateTo, {

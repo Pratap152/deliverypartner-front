@@ -24,7 +24,9 @@ function HomeNavigator() {
                 <Stack.Screen name='KitSelectionScreen' component={KitSelectionScreen} />
                 {/* <Stack.Screen name='LiveTracking' component={LiveTracking}/> */}
                 {/* <Stack.Screen name='LiveMap' component={LiveMap}/> */}
-                <Stack.Screen name='MapScreen' component={MapScreen} />
+                <Stack.Screen name='MapScreen' component={MapScreen}  options={{
+          gestureEnabled: false, // Prevent swipe back
+        }} />
             </Stack.Navigator>
         </>
     )
