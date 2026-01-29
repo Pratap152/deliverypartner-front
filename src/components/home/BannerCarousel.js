@@ -1,80 +1,4 @@
-// import React, { useMemo } from 'react';
-// import { View, Text, StyleSheet, Dimensions } from 'react-native';
-// import Carousel from 'react-native-reanimated-carousel';
-// import { wp, hp } from 'react-native-responsive-screen';
 
-// const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-// const BannerCarousel = ({ data }) => {
-//   const carouselWidth = useMemo(() => {
-//     const w = wp('90%');
-//     return w > 0 ? w : SCREEN_WIDTH * 0.9;
-//   }, []);
-
-//   if (!data || data.length === 0) return null;
-
-//   return (
-//     <View style={styles.wrapper}>
-//       <Carousel
-//         loop
-//         autoPlay
-//         width={carouselWidth}
-//         height={hp('16%')}
-//         data={data}
-//         scrollAnimationDuration={800}
-//         renderItem={({ item }) => (
-//           <View
-//             style={[
-//               styles.banner,
-//               { backgroundColor: item.backgroundColor },
-//             ]}
-//           >
-//             <Text style={styles.title}>{item.title}</Text>
-//             <Text style={styles.subtitle}>{item.subtitle}</Text>
-
-//             <View style={styles.cta}>
-//               <Text style={styles.ctaText}>{item.cta}</Text>
-//             </View>
-//           </View>
-//         )}
-//       />
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   wrapper: {
-//     marginTop: hp('2%'),
-//     alignItems: 'center',
-//   },
-//   banner: {
-//     flex: 1,
-//     borderRadius: wp('4%'),
-//     padding: wp('4%'),
-//     justifyContent: 'space-between',
-//   },
-//   title: {
-//     fontSize: wp('4.5%'),
-//     fontWeight: '700',
-//   },
-//   subtitle: {
-//     fontSize: wp('3.5%'),
-//     marginTop: hp('0.5%'),
-//   },
-//   cta: {
-//     alignSelf: 'flex-start',
-//     backgroundColor: '#000',
-//     paddingHorizontal: wp('4%'),
-//     paddingVertical: hp('0.6%'),
-//     borderRadius: wp('5%'),
-//   },
-//   ctaText: {
-//     color: '#fff',
-//     fontSize: wp('3.2%'),
-//   },
-// });
-
-// export default React.memo(BannerCarousel);
 import React, { useEffect, useRef } from 'react';
 import {
   View,
@@ -121,6 +45,10 @@ const BannerCarousel = ({ data}) => {
     if (item.id === 'bank') {
       navigation.navigate('AddBankDetails');
     }
+    else{
+      navigation.navigate('KitSelectionScreen');
+    }
+    
   };
 
   return (

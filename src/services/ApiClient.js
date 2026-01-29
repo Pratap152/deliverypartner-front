@@ -122,7 +122,7 @@
 import axios from 'axios';
 import WEBSITE_URL from '../utils/host';
 import { tokenService } from './TokenService';
-import { authEvents, AUTH_EVENTS } from './AuthEvents';
+import { authEvent  , AUTH_EVENTS } from './AuthEvents';
 
 let isRefreshing = false;
 let queue = [];

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-const SIZE = 160;
-const STROKE = 12;
+const SIZE = 120;
+const STROKE =8;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export default function CustomerNotResponding({
   title = "Customer Not Responding",
-  duration = 120,
+  duration = 20,
   onCallPress,
   onMarkIssuePress,
 }) {
@@ -69,93 +69,103 @@ export default function CustomerNotResponding({
       <Text style={styles.subText}>Wait for {duration} Seconds</Text>
 
       {/* Buttons */}
-<TouchableOpacity
-  style={[
-    styles.callBtn,
-    timeLeft !== 0 && styles.disabledBtn
-  ]}
-  disabled={timeLeft !== 0}
-  onPress={onCallPress}
->
-  <Ionicons name="call-outline" size={18} color="#fff" />
-  <Text style={styles.btnText}>Call Customer</Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.callBtn,
+          timeLeft !== 0 && styles.disabledBtn
+        ]}
+        disabled={timeLeft !== 0}
+        onPress={onCallPress}
+      >
+        <Ionicons name="call-outline" size={18} color="#fff" />
+        <Text style={styles.btnText}>Call Customer</Text>
+      </TouchableOpacity>
 
-<TouchableOpacity
-  style={[
-    styles.issueBtn,
-    timeLeft !== 0 && styles.disabledBtn
-  ]}
-  disabled={timeLeft !== 0}
-  onPress={onMarkIssuePress}
->
-  <Ionicons name="alert-circle-outline" size={18} color="#fff" />
-  <Text style={styles.btnText}>Mark as Issue</Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.issueBtn,
+          timeLeft !== 0 && styles.disabledBtn
+        ]}
+        disabled={timeLeft !== 0}
+        onPress={onMarkIssuePress}
+      >
+        <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+        <Text style={styles.btnText}>Mark as Issue</Text>
+      </TouchableOpacity>
 
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    paddingTop: 40,
-  },
+container: {
+  paddingHorizontal: 20,
+  alignItems: "center",
+},
 
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 30,
-  },
-
-  title: {
-    marginLeft: 6,
-    color: "#F7931E",
-    fontWeight: "600",
-  },
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 20,
+},
+title: {
+  marginLeft: 8,
+  color: "#F7931E",
+  fontSize: 14,
+  fontWeight: "600",
+},
 
   circleBox: {
     alignItems: "center",
     justifyContent: "center",
   },
 
-  timerText: {
-    position: "absolute",
-    fontSize: 38,
-    fontWeight: "700",
-    color: "#333",
-  },
+ timerText: {
+  position: "absolute",
+  fontSize: 32,
+  fontWeight: "700",
+  color: "#2B2B2B",
+},
+
 
   subText: {
-    marginVertical: 16,
-    color: "#999",
-  },
+  marginVertical: 12,
+  color: "#9E9E9E",
+  fontSize: 13,
+},
 
-  callBtn: {
-    flexDirection: "row",
-    backgroundColor: "#6B6B6B",
-    width: "85%",
-    paddingVertical: 14,
-    borderRadius: 8,
-    justifyContent: "center",
-    marginBottom: 12,
-  },
 
-  issueBtn: {
-    flexDirection: "row",
-    backgroundColor: "#E53935",
-    width: "85%",
-    paddingVertical: 14,
-    borderRadius: 8,
-    justifyContent: "center",
-  },
+callBtn: {
+  flexDirection: "row",
+  backgroundColor: "#00B5C8",
+  width: "100%",
+  paddingVertical: 14,
+  borderRadius: 10,
+  justifyContent: "center",
+  marginTop: 10,
+},
 
+issueBtn: {
+  flexDirection: "row",
+  backgroundColor: "#E53935",
+  width: "100%",
+  paddingVertical: 14,
+  borderRadius: 10,
+  justifyContent: "center",
+  marginTop: 12,
+},
+
+disabledBtn: {
+  backgroundColor: "#DADADA",
+},
+
+
+  
   btnText: {
     color: "#fff",
     marginLeft: 8,
     fontWeight: "600",
   },
+
+  
 });
