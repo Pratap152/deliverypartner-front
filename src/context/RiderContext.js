@@ -4,6 +4,7 @@ import { navigate } from "../navigation/RootNavigation"; // Root navigation
 import { ORDER_STATUS } from "../config/orderStates";
 import WEBSITE_URL from '../../src/utils/host';
 import { OrdersAPI } from "../api/api";
+import { orderService } from '../services/order/OrderService';
 const RiderContext = createContext();
 
 const WS_URL =
@@ -65,7 +66,7 @@ export const RiderProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      const res = await OrdersAPI.acceptOrder(order.orderId, "696b6787f212b183b5dffe60"); // TODO: dynamic riderId
+      const res = await orderService.acceptOrder(order.orderId, "696b6787f212b183b5dffe60"); // TODO: dynamic riderId
       console.log("✅ Order Accepted:", order.orderId);
 
       setOrder(null);
@@ -83,7 +84,7 @@ export const RiderProvider = ({ children }) => {
   const rejectOrder = async (reason = "Timeout") => {
     try {
       if (order) {
-        await OrdersAPI.rejectOrder(order.orderId, "696b6787f212b183b5dffe60", reason); // TODO: dynamic riderId
+        await orderService.rejectOrder(order.orderId, "696b6787f212b183b5dffe60", reason); // TODO: dynamic riderId
         console.log("❌ Order Rejected:", order.orderId);
       }
       setOrder(null);
@@ -124,11 +125,13 @@ export const RiderProvider = ({ children }) => {
               <>
                 <Text>Order ID: {order.orderId}</Text>
                 <Text>Shop: {order.vendorShopName}</Text>
-                <Text>Distance: {order.distance} km</Text>
-                <Text>Earning: ₹{order.earning}</Text>
+                <Text>Distance: {order.distanceKm}</Text>
+                <Text>Estimated Time:{order.etaMinutes}</Text>
+                <Text>Earning: ₹{order.estimatedEarning}</Text>
                 <Text style={{ marginTop: 8, fontWeight: "600" }}>Time Left: {countdown}s</Text>
               </>
             )}
+            
 
             {loading ? (
               <ActivityIndicator style={{ marginTop: 20 }} />

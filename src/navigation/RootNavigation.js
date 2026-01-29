@@ -7,3 +7,11 @@ export const navigate = (route,params )=> {
     navigationRef.navigate(route,params)
   };
 };
+export function navigateAndReset(routeName) {
+  if (navigationRef.isReady()) {
+    navigationRef.reset({
+      index: 0,
+      routes: [{ name: routeName }],
+    });
+  }
+}
