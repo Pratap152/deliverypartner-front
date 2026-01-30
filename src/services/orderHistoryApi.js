@@ -1,33 +1,26 @@
+import axios from 'axios';
+import { tokenService } from '../services/TokenService';
 import apiClient from './ApiClient';
 
-const ORDER_FILTER_MAP = {
-  all: undefined,
-  today: 'daily',
-  week: 'weekly',
-  month: 'monthly',
-};
-
 export const getOrderHistory = async ({
-  filter = 'all',
+  filter = 'weekly',
   page = 1,
   limit = 10,
 }) => {
   try {
-    const normalizedFilter = filter?.toLowerCase();
-    const response = await apiClient.get('/api/rider/orders/history', {
-      params: {
-        filter: ORDER_FILTER_MAP[normalizedFilter],
-        page,
-        limit,
-      },
+    const token = await tokenService.getAccessToken();
+    if (!token) {
+      Alert.alert('Auth Error', 'Token not found. Please login again.');
+      return;
+    }
+
+    const response = await apiClient.get(`/api/rider/orders/history`, {
+      params: { filter, page, limit },
     });
 
     return response.data;
   } catch (error) {
-    console.log(
-      'Order History API Error:',
-      error?.response?.data || error.message,
-    );
+    console.log('Order History API Error:', error);
     throw error;
   }
 };
