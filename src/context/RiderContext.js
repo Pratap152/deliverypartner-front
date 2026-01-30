@@ -66,7 +66,7 @@ export const RiderProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      const res = await orderService.acceptOrder(order.orderId, "696b6787f212b183b5dffe5d"); // TODO: dynamic riderId
+      const res = await orderService.acceptOrder(order.orderId); // dynamic riderId removed
       console.log("✅ Order Accepted:", order.orderId);
 
       setOrder(null);
@@ -76,6 +76,29 @@ export const RiderProvider = ({ children }) => {
       });
     } catch (err) {
       console.log("❌ Accept failed", err);
+
+      // 🔄 RECOVERY: If 409, check if it was actually assigned to us
+      if (err.response?.status === 409) {
+        try {
+          console.log("🔄 Attempting to verify order status...");
+          const details = await orderService.getOrderDetails(order.orderId);
+
+          if (details) {
+            console.log("✅ Recovered 409: Order is valid. Proceeding.");
+            setOrder(null);
+            navigate("OrderDetailsScreen", {
+              orderId: order.orderId,
+              status: ORDER_STATUS.PICKUP_ASSIGNED,
+            });
+            return;
+          }
+        } catch (recErr) {
+          console.log("❌ Recovery failed", recErr);
+        }
+      }
+
+      // If genuine 409 (someone else took it or expired), close popup
+      setOrder(null);
     } finally {
       setLoading(false);
     }
@@ -84,7 +107,7 @@ export const RiderProvider = ({ children }) => {
   const rejectOrder = async (reason = "Timeout") => {
     try {
       if (order) {
-        await orderService.rejectOrder(order.orderId, "696b6787f212b183b5dffe5d", reason); // TODO: dynamic riderId
+        await orderService.rejectOrder(order.orderId, reason); // dynamic riderId removed
         console.log("❌ Order Rejected:", order.orderId);
       }
       setOrder(null);
@@ -97,7 +120,7 @@ export const RiderProvider = ({ children }) => {
    * COUNTDOWN TIMER
    * --------------------------*/
   useEffect(() => {
-    if (!order) return;
+    if (!order || loading) return;
 
     if (countdown === 0) {
       // auto-reject after timer ends
@@ -110,7 +133,7 @@ export const RiderProvider = ({ children }) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [countdown, order]);
+  }, [countdown, order, loading]);
 
   const isOnline = status === "CONNECTED";
 

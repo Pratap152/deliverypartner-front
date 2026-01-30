@@ -1,22 +1,33 @@
-import axios from 'axios';
+import apiClient from '../ApiClient';
 import { ORDER_STATUS } from '../../config/orderStates';
-import WEBSITE_URL from '../../utils/host';
 
 class OrderService {
 
     /**
-     * Accept order (can be connected to backend later)
+     * Reject order
      */
+    async rejectOrder(orderId, reason) {
+        try {
+            console.log(`[OrderService] Rejecting order ${orderId}`);
+            const response = await apiClient.patch(`/api/orders/${orderId}/reject`, { reason });
+            return response.data;
+        } catch (error) {
+            console.error(
+                '[OrderService] rejectOrder error:',
+                error?.response?.data || error.message
+            );
+            throw error;
+        }
+    }
+
     /**
      * Accept order
      */
     async acceptOrder(orderId) {
         try {
             console.log(`[OrderService] Accepting order ${orderId}`);
-            const response = await axios.patch(
-                `${WEBSITE_URL}/api/orders/${orderId}/accept`,
-                { riderId: "696b6787f212b183b5dffe5d" }
-            );
+            // No riderId needed in body anymore
+            const response = await apiClient.patch(`/api/orders/${orderId}/accept`, {});
 
             return {
                 success: true,
@@ -37,13 +48,12 @@ class OrderService {
      */
     async updateOrderStatus(orderId, newStatus) {
         console.log(`[OrderService] Updating order ${orderId} to ${newStatus}`);
-        const riderId = "696b6787f212b183b5dffe5d";
 
         try {
             if (newStatus === ORDER_STATUS.ORDER_PICKED_UP) {
-                return await this.pickupOrder(orderId, riderId);
+                return await this.pickupOrder(orderId);
             } else if (newStatus === ORDER_STATUS.ORDER_DELIVERED) {
-                return await this.deliverOrder(orderId, riderId);
+                return await this.deliverOrder(orderId);
             }
 
             // For static states (AT_RESTAURANT, AT_DROP), just return success
@@ -65,11 +75,11 @@ class OrderService {
      */
     async getOrderDetails(orderId) {
         try {
-            const url = `${WEBSITE_URL}/api/orders/${orderId}/details`;
+            const url = `/api/orders/${orderId}/details`;
             console.log(`[OrderService] Fetching details from: ${url}`);
 
-            const response = await axios.get(url);
-            console.log(`[OrderService] Received response:`, JSON.stringify(response.data));
+            const response = await apiClient.get(url);
+            console.log(`[OrderService] Received response: `, JSON.stringify(response.data));
 
             if (!response.data?.success) {
                 throw new Error(response.data?.message || 'Order fetch failed');
@@ -107,7 +117,7 @@ class OrderService {
                 createdAt: order.createdAt
             };
 
-            console.log(`[OrderService] Mapped order:`, JSON.stringify(mappedOrder));
+            console.log(`[OrderService] Mapped order: `, JSON.stringify(mappedOrder));
             return mappedOrder;
         } catch (error) {
             console.error(
@@ -121,35 +131,31 @@ class OrderService {
     /**
      * Mark order as picked up
      */
-    async pickupOrder(orderId, riderId) {
+    async pickupOrder(orderId) {
         try {
-            const response = await axios.patch(
-                `${WEBSITE_URL}/api/orders/${orderId}/pickup`,
-                { riderId }
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/pickup`,
+                {}
             );
             console.log('[OrderService] pickupOrder success:', response.data);
             return response.data;
         } catch (error) {
             console.error(
-                '[OrderService] pickupOrder API failed (likely "Not Ready"). Returning MOCK SUCCESS to proceed.',
+                '[OrderService] pickupOrder error:',
                 error?.response?.data || error.message
             );
-            // MOCK SUCCESS to unblock flow when backend rejects "Not Ready" order
-            return {
-                success: true,
-                status: ORDER_STATUS.ORDER_PICKED_UP
-            };
+            throw error;
         }
     }
 
     /**
      * Mark order as delivered
      */
-    async deliverOrder(orderId, riderId) {
+    async deliverOrder(orderId) {
         try {
-            const response = await axios.patch(
-                `${WEBSITE_URL}/api/orders/${orderId}/deliver`,
-                { riderId }
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/deliver`,
+                {}
             );
             return response.data;
         } catch (error) {
@@ -164,11 +170,11 @@ class OrderService {
     /**
      * Cancel order
      */
-    async cancelOrder(orderId, riderId, reasonCode, reasonText) {
+    async cancelOrder(orderId, reasonCode, reasonText) {
         try {
-            const response = await axios.patch(
-                `${WEBSITE_URL}/api/orders/${orderId}/cancel`,
-                { riderId, reasonCode, reasonText }
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/cancel`,
+                { reasonCode, reasonText }
             );
             return response.data;
         } catch (error) {
