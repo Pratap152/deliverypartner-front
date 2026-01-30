@@ -8,7 +8,7 @@ import { orderService } from '../services/order/OrderService';
 const RiderContext = createContext();
 
 const WS_URL =
-  "wss://delivarypartner.onrender.com/ws?type=RIDER_NOTIFICATION&riderId=696b6787f212b183b5dffe60";
+  "wss://delivarypartner.onrender.com/ws?type=RIDER_NOTIFICATION&riderId=696b6787f212b183b5dffe5f";
 
 export const RiderProvider = ({ children }) => {
   const socketRef = useRef(null);
@@ -66,7 +66,7 @@ export const RiderProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      const res = await orderService.acceptOrder(order.orderId, "696b6787f212b183b5dffe60"); // TODO: dynamic riderId
+      const res = await orderService.acceptOrder(order.orderId, "696b6787f212b183b5dffe5f"); // TODO: dynamic riderId
       console.log("✅ Order Accepted:", order.orderId);
 
       setOrder(null);
@@ -84,7 +84,7 @@ export const RiderProvider = ({ children }) => {
   const rejectOrder = async (reason = "Timeout") => {
     try {
       if (order) {
-        await orderService.rejectOrder(order.orderId, "696b6787f212b183b5dffe60", reason); // TODO: dynamic riderId
+        await orderService.rejectOrder(order.orderId, "696b6787f212b183b5dffe5f", reason); // TODO: dynamic riderId
         console.log("❌ Order Rejected:", order.orderId);
       }
       setOrder(null);
@@ -131,7 +131,7 @@ export const RiderProvider = ({ children }) => {
                 <Text style={{ marginTop: 8, fontWeight: "600" }}>Time Left: {countdown}s</Text>
               </>
             )}
-            
+
 
             {loading ? (
               <ActivityIndicator style={{ marginTop: 20 }} />
