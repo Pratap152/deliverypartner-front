@@ -13,6 +13,9 @@ export const orderUIConfig = {
     ],
   },
 
+
+
+
   AT_RESTAURANT: {
     showMap: false,
     headerIcon: 'store',
@@ -21,8 +24,8 @@ export const orderUIConfig = {
       {
         label: 'Order Picked up',
         type: 'primary',
-        navigateTo: 'MapScreen',
-        nextStatus: 'AT_DROP', // Will navigate to drop location
+        // navigateTo: 'MapScreen', // Removing navigation to trigger direct status update
+        nextStatus: 'ORDER_PICKED_UP', // Will call pickupOrder API
       },
     ],
   },
