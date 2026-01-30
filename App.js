@@ -12,7 +12,11 @@ import { authEvents, AUTH_EVENTS } from './src/services/AuthEvents';
 import { authService } from './src/services/AuthService';
 
 import FCMService from './src/services/fcmService';
-import apiClient, { updateFcmToken } from './src/services/ApiClient'; // 👈 your backend api wrapper
+import apiClient, { updateFcmToken } from './src/services/ApiClient'; 
+
+import { useDispatch } from 'react-redux';
+import NotificationService from './src/services/NotificationService';
+import { addNotification } from './src/redux/slices/notificationSlice';
 
 const App = () => {
 
@@ -27,106 +31,162 @@ const App = () => {
     return unsubscribe;
   }, []);
 
-  /* ---------------- FCM BOOTSTRAP ---------------- */
-  useEffect(() => {
-    initFCM();
-  }, []);
+useEffect(() => {
+  NotificationService.init(); // 🔥 ADD (safe)
+  initFCM();
+}, []);
 
-  const initFCM = async () => {
-    try {
-      // 🔐 Android 13+ permission (CRITICAL)
-      if (Platform.OS === 'android' && Platform.Version >= 33) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-        );
+const dispatch = useDispatch();
 
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Notification permission denied');
-          return;
-        }
+const initFCM = async () => {
+  try {
+    /* ---------------- ANDROID 13 PERMISSION (UNCHANGED) ---------------- */
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+      );
+
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Notification permission denied');
+        return;
       }
+    }
 
-      // 🔔 Firebase permission (iOS + Android)
-      const permissionGranted = await FCMService.requestUserPermission();
-      if (!permissionGranted) return;
+    /* ---------------- FIREBASE PERMISSION (UNCHANGED) ---------------- */
+    const permissionGranted = await FCMService.requestUserPermission();
+    if (!permissionGranted) return;
 
-      // 🎯 Get token
-      const token = await FCMService.getFCMToken();
-      console.log('FCM TOKEN:', token);
+    /* ---------------- TOKEN (UNCHANGED) ---------------- */
+    const token = await FCMService.getFCMToken();
+    console.log('FCM TOKEN:', token);
 
-      // 🚀 Send token to backend (MANDATORY)
+    await updateFcmToken({
+      token,
+      platform: Platform.OS,
+      appVersion: '1.0.0',
+      deviceType: 'mobile',
+    });
+
+    /* ---------------- TOKEN REFRESH (UNCHANGED) ---------------- */
+    FCMService.listenTokenRefresh(async newToken => {
       await updateFcmToken({
-        token,
+        token: newToken,
         platform: Platform.OS,
-        appVersion: '1.0.0',     // real apps always send this
+        appVersion: '1.0.0',
         deviceType: 'mobile',
       });
+    });
 
-      // 🔁 Token refresh handling (VERY IMPORTANT)
-      FCMService.listenTokenRefresh(async newToken => {
-        await updateFcmToken({
-          token: newToken,
-          platform: Platform.OS,
-          appVersion: '1.0.0',
-          deviceType: 'mobile',
-        });
-      });
+    /* ---------------- FOREGROUND (UPGRADED) ---------------- */
+    FCMService.listenForegroundMessages(async msg => {
+  await NotificationService.show(msg);
+
+  dispatch(addNotification(normalize(msg)));
+});
+
+    /* ---------------- OPEN FROM BACKGROUND (UNCHANGED) ---------------- */
+    FCMService.handleNotificationOpen(handleNotificationClick);
+
+    /* ---------------- OPEN FROM KILLED (UNCHANGED) ---------------- */
+    const initialMsg = await FCMService.handleInitialNotification();
+    if (initialMsg) handleNotificationClick(initialMsg);
+
+  } catch (error) {
+    console.log('FCM init error:', error);
+  }
+};
+
+/* ===================================================== */
+/* =============== MESSAGE HANDLERS ==================== */
+/* ===================================================== */
+
+// const handleForegroundMessage = async remoteMessage => {
+//   const { notification, data } = remoteMessage;
+
+//   console.log('FCM FOREGROUND:', notification);
+
+//   // 🔔 REAL SYSTEM NOTIFICATION (instead of Alert)
+//   await NotificationService.show({
+//     title: notification?.title || 'New Update',
+//     body: notification?.body || '',
+//     data,
+//     channelId: data?.channelId || 'system',
+//   });
+
+//   // 💾 SAVE TO REDUX (notification screen)
+//   dispatch(
+//     addNotification({
+//       id: data?.id || Date.now().toString(),
+//       title: notification?.title,
+//       body: notification?.body,
+//       screen: data?.screen,
+//       params: data?.params ? JSON.parse(data.params) : {},
+//       read: false,
+//       createdAt: Date.now(),
+//       type: data?.type,
+//     })
+//   );
+// };
+
+const handleForegroundMessage = async remoteMessage => {
+  const { notification, data } = remoteMessage;
+
+  await NotificationService.show({
+    title: notification?.title,
+    body: notification?.body,
+    data,
+    channelId: data?.channelId || 'slots',
+  });
+
+  dispatch(
+    addNotification({
+      id: data.id,
+      title: notification.title,
+      body: notification.body,
+      type: data.type,
+      screen: data.screen,
+      params: data.params ? JSON.parse(data.params) : {},
+      read: false,
+      createdAt: Date.now(),
+    })
+  );
+};
 
 
-      // 📩 Foreground messages
-      FCMService.listenForegroundMessages(handleForegroundMessage);
+// const handleNotificationClick = remoteMessage => {
+//   if (!remoteMessage) return;
 
-      // 🌙 Background / killed state
-      FCMService.registerBackgroundHandler();
+//   console.log('FCM CLICK:', remoteMessage);
 
-      // 📲 App opened from background
-      FCMService.handleNotificationOpen(handleNotificationClick);
+//   const { type, orderId, screen, params } = remoteMessage.data || {};
 
-      // 🚀 App opened from killed state
-      const initialMsg = await FCMService.handleInitialNotification();
-      if (initialMsg) handleNotificationClick(initialMsg);
+//   if (screen) {
+//     navigate(screen, params ? JSON.parse(params) : {});
+//   }
 
-    } catch (error) {
-      console.log('FCM init error:', error);
-    }
-  };
+//   if (type === 'FORCE_LOGOUT') {
+//     authService.forceLogout();
+//   }
+// };
 
-  /* ---------------- MESSAGE HANDLERS ---------------- */
+const handleNotificationClick = remoteMessage => {
+  if (!remoteMessage) return;
 
-  const handleForegroundMessage = remoteMessage => {
-    console.log('FCM FOREGROUND:', remoteMessage.notification
-);
+  const { type, screen, params } = remoteMessage.data || {};
 
-    // 🚫 System notification NOT used in foreground
-    Alert.alert(
-      remoteMessage.notification?.title || 'New Update',
-      remoteMessage.notification?.body || ''
-    );
-  };
+  // 🎯 SLOT ROUTING
+  if (type?.startsWith('SlotBookingScreen') && screen) {
+    navigate(screen, params ? JSON.parse(params) : {});
+  }
+};
 
-  const handleNotificationClick = remoteMessage => {
-    console.log('FCM CLICK:', remoteMessage);
-
-    const { type, orderId } = remoteMessage.data || {};
-
-    // 🧭 Deep-link navigation (real delivery logic)
-    if (type === 'ORDER_ASSIGNED') {
-      navigate('OrderDetails', { orderId });
-    }
-
-    if (type === 'FORCE_LOGOUT') {
-      authService.forceLogout();
-    }
-  };
 
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <NavigationContainer ref={navigationRef}>
-          <AppNavigator />
-        </NavigationContainer>
-      </AuthProvider>
-    </Provider>
+   <AuthProvider>
+    <NavigationContainer ref={navigationRef}>
+      <AppNavigator />
+    </NavigationContainer>
+  </AuthProvider>
   );
 };
 
