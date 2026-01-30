@@ -1,38 +1,4 @@
-// import React from 'react';
-// import { View, Text, StyleSheet } from 'react-native';
-// import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
-// const PeakHoursBanner = () => {
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Peak Hour Bonus</Text>
-//       <Text style={styles.subtitle}>
-//         Earn more during busy delivery times
-//       </Text>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     backgroundColor: '#0EA5E9',
-//     borderRadius: wp('4%'),
-//     padding: wp('4%'),
-//     marginTop: wp('3%'),
-//   },
-//   title: {
-//     fontSize: wp('4%'),
-//     fontWeight: '700',
-//     color: '#FFFFFF',
-//   },
-//   subtitle: {
-//     fontSize: wp('3.4%'),
-//     color: '#E0F2FE',
-//     marginTop: 6,
-//   },
-// });
-
-// export default PeakHoursBanner;
 import React, { memo } from 'react';
 import {
   View,
