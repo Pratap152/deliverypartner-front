@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Animated, PanResponder} from "react-native";
+import { View, Text, StyleSheet, Animated, PanResponder } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -7,7 +7,7 @@ import {
 
 import { useRider } from "../../context/RiderContext";
 
-const SWIPE_WIDTH = wp("87%");     
+const SWIPE_WIDTH = wp("87%");
 const TRACK_HEIGHT = hp("7.5%");
 const THUMB_SIZE = hp("6.5%");
 const MAX_SWIPE = SWIPE_WIDTH - THUMB_SIZE;
@@ -17,11 +17,11 @@ const SwipeOnlineToggle = ({
   onSwipeOffline,
   gpsEnabled,
 }) => {
+  const { isOnline } = useRider();
   const translateX = useRef(
     new Animated.Value(isOnline ? MAX_SWIPE : 0)
   ).current;
-  
-const { isOnline } = useRider();
+
   const startX = useRef(0);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const { isOnline } = useRider();
             duration: 200,
             useNativeDriver: true,
           }).start(onSwipeOffline);
-        }  
+        }
       },
     })
   ).current;
@@ -140,4 +140,3 @@ const styles = StyleSheet.create({
     color: "#16A34A",
   },
 });
- 

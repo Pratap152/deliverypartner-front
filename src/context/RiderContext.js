@@ -112,8 +112,10 @@ export const RiderProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [countdown, order]);
 
+  const isOnline = status === "CONNECTED";
+
   return (
-    <RiderContext.Provider value={{ order, goOnline, goOffline, acceptOrder, rejectOrder }}>
+    <RiderContext.Provider value={{ order, goOnline, goOffline, acceptOrder, rejectOrder, isOnline, status }}>
       {children}
 
       {/* 🔥 GLOBAL ORDER POPUP */}
