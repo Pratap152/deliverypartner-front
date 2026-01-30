@@ -102,7 +102,7 @@ class OrderService {
                 },
                 pricing: order.pricing || {},
                 riderEarning: order.riderEarning || {},
-                orderStatus: order.orderStatus,
+                orderStatus: order.orderStatus === 'PICKED_UP' ? ORDER_STATUS.ORDER_PICKED_UP : order.orderStatus,
                 tracking: order.tracking || {}, // distanceInKm, durationInMin
                 createdAt: order.createdAt
             };

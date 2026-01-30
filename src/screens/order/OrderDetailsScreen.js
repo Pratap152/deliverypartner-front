@@ -86,7 +86,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           let target = null;
           if (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT) {
             target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
-          } else if (status === ORDER_STATUS.PICKUP_COMPLETED || status === ORDER_STATUS.OUT_FOR_DELIVERY) {
+          } else { // All other statuses (ORDER_PICKED_UP, ON_WAY_TO_DROP, AT_DROP, etc.) target delivery
             target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
           }
 
@@ -157,9 +157,12 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     }
 
     // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
+    // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
     if (action.nextStatus) {
       try {
+        console.log(`[OrderDetailsScreen] Update status to ${action.nextStatus}`);
         await orderService.updateOrderStatus(orderId, action.nextStatus);
+        console.log(`[OrderDetailsScreen] API Success. Setting local status to ${action.nextStatus}`);
         setStatus(action.nextStatus);
         navigation.setParams({ status: action.nextStatus });
       } catch (err) {
@@ -293,6 +296,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           )}
           {ui.bottomButtons && ui.bottomButtons.length > 0 && (
             <SwipeButton
+              key={status} // Force re-render on status change to reset button state
               title={ui.bottomButtons[0].label}
               onSwipeSuccess={handleSwipeSuccess}
             />
