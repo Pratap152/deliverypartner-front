@@ -76,9 +76,15 @@ export default function IncentiveCard({ item }) {
         {isDaily && (
           <>
             {/* Peak slots */}
-            <Text style={styles.progressText}>
-              Peak Slots {peakCompleted}/{peakRequired}
-            </Text>
+            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+              <Text style={styles.progressText}>
+                Peak Slots
+              </Text>
+              <Text style={styles.progressText}>
+                {peakCompleted}/{peakRequired}
+              </Text>
+            </View>
+            
             <ProgressBar
               progress={
                 peakRequired > 0
@@ -89,9 +95,14 @@ export default function IncentiveCard({ item }) {
             />
 
             {/* Normal slots */}
-            <Text style={styles.progressText}>
-              Normal Slots {normalCompleted}/{normalRequired}
+            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+              <Text style={styles.progressText}>
+              Normal Slots 
             </Text>
+            <Text style={styles.progressText}>
+              {normalCompleted}/{normalRequired}
+            </Text>
+            </View>
             <ProgressBar
               progress={
                 normalRequired > 0
@@ -120,16 +131,16 @@ export default function IncentiveCard({ item }) {
 
 const styles = StyleSheet.create({
   card: {
-    width: wp(90),
+    width: wp(95),
     alignSelf: 'center',
     borderRadius: wp(4),
     padding: wp(3),
     marginBottom: wp(3),
   },
-  title: { fontSize: wp(4), fontWeight: '500', color: '#111' },
+  title: { fontSize: wp(4.5), fontWeight:'500' },
   subtitle: { fontSize: wp(3.5), color: '#6B7280', marginTop: 4 },
   progressRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(1) },
-  progressText: { fontSize: wp(3.2), color: '#374151',marginTop:hp(1) },
+  progressText: { fontSize: wp(4),fontWeight:'500',marginTop:hp(1) },
   reward: { marginTop: 10, fontSize: wp(4), fontWeight: '700', color: '#111', alignSelf: 'flex-end' },
   logo_row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: hp(1) },
   logo: { height: hp('2.5'), width: wp('5.5') },

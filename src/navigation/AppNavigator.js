@@ -104,6 +104,9 @@ const AppNavigator = () => {
         name="EarningsHistoryScreen"
         component={EarningsHistoryScreen}
       />
+      <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
+      <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
+      <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
       {/* <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />
       <Stack.Screen name="" component={} />  */}
