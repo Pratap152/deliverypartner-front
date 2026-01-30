@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import {
   View,
   Text,
@@ -60,9 +62,26 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     fetchProfile();
-  }, []);
+  }, [])
+);
+
+const getSelfieUri = (selfie) => {
+  if (!selfie) return null;
+
+  // backend string URL
+  if (typeof selfie === 'string') return selfie;
+
+  // backend object { url }
+  if (typeof selfie === 'object' && selfie.url) return selfie.url;
+
+  return null;
+};
+
+const selfieUri = getSelfieUri(profile?.selfie);
+
 
   return (
     <View style={styles.root}>
@@ -80,14 +99,15 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.profileRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatar}>
-                  <Image
-                    source={
-                      profile?.selfie
-                        ? { uri: profile.selfie }
-                        : require('../../assets/profile/profileicon.png')
-                    }
-                    style={styles.avatarImage}
-                  />
+                 <Image
+  source={
+    selfieUri
+      ? { uri: selfieUri }
+      : require('../../assets/profile/profileicon.png')
+  }
+  style={styles.avatarImage}
+/>
+
                 </View>
               </View>
 
