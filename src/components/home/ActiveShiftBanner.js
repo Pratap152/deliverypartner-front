@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import SlotBookingScreen from '../../screens/dashboard/SlotBookingScreen';
 import SlotsNavigator from '../../navigation/SlotsNavigator';
 const ActiveShiftBanner = (
 ) => {
