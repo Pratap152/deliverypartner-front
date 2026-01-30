@@ -52,6 +52,8 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   const [weekModal, setWeekModal] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
 
+  const currentWeekNumber = useMemo(() => getBackendWeekNumber(new Date()), []);
+
   // ------------------ CONSTANTS ------------------
 
   const years = useMemo(() => {
@@ -60,9 +62,11 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   }, []);
 
   const weeks = useMemo(
-    () => Array.from({ length: 53 }, (_, i) => i + 1),
-    []
-  );
+  () => getWeeksOfYear_BackendCompatible(selectedYear),
+  [selectedYear]
+);
+
+
 
   // ------------------ NETWORK ------------------
 
@@ -271,6 +275,73 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     }
   };
 
+  function getWeeksOfYear_BackendCompatible(year) {
+  const weeks = [];
+
+  // Find Jan 1
+  const jan1 = new Date(year, 0, 1);
+
+  // Find Monday of the week that contains Jan 1
+  const day = jan1.getDay(); // 0=Sun,1=Mon,...
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const firstWeekStart = new Date(jan1);
+  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
+
+  let current = new Date(firstWeekStart);
+  let week = 1;
+
+  while (true) {
+    const start = new Date(current);
+    const end = new Date(current);
+    end.setDate(end.getDate() + 6);
+
+    // Stop if this week is completely after the year
+    if (start.getFullYear() > year && end.getFullYear() > year) {
+      break;
+    }
+
+    const today = new Date();
+const isFuture = start > today;
+
+weeks.push({
+  week,
+  startDate: start.toISOString().split("T")[0],
+  endDate: end.toISOString().split("T")[0],
+  startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  isFuture,
+});
+
+
+    current.setDate(current.getDate() + 7);
+    week++;
+  }
+
+  return weeks;
+}
+
+function getBackendWeekNumber(date) {
+  const d = new Date(date);
+
+  const year = d.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+
+  // Find Monday of week containing Jan 1
+  const day = jan1.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const firstWeekStart = new Date(jan1);
+  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
+
+  const diffDays = Math.floor(
+    (d.setHours(0,0,0,0) - firstWeekStart.setHours(0,0,0,0)) / 86400000
+  );
+
+  return Math.floor(diffDays / 7) + 1;
+}
+
+
+
+
   // ------------------ HEADER ------------------
 
   const headerTitle = useMemo(() => {
@@ -422,17 +493,28 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
       {/* Week Modal */}
       <SelectModal
-        visible={weekModal}
-        title="Select Week"
-        data={weeks}
-        onClose={() => setWeekModal(false)}
-        onSelect={(w) => {
-          Analytics.track("earnings_select_week", { week: w, year: selectedYear });
-          setWeekModal(false);
-          setSelectedWeek(w);
-          loadHistoryWeek(w, selectedYear, true);
-        }}
-      />
+  visible={weekModal}
+  title="Select Week"
+  data={weeks}
+  keyExtractor={(item) => String(item.week)}
+  labelExtractor={(item) =>
+    `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
+  }
+  selectedValue={selectedWeek}
+  isItemDisabled={(item) => item.isFuture}
+  isItemHighlighted={(item) => item.week === currentWeekNumber}
+  onClose={() => setWeekModal(false)}
+  onSelect={(item) => {
+    Analytics.track("earnings_select_week", {
+      week: item.week,
+      year: selectedYear,
+    });
+    setSelectedWeek(item.week);
+    loadHistoryWeek(item.week, selectedYear, true);
+  }}
+/>
+
+
 
       {/* Calendar */}
       <DateTimePickerModal

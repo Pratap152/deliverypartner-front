@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chat_icon: {
-    width: wp(6),
-    height: wp(5),
+    width: wp(8),
+    height: wp(6.5),
   },
   daily_summary: {
     marginTop: hp(2),
