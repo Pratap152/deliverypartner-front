@@ -14,20 +14,7 @@ import { useEffect } from "react";
 import { authEvents, AUTH_EVENTS } from "./src/services/AuthEvents";
 import { authService } from "./src/services/AuthService";
 
-// const GlobalGPSPopup = () => {
-//   const { showPopup, requestGPS, hidePopup } = useGPS();
 
-//   return (
-//     <EnableGPSModal
-//       visible={showPopup}
-//       onAllow={requestGPS}
-//       onDeny={hidePopup}
-//     />
-//    );
-//  };
-
-
- const App = () => {
 import { navigationRef, navigate } from './src/navigation/RootNavigation';
 
 import { authEvents, AUTH_EVENTS } from './src/services/AuthEvents';
