@@ -35,7 +35,7 @@ const Header = () => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.rightIconWrapper}>
+        <TouchableOpacity style={styles.rightIconWrapper} onPress={() => navigation.navigate('HelpIssueScreen')}>
           <Image
             source={require('../../assets/help.png')}
             style={styles.rightIcon}

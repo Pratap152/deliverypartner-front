@@ -15,6 +15,9 @@
 //   heightPercentageToDP as hp,
 // } from "react-native-responsive-screen";
 
+
+
+
 // export default function ReportIssue({
 //   reasons = [
 //     "Customer not answering calls",
@@ -53,7 +56,8 @@
 //         showsVerticalScrollIndicator={false}
 //       >
 //         <Text style={styles.title}>Report an Issue</Text>
-//         <Text style={styles.subtitle}>
+//         
+//<Text style={styles.subtitle}>
 //           Give detailed information about the issue
 //         </Text>
 
