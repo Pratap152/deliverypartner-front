@@ -18,11 +18,3 @@ export const navigateAndReset = (routeName, params) => {
     );
   }
 };
-export function navigateAndReset(routeName) {
-  if (navigationRef.isReady()) {
-    navigationRef.reset({
-      index: 0,
-      routes: [{ name: routeName }],
-    });
-  }
-}
