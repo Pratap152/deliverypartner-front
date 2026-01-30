@@ -271,9 +271,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           />
 
           <OrderEarningsCard
-            basePay={orderDetails.pricing.itemTotal}
-            distancePay={orderDetails.pricing.deliveryFee}
-            bonus={orderDetails.pricing.platformCommission}
+            pricing={orderDetails.pricing}
           />
           {/* Secondary Buttons (e.g., Customer Not Responding) */}
           {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (

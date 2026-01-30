@@ -5,33 +5,31 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-const OrderEarningsCard = ({ basePay, distancePay, bonus }) => {
-  const total = basePay + distancePay + bonus;
+const OrderEarningsCard = ({ pricing }) => {
+  if (!pricing) return null;
+
+  const { itemTotal, deliveryFee, tax, platformCommission, totalAmount } = pricing;
+
+  const renderRow = (label, value, isBold = false) => (
+    <View style={styles.row}>
+      <Text style={[styles.label, isBold && styles.boldLabel]}>{label}</Text>
+      <Text style={[styles.value, isBold && styles.boldValue]}>₹{value}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Order Earnings</Text>
+      <Text style={styles.header}>Bill Details</Text>
 
-      <View style={styles.row}>
-        <Text style={styles.label}>Base pay</Text>
-        <Text style={styles.value}>₹{basePay}</Text>
-      </View>
+      <View style={styles.content}>
+        {renderRow('Item Total', itemTotal)}
+        {renderRow('Delivery Fee', deliveryFee)}
+        {renderRow('Tax', tax)}
+        {renderRow('Platform Fee', platformCommission)}
 
-      <View style={styles.row}>
-        <Text style={styles.label}>Distance pay</Text>
-        <Text style={styles.value}>₹{distancePay}</Text>
-      </View>
+        <View style={styles.divider} />
 
-      <View style={styles.row}>
-        <Text style={styles.label}>Surge/peak bonus</Text>
-        <Text style={styles.value}>₹{bonus}</Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.row}>
-        <Text style={styles.totalLabel}>Total Earnings</Text>
-        <Text style={styles.totalValue}>₹{total}</Text>
+        {renderRow('Total Amount', totalAmount, true)}
       </View>
     </View>
   );
@@ -41,46 +39,58 @@ export default memo(OrderEarningsCard);
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#00B26F',
-    borderRadius: wp('3%'),
+    backgroundColor: '#009966',
+    borderRadius: wp('4%'),
     padding: wp('4%'),
-    marginBottom: hp('1.5%'),
-    marginTop:hp('1.5%')
+    marginVertical: hp('1.5%'),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
-  title: {
-    color: '#FFFFFF',
-    fontSize: wp('3.6%'),
-    fontWeight: '600',
-    marginBottom: hp('1%'),
+  header: {
+    fontSize: wp('4%'),
+    fontWeight: '700',
+    color: 'white',
+    marginBottom: hp('1.5%'),
+  },
+  content: {
+    gap: hp('1%'),
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: hp('0.6%'),
-    padding: wp('1.5%'),
+    alignItems: 'center',
   },
   label: {
-    color: '#FFFFFF',
-    fontSize: wp('3.2%'),
+    fontSize: wp('3.5%'),
+    color: "white",
+    fontWeight: '500',
   },
   value: {
-    color: '#FFFFFF',
-    fontSize: wp('3.2%'),
+    fontSize: wp('3.5%'),
+    color: 'white',
     fontWeight: '600',
+  },
+  boldLabel: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: wp('3.8%'),
+  },
+  boldValue: {
+    color: 'white',
+    fontWeight: '800',
+    fontSize: wp('4%'),
   },
   divider: {
-    height: hp('0.15%'),
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginVertical: hp('1.2%'),
-  },
-  totalLabel: {
-    color: '#FFFFFF',
-    fontSize: wp('3.6%'),
-    fontWeight: '600',
-  },
-  totalValue: {
-    color: '#FFFFFF',
-    fontSize: wp('4.5%'),
-    fontWeight: '700',
+    height: 1,
+    backgroundColor: 'black',
+    marginVertical: hp('0.5%'),
   },
 });

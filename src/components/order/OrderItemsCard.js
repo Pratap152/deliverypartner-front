@@ -6,6 +6,7 @@ import {
 } from 'react-native-responsive-screen';
 
 const OrderItemsCard = ({ items }) => {
+  console.log("OrderItemsCard", items);
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Ordered Items</Text>
