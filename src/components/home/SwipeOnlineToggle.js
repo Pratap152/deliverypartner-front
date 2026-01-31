@@ -5,8 +5,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import { useRider } from "../../context/RiderContext";
-
 const SWIPE_WIDTH = wp("87%");
 const TRACK_HEIGHT = hp("7.5%");
 const THUMB_SIZE = hp("6.5%");
@@ -15,9 +13,9 @@ const MAX_SWIPE = SWIPE_WIDTH - THUMB_SIZE;
 const SwipeOnlineToggle = ({
   onSwipeOnline,
   onSwipeOffline,
-  gpsEnabled,
+  isOnline, // Use prop
 }) => {
-  const { isOnline } = useRider();
+  // const { isOnline } = useRider(); // Removed context usage
   const translateX = useRef(
     new Animated.Value(isOnline ? MAX_SWIPE : 0)
   ).current;
@@ -41,16 +39,12 @@ const SwipeOnlineToggle = ({
       },
 
       onPanResponderMove: (_, g) => {
-        if (!gpsEnabled) return;
-
         let newX = startX.current + g.dx;
         newX = Math.max(0, Math.min(MAX_SWIPE, newX));
         translateX.setValue(newX);
       },
 
       onPanResponderRelease: () => {
-        if (!gpsEnabled) return;
-
         const finalX = translateX.__getValue();
 
         if (finalX > MAX_SWIPE / 2) {

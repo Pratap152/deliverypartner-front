@@ -19,8 +19,13 @@ import { useRider } from "../../context/RiderContext";
 
 const HomeDashboard = () => {
   const { gpsEnabled } = useGPS();
-  const { goOnline, goOffline } = useRider();
-  const [isOnline, setIsOnline] = useState(false);
+  const { isOnline: contextIsOnline, goOnline, goOffline } = useRider();
+  const [isOnline, setIsOnline] = useState(contextIsOnline || false);
+
+  // Sync local state with context (e.g. if socketdisconnects externally)
+  React.useEffect(() => {
+    setIsOnline(contextIsOnline);
+  }, [contextIsOnline]);
 
   return (
     <SafeAreaView style={styles.safe}>
