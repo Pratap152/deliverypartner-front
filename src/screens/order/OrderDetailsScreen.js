@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
-  SafeAreaView,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   ActivityIndicator,
   Modal
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Geolocation from "@react-native-community/geolocation";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { ORDER_STATUS } from '../../config/orderStates';
@@ -18,7 +18,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
- 
+
 import OrderHeader from '../../components/order/OrderHeader';
 import OrderAddressCard from '../../components/order/OrderAddressCard';
 import OrderItemsCard from '../../components/order/OrderItemsCard';
@@ -28,11 +28,11 @@ import LiveMap from '../../components/map/LiveMap';
 import { getDistance } from '../../utils/mapUtils';
 import { orderService } from '../../services/order/OrderService';
 import CustomerNotResponding from '../Home/CustomerNotResponding';
- 
+
 const OrderDetailsScreen = ({ route, navigation }) => {
- 
+
   const { orderId } = route.params;
- 
+
   const [status, setStatus] = useState(route?.params?.status || ORDER_STATUS.PICKUP_ASSIGNED);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,34 +41,37 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [distanceToTarget, setDistanceToTarget] = useState(null);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const mapRef = useRef(null);
- 
+
   const ui = orderUIConfig[status] || {};
- 
+
   useEffect(() => {
     if (route.params?.status) {
       setStatus(route.params.status);
     }
   }, [route.params?.status]);
- 
+
   /**
    * Fetch order details
    */
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
+        console.log(`[OrderDetailsScreen] Fetching details for ${orderId}`);
         setLoading(true);
         const data = await orderService.getOrderDetails(orderId);
+        console.log(`[OrderDetailsScreen] Fetched data:`, JSON.stringify(data));
         setOrderDetails(data);
       } catch (err) {
+        console.error(`[OrderDetailsScreen] Error fetching details:`, err);
         setError('Failed to load order details');
       } finally {
         setLoading(false);
       }
     };
- 
+
     fetchOrderDetails();
   }, [orderId]);
- 
+
   /**
    * Track Rider Location
    */
@@ -77,16 +80,16 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       (position) => {
         const { latitude, longitude } = position.coords;
         setRiderLocation({ latitude, longitude });
- 
+
         // Calculate Distance logic
         if (orderDetails) {
           let target = null;
           if (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT) {
             target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
-          } else if (status === ORDER_STATUS.PICKUP_COMPLETED || status === ORDER_STATUS.OUT_FOR_DELIVERY) {
+          } else { // All other statuses (ORDER_PICKED_UP, ON_WAY_TO_DROP, AT_DROP, etc.) target delivery
             target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
           }
- 
+
           if (target) {
             const dist = getDistance(
               { latitude, longitude },
@@ -101,32 +104,32 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     );
     return () => Geolocation.clearWatch(watchId);
   }, [orderDetails, status]);
- 
+
   /**
    * Map Logic
    */
   const handleStartNavigation = () => {
     if (!riderLocation || !orderDetails) return;
- 
+
     let target = null;
     if (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT) {
       target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
     } else {
       target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
     }
- 
+
     if (mapRef.current && target) {
       mapRef.current.fitToCoordinates([riderLocation, target]);
     }
   };
- 
+
   /**
    * Swipe action
    */
   const handleSwipeSuccess = async () => {
     const action = ui.bottomButtons && ui.bottomButtons[0];
     if (!action) return;
- 
+
     // SCENARIO 1: Navigate to MapScreen
     if (action.navigateTo === 'MapScreen') {
       navigation.navigate('MapScreen', {
@@ -136,7 +139,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       });
       return;
     }
- 
+
     // SCENARIO 2: Navigate to other screens (e.g., QR Scanner)
     if (action.navigateTo) {
       navigation.navigate(action.navigateTo, {
@@ -145,26 +148,31 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       });
       return;
     }
- 
+
     // Distance check for "Reached" buttons (only if not navigating to MapScreen)
     const MAX_DISTANCE = 150000; // TODO: Change to 10/20 for prod
     if (distanceToTarget !== null && distanceToTarget > MAX_DISTANCE) {
       Alert.alert("Too Far", `You are ${(distanceToTarget).toFixed(0)}m away. Reach within 10m.`);
       return;
     }
- 
+
+    // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
     // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
     if (action.nextStatus) {
       try {
+        console.log(`[OrderDetailsScreen] Update status to ${action.nextStatus}`);
         await orderService.updateOrderStatus(orderId, action.nextStatus);
+        console.log(`[OrderDetailsScreen] API Success. Setting local status to ${action.nextStatus}`);
         setStatus(action.nextStatus);
         navigation.setParams({ status: action.nextStatus });
       } catch (err) {
-        Alert.alert("Error", "Failed to update status");
+        console.error("Status update error:", err);
+        const errorMessage = err.response?.data?.message || err.message || "Failed to update status";
+        Alert.alert("Update Failed", errorMessage);
       }
     }
   };
- 
+
   /**
    * Navigate action (Using existing button for "Navigate 📍")
    */
@@ -172,7 +180,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     handleStartNavigation();
     // Also open external maps if needed, but for now zooming internal map
   };
- 
+
   /**
    * Delivery completed
    */
@@ -183,9 +191,9 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       }, 500);
     }
   }, [status]);
- 
+
   /* ------------------ UI STATES ------------------ */
- 
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -196,34 +204,37 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       </SafeAreaView>
     );
   }
- 
+
   if (error || !orderDetails) {
+    console.log("[OrderDetailsScreen] Render failure:", { error, orderDetailsIsNull: !orderDetails });
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.centerText}>{error}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={styles.centerText}>{error || "No order details found"}</Text>
+        </View>
       </SafeAreaView>
     );
   }
- 
+
   // Determine Map Targets
   let pickupTarget = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
   let dropTarget = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
- 
+
   const isPickupPhase = (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT);
- 
+
   /* ------------------ MAIN UI ------------------ */
- 
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView>
         <View style={styles.container}>
- 
+
           <OrderHeader
             orderId={orderDetails.orderId}
             statusText={ui.label || "Active delivery in progress"} // Use status label
             icon={ui.headerIcon || "bike"}
           />
- 
+
           {(status === ORDER_STATUS.PICKUP_ASSIGNED) ? (
             <>
               <OrderAddressCard
@@ -251,14 +262,14 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               theme="default"
             />
           )}
- 
+
           <OrderItemsCard
             items={orderDetails.items.map(item => ({
               name: item.itemName,
               qty: item.quantity,
             }))}
           />
- 
+
           <OrderEarningsCard
             basePay={orderDetails.pricing.itemTotal}
             distancePay={orderDetails.pricing.deliveryFee}
@@ -285,42 +296,43 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           )}
           {ui.bottomButtons && ui.bottomButtons.length > 0 && (
             <SwipeButton
+              key={status} // Force re-render on status change to reset button state
               title={ui.bottomButtons[0].label}
               onSwipeSuccess={handleSwipeSuccess}
             />
           )}
- 
+
         </View>
       </ScrollView>
- 
+
       {/* Customer Not Responding Modal */}
-       <Modal
-  visible={showCustomerModal}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setShowCustomerModal(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.centerModalCard}>
-      <CustomerNotResponding
-        duration={30}
-        onCallPress={() => {
-          Alert.alert("Call", "Calling customer...");
-        }}
-        onMarkIssuePress={() => {
-          setShowCustomerModal(false);
-          navigation.navigate('ReportIssue', { orderId });
-        }}
-      />
-    </View>
-  </View>
-</Modal>
- 
- 
+      <Modal
+        visible={showCustomerModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCustomerModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.centerModalCard}>
+            <CustomerNotResponding
+              duration={30}
+              onCallPress={() => {
+                Alert.alert("Call", "Calling customer...");
+              }}
+              onMarkIssuePress={() => {
+                setShowCustomerModal(false);
+                navigation.navigate('ReportIssue', { orderId });
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+
     </SafeAreaView>
   );
 };
- 
+
 export default OrderDetailsScreen;
 const styles = StyleSheet.create({
   safeArea: {
@@ -341,11 +353,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: hp('1.5%'),
   },
- 
+
   headerTextContainer: {
     flex: 1,
   },
- 
+
   helpIconWrapper: {
     width: wp('13%'),
     height: wp('13%'),
@@ -355,11 +367,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 5
   },
- 
+
   helpIcon: {
     fontSize: wp('5%'),
   },
- 
+
   header: {
     fontSize: wp('5.5%'),
     fontWeight: '700',
@@ -401,7 +413,7 @@ const styles = StyleSheet.create({
     borderColor: '#E6E6E6',
     marginBottom: hp('1.5%'),
   },
- 
+
   mapImage: {
     width: '100%',
     height: '100%',
@@ -414,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: wp('12%'),
     width: '100%',
   },
- 
+
   navigateBtnText: {
     color: '#fff',
     fontWeight: '700',
@@ -478,30 +490,29 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   modalOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0,0,0,0.45)',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-centerModalCard: {
-  width: '88%',           // LEFT & RIGHT SPACE ✅
-  backgroundColor: '#fff',
-  borderRadius: 16,
-  paddingVertical: 24,
-  paddingHorizontal: 20,
-  elevation: 8,           // Android shadow
-  shadowColor: '#000',    // iOS shadow
-  shadowOpacity: 0.2,
-  shadowRadius: 10,
-  shadowOffset: { width: 0, height: 4 },
-},
-modalCard: {
-  backgroundColor: '#fff',
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  paddingBottom: hp('4%'),
-  paddingTop: hp('2%'),
-},
- 
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerModalCard: {
+    width: '88%',           // LEFT & RIGHT SPACE ✅
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    elevation: 8,           // Android shadow
+    shadowColor: '#000',    // iOS shadow
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: hp('4%'),
+    paddingTop: hp('2%'),
+  },
+
 });
- 

@@ -71,7 +71,7 @@ export default function CashBalanceScreen({ navigation }) {
           <Ionicons name="arrow-back" size={rf(2.6)} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Rider Assets</Text>
+        <Text style={styles.headerTitle}>Cash Balance</Text>
 
         <Image
           source={require("../../assets/profile/HelpcenterIcon.png")}
