@@ -1,14 +1,14 @@
+
 export const orderUIConfig = {
   PICKUP_ASSIGNED: {
-    showMap: false, // No map on order details
-    headerIcon: 'map-marker',
-    label: "Order Details",
+    showMap: true, // Map Visible
+    headerIcon: 'help',
     bottomButtons: [
       {
-        label: 'Navigate',
+        label: 'Navigate to Pickup',
         type: 'primary',
-        navigateTo: 'MapScreen',
-        nextStatus: 'AT_RESTAURANT', // Status that will be set when arriving
+        nextStatus: 'AT_RESTAURANT', // Map should direct here
+        navigateTo: 'Map',
       },
     ],
   },
@@ -17,12 +17,11 @@ export const orderUIConfig = {
 
 
   AT_RESTAURANT: {
-    showMap: false,
-    headerIcon: 'store',
-    label: "Order Pickup",
+    showMap: false, // Map Hidden
+    headerIcon: 'call',
     bottomButtons: [
       {
-        label: 'Order Picked up',
+        label: 'Order Picked Up',
         type: 'primary',
         // navigateTo: 'MapScreen', // Removing navigation to trigger direct status update
         nextStatus: 'ORDER_PICKED_UP', // Will call pickupOrder API
@@ -31,24 +30,27 @@ export const orderUIConfig = {
   },
 
   ORDER_PICKED_UP: {
-    // This state exists for API compatibility but shouldn't be visited in normal flow
-    showMap: false,
-    headerIcon: 'bike',
-    label: "Out for Delivery",
+    showMap: true, // Map Visible
+    headerIcon: 'call',
     bottomButtons: [
       {
         label: 'Navigate to Drop',
         type: 'primary',
-        navigateTo: 'MapScreen',
-        nextStatus: 'AT_DROP',
+        nextStatus: 'QR_SCAN_REQUIRED', // Map should direct to QR Scanner
+        navigateTo: 'Map',
       },
     ],
   },
 
-  AT_DROP: {
+  // Intermediate state if needed, or MapScreen handles the transition to QR
+  QR_SCAN_REQUIRED: {
     showMap: false,
-    headerIcon: 'map-marker-check',
-    label: "Arrived to Drop Location",
+    navigateTo: 'QRScannerScreen',
+  },
+
+  AT_DROP: {
+    showMap: false, // Map Hidden
+    headerIcon: 'call',
     bottomButtons: [
       {
         label: 'Order Delivered',
@@ -56,21 +58,10 @@ export const orderUIConfig = {
         nextStatus: 'ORDER_DELIVERED',
       },
     ],
-    secondaryButtons: [
-      {
-        label: 'Customer Not Responding',
-        type: 'secondary',
-        action: 'openModal', // Opens CustomerNotResponding modal
-      },
-    ],
   },
 
   ORDER_DELIVERED: {
-    showMap: false,
-    headerIcon: 'check-circle',
-    label: "Delivered Successfully",
     bottomButtons: [],
+    // triggering navigation to Success screen handled in component
   },
 };
-
-

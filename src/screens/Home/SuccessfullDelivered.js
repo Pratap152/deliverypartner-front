@@ -38,7 +38,7 @@ export default function SuccessfullDelivered({
         <Text style={styles.earningsTitle}>Earnings Added</Text>
         <Text style={styles.amount}>₹{amount}</Text>
 
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={styles.viewEarningsBtn}
           onPress={onViewEarnings}
           activeOpacity={0.8}
@@ -46,7 +46,7 @@ export default function SuccessfullDelivered({
           <Text style={styles.viewEarningsText}>
             View all Earnings →
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { ORDER_STATUS } from '../../config/orderStates';
 import WEBSITE_URL from '../../utils/host';
 
@@ -61,7 +60,8 @@ class OrderService {
     }
 
     /**
-     * GET ORDER DETAILS (REAL API)
+     * Fetches current order details
+     * @param {string} orderId 
      */
     async getOrderDetails(orderId) {
         try {
@@ -180,5 +180,6 @@ class OrderService {
         }
     }
 }
+
 
 export const orderService = new OrderService();
