@@ -41,6 +41,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [distanceToTarget, setDistanceToTarget] = useState(null);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const mapRef = useRef(null);
+  const [deliveryResult, setDeliveryResult] = useState(null);
 
   const ui = orderUIConfig[status] || {};
 
@@ -157,12 +158,18 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     }
 
     // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
-    // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
     if (action.nextStatus) {
       try {
         console.log(`[OrderDetailsScreen] Update status to ${action.nextStatus}`);
-        await orderService.updateOrderStatus(orderId, action.nextStatus);
+        const res = await orderService.updateOrderStatus(orderId, action.nextStatus);
+
         console.log(`[OrderDetailsScreen] API Success. Setting local status to ${action.nextStatus}`);
+
+        // Capture delivery result for success screen
+        if (action.nextStatus === ORDER_STATUS.ORDER_DELIVERED) {
+          setDeliveryResult(res);
+        }
+
         setStatus(action.nextStatus);
         navigation.setParams({ status: action.nextStatus });
       } catch (err) {
@@ -186,11 +193,22 @@ const OrderDetailsScreen = ({ route, navigation }) => {
    */
   useEffect(() => {
     if (status === ORDER_STATUS.ORDER_DELIVERED) {
+      // Wait a bit or check if we have result data if needed
+      // If we came from Swipe, deliveryResult should be set.
+      // If we loaded screen already in DELIVERED status (unlikely flow but possible), we might not have result.
+      // But usually user swipes to finish.
+
+      const earning = deliveryResult?.earningCredited || orderDetails?.riderEarning?.totalEarning || 0;
+      const cod = deliveryResult?.codCollected || 0;
+
       setTimeout(() => {
-        navigation.replace('SuccessfullDelivered');
+        navigation.replace('SuccessfullDelivered', {
+          amount: earning,
+          codCollected: cod
+        });
       }, 500);
     }
-  }, [status]);
+  }, [status, deliveryResult]);
 
   /* ------------------ UI STATES ------------------ */
 

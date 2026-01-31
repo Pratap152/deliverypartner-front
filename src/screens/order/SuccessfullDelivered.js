@@ -1,28 +1,23 @@
+
 import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,Image
+  Dimensions,
+  Image
 } from "react-native";
 import {
-
   widthPercentageToDP as wp,
-
   heightPercentageToDP as hp,
-
 } from "react-native-responsive-screen";
-import Ionicons from "react-native-vector-icons/Ionicons";
 
 const { width } = Dimensions.get("window");
 
-export default function SuccessfullDelivered({
-  amount = 45,
-  onBackHome,
-  onViewEarnings,
-  navigation
-}) {
+export default function SuccessfullDelivered({ route, navigation }) {
+  const { amount, codCollected } = route.params || {};
+
   return (
     <View style={styles.container}>
       <Image
@@ -36,30 +31,23 @@ export default function SuccessfullDelivered({
 
       <View style={styles.earningsCard}>
         <Text style={styles.earningsTitle}>Earnings Added</Text>
-        <Text style={styles.amount}>₹{amount}</Text>
+        <Text style={styles.amount}>₹{amount || 0}</Text>
 
-        {/* <TouchableOpacity
-          style={styles.viewEarningsBtn}
-          onPress={onViewEarnings}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.viewEarningsText}>
-            View all Earnings →
-          </Text>
-        </TouchableOpacity> */}
+        {codCollected > 0 && (
+          <>
+            <View style={styles.divider} />
+            <Text style={[styles.earningsTitle, { marginTop: 10 }]}>Cash Collected</Text>
+            <Text style={styles.codAmount}>₹{codCollected}</Text>
+          </>
+        )}
       </View>
 
       <TouchableOpacity
         style={styles.backButton}
-        onPress={onBackHome}
+        onPress={() => navigation.navigate('HomeDashboard')}
         activeOpacity={0.9}
-      ><TouchableOpacity
-  onPress={() => navigation.navigate('HomeDashboard')}
-  activeOpacity={0.7}
->
-  <Text style={styles.backButtonText}>Back to Home</Text>
-</TouchableOpacity>
-        {/* <Text style={styles.backButtonText}>Back to Home</Text> */}
+      >
+        <Text style={styles.backButtonText}>Back to Home</Text>
       </TouchableOpacity>
     </View>
   );
@@ -113,20 +101,21 @@ const styles = StyleSheet.create({
     fontSize: wp("12%"),
     fontWeight: "700",
     color: "#1E8E3E",
-    marginBottom: hp("2%"),
+    marginBottom: hp("1%"),
   },
 
-  viewEarningsBtn: {
-    paddingHorizontal: wp("4%"),
-    paddingVertical: hp("1.2%"),
-    backgroundColor: "#FFFFFF",
-    borderRadius: wp("6%"),
+  codAmount: {
+    fontSize: wp("8%"),
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: hp("1%"),
   },
 
-  viewEarningsText: {
-    fontSize: wp("4%"),
-    fontWeight: "600",
-    color: "black",
+  divider: {
+    width: '80%',
+    height: 1,
+    backgroundColor: '#A7D7C5',
+    marginVertical: hp('1.5%'),
   },
 
   backButton: {
