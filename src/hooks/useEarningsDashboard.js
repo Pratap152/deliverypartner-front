@@ -6,19 +6,15 @@ import {
   getWeeklyIncentives,
   getDailyIncentives,
 } from '../services/earnings/incentiveService';
-import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
-import WeekEarnings from '../screens/incentives/WeekEarnings';
-import DailyGuarentee from '../screens/incentives/DailyGuarentee';
-import { Link, useNavigation } from '@react-navigation/native';
-import { BarChart } from 'react-native-gifted-charts';
+
 
 export default function useEarningsDashboard() {
-  const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState({
       earningsSummary: {},
+      weeklyBarChart:[],
       wallet: {},
       incentives: [],
     });

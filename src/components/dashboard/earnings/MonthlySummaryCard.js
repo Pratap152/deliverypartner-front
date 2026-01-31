@@ -32,7 +32,7 @@ export default function MonthlySummaryCard({summary}) {
 
 const styles = StyleSheet.create({
   card: {
-    width: wp(90),
+    width: wp(95),
     alignSelf: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: wp(4),

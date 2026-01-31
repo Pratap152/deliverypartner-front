@@ -51,7 +51,6 @@ import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
 import Wallet from '../screens/profile/Wallet';
-import IncentiveDetails from '../screens/Home/IncentiveDetails';
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
@@ -128,6 +127,17 @@ const AppNavigator = () => {
       {/* <Stack.Screen name='SwipeOnlineOffline' component={SwipeOnlineOffline} /> */}
       <Stack.Screen name='OrderPopupScreen' component={OrderPopupScreen} />
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
+      <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
+      <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
+      <Stack.Screen name='HomeNavigator' component={HomeNavigator} />
+      <Stack.Screen name='SlotsNavigator'component={SlotsNavigator}/>
+      <Stack.Screen name='EarningsNavigator'component={EarningsNavigator}/>
+      <Stack.Screen name="MapScreen" component={MapScreen} />
+      <Stack.Screen
+        name="OrderDetailsScreen"
+        component={OrderDetailsScreen}
+      />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="LiveTracking" component={LiveTracking} />
         {/* <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> */}
@@ -138,10 +148,6 @@ const AppNavigator = () => {
         <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
         <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} /> 
         <Stack.Screen name="Wallet" component ={Wallet}/>
-      <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
-      <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
-      <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
-      <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} />
     </Stack.Navigator>
   );
 };

@@ -1,7 +1,7 @@
 
-import { Image } from '@shopify/react-native-skia';
+// import { Image } from '@shopify/react-native-skia';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image,TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ProfileScreen from '../../screens/profile/ProfileScreen';

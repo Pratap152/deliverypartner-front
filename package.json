@@ -27,6 +27,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@shopify/react-native-skia": "^2.4.7",
     "axios": "^1.13.2",
+    "d3-shape": "^3.2.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "jwt-decode": "^4.0.0",
