@@ -6,10 +6,10 @@ class OrderService {
     /**
      * Reject order
      */
-    async rejectOrder(orderId, reason) {
+    async rejectOrder(orderId) {
         try {
             console.log(`[OrderService] Rejecting order ${orderId}`);
-            const response = await apiClient.patch(`/api/orders/${orderId}/reject`, { reason });
+            const response = await apiClient.patch(`/api/orders/${orderId}/reject`);
             return response.data;
         } catch (error) {
             console.error(
@@ -27,7 +27,8 @@ class OrderService {
         try {
             console.log(`[OrderService] Accepting order ${orderId}`);
             // No riderId needed in body anymore
-            const response = await apiClient.patch(`/api/orders/${orderId}/accept`, {});
+            const response = await apiClient.patch(`/api/orders/${orderId}/accept`);
+            console.log("accept order from order service ",response);
 
             return {
                 success: true,
@@ -70,7 +71,7 @@ class OrderService {
         }
     }
 
-    /**
+    /**j
      * GET ORDER DETAILS (REAL API)
      */
     async getOrderDetails(orderId) {
@@ -135,9 +136,8 @@ class OrderService {
         try {
             const response = await apiClient.patch(
                 `/api/orders/${orderId}/pickup`,
-                {}
             );
-            console.log('[OrderService] pickupOrder success:', response.data);
+            console.log("pickupOder from order service",response)
             return response.data;
         } catch (error) {
             console.error(
@@ -155,8 +155,8 @@ class OrderService {
         try {
             const response = await apiClient.patch(
                 `/api/orders/${orderId}/deliver`,
-                {}
             );
+            console.log("delivered order from order service",response);
             return response.data;
         } catch (error) {
             console.error(
@@ -176,6 +176,7 @@ class OrderService {
                 `/api/orders/${orderId}/cancel`,
                 { reasonCode, reasonText }
             );
+            console.log("cancel order from order service",response);
             return response.data;
         } catch (error) {
             console.error(

@@ -104,10 +104,10 @@ export const RiderProvider = ({ children }) => {
     }
   };
 
-  const rejectOrder = async (reason = "Timeout") => {
+  const rejectOrder = async () => {
     try {
       if (order) {
-        await orderService.rejectOrder(order.orderId, reason); // dynamic riderId removed
+        await orderService.rejectOrder(order.orderId);
         console.log("❌ Order Rejected:", order.orderId);
       }
       setOrder(null);
@@ -166,7 +166,7 @@ export const RiderProvider = ({ children }) => {
                   <Text style={styles.btnText}>ACCEPT</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.btn, styles.reject]} onPress={rejectOrder}>
+                <TouchableOpacity style={[styles.btn, styles.reject]} onPress={() => rejectOrder()}>
                   <Text style={styles.btnText}>REJECT</Text>
                 </TouchableOpacity>
               </View>
