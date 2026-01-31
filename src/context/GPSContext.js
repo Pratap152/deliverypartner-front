@@ -9,10 +9,8 @@ export const useGPS = () => useContext(GPSContext);
 export const GPSProvider = ({ children }) => {
   const [gpsEnabled, setGpsEnabled] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
-
   useEffect(() => {
     checkGPS();
-
     const subscription = AppState.addEventListener("change", state => {
       if (state === "active") {
         checkGPS(); // 🔥 user returned after turning GPS OFF

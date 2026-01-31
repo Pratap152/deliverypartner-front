@@ -13,6 +13,7 @@ const MAX_SWIPE = SWIPE_WIDTH - THUMB_SIZE;
 const SwipeOnlineToggle = ({
   onSwipeOnline,
   onSwipeOffline,
+  gpsEnabled,
   isOnline, // Use prop
 }) => {
   // const { isOnline } = useRider(); // Removed context usage

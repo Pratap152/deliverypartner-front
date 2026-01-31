@@ -15,7 +15,7 @@ export const RiderProvider = ({ children }) => {
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState("DISCONNECTED");
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(20); // 20 sec timer
+  const [countdown, setCountdown] = useState(120); // 120 sec timer
 
   /** ---------------------------
    * SOCKET CONNECTION
@@ -68,7 +68,6 @@ export const RiderProvider = ({ children }) => {
 
       const res = await orderService.acceptOrder(order.orderId); // dynamic riderId removed
       console.log("✅ Order Accepted:", order.orderId);
-
       setOrder(null);
       navigate("OrderDetailsScreen", {
         orderId: order.orderId,
@@ -76,7 +75,6 @@ export const RiderProvider = ({ children }) => {
       });
     } catch (err) {
       console.log("❌ Accept failed", err);
-
       // 🔄 RECOVERY: If 409, check if it was actually assigned to us
       if (err.response?.status === 409) {
         try {

@@ -1,5 +1,4 @@
 
-
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
@@ -37,7 +36,6 @@ const HomeDashboard = () => {
           gpsEnabled={gpsEnabled}
           isOnline={isOnline}
           onSwipeOnline={() => {
-            if (!gpsEnabled) return;
             setIsOnline(true);
             goOnline(); // ✅ socket connects
           }}
