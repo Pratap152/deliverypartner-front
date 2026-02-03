@@ -1,11 +1,9 @@
-
 import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Image
 } from "react-native";
 import {
@@ -13,7 +11,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const { width } = Dimensions.get("window");
 
 export default function SuccessfullDelivered({ route, navigation }) {
   const { amount, codCollected } = route.params || {};

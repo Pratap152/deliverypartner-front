@@ -10,6 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ProfileScreen from '../../screens/profile/ProfileScreen';
 import { useNavigation } from '@react-navigation/native';
 import ProfileNavigator from '../../navigation/ProfileNavigator';
 
@@ -191,11 +193,11 @@ const Header = () => {
 const styles = StyleSheet.create({
   container: {
     height: wp('14%'),
-    backgroundColor: '#F6FBFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: wp('2%'),
+    backgroundColor: '#F6FBFF',
+    paddingHorizontal: wp('5%'),
   },
   left: { flexDirection: 'row', alignItems: 'center' },
   name: {
@@ -219,9 +221,11 @@ const styles = StyleSheet.create({
     height: wp('11%'),
     borderRadius: wp('5%'),
     backgroundColor: '#E5F3FF',
+    paddingHorizontal: wp('3%'),
+    paddingVertical: wp('1.2%'),
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: wp('3%'),
+    marginRight: wp('3%'),
   },
   rightIcon: { width: wp('6%'), height: wp('6%') },
   rightIcons: { width: wp('12%'), height: wp('12%') },

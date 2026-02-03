@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import MapViewDirections from "react-native-maps-directions";
+import React from "react";
+import { Polyline } from "react-native-maps";
 
 // const GOOGLE_API_KEY = "YOUR_GOOGLE_MAP_KEY";
 
@@ -14,9 +14,7 @@ const RoutePolyline = ({ source, destination }) => {
       destination={destination}
       apikey={GOOGLE_MAPS_API_KEY}
       strokeWidth={4}
-      strokeColor="#00C4B4"
+      strokeColor="#2E86DE"
     />
   );
-};
-
-export default RoutePolyline;
+}

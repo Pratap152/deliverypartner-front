@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "13969287768",
+    "project_id": "deliverypartner-34e36",
+    "storage_bucket": "deliverypartner-34e36.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13969287768:android:1aad9c2baf8bccbd43f82d",
+        "android_client_info": {
+          "package_name": "com.deliverypartner.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFs6OBugGCsPBK1b1sogR_E7-43UgwnKQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13969287768:android:fc7cd5260dbcec4343f82d",
+        "android_client_info": {
+          "package_name": "com.delpart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFs6OBugGCsPBK1b1sogR_E7-43UgwnKQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

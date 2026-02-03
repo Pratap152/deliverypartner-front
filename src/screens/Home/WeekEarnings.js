@@ -29,7 +29,7 @@ export default function WeekEarnings() {
           <Text style={styles.value}>₹ 750</Text>
         </View>
 
-        <View style={styles.box}> 
+        <View style={styles.box}>
           <Text style={styles.label}>Tips</Text>
           <Text style={styles.value}>₹ 300</Text>
         </View>

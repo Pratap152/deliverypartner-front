@@ -3,20 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../services/ApiClient';
 
 const PAGE_SIZE = 10;
-
-/* 🔑 UI → BACKEND FILTER MAP (CRITICAL) */
-const ORDER_FILTER_MAP = {
-  all: undefined,
-  today: 'daily',
-  weekly: 'weekly',
-  monthly: 'monthly',
-};
+const getCacheKey = filter => `ORDER_HISTORY_${filter}`;
 
 /* ================= MEMORY CACHE ================= */
 let memoryCache = {};
-
-const getCacheKey = filter =>
-  `ORDER_HISTORY_${ORDER_FILTER_MAP[filter] ?? 'all'}`;
 
 export const useOrderHistory = filter => {
   const [orders, setOrders] = useState([]);
@@ -38,23 +28,23 @@ export const useOrderHistory = filter => {
 
   useEffect(() => {
     const loadCache = async () => {
-      const key = getCacheKey(filter);
-
-      if (memoryCache[key]) {
-        setOrders(memoryCache[key].orders);
-        setSummary(memoryCache[key].summary);
+      // 1️⃣ MEMORY (instant)
+      if (memoryCache[filter]) {
+        setOrders(memoryCache[filter].orders);
+        setSummary(memoryCache[filter].summary);
         return;
       }
 
+      // 2️⃣ ASYNC STORAGE (fallback)
       try {
-        const cached = await AsyncStorage.getItem(key);
+        const cached = await AsyncStorage.getItem(getCacheKey(filter));
         if (cached) {
           const parsed = JSON.parse(cached);
-          memoryCache[key] = parsed;
+          memoryCache[filter] = parsed;
           setOrders(parsed.orders || []);
           setSummary(parsed.summary || summary);
         }
-      } catch {}
+      } catch (e) {}
     };
 
     loadCache();
@@ -62,24 +52,23 @@ export const useOrderHistory = filter => {
 
   /* ================= FETCH ORDERS ================= */
 
-  const fetchOrders = async (pageNo = 1) => {
+  const fetchOrders = async (pageNo = 1, isRefresh = false) => {
     if (isFetchingRef.current) return;
     if (!hasMore && pageNo !== 1) return;
 
     isFetchingRef.current = true;
 
     try {
-      if (pageNo === 1) {
+      // 🔥 Non-blocking loader if cached data exists
+      if (pageNo === 1 && orders.length === 0 && !isRefresh) {
         setLoading(true);
-      } else {
+      } else if (pageNo > 1) {
         setLoadingMore(true);
       }
 
-      const apiFilter = ORDER_FILTER_MAP[filter];
-
       const res = await apiClient.get('/api/profile/orders/history', {
         params: {
-          filter: apiFilter,
+          filter: filter === 'all' ? undefined : filter,
           page: pageNo,
           limit: PAGE_SIZE,
         },
@@ -88,6 +77,7 @@ export const useOrderHistory = filter => {
       if (!res.data?.success) return;
 
       const mappedOrders = res.data.data.map((item, index) => ({
+        // ✅ UNIQUE & STABLE KEY (fixes your warning)
         id: `${item.orderId}-${pageNo}-${index}`,
         orderId: item.orderId,
         restaurantName: item.items?.[0]?.itemName ?? 'Order',
@@ -103,9 +93,33 @@ export const useOrderHistory = filter => {
         tip: item.customerTip,
       }));
 
-      setOrders(prev =>
-        pageNo === 1 ? mappedOrders : [...prev, ...mappedOrders],
-      );
+      setOrders(prev => {
+        const combined =
+          pageNo === 1 ? mappedOrders : [...prev, ...mappedOrders];
+
+        // 🔒 DEDUPLICATE BY orderId (backend-safe)
+        const uniqueMap = new Map();
+        combined.forEach(item => {
+          uniqueMap.set(item.orderId, item);
+        });
+
+        const uniqueOrders = Array.from(uniqueMap.values());
+
+        const cachePayload = {
+          orders: uniqueOrders,
+          summary: {
+            totalOrders: res.data.totalOrders,
+            totalEarnings: res.data.totalEarnings,
+            rating: res.data.avgRating,
+            km: Math.round(res.data.totalDistance),
+          },
+        };
+
+        memoryCache[filter] = cachePayload;
+        AsyncStorage.setItem(getCacheKey(filter), JSON.stringify(cachePayload));
+
+        return uniqueOrders;
+      });
 
       setSummary({
         totalOrders: res.data.totalOrders,
@@ -116,20 +130,6 @@ export const useOrderHistory = filter => {
 
       setHasMore(mappedOrders.length === PAGE_SIZE);
       setPage(pageNo);
-
-      const cachePayload = {
-        orders: pageNo === 1 ? mappedOrders : [...orders, ...mappedOrders],
-        summary: {
-          totalOrders: res.data.totalOrders,
-          totalEarnings: res.data.totalEarnings,
-          rating: res.data.avgRating,
-          km: Math.round(res.data.totalDistance),
-        },
-      };
-
-      const cacheKey = getCacheKey(filter);
-      memoryCache[cacheKey] = cachePayload;
-      AsyncStorage.setItem(cacheKey, JSON.stringify(cachePayload));
     } finally {
       isFetchingRef.current = false;
       setLoading(false);
