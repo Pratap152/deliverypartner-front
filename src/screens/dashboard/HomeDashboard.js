@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,18 +12,10 @@ import { banners, todayStats } from "../../components/home/data/home.mock";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import ShiftStartedBanner from "../../components/home/ShiftStartedBanner";
 import BannerCarousel from "../../components/home/BannerCarousel";
-import { useGPS } from "../../context/GPSContext";
 import { useRider } from "../../context/RiderContext";
 
 const HomeDashboard = () => {
-  const { gpsEnabled } = useGPS();
-  const { isOnline: contextIsOnline, goOnline, goOffline } = useRider();
-  const [isOnline, setIsOnline] = useState(contextIsOnline || false);
-
-  // Sync local state with context (e.g. if socketdisconnects externally)
-  React.useEffect(() => {
-    setIsOnline(contextIsOnline);
-  }, [contextIsOnline]);
+  const { isOnline, goOnline, goOffline, isLoading } = useRider();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -33,16 +24,10 @@ const HomeDashboard = () => {
 
         {/* ONLINE / OFFLINE TOGGLE */}
         <SwipeOnlineToggle
-          gpsEnabled={gpsEnabled}
           isOnline={isOnline}
-          onSwipeOnline={() => {
-            setIsOnline(true);
-            goOnline(); // ✅ socket connects
-          }}
-          onSwipeOffline={() => {
-            setIsOnline(false);
-            goOffline(); // ✅ socket disconnects
-          }}
+          isLoading={isLoading}
+          onSwipeOnline={goOnline}
+          onSwipeOffline={goOffline}
         />
 
         {/* Shift started banner */}
@@ -80,3 +65,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeDashboard;
+

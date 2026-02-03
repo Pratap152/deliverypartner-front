@@ -28,7 +28,7 @@ class OrderService {
             console.log(`[OrderService] Accepting order ${orderId}`);
             // No riderId needed in body anymore
             const response = await apiClient.patch(`/api/orders/${orderId}/accept`);
-            console.log("accept order from order service ",response);
+            console.log("accept order from order service ", response);
 
             return {
                 success: true,
@@ -137,7 +137,7 @@ class OrderService {
             const response = await apiClient.patch(
                 `/api/orders/${orderId}/pickup`,
             );
-            console.log("pickupOder from order service",response)
+            console.log("pickupOder from order service", response)
             return response.data;
         } catch (error) {
             console.error(
@@ -156,7 +156,7 @@ class OrderService {
             const response = await apiClient.patch(
                 `/api/orders/${orderId}/deliver`,
             );
-            console.log("delivered order from order service",response);
+            console.log("delivered order from order service", response);
             return response.data;
         } catch (error) {
             console.error(
@@ -176,11 +176,49 @@ class OrderService {
                 `/api/orders/${orderId}/cancel`,
                 { reasonCode, reasonText }
             );
-            console.log("cancel order from order service",response);
+            console.log("cancel order from order service", response);
             return response.data;
         } catch (error) {
             console.error(
                 '[OrderService] cancelOrder error:',
+                error?.response?.data || error.message
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Set rider status to ONLINE
+     * @returns {Promise<{success: boolean, message: string, riderStatus: object}>}
+     */
+    async setRiderOnline() {
+        try {
+            console.log('[OrderService] Setting rider status to ONLINE');
+            const response = await apiClient.patch('/api/rider/status/online');
+            console.log('[OrderService] Rider ONLINE response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error(
+                '[OrderService] setRiderOnline error:',
+                error?.response?.data || error.message
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Set rider status to OFFLINE
+     * @returns {Promise<{success: boolean, message: string, riderStatus: object}>}
+     */
+    async setRiderOffline() {
+        try {
+            console.log('[OrderService] Setting rider status to OFFLINE');
+            const response = await apiClient.patch('/api/rider/status/offline');
+            console.log('[OrderService] Rider OFFLINE response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error(
+                '[OrderService] setRiderOffline error:',
                 error?.response?.data || error.message
             );
             throw error;
