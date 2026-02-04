@@ -48,7 +48,6 @@ import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 import Wallet from '../screens/profile/Wallet';
 import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
-import HomeNavigator from './HomeNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,7 +55,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="SplashScreen"
+      initialRouteName="LoginEntryScreen"
     >
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
@@ -104,7 +103,6 @@ const AppNavigator = () => {
 
       <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
       <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
-      <Stack.Screen name="HomeNavigator" component={HomeNavigator} />
       <Stack.Screen name="SlotsNavigator" component={SlotsNavigator} />
       <Stack.Screen name="EarningsNavigator" component={EarningsNavigator} />
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, SafeAreaView, StyleSheet,ScrollView, Image, TouchableOpacity, Text } from 'react-native';
+import { View, SafeAreaView, StyleSheet, ScrollView, Image, TouchableOpacity, Text } from 'react-native';
 import { ORDER_STATUS } from '../../config/orderStates';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
@@ -7,7 +7,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import OrderHeader from '../../components/order/OrderHeader';
-import OrderAddressCard from '../../components/order/OrderAddressCard'; 
+import OrderAddressCard from '../../components/order/OrderAddressCard';
 import OrderItemsCard from '../../components/order/OrderItemsCard';
 import OrderEarningsCard from '../../components/order/OrderEarningsCard';
 import SwipeButton from '../../components/common/SwipeButton';
@@ -18,6 +18,9 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     route?.params?.status ?? ORDER_STATUS.PICKUP_ASSIGNED
   );
 
+  // Extract orderId from route params
+  const orderId = route?.params?.orderId;
+
   const ui = orderUIConfig[status];
 
   // Helper to handle completion (Swipe)
@@ -25,7 +28,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     const action = ui.bottomButtons[0]; // Assuming primary action is first
     if (action && action.nextStatus) {
       try {
-        await orderService.updateOrderStatus('DR-2864', action.nextStatus);
+        await orderService.updateOrderStatus(orderId, action.nextStatus);
         setStatus(action.nextStatus);
       } catch (error) {
         console.error('Failed to update status:', error);
@@ -40,10 +43,11 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     if (action && action.navigateTo) {
       navigation.navigate(action.navigateTo, {
         nextStatus: action.nextStatus,
+        orderId, // Pass orderId to next screen
       });
     } else {
       // Fallback or specific logic if needed
-      navigation.navigate('Map', { nextStatus: status }); // Just view map
+      navigation.navigate('Map', { nextStatus: status, orderId }); // Just view map
     }
   };
 
@@ -65,7 +69,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       <ScrollView>
         <View style={styles.container}>
           <OrderHeader
-            orderId="DR-2864"
+            orderId={orderId || 'N/A'}
             statusText="Active delivery in progress"
             icon={ui.headerIcon}
           />
@@ -120,27 +124,27 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           <OrderEarningsCard basePay={500} distancePay={100} bonus={45} />
 
           {/* Map Placeholder: Visible only if config says showMap: true */}
-         {/* Map Placeholder: Visible only if config says showMap: true */}
-{ui.showMap && (
-  <View style={styles.mapWrapper}>
-    <View style={styles.mapPlaceholder}>
-      <Image
-        source={require('../../assets/map.png')}
-        style={styles.mapImage}
-        resizeMode="cover"
-      />
-    </View>
+          {/* Map Placeholder: Visible only if config says showMap: true */}
+          {ui.showMap && (
+            <View style={styles.mapWrapper}>
+              <View style={styles.mapPlaceholder}>
+                <Image
+                  source={require('../../assets/map.png')}
+                  style={styles.mapImage}
+                  resizeMode="cover"
+                />
+              </View>
 
-    {/* Navigate button BELOW the map */}
-    <TouchableOpacity
-      style={styles.navigateBtn}
-      onPress={handleNavigate}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.navigateBtnText}>Navigate 📍</Text>
-    </TouchableOpacity>
-  </View>
-)}
+              {/* Navigate button BELOW the map */}
+              <TouchableOpacity
+                style={styles.navigateBtn}
+                onPress={handleNavigate}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.navigateBtnText}>Navigate 📍</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
 
           {!ui.showMap && ui.bottomButtons.length > 0 && (
@@ -223,30 +227,30 @@ const styles = StyleSheet.create({
     marginBottom: hp('2%'),
   },
   mapWrapper: {
-  marginBottom: hp('2%'),
-},
+    marginBottom: hp('2%'),
+  },
   mapPlaceholder: {
-  height: hp('15%'),
-  borderRadius: wp('4%'),
-  overflow: 'hidden',
-  backgroundColor: '#E5E7EB',
-  borderWidth: 1,
-  borderColor: '#E6E6E6',
-  marginBottom: hp('1.5%'), // space between map & button
-},
+    height: hp('15%'),
+    borderRadius: wp('4%'),
+    overflow: 'hidden',
+    backgroundColor: '#E5E7EB',
+    borderWidth: 1,
+    borderColor: '#E6E6E6',
+    marginBottom: hp('1.5%'), // space between map & button
+  },
 
   mapImage: {
     width: '100%',
     height: '100%',
   },
   navigateBtn: {
-  backgroundColor: '#00C4B4',
-  justifyContent: 'center',
-  alignItems: 'center',
-  paddingVertical: hp('1.8%'),
-  borderRadius: wp('12%'),
-  width: '100%',
-},
+    backgroundColor: '#00C4B4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: hp('1.8%'),
+    borderRadius: wp('12%'),
+    width: '100%',
+  },
 
   navigateBtnText: {
     color: '#fff',

@@ -133,6 +133,7 @@ class OrderService {
      * Mark order as picked up
      */
     async pickupOrder(orderId) {
+        console.log("from pickup order", orderId);
         try {
             const response = await apiClient.patch(
                 `/api/orders/${orderId}/pickup`,

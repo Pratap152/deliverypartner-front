@@ -5,25 +5,33 @@ import { ORDER_STATUS } from "../config/orderStates";
 import WEBSITE_URL from '../../src/utils/host';
 import { OrdersAPI } from "../api/api";
 import { orderService } from '../services/order/OrderService';
+import { tokenService } from '../services/TokenService';
+
 const RiderContext = createContext();
-
-const WS_URL =
-  "wss://delivarypartner.onrender.com/ws?type=RIDER_NOTIFICATION&riderId=696b6787f212b183b5dffe5d";
-
-// ⚠️ DEBUG: Log connection URL
-console.log("📡 WebSocket URL configured:", WS_URL);
 
 export const RiderProvider = ({ children }) => {
   const socketRef = useRef(null);
   const [order, setOrder] = useState(null);
-  const [status, setStatus] = useState("DISCONNECTED"); // DISCONNECTED, CONNECTING, CONNECTED, ERROR
+  const [status, setStatus] = useState("DISCONNECTED"); // Socket status: DISCONNECTED, CONNECTING, CONNECTED, ERROR
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(120); // 120 sec timer
+  const [accessToken, setAccessToken] = useState(null);
+
+  // Load access token on mount
+  useEffect(() => {
+    const loadToken = async () => {
+      const { accessToken } = await tokenService.get();
+      setAccessToken(accessToken);
+      console.log('📡 Access token loaded:', accessToken ? 'YES' : 'NO');
+    };
+    loadToken();
+  }, []);
 
   // New states for rider status
   const [riderStatus, setRiderStatus] = useState(null); // { isOnline, lastLoginAt, lastLogoutAt, totalOnlineMinutesToday }
   const [isGoingOnline, setIsGoingOnline] = useState(false);
   const [isGoingOffline, setIsGoingOffline] = useState(false);
+  const [actuallyOnline, setActuallyOnline] = useState(false); // Track actual online state separate from socket
 
   /** ---------------------------
    * SOCKET CONNECTION (Internal)
@@ -37,9 +45,15 @@ export const RiderProvider = ({ children }) => {
       return;
     }
 
+    if (!accessToken) {
+      console.log("❌ Cannot connect socket: accessToken is null");
+      return;
+    }
+
     setStatus("CONNECTING");
-    console.log("📡 Creating new WebSocket to:", WS_URL);
-    const ws = new WebSocket(WS_URL);
+    const wsUrl = `wss://delivarypartner.onrender.com/ws?type=RIDER_NOTIFICATION&token=${accessToken}`;
+    console.log("📡 Creating new WebSocket to:", wsUrl);
+    const ws = new WebSocket(wsUrl);
     socketRef.current = ws;
 
     ws.onopen = () => {
@@ -133,6 +147,7 @@ export const RiderProvider = ({ children }) => {
 
         // 2. Connect socket on API success
         console.log("🔵 Step 6: Connecting WebSocket...");
+        setActuallyOnline(true); // Mark as online
         connectSocket();
         console.log("🟢 === GO ONLINE FLOW COMPLETED ===");
       } else {
@@ -146,6 +161,7 @@ export const RiderProvider = ({ children }) => {
       // EDGE CASE: If rider is already online, treat as success
       if (errorMessage.toLowerCase().includes("already online")) {
         console.log("🔵 EDGE CASE: Rider already online - syncing state");
+        setActuallyOnline(true); // Set online state
         connectSocket();
         console.log("🟢 === GO ONLINE FLOW COMPLETED (Already Online) ===");
         return;
@@ -196,6 +212,7 @@ export const RiderProvider = ({ children }) => {
 
         // 2. Disconnect socket on API success
         console.log("🔴 Step 6: Disconnecting WebSocket...");
+        setActuallyOnline(false); // Mark as offline
         disconnectSocket();
         console.log("⚪ === GO OFFLINE FLOW COMPLETED ===");
       } else {
@@ -209,6 +226,7 @@ export const RiderProvider = ({ children }) => {
       // EDGE CASE: If rider is already offline, treat as success
       if (errorMessage.toLowerCase().includes("already offline")) {
         console.log("🔴 EDGE CASE: Rider already offline - syncing state");
+        setActuallyOnline(false); // Set offline state
         disconnectSocket();
         console.log("⚪ === GO OFFLINE FLOW COMPLETED (Already Offline) ===");
         return;
@@ -231,10 +249,12 @@ export const RiderProvider = ({ children }) => {
       setLoading(true);
 
       const res = await orderService.acceptOrder(order.orderId);
-      console.log("✅ Order Accepted:", order.orderId);
+      // Use orderId from response, not from popup
+      const assignedOrderId = res.data.orderId;
+      console.log("✅ Order Accepted:", assignedOrderId);
       setOrder(null);
       navigate("OrderDetailsScreen", {
-        orderId: order.orderId,
+        orderId: assignedOrderId,
         status: ORDER_STATUS.PICKUP_ASSIGNED,
       });
     } catch (err) {
@@ -297,7 +317,9 @@ export const RiderProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [countdown, order, loading]);
 
-  const isOnline = status === "CONNECTED";
+  // Computed values
+  const isSocketConnected = status === "CONNECTED";
+  const isOnline = actuallyOnline; // Use actuallyOnline state instead of socket status
   const isLoading = isGoingOnline || isGoingOffline;
 
   return (

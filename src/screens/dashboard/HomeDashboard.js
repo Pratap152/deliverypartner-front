@@ -11,7 +11,6 @@ import PeakHoursBanner from "../../components/home/PeakHoursBanner";
 import WeeklyStatsCard from "../../components/home/WeeklyStatsCard";
 import { banners, todayStats } from "../../components/home/data/home.mock";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
-import ShiftStartedBanner from "../../components/home/ShiftStartedBanner";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
 
@@ -31,9 +30,6 @@ const HomeDashboard = () => {
           onSwipeOnline={goOnline}
           onSwipeOffline={goOffline}
         />
-
-        {/* Shift started banner */}
-        {isOnline && <ShiftStartedBanner />}
 
         {/* Banner carousel only if offline */}
         {!isOnline && (
