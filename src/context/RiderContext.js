@@ -1,20 +1,24 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from "react";
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { Alert } from "react-native";
 import { navigate } from "../navigation/RootNavigation"; // Root navigation
 import { ORDER_STATUS } from "../config/orderStates";
 import WEBSITE_URL from '../../src/utils/host';
 import { OrdersAPI } from "../api/api";
 import { orderService } from '../services/order/OrderService';
 import { tokenService } from '../services/TokenService';
+import OrderQueueModal from '../components/order/OrderQueueModal';
 
 const RiderContext = createContext();
 
 export const RiderProvider = ({ children }) => {
   const socketRef = useRef(null);
-  const [order, setOrder] = useState(null);
+
+  // Multi-Order Queue State
+  const [orderQueue, setOrderQueue] = useState([]); // Array of { id, data, countdown, receivedAt }
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
+
   const [status, setStatus] = useState("DISCONNECTED"); // Socket status: DISCONNECTED, CONNECTING, CONNECTED, ERROR
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(120); // 120 sec timer
   const [accessToken, setAccessToken] = useState(null);
 
   // Load access token on mount
@@ -72,10 +76,8 @@ export const RiderProvider = ({ children }) => {
         console.log("📩 Message type:", data.type);
 
         if (data.type === "ORDER_POPUP") {
-          console.log("🔔 ORDER_POPUP received! Setting order state...");
-          setOrder(data);
-          setCountdown(20); // reset timer
-          console.log("🔔 Order set, countdown reset to 20s");
+          console.log("🔔 ORDER_POPUP received! Adding to queue...");
+          addOrderToQueue(data);
         } else {
           console.log("📩 Unknown message type, ignoring:", data.type);
         }
@@ -99,7 +101,7 @@ export const RiderProvider = ({ children }) => {
       console.log("⚪ Was clean:", e?.wasClean);
       setStatus("DISCONNECTED");
       socketRef.current = null;
-      setOrder(null);
+      setOrderQueue([]); // Clear queue on disconnect
     };
   };
 
@@ -108,7 +110,7 @@ export const RiderProvider = ({ children }) => {
       socketRef.current.close();
       socketRef.current = null;
     }
-    setOrder(null);
+    setOrderQueue([]); // Clear queue on disconnect
     setStatus("DISCONNECTED");
   };
 
@@ -242,34 +244,163 @@ export const RiderProvider = ({ children }) => {
   };
 
   /** ---------------------------
+   * ORDER QUEUE MANAGEMENT
+   * --------------------------*/
+
+  // Define MAX_QUEUE_SIZE constant
+  const MAX_QUEUE_SIZE = 5;
+
+  /**
+   * Add new order to queue
+   * Edge Cases: Duplicates, max size, auto-expand
+   */
+  const addOrderToQueue = (orderData) => {
+    console.log("🔵 addOrderToQueue called with:", orderData.orderId);
+
+    const newOrder = {
+      id: orderData.orderId,
+      data: orderData,
+      countdown: 20,
+      receivedAt: Date.now()
+    };
+
+    setOrderQueue(prev => {
+      // EDGE CASE 1: Prevent duplicate orders
+      if (prev.some(o => o.id === newOrder.id)) {
+        console.log("⚠️ Duplicate order ignored:", newOrder.id);
+        return prev;
+      }
+
+      // EDGE CASE 2: Enforce max queue size
+      let updated = [newOrder, ...prev];
+      if (updated.length > MAX_QUEUE_SIZE) {
+        console.log(`⚠️ Queue full, removing oldest order`);
+        updated = updated.slice(0, MAX_QUEUE_SIZE);
+      }
+
+      console.log("✅ Order added to queue. Queue size:", updated.length);
+      return updated;
+    });
+
+    // Auto-expand the newest order
+    setExpandedOrderId(newOrder.id);
+  };
+
+  /**
+   * Remove order from queue
+   */
+  const removeOrderFromQueue = (orderId) => {
+    console.log("🗑️ Removing order from queue:", orderId);
+
+    setOrderQueue(prev => {
+      const updated = prev.filter(o => o.id !== orderId);
+
+      // If we removed the expanded order, expand the next one
+      if (orderId === expandedOrderId && updated.length > 0) {
+        setExpandedOrderId(updated[0].id);
+      }
+
+      console.log("✅ Order removed. Remaining:", updated.length);
+      return updated;
+    });
+  };
+
+  /**
+   * Expand specific order
+   */
+  const expandOrder = (orderId) => {
+    console.log("📖 Expanding order:", orderId);
+    setExpandedOrderId(orderId);
+  };
+
+  /**
+   * Countdown management for all orders in queue
+   * Updates every second, removes expired orders
+   */
+  useEffect(() => {
+    if (orderQueue.length === 0) return;
+
+    console.log("⏱️ Starting countdown interval for", orderQueue.length, "orders");
+
+    const interval = setInterval(() => {
+      setOrderQueue(prev => {
+        const updated = prev
+          .map(order => ({
+            ...order,
+            countdown: order.countdown - 1
+          }))
+          .filter(order => {
+            // Remove expired orders
+            if (order.countdown <= 0) {
+              console.log("⏱️ Order expired, auto-removing:", order.id);
+              return false;
+            }
+            return true;
+          });
+
+        // If queue became empty, clear expanded ID
+        if (updated.length === 0) {
+          setExpandedOrderId(null);
+        }
+
+        return updated;
+      });
+    }, 1000);
+
+    return () => {
+      console.log("⏱️ Clearing countdown interval");
+      clearInterval(interval);
+    };
+  }, [orderQueue.length]); // Re-run when queue size changes
+
+  /** ---------------------------
    * ORDER ACTIONS
    * --------------------------*/
-  const acceptOrder = async () => {
+  const acceptOrder = async (orderId) => {
+    if (!orderId) {
+      console.log("❌ acceptOrder: orderId is required");
+      return;
+    }
+
+    const orderToAccept = orderQueue.find(o => o.id === orderId);
+    if (!orderToAccept) {
+      console.log("❌ Order not found in queue:", orderId);
+      Alert.alert("Error", "Order not found");
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const res = await orderService.acceptOrder(order.orderId);
-      // Use orderId from response, not from popup
+      console.log("🟢 Accepting order:", orderId);
+      const res = await orderService.acceptOrder(orderId);
+
+      // Use orderId from response
       const assignedOrderId = res.data.orderId;
       console.log("✅ Order Accepted:", assignedOrderId);
-      setOrder(null);
+
+      // Remove from queue
+      removeOrderFromQueue(orderId);
+
+      // Navigate to order details
       navigate("OrderDetailsScreen", {
         orderId: assignedOrderId,
         status: ORDER_STATUS.PICKUP_ASSIGNED,
       });
     } catch (err) {
       console.log("❌ Accept failed", err);
-      // 🔄 RECOVERY: If 409, check if it was actually assigned to us
+
+      // EDGE CASE: 409 Conflict - order already assigned
       if (err.response?.status === 409) {
         try {
           console.log("🔄 Attempting to verify order status...");
-          const details = await orderService.getOrderDetails(order.orderId);
+          const details = await orderService.getOrderDetails(orderId);
 
           if (details) {
             console.log("✅ Recovered 409: Order is valid. Proceeding.");
-            setOrder(null);
+            removeOrderFromQueue(orderId);
             navigate("OrderDetailsScreen", {
-              orderId: order.orderId,
+              orderId: orderId,
               status: ORDER_STATUS.PICKUP_ASSIGNED,
             });
             return;
@@ -279,43 +410,35 @@ export const RiderProvider = ({ children }) => {
         }
       }
 
-      // If genuine 409 (someone else took it or expired), close popup
-      setOrder(null);
+      // If genuine error, remove from queue
+      removeOrderFromQueue(orderId);
+      Alert.alert("Error", "Failed to accept order. It may have been assigned to another rider.");
     } finally {
       setLoading(false);
     }
   };
 
-  const rejectOrder = async () => {
-    try {
-      if (order) {
-        await orderService.rejectOrder(order.orderId);
-        console.log("❌ Order Rejected:", order.orderId);
-      }
-      setOrder(null);
-    } catch (err) {
-      console.log("❌ Reject failed", err);
-    }
-  };
-
-  /** ---------------------------
-   * COUNTDOWN TIMER
-   * --------------------------*/
-  useEffect(() => {
-    if (!order || loading) return;
-
-    if (countdown === 0) {
-      // auto-reject after timer ends
-      rejectOrder();
+  const rejectOrder = async (orderId) => {
+    if (!orderId) {
+      console.log("❌ rejectOrder: orderId is required");
       return;
     }
 
-    const timer = setInterval(() => {
-      setCountdown(prev => prev - 1);
-    }, 1000);
+    try {
+      console.log("❌ Rejecting order:", orderId);
+      await orderService.rejectOrder(orderId);
+      console.log("✅ Order Rejected:", orderId);
 
-    return () => clearInterval(timer);
-  }, [countdown, order, loading]);
+      // Remove from queue
+      removeOrderFromQueue(orderId);
+    } catch (err) {
+      console.log("❌ Reject failed", err);
+      // Still remove from queue even if API fails
+      removeOrderFromQueue(orderId);
+    }
+  };
+
+
 
   // Computed values
   const isSocketConnected = status === "CONNECTED";
@@ -324,11 +447,13 @@ export const RiderProvider = ({ children }) => {
 
   return (
     <RiderContext.Provider value={{
-      order,
+      orderQueue,
+      expandedOrderId,
       goOnline,
       goOffline,
       acceptOrder,
       rejectOrder,
+      expandOrder,
       isOnline,
       status,
       riderStatus,
@@ -338,78 +463,19 @@ export const RiderProvider = ({ children }) => {
     }}>
       {children}
 
-      {/* 🔥 GLOBAL ORDER POPUP */}
-      <Modal transparent visible={!!order} animationType="slide">
-        <View style={styles.overlay}>
-          <View style={styles.popup}>
-            <Text style={styles.popupTitle}>🚚 New Order</Text>
-            {order && (
-              <>
-                <Text>Order ID: {order.orderId}</Text>
-                <Text>Shop: {order.vendorShopName}</Text>
-                <Text>Distance: {order.distanceKm}</Text>
-                <Text>Estimated Time:{order.etaMinutes}</Text>
-                <Text>Earning: ₹{order.estimatedEarning}</Text>
-                <Text style={{ marginTop: 8, fontWeight: "600" }}>Time Left: {countdown}s</Text>
-              </>
-            )}
-
-
-            {loading ? (
-              <ActivityIndicator style={{ marginTop: 20 }} />
-            ) : (
-              <View style={styles.actions}>
-                <TouchableOpacity style={[styles.btn, styles.accept]} onPress={acceptOrder}>
-                  <Text style={styles.btnText}>ACCEPT</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.btn, styles.reject]} onPress={() => rejectOrder()}>
-                  <Text style={styles.btnText}>REJECT</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
+      {/* 🔥 GLOBAL ORDER QUEUE MODAL - Multi-Order System */}
+      <OrderQueueModal
+        visible={orderQueue.length > 0}
+        orderQueue={orderQueue}
+        expandedOrderId={expandedOrderId}
+        loading={loading}
+        onAccept={acceptOrder}
+        onReject={rejectOrder}
+        onExpand={expandOrder}
+        onClose={() => setOrderQueue([])} // Close and clear all orders
+      />
     </RiderContext.Provider>
   );
 };
 
 export const useRider = () => useContext(RiderContext);
-
-/** ---------------------------
- * STYLES
- * --------------------------*/
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  popup: {
-    width: "85%",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20
-  },
-  popupTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10
-  },
-  actions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20
-  },
-  btn: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 6,
-    alignItems: "center"
-  },
-  accept: { backgroundColor: "green", marginRight: 10 },
-  reject: { backgroundColor: "red" },
-  btnText: { color: "#fff", fontWeight: "bold" }
-});

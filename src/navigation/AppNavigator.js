@@ -55,7 +55,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="LoginEntryScreen"
+      initialRouteName="SplashScreen"
     >
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
