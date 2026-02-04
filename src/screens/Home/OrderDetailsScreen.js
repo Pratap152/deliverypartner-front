@@ -20,6 +20,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
   // Extract orderId from route params
   const orderId = route?.params?.orderId;
+  console.log('📦 OrderDetailsScreen - orderId:', orderId, 'status:', status);
 
   const ui = orderUIConfig[status];
 
@@ -28,10 +29,12 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     const action = ui.bottomButtons[0]; // Assuming primary action is first
     if (action && action.nextStatus) {
       try {
+        console.log('👆 OrderDetailsScreen handleSwipeSuccess - orderId:', orderId, 'nextStatus:', action.nextStatus);
         await orderService.updateOrderStatus(orderId, action.nextStatus);
         setStatus(action.nextStatus);
+        console.log('✅ Status updated successfully to:', action.nextStatus);
       } catch (error) {
-        console.error('Failed to update status:', error);
+        console.error('❌ OrderDetailsScreen handleSwipeSuccess failed:', error);
       }
     }
   };
@@ -39,6 +42,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   // Helper handling navigation (Button)
   const handleNavigate = () => {
     const action = ui.bottomButtons.find(a => a.navigateTo);
+    console.log('🧭 OrderDetailsScreen handleNavigate - orderId:', orderId, 'navigateTo:', action?.navigateTo);
     // Or default to map if current status implies navigation
     if (action && action.navigateTo) {
       navigation.navigate(action.navigateTo, {

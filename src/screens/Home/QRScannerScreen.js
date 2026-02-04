@@ -7,6 +7,9 @@ import { ORDER_STATUS } from '../../config/orderStates';
 const { width } = Dimensions.get('window');
 
 const QRScannerScreen = ({ navigation, route }) => {
+    const orderId = route.params?.orderId;
+    console.log('📱 QRScannerScreen - orderId:', orderId, 'nextStatus:', route.params?.nextStatus);
+
     useEffect(() => {
         // Determine the next status based on params or default logic
         const nextStatus = route.params?.nextStatus || ORDER_STATUS.AT_DROP;
@@ -21,10 +24,15 @@ const QRScannerScreen = ({ navigation, route }) => {
 
     const handleScanSuccess = async (nextStatus) => {
         try {
-            await orderService.updateOrderStatus('DR-2864', nextStatus);
-            navigation.replace('OrderDetailsScreen', { status: nextStatus });
+            console.log('📱 QRScannerScreen handleScanSuccess - orderId:', orderId, 'nextStatus:', nextStatus);
+            await orderService.updateOrderStatus(orderId, nextStatus);
+            console.log('📱 Navigating to OrderDetailsScreen with orderId:', orderId);
+            navigation.replace('OrderDetailsScreen', {
+                status: nextStatus,
+                orderId: orderId
+            });
         } catch (error) {
-            console.error("Scan failed", error);
+            console.error("❌ QRScannerScreen scan failed:", error);
         }
     };
 

@@ -32,6 +32,7 @@ import CustomerNotResponding from '../Home/CustomerNotResponding';
 const OrderDetailsScreen = ({ route, navigation }) => {
 
   const { orderId } = route.params;
+  console.log("Order Id from OderDetailScreen", orderId);
 
   const [status, setStatus] = useState(route?.params?.status || ORDER_STATUS.PICKUP_ASSIGNED);
   const [orderDetails, setOrderDetails] = useState(null);
@@ -133,6 +134,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
     // SCENARIO 1: Navigate to MapScreen
     if (action.navigateTo === 'MapScreen') {
+      console.log("from order details screen to map screen", orderId);
       navigation.navigate('MapScreen', {
         orderId: orderId,
         nextStatus: action.nextStatus,
