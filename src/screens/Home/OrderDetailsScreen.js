@@ -70,119 +70,68 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
         setStatus(action.nextStatus);
         console.log('✅ Status updated successfully to:', action.nextStatus);
-
-        // If delivered, capture earnings for success screen
-        if (action.nextStatus === ORDER_STATUS.ORDER_DELIVERED && response) {
-          console.log('💰 OrderDetailsScreen - Capturing earnings:', {
-            earningCredited: response.earningCredited,
-            codCollected: response.codCollected
-          });
-          setDeliveryResponse(response);
-        }
       } catch (error) {
-        console.error('❌ OrderDetailsScreen handleSwipeSuccess failed:', error);
+        console.error('❌ Swipe failed:', error);
       }
     }
   };
 
   // Helper handling navigation (Button)
   const handleNavigate = () => {
+    console.log('🧭 OrderDetailsScreen handleNavigate - orderId:', orderId, 'navigateTo: Map');
     const action = ui.bottomButtons.find(a => a.navigateTo);
-    console.log('🧭 OrderDetailsScreen handleNavigate - orderId:', orderId, 'navigateTo:', action?.navigateTo);
-    // Or default to map if current status implies navigation
+
     if (action && action.navigateTo) {
       navigation.navigate(action.navigateTo, {
         nextStatus: action.nextStatus,
-        orderId, // Pass orderId to next screen
+        orderId,
       });
     } else {
-      // Fallback or specific logic if needed
-      navigation.navigate('Map', { nextStatus: status, orderId }); // Just view map
+      // Fallback map navigation
+      navigation.navigate('Map', { nextStatus: status, orderId });
     }
   };
 
   const primaryAction = ui.bottomButtons[0];
-  const isNavigationAction = primaryAction?.navigateTo;
 
-  // Store delivery response to pass to success screen
-  const [deliveryResponse, setDeliveryResponse] = useState(null);
-
-  // Effect to handle navigation to Success Screen if Delivered
+  // Navigate to success screen on delivery
   useEffect(() => {
     if (status === ORDER_STATUS.ORDER_DELIVERED && deliveryResponse) {
       // Short delay to show the change, then navigate
       setTimeout(() => {
-        console.log('🎉 Navigating to SuccessfulDelivered with:', {
-          amount: deliveryResponse.earningCredited,
-          codCollected: deliveryResponse.codCollected
-        });
         navigation.replace('SuccessfullDelivered', {
-          amount: deliveryResponse.earningCredited || 0,
-          codCollected: deliveryResponse.codCollected || 0,
           orderId: orderId
         });
       }, 500);
     }
-  }, [status, deliveryResponse, navigation, orderId]);
-
-  // Loading state
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.container, styles.centerContent]}>
-          <ActivityIndicator size="large" color="#00C4B4" />
-          <Text style={styles.loadingText}>Loading order details...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Error state
-  if (error || !orderData) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.container, styles.centerContent]}>
-          <Text style={styles.errorText}>⚠️ {error || 'No order data'}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => {
-              setLoading(true);
-              setError(null);
-              // Re-trigger fetch by navigating back and forth
-              navigation.goBack();
-            }}
-          >
-            <Text style={styles.retryButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  }, [status, navigation, orderId]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.container}>
+
+          {/* Header */}
           <OrderHeader
             orderId={orderData.orderId || orderId || 'N/A'}
             statusText={ui.headerText || "Active delivery in progress"}
             icon={ui.headerIcon}
           />
 
-          {/* Address Logic - Dynamic from API */}
+          {/* Address Logic */}
           {(status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT) ? (
             <>
               <OrderAddressCard
                 title="Pickup Location"
-                name={orderData.pickupAddress?.name || orderData.vendorShopName || "Pickup Location"}
-                address={orderData.pickupAddress?.addressLine || "Address not available"}
+                name="The Pizza Palace"
+                address="234 Main Street, Downtown, CA 94102"
                 iconType="store"
                 theme="green"
               />
               <OrderAddressCard
                 title="Drop Location"
-                name={orderData.deliveryAddress?.name || "Customer"}
-                address={orderData.deliveryAddress?.addressLine || "Address not available"}
+                name="John Anderson"
+                address="201/D, Ananta Apts, Near Jai Bhawan, Andheri 400059"
                 iconType="home"
                 theme="red"
               />
@@ -191,20 +140,33 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             /* Show only Drop location (Deliver To) after pickup */
             <OrderAddressCard
               title="Deliver To"
-              name={orderData.deliveryAddress?.name || "Customer"}
-              address={orderData.deliveryAddress?.addressLine || "Address not available"}
+              name="John Anderson"
+              address="201/D, Ananta Apts, Near Jai Bhawan, Andheri 400059"
               iconType="user"
-              theme={status === ORDER_STATUS.AT_DROP ? "green" : "default"}
+              theme="default"
             />
           )}
 
-          {/* Items from API */}
-          <OrderItemsCard items={orderData.items || []} />
+          <OrderItemsCard items={[
+            {
+              name: 'Margherita Pizza (Large)',
+              qty: 2,
+              image: require('../../assets/pizza.png'),
+            },
+            {
+              name: 'Besan Ladoo (Large)',
+              qty: 2,
+              image: require('../../assets/laddu.png'),
+            },
+            {
+              name: 'Cappuccino',
+              qty: 1,
+              image: require('../../assets/coffe.png'),
+            },
+          ]} />
 
-          {/* Earnings from API - show pricing (customer bill) */}
-          <OrderEarningsCard pricing={orderData.pricing || {}} />
+          <OrderEarningsCard basePay={500} distancePay={100} bonus={45} />
 
-          {/* Map Placeholder: Visible only if config says showMap: true */}
           {/* Map Placeholder: Visible only if config says showMap: true */}
           {ui.showMap && (
             <View style={styles.mapWrapper}>
@@ -248,122 +210,40 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: wp('4%'),
-    paddingTop: hp('1%'),
-    padding: 20,
-    marginTop: 10
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: hp('1.5%'),
-  },
-
-  headerTextContainer: {
-    flex: 1,
-  },
-
-  helpIconWrapper: {
-    width: wp('13%'),
-    height: wp('13%'),
-    borderRadius: wp('5%'),
-    backgroundColor: '#E8F7F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 5
-  },
-
-  helpIcon: {
-    fontSize: wp('5%'),
-  },
-
-  header: {
-    fontSize: wp('5.5%'),
-    fontWeight: '700',
-    color: '#1C1C1C',
-    marginTop: 10
-  },
-  subHeader: {
-    fontSize: wp('3.2%'),
-    color: '#6B6B6B',
-    marginBottom: hp('1.5%'),
-    marginTop: 10
-  },
-  button: {
-    backgroundColor: '#E5ECFF',
-    paddingVertical: hp('1.8%'),
-    borderRadius: wp('12%'),
-    alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: hp('1%'),
-  },
-  buttonText: {
-    fontSize: wp('3.6%'),
-    fontWeight: '600',
-    color: '#1C1C1C',
-  },
-  mapContainer: {
-    marginTop: hp('2%'),
-    marginBottom: hp('2%'),
+    paddingTop: hp('1.5%'),
+    paddingBottom: hp('2%'),
   },
   mapWrapper: {
-    marginBottom: hp('2%'),
+    marginTop: hp('2%'),
   },
   mapPlaceholder: {
-    height: hp('15%'),
-    borderRadius: wp('4%'),
-    overflow: 'hidden',
+    flex: 1,
     backgroundColor: '#E5E7EB',
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    marginBottom: hp('1.5%'), // space between map & button
   },
-
   mapImage: {
     width: '100%',
-    height: '100%',
+    height: hp('25%'),
+    borderRadius: wp('3%'),
   },
   navigateBtn: {
     backgroundColor: '#00C4B4',
-    justifyContent: 'center',
+    paddingVertical: hp('2%'),
+    borderRadius: wp('3%'),
+    marginTop: hp('1.5%'),
     alignItems: 'center',
-    paddingVertical: hp('1.8%'),
-    borderRadius: wp('12%'),
-    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-
   navigateBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: wp('4%'),
-    marginRight: 10,
-  },
-  navigateIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navigateArrow: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  bottomStandardBtn: {
-    backgroundColor: '#00C4B4', // Updated to Teal
-    paddingVertical: hp('1.8%'),
-    borderRadius: wp('12%'),
-    alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: hp('2%'),
-  },
-  bottomStandardBtnText: {
-    fontSize: wp('3.6%'),
-    fontWeight: '600',
     color: '#FFFFFF',
+    fontSize: wp('4%'),
+    fontWeight: '700',
   },
   centerContent: {
     flex: 1,
