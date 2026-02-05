@@ -6,23 +6,41 @@ import {
 } from 'react-native-responsive-screen';
 
 const OrderItemsCard = ({ items }) => {
-  console.log("OrderItemsCard", items);
+  console.log("[OrderItemsCard] Received items:", JSON.stringify(items));
+
+  if (!items || items.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.header}>Ordered Items</Text>
+        <Text style={styles.emptyText}>No items to display</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Ordered Items</Text>
 
-      {items.map((item, index) => (
-        <View key={index} style={styles.row}>
-          <View style={styles.left}>
-            <Image source={item.image} style={styles.image} />
-            <Text style={styles.itemName}>{item.name}</Text>
-          </View>
+      {items.map((item, index) => {
+        // API returns: itemName, quantity, price, total, _id
+        const name = item.itemName || item.name || 'Unknown Item';
+        const qty = item.quantity || item.qty || 1;
 
-          <View style={styles.qtyBadge}>
-            <Text style={styles.qtyText}>{item.qty}</Text>
+        console.log(`[OrderItemsCard] Item ${index}:`, { name, qty });
+
+        return (
+          <View key={item._id || index} style={styles.row}>
+            <View style={styles.left}>
+              <Image source={require('../../assets/pizza.png')} style={styles.image} />
+              <Text style={styles.itemName}>{name}</Text>
+            </View>
+
+            <View style={styles.qtyBadge}>
+              <Text style={styles.qtyText}>x{qty}</Text>
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 };
@@ -37,7 +55,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E6E6E6',
     marginBottom: hp('1.5%'),
-    marginTop:15
+    marginTop: 15
   },
   header: {
     fontSize: wp('4.6%'),
@@ -74,5 +92,11 @@ const styles = StyleSheet.create({
   qtyText: {
     fontSize: wp('3%'),
     fontWeight: '600',
+  },
+  emptyText: {
+    fontSize: wp('3.5%'),
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: hp('1%'),
   },
 });

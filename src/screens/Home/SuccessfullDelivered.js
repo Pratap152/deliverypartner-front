@@ -13,7 +13,13 @@ import {
 
 
 export default function SuccessfullDelivered({ route, navigation }) {
-  const { amount, codCollected } = route.params || {};
+  const { amount, codCollected, orderId } = route.params || {};
+
+  console.log('🎉 [SuccessfulDelivered] Received params:', {
+    amount,
+    codCollected,
+    orderId
+  });
 
   return (
     <View style={styles.container}>

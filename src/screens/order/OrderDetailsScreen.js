@@ -132,10 +132,10 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     const action = ui.bottomButtons && ui.bottomButtons[0];
     if (!action) return;
 
-    // SCENARIO 1: Navigate to MapScreen
-    if (action.navigateTo === 'MapScreen') {
+    // SCENARIO 1: Navigate to Map (for navigation flow)
+    if (action.navigateTo === 'Map') {
       console.log("from order details screen to map screen", orderId);
-      navigation.navigate('MapScreen', {
+      navigation.navigate('Map', {
         orderId: orderId,
         nextStatus: action.nextStatus,
         orderDetails: orderDetails, // Pass full order details
@@ -292,6 +292,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
           <OrderEarningsCard
             pricing={orderDetails.pricing}
+            items={orderDetails.items}
           />
           {/* Secondary Buttons (e.g., Customer Not Responding) */}
           {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
