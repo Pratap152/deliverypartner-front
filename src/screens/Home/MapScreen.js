@@ -69,8 +69,6 @@ const styles = StyleSheet.create({
   mapPlaceholder: {
     flex: 1,
     backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   mapText: {
     fontSize: wp('6%'),
