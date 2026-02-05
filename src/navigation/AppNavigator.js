@@ -92,7 +92,7 @@ const AppNavigator = () => {
       <Stack.Screen name="SuccessfullDelivered" component={SuccessfullDelivered} />
       <Stack.Screen name="ReferEarn" component={ReferEarn} />
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
-      <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: true, title: "Incentive Details" }} />
+      <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: false, title: "Incentive Details" }} />
       <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
       <Stack.Screen name="MapScreen" component={MapScreen} />
       <Stack.Screen name="ReportIssue" component={ReportIssue} />

@@ -46,11 +46,11 @@ const HomeDashboard = () => {
           ))}
         </View>
 
-        <View style={styles.banner}>
+        {/* <View style={styles.banner}>
           <TouchableOpacity onPress={() => { navigation.navigate("OrderPopupScreen") }}>
             <Text>Navigate to OrderPopupScreen</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
         <ActiveShiftBanner />
         <PeakHoursBanner />
 

@@ -8,13 +8,18 @@ import { GOOGLE_MAPS_API_KEY } from "../../config/env";
 const RoutePolyline = ({ source, destination }) => {
   if (!source || !destination) return null;
 
+  // Simple polyline connecting source to destination
+  const coordinates = [
+    { latitude: source.latitude, longitude: source.longitude },
+    { latitude: destination.latitude, longitude: destination.longitude }
+  ];
+
   return (
-    <MapViewDirections
-      origin={source}
-      destination={destination}
-      apikey={GOOGLE_MAPS_API_KEY}
+    <Polyline
+      coordinates={coordinates}
       strokeWidth={4}
       strokeColor="#2E86DE"
     />
   );
 }
+export default RoutePolyline;
