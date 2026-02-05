@@ -36,7 +36,7 @@ export const orderUIConfig = {
       {
         label: 'Navigate to Drop',
         type: 'primary',
-        nextStatus: 'QR_SCAN_REQUIRED', // Map should direct to QR Scanner
+        nextStatus: 'AT_DROP', // Bypass QR Scanner, go directly to AT_DROP
         navigateTo: 'Map',
       },
     ],

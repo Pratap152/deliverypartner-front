@@ -19,23 +19,16 @@ const MapScreen = ({ route, navigation }) => {
   const handleArrival = async () => {
     try {
       console.log('🚗 MapScreen handleArrival - orderId:', orderId, 'nextStatus:', nextStatus);
-      if (isDrop) {
-        // If arrived at drop, go to QR Scanner
-        console.log('🚗 Navigating to QRScannerScreen with orderId:', orderId);
-        navigation.replace('QRScannerScreen', {
-          nextStatus: ORDER_STATUS.AT_DROP,
-          orderId: orderId
-        });
-      } else {
-        // If arrived at restaurant, update status and go back to details
-        console.log('🚗 Updating order status to:', nextStatus, 'for orderId:', orderId);
-        await orderService.updateOrderStatus(orderId, nextStatus);
-        console.log('🚗 Navigating back to OrderDetailsScreen with orderId:', orderId);
-        navigation.replace('OrderDetailsScreen', {
-          status: nextStatus,
-          orderId: orderId, // ✅ Pass orderId back
-        });
-      }
+
+      // Always update status and navigate back to OrderDetailsScreen
+      // Bypass QR scanner completely
+      console.log('🚗 Updating order status to:', nextStatus, 'for orderId:', orderId);
+      await orderService.updateOrderStatus(orderId, nextStatus);
+      console.log('🚗 Navigating back to OrderDetailsScreen with orderId:', orderId);
+      navigation.replace('OrderDetailsScreen', {
+        status: nextStatus,
+        orderId: orderId,
+      });
     } catch (error) {
       console.error('❌ MapScreen handleArrival error:', error);
     }
