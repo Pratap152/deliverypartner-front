@@ -222,7 +222,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                 onPress={handleNavigate}
                 activeOpacity={0.8}
               >
-                <Text style={styles.navigateBtnText}>Navigate 📍</Text>
+                <Text style={styles.navigateBtnText}>{primaryAction?.label || 'Navigate'} 📍</Text>
               </TouchableOpacity>
             </View>
           )}
