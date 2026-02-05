@@ -60,6 +60,9 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const ui = orderUIConfig[status];
 
   // Helper to handle completion (Swipe)
+  // Store delivery response to pass to success screen
+  const [deliveryResponse, setDeliveryResponse] = useState(null);
+
   const handleSwipeSuccess = async () => {
     const action = ui.bottomButtons[0]; // Assuming primary action is first
     if (action && action.nextStatus) {
@@ -70,6 +73,15 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
         setStatus(action.nextStatus);
         console.log('✅ Status updated successfully to:', action.nextStatus);
+
+        // If delivered, capture earnings for success screen
+        if (action.nextStatus === ORDER_STATUS.ORDER_DELIVERED && response) {
+          console.log('💰 OrderDetailsScreen - Capturing earnings:', {
+            earningCredited: response.earningCredited,
+            codCollected: response.codCollected
+          });
+          setDeliveryResponse(response);
+        }
       } catch (error) {
         console.error('❌ Swipe failed:', error);
       }
@@ -99,12 +111,51 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     if (status === ORDER_STATUS.ORDER_DELIVERED && deliveryResponse) {
       // Short delay to show the change, then navigate
       setTimeout(() => {
+        console.log('🎉 Navigating to SuccessfulDelivered with:', {
+          amount: deliveryResponse.earningCredited,
+          codCollected: deliveryResponse.codCollected
+        });
         navigation.replace('SuccessfullDelivered', {
+          amount: deliveryResponse.earningCredited || 0,
+          codCollected: deliveryResponse.codCollected || 0,
           orderId: orderId
         });
       }, 500);
     }
-  }, [status, navigation, orderId]);
+  }, [status, deliveryResponse, navigation, orderId]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, styles.centerContent]}>
+          <ActivityIndicator size="large" color="#00C4B4" />
+          <Text style={styles.loadingText}>Loading order details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Error state
+  if (error || !orderData) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, styles.centerContent]}>
+          <Text style={styles.errorText}>⚠️ {error || 'No order data'}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              setLoading(true);
+              setError(null);
+              navigation.goBack();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -113,7 +164,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
           {/* Header */}
           <OrderHeader
-            orderId={orderData.orderId || orderId || 'N/A'}
+            orderId={orderData?.orderId || orderId || 'N/A'}
             statusText={ui.headerText || "Active delivery in progress"}
             icon={ui.headerIcon}
           />
