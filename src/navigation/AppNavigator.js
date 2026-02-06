@@ -33,7 +33,7 @@ import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
-import OrderDetailsScreen from '../screens/Home/OrderDetailsScreen';
+import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
 import LiveTracking from '../screens/Home/LiveTracking';
