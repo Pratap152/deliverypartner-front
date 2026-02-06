@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function ProgressBar({ progress, accentColor }) {
   return (
@@ -19,14 +20,14 @@ export default function ProgressBar({ progress, accentColor }) {
 
 const styles = StyleSheet.create({
   track: {
-    height: 6,
+    height: hp(1),
     backgroundColor: '#E5E7EB',
-    borderRadius: 6,
+    borderRadius: wp(2),
     overflow: 'hidden',
-    marginTop: 6,
+    marginTop: hp(1),
   },
   fill: {
     height: '100%',
-    borderRadius: 6,
+    borderRadius: wp(2),
   },
 });

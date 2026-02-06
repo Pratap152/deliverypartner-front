@@ -40,15 +40,15 @@ import LiveTracking from '../screens/Home/LiveTracking';
 import MapScreen from '../screens/Home/MapScreen';
 import OrderHistory from '../screens/profile/OrderHistory';
 import ProfileNavigator from './ProfileNavigator';
+import HomeNavigator from './HomeNavigator';
 import EarningsNavigator from './EarningsNavigator';
 import SlotsNavigator from './SlotsNavigator';
 import SlotHistory from '../screens/profile/SlotHistory';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
-import Wallet from '../screens/profile/Wallet';
-import SlotBookingScreen from '../screens/dashboard/SlotBookingScreen';
-
+// import Timer from '../screens/Home/Timer';
+import WalletScreen from '../screens/profile/Wallet';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -79,9 +79,6 @@ const AppNavigator = () => {
       <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
-
-      <Stack.Screen name="HelpCenter" component={HelpCenterList} />
-      <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
       <Stack.Screen name="HelpIssueScreen" component={HelpIssueScreen} />
 
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
@@ -100,16 +97,14 @@ const AppNavigator = () => {
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="LiveTracking" component={LiveTracking} />
-
-      <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
       <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
       <Stack.Screen name="SlotsNavigator" component={SlotsNavigator} />
       <Stack.Screen name="EarningsNavigator" component={EarningsNavigator} />
-
+      <Stack.Screen name="HomeNavigator" component={HomeNavigator} />
       <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
       <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
       <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
-      <Stack.Screen name="Wallet" component={Wallet} />
+      <Stack.Screen name="Wallet" component={WalletScreen} />
     </Stack.Navigator>
   );
 };

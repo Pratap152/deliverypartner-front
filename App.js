@@ -58,26 +58,26 @@ const AppContent = () => {
       const permissionGranted = await FCMService.requestUserPermission();
       if (!permissionGranted) return;
 
-      /* ---------------- TOKEN (UNCHANGED) ---------------- */
-      const token = await FCMService.getFCMToken();
-      console.log('FCM TOKEN:', token);
+    /* ---------------- TOKEN (UNCHANGED) ---------------- */
+    const fcmToken = await FCMService.getFCMToken();
+    console.log('FCM TOKEN:', fcmToken);
 
+    await updateFcmToken({
+      fcmToken,
+      platform: Platform.OS,
+      appVersion: '1.0.0',
+      deviceType: 'mobile',
+    });
+
+    /* ---------------- TOKEN REFRESH (UNCHANGED) ---------------- */
+    FCMService.listenTokenRefresh(async newToken => {
       await updateFcmToken({
-        token,
+        fcmToken: newToken,
         platform: Platform.OS,
         appVersion: '1.0.0',
         deviceType: 'mobile',
       });
-
-      /* ---------------- TOKEN REFRESH (UNCHANGED) ---------------- */
-      FCMService.listenTokenRefresh(async newToken => {
-        await updateFcmToken({
-          token: newToken,
-          platform: Platform.OS,
-          appVersion: '1.0.0',
-          deviceType: 'mobile',
-        });
-      });
+    });
 
       /* ---------------- FOREGROUND (UPGRADED) ---------------- */
       FCMService.listenForegroundMessages(async msg => {

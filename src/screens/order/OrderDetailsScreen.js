@@ -24,8 +24,8 @@ import OrderAddressCard from '../../components/order/OrderAddressCard';
 import OrderItemsCard from '../../components/order/OrderItemsCard';
 import OrderEarningsCard from '../../components/order/OrderEarningsCard';
 import SwipeButton from '../../components/common/SwipeButton';
-import LiveMap from '../../components/map/LiveMap';
-import { getDistance } from '../../utils/mapUtils';
+// import LiveMap from '../../components/map/LiveMap';
+// import { getDistance } from '../../utils/mapUtils';
 import { orderService } from '../../services/order/OrderService';
 import CustomerNotResponding from '../Home/CustomerNotResponding';
 

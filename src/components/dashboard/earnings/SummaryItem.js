@@ -3,13 +3,24 @@ import { View, Text, StyleSheet } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 export default function SummaryItem({ label, value }) {
+  const safeLabel =
+    typeof label === 'string' || typeof label === 'number'
+      ? label
+      : '';
+
+  const safeValue =
+    typeof value === 'string' || typeof value === 'number'
+      ? value
+      : '';
+
   return (
     <View style={styles.item}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      {value && <Text style={styles.value}>{value}</Text>}
+      {safeLabel !== '' && <Text style={styles.label}>{safeLabel}</Text>}
+      {safeValue !== '' && <Text style={styles.value}>{safeValue}</Text>}
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   item: {
@@ -18,12 +29,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: wp(4),
-    color: '#6B7280',
+    color: '#E6F5FF',
+   
 
   },
   value: {
-    fontSize: wp(4),
-    fontWeight: '500',
+    fontSize: wp(5),
+    color: '#E6F5FF',
+    fontWeight:'800'
     
   },
 });

@@ -105,15 +105,32 @@ const OrderHistory = ({ navigation }) => {
         ))}
       </View>
 
-      {/* SUMMARY */}
+      {/* ===== LIGHT COLORED SUMMARY BOXES ===== */}
       <View style={styles.summaryGrid}>
-        <SummaryCard label="Total Orders" value={summary.totalOrders} />
+        <SummaryCard
+          label="Total Orders"
+          value={summary.totalOrders}
+          bgColor="#DCFCE7"
+          textColor="#166534"
+        />
         <SummaryCard
           label="Total Earnings"
           value={`₹${summary.totalEarnings}`}
+          bgColor="#FFE4D5"
+          textColor="#9A3412"
         />
-        <SummaryCard label="Average Rating" value={summary.rating} />
-        <SummaryCard label="KM Traveled" value={summary.km} />
+        <SummaryCard
+          label="Average Rating"
+          value={summary.rating}
+          bgColor="#FEF3C7"
+          textColor="#92400E"
+        />
+        <SummaryCard
+          label="KM Traveled"
+          value={summary.km}
+          bgColor="#DBEAFE"
+          textColor="#1E40AF"
+        />
       </View>
 
       {/* LIST */}
@@ -141,10 +158,14 @@ const OrderHistory = ({ navigation }) => {
   );
 };
 
-const SummaryCard = ({ label, value }) => (
-  <View style={styles.summaryCard}>
-    <Text style={styles.summaryValue}>{value}</Text>
-    <Text style={styles.summaryLabel}>{label}</Text>
+const SummaryCard = ({ label, value, bgColor, textColor }) => (
+  <View style={[styles.summaryCard, { backgroundColor: bgColor }]}>
+    <Text style={[styles.summaryValue, { color: textColor }]}>
+      {value}
+    </Text>
+    <Text style={[styles.summaryLabel, { color: textColor }]}>
+      {label}
+    </Text>
   </View>
 );
 
@@ -218,18 +239,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: rw(4),
     marginBottom: rh(1.5),
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
 
   summaryValue: {
-    fontSize: rf(2.3),
-    fontWeight: '700',
+    fontSize: rf(2.6),
+    fontWeight: 'bold',
   },
 
   summaryLabel: {
-    fontSize: rf(1.5),
-    color: '#777',
+    fontSize: rf(1.6),
     marginTop: rh(0.5),
   },
 

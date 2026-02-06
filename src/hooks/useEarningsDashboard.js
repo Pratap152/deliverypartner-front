@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getEarningsSummary,getWeeklyBarChart} from '../services/earnings/earningsService';
+import { getDailyEarnings, getEarningsSummary,getWeeklyBarChart} from '../services/earnings/earningsService';
 import { getWalletDetails } from '../services/earnings/walletService';
 import {
   getPeakHourIncentives,
@@ -13,8 +13,10 @@ export default function useEarningsDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState({
+      todayEarnings:{},
       earningsSummary: {},
       weeklyBarChart:[],
+      weeklyTotal : 0,
       wallet: {},
       incentives: [],
     });
@@ -23,6 +25,9 @@ export default function useEarningsDashboard() {
 
   const fetchDashboard = async () => {
   try {
+    const dailyEarnings = await getDailyEarnings();
+    console.log('DAILY EARNINGS OK')
+
     const summaryRes = await getEarningsSummary();
     console.log('SUMMARY OK');
 
@@ -60,10 +65,12 @@ export default function useEarningsDashboard() {
     } catch (e) {
       console.log(' WEEKLY INCENTIVE FAILED', e.response?.data);
     }
-
+    const weeklyMapped = mapWeeklyChart(weeklyChart);
     setData({
+      todayEarnings : mapDailyEarnings(dailyEarnings),
       earningsSummary: mapEarningsSummary(summaryRes),
-      weeklyBarChart: mapWeeklyChart(weeklyChart),
+      weeklyBarChart: weeklyMapped.chart,
+      weeklyTotal: weeklyMapped?.total ?? 0,
       wallet: walletRes ? mapWallet(walletRes) : {},
       incentives: mapIncentives(peakRes, weeklyRes, dailyRes),
     });
@@ -76,34 +83,48 @@ export default function useEarningsDashboard() {
   }
 };
 
+  const mapDailyEarnings = (res) => {
+  const items = res?.items ?? [];
+
+  return {
+    date: res?.date ?? '',
+    totalEarnings: res?.totalEarnings ?? 0,
+    orders: items.length,   
+    items,                
+  };
+};
+
 
   const mapEarningsSummary = res => ({
-    today: {
-      orders: res.today?.orders ?? 0,
-      baseEarnings: res.today?. baseEarnings ?? 0,
-      incentives:res.today?.incentives ??0,
-      tips:res.today?.tips ?? 0,
-      earnings: res.today?.total ?? 0,
-    },
-    week: {
-      earnings: res.week?.total ?? 0,
-    },
-    month: {
-      baseEarnings: res.today?. baseEarnings ?? 0,
-      incentives:res.today?.incentives ??0,
-      tips:res.today?.tips ?? 0,
-      earnings: res.month?.total ?? 0,
-    },
-  });
+  month: {
+    baseEarnings: res.month?.baseEarnings ?? 0, 
+    incentives: res.month?.incentives ?? 0,     
+    tips: res.month?.tips ?? 0,               
+    earnings: res.month?.total ?? 0,
+  },
+});
+
 
 const mapWeeklyChart = (res) => {
-  if (!Array.isArray(res?.week)) return [];
+  if (!Array.isArray(res?.week)) {
+    return {
+      chart: [],
+      total: 0
+    };
+  }
 
-  return res.week.map(item => ({
-    label: item.day,          // "Mon"
-    value: item.amount,       // earnings for bar height
-    orders: item.orders,      // extra info (tooltip use)
+  const chart = res.week.map(item => ({
+    label: item.day,
+    value: item.amount,
+    orders: item.orders,
   }));
+
+  const total = chart.reduce((sum, d) => sum + (d.value || 0), 0);
+
+  return {
+    chart,
+    total
+  };
 };
 
 
@@ -128,7 +149,7 @@ const mapIncentives = (
       subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
       slabs: peakRes.data.slabs ?? [],
       accentColor: '#FFF7ED',
-      peak_data: peakRes.data,
+      peak_data: peakRes
     });
   }
 
@@ -143,7 +164,7 @@ const mapIncentives = (
       completedOrders: weeklyRes.data.progress.eligibleDays,
       requiredOrders: weeklyRes.data.progress.totalDaysRequired,
       accentColor: '#EFF6FF',
-      weekly_data: weeklyRes.data
+      weekly_data: weeklyRes
     });
   }
 
@@ -164,7 +185,7 @@ if (dailyRes?.success) {
     normalCompleted: dailyRes.normalCompleted ?? 0,
     normalRequired: dailyRes.slotRules?.minNormalSlots ?? 0,
     accentColor: '#F5F3FF',
-    daily_data: dailyRes.data
+    daily_data: dailyRes
   });
 }
 

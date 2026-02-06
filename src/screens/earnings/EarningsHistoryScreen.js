@@ -52,6 +52,8 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   const [weekModal, setWeekModal] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
 
+  const cameFromToday = mode === "TODAY";
+
   const currentWeekNumber = useMemo(() => getBackendWeekNumber(new Date()), []);
 
   // ------------------ CONSTANTS ------------------
@@ -263,16 +265,24 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
   // ------------------ BACK ------------------
 
+ 
   const onBack = () => {
     if (view === "ORDER") {
       setView("DAY");
-      setOrderData(null);
-    } else if (view === "DAY") {
-      setView("ROOT");
-      setDayData(null);
-    } else {
-      navigation.goBack();
+      return;
     }
+
+    if (view === "DAY") {
+      if (cameFromToday) {
+        navigation.goBack();
+        return;
+      }
+
+      setView("ROOT");
+      return;
+    }
+
+    navigation.goBack();
   };
 
   function getWeeksOfYear_BackendCompatible(year) {
@@ -343,15 +353,21 @@ function getBackendWeekNumber(date) {
 
 
   // ------------------ HEADER ------------------
+const headerTitle = useMemo(() => {
+  if (view === "ORDER") return "Delivery";
+  if (mode === "TODAY" && view === "DAY") {
+    return "Today's Earnings";
+  }
 
-  const headerTitle = useMemo(() => {
-    if (view === "ORDER") return "Delivery";
-    if (view === "DAY") return "Daily Earnings";
-    if (mode === "TODAY") return "Today's Earnings";
-    if (mode === "WEEK") return "Weekly Earnings";
-    if (mode === "HISTORY") return "Earnings History";
-    return "Earnings";
-  }, [mode, view]);
+  if (view === "DAY") return "Daily Earnings";
+
+  if (mode === "WEEK") return "Weekly Earnings";
+
+  if (mode === "HISTORY") return "Earnings History";
+
+  return "Earnings";
+}, [mode, view]);
+
 
   // ------------------ UI RENDERERS ------------------
 
@@ -384,14 +400,14 @@ function getBackendWeekNumber(date) {
         ListHeaderComponent={
           <>
             {mode === "HISTORY" && renderHistorySelectors()}
-            <TotalCard title="Total" amount={weekData.total || 0} />
+            <TotalCard title="Total" amount={Math.floor(weekData.total) || 0} />
           </>
         }
         renderItem={({ item }) => (
           <Row
             title={`${item.day} (${item.date})`}
-            subtitle={`${item.ordersCount || 0} orders`}
-            right={`₹${item.amount || 0}`}
+            subtitle={`${item.orders || 0} orders`}
+            right={`₹${Math.floor(item.amount) || 0}`}
             onPress={() => {
               Analytics.track("earnings_select_day", { date: item.date });
               setSelectedDay(item.date);
@@ -410,7 +426,7 @@ function getBackendWeekNumber(date) {
       refreshing={refreshing}
       onRefresh={onRefresh}
       ListHeaderComponent={
-        <TotalCard title="Total Earnings" amount={dayData?.totalEarnings || 0} />
+        <TotalCard title="Total Earnings" amount={Math.floor(dayData?.totalEarnings )|| 0} />
       }
       ListEmptyComponent={<EmptyState />}
       onEndReached={() => loadDay(selectedDay, false)}
@@ -422,7 +438,7 @@ function getBackendWeekNumber(date) {
         <Row
           title={item.type}
           subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
-          right={`₹${item.amount || 0}`}
+          right={`₹${Math.floor(item.amount) || 0}`}
           onPress={() => {
             if (item.type === "DELIVERY") loadOrder(item.orderId);
           }}
@@ -438,12 +454,11 @@ function getBackendWeekNumber(date) {
 
     return (
       <View style={{ padding: 16 }}>
-        <TotalCard title="Total Earnings" amount={orderData.totalEarnings || 0} />
+        <TotalCard title="Total Earnings" amount={Math.floor(orderData.totalEarnings) || 0} />
         <View style={styles.box}>
-          <BreakRow label="Base Fare" value={b.baseFare} />
-          <BreakRow label="Distance Fare" value={b.distanceFare} />
+          <BreakRow label="Base Fare" value={b.basePay} />
+          <BreakRow label="Distance Fare" value={b.distancePay} />
           <BreakRow label="Surge" value={b.surgePay} />
-          <BreakRow label="Incentive" value={b.incentive} />
           <BreakRow label="Tips" value={b.tips} />
         </View>
       </View>

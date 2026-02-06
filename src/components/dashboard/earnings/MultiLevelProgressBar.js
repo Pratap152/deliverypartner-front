@@ -2,19 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-/**
- * props:
- *  - slabs: [{ orders: number, rewardAmount: number }, ...] (sorted ascending by orders)
- *  - completedOrders: number
- *  - height (optional)
- */
+
 export default function MultiLevelProgressBar({
   slabs = [],
   completedOrders = 0,
-  height = hp(1.2),
+  height = hp(1),
   segmentSpacing = wp(2),
   trackColor = '#E5E7EB',
-  fillColor = '#F97316', // default for peak (you can override)
+  fillColor = '#F97316', 
 }) {
   if (!Array.isArray(slabs) || slabs.length === 0) {
     return null;
@@ -60,16 +55,18 @@ export default function MultiLevelProgressBar({
                 paddingHorizontal: i === 0 ? 0 : segmentSpacing / 2,
               }}
             >
-              <View style={[styles.segmentTrack, { backgroundColor: trackColor, height }]}>
+              <View style={[styles.segmentTrack, { backgroundColor: trackColor,  height,
+      borderRadius: height / 2, }]}>
                 <View
                   style={{
                     width: `${fillPercent}%`,
                     height: '100%',
                     backgroundColor: fillColor,
-                    borderTopLeftRadius: 6,
-                    borderBottomLeftRadius: 6,
-                    borderTopRightRadius: fillPercent === 100 ? 6 : 0,
-                    borderBottomRightRadius: fillPercent === 100 ? 6 : 0,
+                    borderTopLeftRadius: height / 2,
+                    borderBottomLeftRadius: height / 2,
+                    borderTopRightRadius: fillPercent === 100 ? height / 2 : 0,
+                    borderBottomRightRadius: fillPercent === 100 ? height / 2 : 0,
+
                   }}
                 />
               </View>

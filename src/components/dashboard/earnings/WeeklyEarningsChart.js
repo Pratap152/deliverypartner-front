@@ -17,7 +17,14 @@ export default function WeeklyEarningsChart({ data,width,height }) {
   const CHART_WIDTH = width;
   const [activeIndex, setActiveIndex] = useState(null);
 
-  const maxValue = Math.max(...data.map(d => d.value), 1);
+  const rawMaxValue = Math.max(...data.map(d => d.value), 0);
+
+const maxValue =
+  rawMaxValue === 0
+    ? 100
+    : Math.ceil(rawMaxValue / 100) * 100;
+
+
 
   const points = useMemo(() => {
     return data.map((item, index) => {
@@ -73,27 +80,27 @@ export default function WeeklyEarningsChart({ data,width,height }) {
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
         <Defs>
           <LinearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor="#22C55E" stopOpacity={0.4} />
-            <Stop offset="100%" stopColor="#22C55E" stopOpacity={0.05} />
+            <Stop offset="0%" stopColor="#10B981" stopOpacity={0.5} />
+            <Stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
           </LinearGradient>
         </Defs>
 
         {/* Horizontal grid lines */}
         {Array.from({ length: Y_AXIS_LABELS }).map((_, i) => {
-        const y =
+          const y =
             PADDING +
             (i * (CHART_HEIGHT - PADDING * 2)) /
-            (Y_AXIS_LABELS - 1);
+              (Y_AXIS_LABELS - 1);
 
-        return (
+          return (
             <Path
-                key={i}
-                d={`M ${PADDING} ${y} L ${CHART_WIDTH - PADDING} ${y}`}
-                stroke="#E5E7EB"
-                strokeWidth={1}
-                opacity={0.6}
-                />
-        );
+              key={`grid-line-${i}`}
+              d={`M ${PADDING} ${y} L ${CHART_WIDTH - PADDING} ${y}`}
+              stroke="#E5E7EB"
+              strokeWidth={1}
+              opacity={0.6}
+            />
+          );
         })}
 
 
@@ -152,34 +159,36 @@ export default function WeeklyEarningsChart({ data,width,height }) {
 
         {/* Y Axis labels */}
         {Array.from({ length: Y_AXIS_LABELS }).map((_, i) => {
-        const value = Math.round((maxValue / (Y_AXIS_LABELS - 1)) * i);
-        const y =
+          const value = Math.round((maxValue / (Y_AXIS_LABELS - 1)) * i);
+          const y =
             CHART_HEIGHT -
             PADDING -
             (value / maxValue) * (CHART_HEIGHT - PADDING * 2);
 
-        return (
+          return (
             <TextSvg
-              key={i}
+              key={`y-label-${i}`}
               x={PADDING - 15}
               y={y + 4}
               fontSize={wp(3.5)}
-              >
-                ₹{value}
+            >
+              ₹{value}
             </TextSvg>
-        );
+          );
         })}
+
 
         {/* X Axis labels */}
         {points.map((p, index) => (
-        <TextSvg
-          x={p.x + wp(3)}   //  subtle right shift
-          y={CHART_HEIGHT - PADDING + wp(3)}
-          textAnchor="middle"
-          fontSize={wp(3.5)}
-        >
+          <TextSvg
+            key={`x-label-${p.label}-${index}`}
+            x={p.x}
+            y={CHART_HEIGHT - 2}
+            fontSize={wp(3.5)}
+            textAnchor="middle"
+          >
             {p.label}
-        </TextSvg>
+          </TextSvg>
         ))}
 
 

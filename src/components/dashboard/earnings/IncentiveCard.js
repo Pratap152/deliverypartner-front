@@ -1,150 +1,249 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import ProgressBar from './ProgressBar';
-import MultiLevelProgressBar from './MultiLevelProgressBar';
-
+import ProgressBar from './ProgressBar'; 
+import MultiLevelProgressBar from './MultiLevelProgressBar'; 
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function IncentiveCard({ item }) {
- 
-  const isDaily = item.type === 'daily';
-  const isWeekly = item.type === 'weekly';
   const isPeak = item.type === 'peak';
+  const isWeekly = item.type === 'weekly';
+  const isDaily = item.type === 'daily';
 
-  // weekly progress
-  const completedDays = item.completedOrders ?? 0;
-  const requiredDays = item.requiredOrders ?? 0;
+  // safe numbers
+  const completed = Number(item.completedOrders ?? item.peakCompleted ?? 0);
+  const required = Number(item.requiredOrders ?? item.requiredDays ?? 0);
 
-  // daily slot progress
-  const peakCompleted = item.peakCompleted ?? 0;
-  const peakRequired = item.peakRequired ?? 0;
-  const normalCompleted = item.normalCompleted ?? 0;
-  const normalRequired = item.normalRequired ?? 0;
+  const GREEN_THEME = {
+  primary: '#10B981',     // main fill
+  deep: '#065F46',        // text accent
+  soft: '#D1FAE5',        // light bg
+  border: '#A7F3D0',      // soft border
+};
 
+const progressColor = GREEN_THEME.primary;
 
-  const progressColor =
-    item.type === 'peak' ? '#F54900' : item.type === 'weekly' ? '#155DFC' : '#9810FA';
+  const metaIcons = {
+    peak: { label: 'Peak', icon: require('../../../assets/peak.png') },
+    weekly: { label: 'Weekly', icon: require('../../../assets/weekly.png') },
+    daily: { label: 'Daily', icon: require('../../../assets/daily.png') },
+    surge: { label: 'Surge', icon: require('../../../assets/surge.png') },
+  };
 
-  const Incentive_logo = {
-      peak: {
-        label: 'Peak',
-        icon: require('../../../assets/peak.png'),
-        color: '#F54900',
-      },
-      weekly: {
-        label: 'Weekly',
-        icon: require('../../../assets/weekly.png'),
-        color: '#155DFC',
-      },
-      daily: {
-        label: 'Daily',
-        icon: require('../../../assets/daily.png'),
-        color: '#9810FA',
-      },
-      surge:{
-        label:'Surge',
-        icon:require('../../../assets/surge.png'),
-        color:'#F13926'
-      },
-    };  
- const meta = Incentive_logo[item.type] ?? Incentive_logo.daily;
-
- const peakSlabs = Array.isArray(item.slabs) ? item.slabs : item.data?.slabs ?? [];
-
- 
+  const meta = metaIcons[item.type] ?? metaIcons.daily;
 
   return (
-    <View style={[styles.card, { backgroundColor: item.accentColor }]}>
-      <View style={styles.logo_row}>
-        <Text style={[styles.logo_text, { color: meta.color }]}>{meta.label}</Text>
-        <Image source={meta.icon} style={styles.logo} resizeMode="contain" />
+    <View
+        style={[
+          styles.card,
+          {
+            backgroundColor:
+              item.type === 'peak'
+                ? '#ECFDF5'
+                : item.type === 'weekly'
+                ? '#F0FDF4'
+                : '#F6FFF9',
+            borderColor: GREEN_THEME.border,
+            borderWidth: 1,
+          },
+        ]}>
+        
+      <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: wp(1.5),
+              backgroundColor: GREEN_THEME.primary,
+              borderTopLeftRadius: wp(4),
+              borderBottomLeftRadius: wp(4),
+            }}
+          />
+
+      <View style={styles.topRow}>
+        <View style={styles.left}>
+          
+          <View
+              style={[
+                styles.labelChip,
+                {
+                  backgroundColor: GREEN_THEME.soft,
+                  borderWidth: 1,
+                  borderColor: GREEN_THEME.border,
+                },
+              ]}
+            >
+
+            <Text style={[styles.chipText, { color: GREEN_THEME.deep }]}>{meta.label}</Text>
+          </View>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.subtitle}>{item.subtitle}</Text>
+        </View>
+
       </View>
 
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>{item.subtitle}</Text>
+      {/* Peak: multi-level UI */}
+      {isPeak && Array.isArray(item.slabs) && item.slabs.length > 0 ? (
+        <>
+          <View style={styles.slabsRow}>
+            {item.slabs.map((s, idx) => (
+              <View
+                key={`${item.id}-slab-${idx}`}
+                style={[
+                  styles.slab,
+                  {
+                    backgroundColor: '#FFFFFF',
+                    borderColor: GREEN_THEME.border,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Text style={styles.slabOrders}>{s.orders} orders</Text>
+                <Text style={styles.slabReward}>₹{s.rewardAmount}</Text>
+              </View>
+            ))}
+          </View>
 
-      {/* PEAK INCENTIVE */}
-        {isPeak && peakSlabs.length > 0 && (
-          <MultiLevelProgressBar
-            slabs={peakSlabs}
-            height={hp(1.6)}
-            fillColor={progressColor}
-          />
-        )}
-
-        {/* DAILY INCENTIVE  */}
-        {isDaily && (
-          <>
-            {/* Peak slots */}
-            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
-              <Text style={styles.progressText}>
-                Peak Slots
-              </Text>
-              <Text style={styles.progressText}>
-                {peakCompleted}/{peakRequired}
-              </Text>
-            </View>
-            
-            <ProgressBar
-              progress={
-                peakRequired > 0
-                  ? (peakCompleted / peakRequired) * 100
-                  : 0
-              }
-              accentColor="#F54900"
+          {/* Multi-level progress bar component (existing file) */}
+          <View style={{ marginTop: hp(1) }}>
+            <MultiLevelProgressBar
+              slabs={item.slabs}
+              completedOrders={completed}
+              height={hp(0.8)}
+              fillColor={GREEN_THEME.primary}
             />
+          </View>   
+        </>
+      ) : (
+        /* Weekly / Daily: single progress */
+        <>
+          {item.type === 'daily' && (
+            <View style={{ marginTop: hp(1) }}>
 
-            {/* Normal slots */}
-            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
-              <Text style={styles.progressText}>
-              Normal Slots 
-            </Text>
-            <Text style={styles.progressText}>
-              {normalCompleted}/{normalRequired}
-            </Text>
+              {/* Peak Slot Progress */}
+              <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+                <Text style={styles.progressText}>
+                  Peak Slots
+                </Text>
+                <Text style={styles.progressText}>
+                  {item.peakCompleted}/{item.peakRequired}
+                </Text>
             </View>
-            <ProgressBar
-              progress={
-                normalRequired > 0
-                  ? (normalCompleted / normalRequired) * 100
-                  : 0
-              }
-              accentColor="#9810FA"
-            />
-          </>
-        )}
 
-        {/* WEEKLY INCENTIVE  */}
-        {isWeekly && requiredDays > 0 && (
-          <ProgressBar
-            progress={(completedDays / requiredDays) * 100}
-            accentColor="#155DFC"
-          />
-        )}
-            
-      <Text style={styles.reward}>
-        {item.value ?? item.rewardText ?? ''}
-      </Text>
+              <ProgressBar
+                progress={
+                  item.peakRequired > 0
+                    ? (item.peakCompleted / item.peakRequired) * 100
+                    : 0
+                }
+                progressColor={GREEN_THEME.primary}
+
+              />
+
+              {/* Normal Slot Progress */}
+              <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+                <Text style={styles.progressText}>
+                  Normal Slots 
+                </Text>
+                <Text style={styles.progressText}>
+                  {item.normalCompleted}/{item.normalRequired}
+                </Text>
+             </View>
+
+              <ProgressBar
+                progress={
+                  item.normalRequired > 0
+                    ? (item.normalCompleted / item.normalRequired) * 100
+                    : 0
+                }
+                progressColor="#34D399"
+
+              />
+
+            </View>
+          )}
+
+
+          {/* Weekly or fallback single progress bar */}
+          {!isDaily && (
+            <>
+              { (item.requiredOrders > 0 || item.requiredDays > 0) && (
+                <>
+                  <View style={styles.progressRow}>
+                    <Text style={styles.progressText}>
+                      {item.completedOrders ?? completed}/{item.requiredOrders ?? item.requiredDays ?? required} {isWeekly ? 'days' : 'orders'}
+                    </Text>
+                  </View>
+
+                  <ProgressBar
+                    progress={Math.round(((Number(item.completedOrders ?? completed) || 0) / (Number(item.requiredOrders ?? required) || 1)) * 100)}
+                    accentColor={progressColor}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </>
+      )}
+
+      {/* reward / CTA */}
+      <View style={styles.bottomRow}>
+        {item.type !== 'peak' && (
+            <Text style={styles.rewardValue}>{item.value}</Text>
+          )}
+
+      </View>
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
   card: {
-    width: wp(95),
+    width: wp(92),
     alignSelf: 'center',
     borderRadius: wp(4),
-    padding: wp(3),
+    padding: wp(4),
     marginBottom: wp(3),
+    // card shadow
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 8 } },
+      android: { elevation: 6 },
+    }),
   },
-  title: { fontSize: wp(4.5), fontWeight:'500' },
-  subtitle: { fontSize: wp(3.5), color: '#6B7280', marginTop: 4 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  left: { flex: 1, paddingRight: wp(2) },
+  right: { width: wp(12), alignItems: 'flex-end' },
+  labelChip: { backgroundColor: '#ffffff', paddingHorizontal: wp(2), paddingVertical: hp(0.3), borderRadius: wp(1.5), alignSelf: 'flex-start', marginBottom: hp(0.4) },
+  chipText: { fontSize: wp(3.1), fontWeight: '700' },
+  title: { fontSize: wp(4.2), fontWeight: '600', color: '#111' },
+  subtitle: { fontSize: wp(3.3), color: '#6B7280', marginTop: hp(0.3) },
+  icon: { width: wp(8), height: wp(8), resizeMode: 'contain' },
+
+  slabsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: hp(1) },
+  slab: { flex: 1, backgroundColor: 'rgba(0,0,0,0.03)', padding: wp(2), marginHorizontal: wp(0.5), borderRadius: wp(2), alignItems: 'center' },
+  slabOrders: { fontSize: wp(3.2), color: '#374151' },
+  slabReward: { fontSize: wp(3.4), fontWeight: '700', marginTop: hp(0.3) },
+
   progressRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(1) },
-  progressText: { fontSize: wp(4),fontWeight:'500',marginTop:hp(1) },
-  reward: { marginTop: 10, fontSize: wp(4), fontWeight: '700', color: '#111', alignSelf: 'flex-end' },
-  logo_row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: hp(1) },
-  logo: { height: hp('2.5'), width: wp('5.5') },
-  logo_text: { backgroundColor: '#FFFFFF', paddingHorizontal: wp(2), borderRadius: wp(1), fontWeight: '600' },
+  progressText: { fontSize: wp(3.5),fontWeight:'500' },
+  progressMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(1) },
+
+  smallMuted: { color: '#6B7280', fontSize: wp(3) },
+  bottomRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: hp(1) },
+  rewardLabel: { fontSize: wp(3.2), color: '#6B7280' },
+  rewardValue: {
+  fontSize: wp(4.2),
+  fontWeight: '700',
+  color: '#065F46',
+}
+
 });
-
-
