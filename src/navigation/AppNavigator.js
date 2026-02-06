@@ -42,6 +42,7 @@ import OrderHistory from '../screens/profile/OrderHistory';
 import ProfileNavigator from './ProfileNavigator';
 import HomeNavigator from './HomeNavigator';
 import EarningsNavigator from './EarningsNavigator';
+import HelpCenterList from '../screens/help/HelpCenterList';
 import SlotsNavigator from './SlotsNavigator';
 import SlotHistory from '../screens/profile/SlotHistory';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
@@ -84,6 +85,9 @@ const AppNavigator = () => {
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
       <Stack.Screen name="SlotHistory" component={SlotHistory} />
       <Stack.Screen name="AddBankDetails" component={AddBankDetails} />
+
+      <Stack.Screen name="HelpCenterList" component={HelpCenterList} />
+
 
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="SuccessfullDelivered" component={SuccessfullDelivered} />
