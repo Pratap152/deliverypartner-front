@@ -42,7 +42,6 @@ import OrderHistory from '../screens/profile/OrderHistory';
 import ProfileNavigator from './ProfileNavigator';
 import HomeNavigator from './HomeNavigator';
 import EarningsNavigator from './EarningsNavigator';
-import HelpCenterList from '../screens/help/HelpCenterList';
 import SlotsNavigator from './SlotsNavigator';
 import SlotHistory from '../screens/profile/SlotHistory';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
