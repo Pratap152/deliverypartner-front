@@ -2,8 +2,11 @@ import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
+import useEarningsDashboard from '../../hooks/useEarningsDashboard';
+import { formatMoney } from '../../utils/formatMoney';
 
-const StatRow = ({ label, value, percent }) => {
+
+const StatRow = ({ label, value}) => {
   
   return (
     <View style={styles.row}>
@@ -11,7 +14,6 @@ const StatRow = ({ label, value, percent }) => {
 
       <View style={styles.valueContainer}>
         <Text style={styles.value}>{value}</Text>
-        <Text style={styles.percent}>+{percent}%</Text>
       </View>
     </View>
   );
@@ -19,20 +21,26 @@ const StatRow = ({ label, value, percent }) => {
 
 const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
   const navigation = useNavigation();
+  const {data} = useEarningsDashboard();
+  const {weeklyTotal = 0,weeklyOrders=0 }= data;
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>This Week</Text>
-        <TouchableOpacity onPress={()=>navigation.navigate('EarningsScreen')}>
+        <TouchableOpacity onPress={()=>navigation.navigate('EarningsNavigator', {
+                                                                screen: 'EarningsHistoryScreen',
+                                                                params: { mode: 'WEEK' }
+                                                              })
+                                                            }>
           <Text style={styles.link}>View Details</Text>
         </TouchableOpacity>
       </View>
 
       {/* Stats */}
-      <StatRow label="Total Earnings" value={10} percent={12} />
-      <StatRow label="Orders Delivered" value={orders} percent={8} />
-      <StatRow label="Online Hours" value={hours} percent={5} />
+      <StatRow label="Total Earnings" value={formatMoney(weeklyTotal)}  />
+      <StatRow label="Orders Delivered" value={weeklyOrders}  />
+      <StatRow label="Online Hours" value={hours}  />
     </View>
   );
 };
