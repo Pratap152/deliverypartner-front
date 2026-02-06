@@ -121,6 +121,9 @@ const BannerCarousel = ({ data}) => {
     if (item.id === 'bank') {
       navigation.navigate('AddBankDetails');
     }
+     else{
+      navigation.navigate('KitSelectionScreen');
+    }
   };
 
   return (
