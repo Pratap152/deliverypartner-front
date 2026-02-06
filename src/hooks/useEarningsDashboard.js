@@ -17,6 +17,7 @@ export default function useEarningsDashboard() {
       earningsSummary: {},
       weeklyBarChart:[],
       weeklyTotal : 0,
+      weeklyOrders:0,
       wallet: {},
       incentives: [],
     });
@@ -71,6 +72,7 @@ export default function useEarningsDashboard() {
       earningsSummary: mapEarningsSummary(summaryRes),
       weeklyBarChart: weeklyMapped.chart,
       weeklyTotal: weeklyMapped?.total ?? 0,
+      weeklyOrders: weeklyMapped?.total_orders ?? 0,
       wallet: walletRes ? mapWallet(walletRes) : {},
       incentives: mapIncentives(peakRes, weeklyRes, dailyRes),
     });
@@ -109,7 +111,8 @@ const mapWeeklyChart = (res) => {
   if (!Array.isArray(res?.week)) {
     return {
       chart: [],
-      total: 0
+      total: 0,
+      total_orders:0
     };
   }
 
@@ -120,10 +123,12 @@ const mapWeeklyChart = (res) => {
   }));
 
   const total = chart.reduce((sum, d) => sum + (d.value || 0), 0);
+  const total_orders = chart.reduce((sum_ord, d)=> sum_ord + (d.orders || 0),0);
 
   return {
     chart,
-    total
+    total,
+    total_orders
   };
 };
 

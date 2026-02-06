@@ -39,10 +39,13 @@ import {
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import EarningsScreen from '../../screens/dashboard/EarningsScreen';
+import EarningsNavigator from '../../navigation/EarningsNavigator';
 import SlotHistory from '../../screens/profile/SlotHistory';
 import OrderHistory from '../../screens/profile/OrderHistory';
-import EarningsNavigator from '../../navigation/EarningsNavigator';
+import useEarningsDashboard from '../../hooks/useEarningsDashboard';
+import { formatMoney } from '../../utils/formatMoney';
+
+ 
 
 const StatItem = ({ icon, value, label, bgColor, screen }) => {
  const navigation = useNavigation();
@@ -60,17 +63,19 @@ const StatItem = ({ icon, value, label, bgColor, screen }) => {
 };
 
 const StatsCard = () => {
+  const {data} = useEarningsDashboard();
+  const{todayEarnings={}} = data;
+  
   return (
     <View style={styles.container}>
       <View style={styles.row}>
         <StatItem
           icon="trending-up"
-          value="₹842"
+          value={formatMoney(todayEarnings.totalEarnings ?? 0)}
           label="Earnings"
           bgColor="#2ECC71" // green
           screen={EarningsNavigator}
-
-        />
+          />
         <StatItem
           icon="time-outline"
           value="4h 23m"
@@ -80,7 +85,7 @@ const StatsCard = () => {
         />
         <StatItem
           icon="cart-outline"
-          value="12"
+          value={todayEarnings.orders ?? 0}
           label="Orders"
           bgColor="#FF6FAE" // pink
           screen={OrderHistory}
