@@ -37,6 +37,18 @@ const Header = () => {
 
   /* 🔥 PROFILE STATE */
   const [profile, setProfile] = useState(null);
+  const getSelfieUri = (selfie) => {
+  if (!selfie) return null;
+ 
+  // backend string URL
+  if (typeof selfie === 'string') return selfie;
+ 
+  // backend object { url }
+  if (typeof selfie === 'object' && selfie.url) return selfie.url;
+ 
+  return null;
+};
+  const selfieUri = getSelfieUri(profile?.selfie);
 
   /* ---------------- FETCH PROFILE (SAME AS PROFILE SCREEN) ---------------- */
   const fetchProfile = async () => {
@@ -143,11 +155,12 @@ const Header = () => {
             onPress={() => navigation.navigate('Profile')}
           >
             <Image
-              source={
-                profile?.selfie
-                  ? { uri: profile.selfie }
-                  : require('../../assets/profile/profileicon.png')
-              }
+  source={
+    selfieUri
+      ? { uri: selfieUri }
+      : require('../../assets/profile/profileicon.png')
+  }
+  
               style={styles.profileIcon}
             />
           </TouchableOpacity>
