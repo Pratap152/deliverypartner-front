@@ -153,7 +153,7 @@ const DailyGuarentee = ({ route, navigation }) => {
 
         <View style={styles.rewardPill}>
           <Text style={styles.rewardLabel}>Potential Earnings</Text>
-          <Text style={styles.rewardValue}>₹{rewardAmount}</Text>
+          <Text style={styles.rewardValue}>₹ {rewardAmount}</Text>
         </View>
       </LinearGradient>
 

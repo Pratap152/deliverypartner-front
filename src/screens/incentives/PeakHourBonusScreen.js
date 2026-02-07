@@ -96,6 +96,7 @@ const ProgressiveCheckpointBar = ({ slabs = [], currentOrders = 0 }) => {
 
 const PeakHourBonusScreen = ({ route, navigation }) => {
   const data = route.params?.data || route.params || {};
+  console.log("data from peak hour bonus",data);
 
   /* ---------------- EXTRACT DATA ---------------- */
   const title = data.title || "Peak Slot Bonus";

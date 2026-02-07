@@ -104,7 +104,7 @@ const WeekEarnings = ({ route, navigation }) => {
   console.log("data from week Earnings",data);
 
   /* ---------------- EXTRACT DATA ---------------- */
-  const title = data.title || "Weekly Target";
+  const title =  "Weekly Target";
   const description = data.description || "Complete daily targets to earn weekly bonus";
   const weeklyRules = data.weeklyRules || {};
   const progress = data.progress || {};
