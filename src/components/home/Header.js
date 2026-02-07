@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,7 @@ import {
 } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ProfileScreen from '../../screens/profile/ProfileScreen';
-import { useNavigation } from '@react-navigation/native';
-import ProfileNavigator from '../../navigation/ProfileNavigator';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import Geolocation from '@react-native-community/geolocation';
 import axios from 'axios';
@@ -25,6 +23,8 @@ import {
   openSettings,
 } from 'react-native-permissions';
 
+import apiClient from '../../services/ApiClient';
+
 const LOG = '[HEADER-LOCATION]';
 
 const Header = () => {
@@ -35,6 +35,26 @@ const Header = () => {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /* 🔥 PROFILE STATE */
+  const [profile, setProfile] = useState(null);
+
+  /* ---------------- FETCH PROFILE (SAME AS PROFILE SCREEN) ---------------- */
+  const fetchProfile = async () => {
+    try {
+      const res = await apiClient.get('/api/profile/rider/profile');
+      setProfile(res.data?.data);
+    } catch (e) {
+      console.log('Header profile fetch error', e);
+    }
+  };
+
+  /* 🔥 AUTO REFRESH WHEN SCREEN FOCUSES */
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
+
   /* ---------------- PERMISSION ---------------- */
   const checkLocationPermission = async () => {
     const permission =
@@ -43,13 +63,11 @@ const Header = () => {
         : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
 
     const result = await check(permission);
-    console.log(LOG, 'Permission status:', result);
 
     if (result === RESULTS.GRANTED) return true;
 
     if (result === RESULTS.DENIED) {
       const req = await request(permission);
-      console.log(LOG, 'Permission request:', req);
       return req === RESULTS.GRANTED;
     }
 
@@ -69,8 +87,6 @@ const Header = () => {
 
   /* ---------------- LOCATION ---------------- */
   const getCurrentLocation = () => {
-    console.log(LOG, 'Fetching location…');
-
     setIsLocationModal(true);
     setLoading(true);
     setAddress('');
@@ -78,7 +94,6 @@ const Header = () => {
     Geolocation.getCurrentPosition(
       async position => {
         const { latitude, longitude } = position.coords;
-        console.log(LOG, 'Coords:', latitude, longitude);
 
         try {
           const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
@@ -89,42 +104,33 @@ const Header = () => {
           } else {
             setAddress('Unable to fetch address');
           }
-        } catch (err) {
+        } catch {
           setAddress('Address lookup failed');
         } finally {
           setLoading(false);
         }
       },
       error => {
-        console.log(LOG, 'GPS Error:', error.code, error.message);
-
         let msg = 'Unable to get location';
-
         if (error.code === 1) msg = 'Location permission denied';
         if (error.code === 2) msg = 'Location services are disabled';
         if (error.code === 3) msg = 'Location request timed out';
 
         setAddress(msg);
         setLoading(false);
-
         Alert.alert('Location Error', msg);
       },
       {
-        enableHighAccuracy: false, // 🔥 IMPORTANT for Android
+        enableHighAccuracy: false,
         timeout: 30000,
         maximumAge: 10000,
       },
     );
   };
 
-  /* ---------------- CLICK ---------------- */
   const onLocationPress = async () => {
-    console.log(LOG, 'Location icon pressed');
-
     const allowed = await checkLocationPermission();
-    if (allowed) {
-      getCurrentLocation();
-    }
+    if (allowed) getCurrentLocation();
   };
 
   return (
@@ -134,14 +140,21 @@ const Header = () => {
         <View style={styles.left}>
           <TouchableOpacity
             style={styles.profileWrapper}
-            onPress={() => navigation.navigate(ProfileNavigator)}
+            onPress={() => navigation.navigate('Profile')}
           >
             <Image
-              source={require('../../assets/profile.png')}
+              source={
+                profile?.selfie
+                  ? { uri: profile.selfie }
+                  : require('../../assets/profile/profileicon.png')
+              }
               style={styles.profileIcon}
             />
           </TouchableOpacity>
-          <Text style={styles.name}>Rajesh</Text>
+
+          <Text style={styles.name}>
+            {profile?.personalInfo?.fullName || '—'}
+          </Text>
         </View>
 
         <View style={styles.right}>
@@ -155,7 +168,10 @@ const Header = () => {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.rightIconWrapper} onPress={() => navigation.navigate("HelpCenterList")}>
+          <TouchableOpacity
+            style={styles.rightIconWrapper}
+            onPress={() => navigation.navigate('HelpCenterList')}
+          >
             <Image
               source={require('../../assets/help.png')}
               style={styles.rightIcon}
@@ -189,7 +205,7 @@ const Header = () => {
   );
 };
 
-/* ---------------- STYLES ---------------- */
+/* ---------------- STYLES (UNCHANGED) ---------------- */
 const styles = StyleSheet.create({
   container: {
     height: wp('14%'),
@@ -209,20 +225,23 @@ const styles = StyleSheet.create({
     width: wp('11%'),
     height: wp('11%'),
     borderRadius: wp('5.5%'),
+    overflow: 'hidden',
     backgroundColor: '#E5F3FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp('3%'),
   },
-  profileIcon: { width: wp('12%'), height: wp('12%') },
+  profileIcon: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
   right: { flexDirection: 'row' },
   rightIconWrapper: {
     width: wp('11%'),
     height: wp('11%'),
     borderRadius: wp('5%'),
     backgroundColor: '#E5F3FF',
-    paddingHorizontal: wp('3%'),
-    paddingVertical: wp('1.2%'),
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp('3%'),

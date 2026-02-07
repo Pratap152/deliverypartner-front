@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -28,138 +28,109 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [imageModal, setImageModal] = useState(false);
 
-  const fetchedOnce = useRef(false);
-
+  /* ---------------- FETCH PROFILE ---------------- */
   const fetchProfile = useCallback(async () => {
-  try {
-    if (!fetchedOnce.current) setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await apiClient.get("/api/profile/rider/profile");
-    const data = res.data?.data;
+      const res = await apiClient.get("/api/profile/rider/profile");
+      const data = res.data?.data;
 
-    if (!data) {
-      Alert.alert("Error", "Profile data is missing");
-      return;
-    } 
+      if (!data) {
+        Alert.alert("Error", "Profile data is missing");
+        return;
+      }
 
-    setProfile(data);
-
-    setForm({
-      fullName: data.personalInfo?.fullName || "",
-      email: data.personalInfo?.email || "",
-      dob: data.personalInfo?.dob || "",
-      phoneNumber: data.phone?.number || "",
-      countryCode: data.phone?.countryCode || "+91",
-      streetAddress: data.location?.streetAddress || "",
-      area: data.location?.area || "",
-      city: data.location?.city || "",
-      state: data.location?.state || "",
-      pincode: data.location?.pincode || "",
-      selfie: data.selfie || null,
-    });
-
-    fetchedOnce.current = true;
-  } catch (e) {
-    Alert.alert("Error", "Failed to fetch profile");
-  } finally {
-    setLoading(false);
-  }
-}, []);
-
+      setProfile(data);
+      setForm({
+        fullName: data.personalInfo?.fullName || "",
+        email: data.personalInfo?.email || "",
+        dob: data.personalInfo?.dob || "",
+        phoneNumber: data.phone?.number || "",
+        countryCode: data.phone?.countryCode || "+91",
+        streetAddress: data.location?.streetAddress || "",
+        area: data.location?.area || "",
+        city: data.location?.city || "",
+        state: data.location?.state || "",
+        pincode: data.location?.pincode || "",
+        selfie: data.selfie || null,
+      });
+    } catch (e) {
+      Alert.alert("Error", "Failed to fetch profile");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useFocusEffect(
-  useCallback(() => {
-    if (!fetchedOnce.current) {
+    useCallback(() => {
       fetchProfile();
-    }
-  }, [fetchProfile])
-);
-
+    }, [fetchProfile])
+  );
 
   /* ---------------- HELPERS ---------------- */
   const handleChange = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const pickImage = async () => {
-    console.log("FINAL SELFIE URI 👉", getSelfieUri(form.selfie));
+  const getSelfieUri = (selfie) => {
+    if (!selfie) return null;
+    if (typeof selfie === "string") return selfie;
+    if (typeof selfie === "object" && selfie.url) return selfie.url;
+    if (typeof selfie === "object" && selfie.uri) return selfie.uri;
+    return null;
+  };
 
-    const res = await launchImageLibrary({ mediaType: "photo", quality: 0.7 });
+  const pickImage = async () => {
+    const res = await launchImageLibrary({
+      mediaType: "photo",
+      quality: 0.7,
+    });
+
     if (!res.didCancel && res.assets?.length > 0) {
       handleChange("selfie", res.assets[0].uri);
     }
   };
 
+  /* ---------------- SAVE PROFILE ---------------- */
   const handleSave = async () => {
+    try {
+      setLoading(true);
 
-  try {
+      const formData = new FormData();
 
-    setLoading(true);
+      // keep keys same as your backend expects
+      formData.append("personalInfo[fullName]", form.fullName);
+      formData.append("personalInfo[email]", form.email);
+      formData.append("personalInfo[dob]", form.dob);
+      formData.append("phone[number]", form.phoneNumber);
+      formData.append("phone[countryCode]", form.countryCode);
+      formData.append("location[streetAddress]", form.streetAddress);
+      formData.append("location[area]", form.area);
+      formData.append("location[city]", form.city);
+      formData.append("location[state]", form.state);
+      formData.append("location[pincode]", form.pincode);
 
-    const formData = new FormData();
- 
-    formData.append("personalInfo[fullName]", form.fullName);
+      if (form.selfie && typeof form.selfie === "string") {
+        formData.append("selfie", {
+          uri: form.selfie,
+          name: "selfie.jpg",
+          type: "image/jpeg",
+        });
+      }
 
-    formData.append("personalInfo[email]", form.email);
-
-    formData.append("personalInfo[dob]", form.dob);
- 
-    formData.append("phone[number]", form.phoneNumber);
-
-    formData.append("phone[countryCode]", form.countryCode);
- 
-    formData.append("location[streetAddress]", form.streetAddress);
-
-    formData.append("location[area]", form.area);
-
-    formData.append("location[city]", form.city);
-
-    formData.append("location[state]", form.state);
-
-    formData.append("location[pincode]", form.pincode);
- 
-    if (form.selfie?.startsWith("file://")) {
-
-      formData.append("selfie", {
-
-        uri: form.selfie,
-
-        name: "selfie.jpg",
-
-        type: "image/jpeg",
-
+      await apiClient.put("/api/profile/update", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
+      Alert.alert("Success", "Profile updated successfully");
+      setIsEditing(false);
+      fetchProfile();
+    } catch (e) {
+      Alert.alert("Error", "Update failed");
+    } finally {
+      setLoading(false);
     }
- 
-    const res = await apiClient.put(
-
-      "/api/profile/update",
-
-      formData,
-
-      { headers: { "Content-Type": "multipart/form-data" } }
-
-    );
- 
-    Alert.alert("Success", "Profile updated successfully");
-
-    setIsEditing(false);
-
-    fetchProfile();
-
-  } catch (e) {
-
-    Alert.alert("Error", "Update failed");
-
-  } finally {
-
-    setLoading(false);
-
-  }
-
-};
-
- 
+  };
 
   if (loading && !profile) {
     return (
@@ -171,23 +142,9 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
   if (!profile || !form) return null;
 
-  const getSelfieUri = (selfie) => {
-  if (!selfie) return null;
+  const selfieUri = getSelfieUri(form.selfie);
 
-  // backend string URL
-  if (typeof selfie === "string") return selfie;
-
-  // backend object { url: "..." }
-  if (typeof selfie === "object" && selfie.url) return selfie.url;
-
-  // image picker object { uri: "file://..." }
-  if (typeof selfie === "object" && selfie.uri) return selfie.uri;
-
-  return null;
-};
-
-const selfieUri = getSelfieUri(form.selfie);
-
+  /* ================= UI BELOW (UNCHANGED) ================= */
 
   return (
     <View style={styles.container}>
@@ -202,7 +159,7 @@ const selfieUri = getSelfieUri(form.selfie);
         <TouchableOpacity
           onPress={() => {
             if (isEditing) fetchProfile();
-            setIsEditing(!isEditing);
+            setIsEditing((prev) => !prev);
           }}
         >
           <Text style={styles.editText}>
