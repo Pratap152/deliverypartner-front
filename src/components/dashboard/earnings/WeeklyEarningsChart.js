@@ -6,6 +6,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import { formatMoney } from '../../../utils/formatMoney';
 
 
 const PADDING = wp(4);
@@ -206,7 +207,7 @@ const maxValue =
           ]}
         >
           <Text style={styles.tooltipText}>
-            ₹{points[activeIndex].value}
+            ₹{formatMoney(points[activeIndex].value)}
           </Text>
         </View>
       )}
