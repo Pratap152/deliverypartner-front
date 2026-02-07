@@ -28,7 +28,7 @@ export const GRADIENTS = {
   completed: ['#22C55E', '#16A34A'],  // Green gradient
   missed: ['#3B82F6', '#3964c0'],     // Blue gradient
   cancelled: ['#F43F5E', '#b8314e'],  // Rose gradient
-  failed: ['#F59E0B', '#D97706'],     // Amber gradient
+  booked: ['#879901', '#a5ad69'],     // Amber gradient
 };
 
 

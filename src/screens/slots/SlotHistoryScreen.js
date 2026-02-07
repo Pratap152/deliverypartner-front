@@ -150,14 +150,14 @@ export default function SlotHistoryScreen({navigation}){
                 {/* SUMMARY */}
                 <View style={styles.summary_container}>
                     <LinearGradient
-                      colors={GRADIENTS.completed}
+                      colors={GRADIENTS.booked}
                       start={{ x: 0, y: 1 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.summaryGradient}
                     >
-                      <Text style={styles.summaryGradientLabel}>Completed</Text>
+                      <Text style={styles.summaryGradientLabel}>Booked</Text>
                       <Text style={styles.summaryGradientValue}>
-                        {summary?.completed ?? 0}
+                        {summary?.booked ?? 0}
                       </Text>
                   </LinearGradient>
 
@@ -191,14 +191,14 @@ export default function SlotHistoryScreen({navigation}){
 
 
                     <LinearGradient
-                      colors={GRADIENTS.failed}
+                      colors={GRADIENTS.completed}
                       start={{ x: 0, y: 1 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.summaryGradient}
                     >
-                      <Text style={styles.summaryGradientLabel}>Failed</Text>
+                      <Text style={styles.summaryGradientLabel}>Completed</Text>
                       <Text style={styles.summaryGradientValue}>
-                        {summary?.failed ?? 0}
+                        {summary?.completed ?? 0}
                       </Text>
                   </LinearGradient>
 
