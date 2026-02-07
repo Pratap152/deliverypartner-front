@@ -298,18 +298,52 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
             <View style={{ marginTop: 10, marginBottom: 30 }}>
               {ui.secondaryButtons.map((button, index) => (
+                // <TouchableOpacity
+                //   key={index}
+                //   style={styles.secondaryButton}
+                //   onPress={() => {
+                //     if (button.action === 'openModal') {
+                //       setShowCustomerModal(true);
+                //     }
+                //   }}
+                // >
+                //   <Text style={styles.secondaryButtonText}>{button.label}</Text>
+                //   <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
+                // </TouchableOpacity>
                 <TouchableOpacity
-                  key={index}
-                  style={styles.secondaryButton}
-                  onPress={() => {
-                    if (button.action === 'openModal') {
-                      setShowCustomerModal(true);
-                    }
-                  }}
-                >
-                  <Text style={styles.secondaryButtonText}>{button.label}</Text>
-                  <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
-                </TouchableOpacity>
+  key={index}
+  style={styles.customerIssueButton}
+  activeOpacity={0.85}
+  onPress={() => {
+    if (button.action === 'openModal') {
+      setShowCustomerModal(true);
+    }
+  }}
+>
+  <View style={styles.issueLeft}>
+    <View style={styles.issueIconCircle}>
+      <MaterialCommunityIcons
+        name="alert-circle-outline"
+        size={22}
+        color="#F7931E"
+      />
+    </View>
+
+    <View>
+      <Text style={styles.issueTitle}>Customer Not Responding</Text>
+      <Text style={styles.issueSubtitle}>
+        Try calling or report issue
+      </Text>
+    </View>
+  </View>
+
+  <MaterialCommunityIcons
+    name="chevron-right"
+    size={22}
+    color="#999"
+  />
+</TouchableOpacity>
+
               ))}
             </View>
           )}
@@ -533,5 +567,43 @@ const styles = StyleSheet.create({
     paddingBottom: hp('4%'),
     paddingTop: hp('2%'),
   },
+customerIssueButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingVertical: hp('2%'),
+  paddingHorizontal: wp('4%'),
+  borderRadius: wp('4%'),
+  backgroundColor: '#FFF7EC',
+  borderWidth: 1,
+  borderColor: '#FAD7A0',
+},
+
+issueLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+issueIconCircle: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: '#FFF1DC',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: wp('3%'),
+},
+
+issueTitle: {
+  fontSize: wp('3.8%'),
+  fontWeight: '700',
+  color: '#8A4B08',
+},
+
+issueSubtitle: {
+  marginTop: hp('0.3%'),
+  fontSize: wp('3.2%'),
+  color: '#B9770E',
+},
 
 });
