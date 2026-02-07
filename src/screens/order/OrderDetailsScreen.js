@@ -334,7 +334,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.centerModalCard}>
             <CustomerNotResponding
-              duration={30}
+              duration={10}
               onCallPress={() => {
                 Alert.alert("Call", "Calling customer...");
               }}

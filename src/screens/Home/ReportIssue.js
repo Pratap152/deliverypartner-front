@@ -14,33 +14,87 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { orderService } from "../../services/order/OrderService";
+  const REASONS = [
+  "Customer not answering calls",
+  "Customer phone switched off",
+  "Wrong contact number provided",
+  "Customer not reachable at location",
+  "Customer rejected the call",
+  "Network issue while calling customer",
+  "Other",
+];
 
-export default function ReportIssue({
-  reasons = [
-    "Customer not answering calls",
-    "Customer phone switched off",
-    "Wrong contact number provided",
-    "Customer not reachable at location",
-    "Customer rejected the call",
-    "Network issue while calling customer",
-    "Other",
-  ],
-  onSubmit,
-}) {
+const REASON_CODE_MAP = {
+  "Customer not answering calls": "CUSTOMER_NOT_RESPONDING",
+  "Customer phone switched off": "CUSTOMER_NOT_RESPONDING",
+  "Wrong contact number provided": "INVALID_CONTACT",
+  "Customer not reachable at location": "CUSTOMER_NOT_REACHABLE",
+  "Customer rejected the call": "CUSTOMER_REJECTED_CALL",
+  "Network issue while calling customer": "NETWORK_ISSUE",
+  "Other": "OTHER",
+};
+
+export default function ReportIssue({ route, navigation }) {
+  const { orderId } = route.params;
+
+
   const [selectedReason, setSelectedReason] = useState("");
   const [notes, setNotes] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleSubmit = () => {
-    if (!selectedReason) return;
+  // const handleSubmit = () => {
+  //   if (!selectedReason) return;
 
-    const payload = { reason: selectedReason, notes };
-    onSubmit ? onSubmit(payload) : console.log(payload);
-    Alert.alert("Success", "Issue submitted successfully");
+  //   const payload = { reason: selectedReason, notes };
+  //   onSubmit ? onSubmit(payload) : console.log(payload);
+  //   Alert.alert("Success", "Issue submitted successfully");
 
-       setSelectedReason("");
-        setNotes("");
-  };
+  //      setSelectedReason("");
+  //       setNotes("");
+  // };
+
+  const handleSubmit = async () => {
+  if (!selectedReason) return;
+
+  try {
+    const reasonCode =
+      REASON_CODE_MAP[selectedReason] || "OTHER";
+
+    const reasonText =
+      notes?.trim() || selectedReason;
+
+    const res = await orderService.cancelOrder(
+      orderId,
+      reasonCode,
+      reasonText
+    );
+
+    Alert.alert(
+      "Order Cancelled",
+      res.message || "Order cancelled successfully",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "HomeDashboard" }], // or Orders screen
+            });
+          },
+        },
+      ]
+    );
+  } catch (error) {
+    console.error("Cancel order error:", error);
+
+    const msg =
+      error.response?.data?.message ||
+      "Unable to report issue. Please try again.";
+
+    Alert.alert("Error", msg);
+  }
+};
 
   const isDisabled = !selectedReason;
 
@@ -121,18 +175,19 @@ export default function ReportIssue({
         >
           <View style={styles.dropdownContainer}>
             <ScrollView>
-              {reasons.map((item, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedReason(item);
-                    setShowDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownText}>{item}</Text>
-                </TouchableOpacity>
-              ))}
+             {REASONS.map((item, index) => (
+  <TouchableOpacity
+    key={index}
+    style={styles.dropdownItem}
+    onPress={() => {
+      setSelectedReason(item);
+      setShowDropdown(false);
+    }}
+  >
+    <Text style={styles.dropdownText}>{item}</Text>
+  </TouchableOpacity>
+))}
+
             </ScrollView>
           </View>
         </TouchableOpacity>

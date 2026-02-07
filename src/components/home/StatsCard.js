@@ -71,7 +71,7 @@ const StatsCard = () => {
       <View style={styles.row}>
         <StatItem
           icon="trending-up"
-          value={formatMoney(todayEarnings.totalEarnings ?? 0)}
+          value={`₹${formatMoney(todayEarnings.totalEarnings ?? 0)}`}
           label="Earnings"
           bgColor="#2ECC71" // green
           screen={EarningsNavigator}

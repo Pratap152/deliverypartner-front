@@ -24,24 +24,31 @@ const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
   const {data} = useEarningsDashboard();
   const {weeklyTotal = 0,weeklyOrders=0 }= data;
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>This Week</Text>
-        <TouchableOpacity onPress={()=>navigation.navigate('EarningsNavigator', {
+    <TouchableOpacity onPress={()=>navigation.navigate('EarningsNavigator', {
                                                                 screen: 'EarningsHistoryScreen',
                                                                 params: { mode: 'WEEK' }
                                                               })
                                                             }>
-          <Text style={styles.link}>View Details</Text>
-        </TouchableOpacity>
-      </View>
+      <View style={styles.container}>
+        {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>This Week</Text>
+            <TouchableOpacity onPress={()=>navigation.navigate('EarningsNavigator', {
+                                                                    screen: 'EarningsHistoryScreen',
+                                                                    params: { mode: 'WEEK' }
+                                                                  })
+                                                                }>
+              <Text style={styles.link}>View Details</Text>
+            </TouchableOpacity>
+          </View>
+        
 
-      {/* Stats */}
-      <StatRow label="Total Earnings" value={formatMoney(weeklyTotal)}  />
-      <StatRow label="Orders Delivered" value={weeklyOrders}  />
-      <StatRow label="Online Hours" value={hours}  />
-    </View>
+        {/* Stats */}
+        <StatRow label="Total Earnings" value={`₹${formatMoney(weeklyTotal)}`}  />
+        <StatRow label="Orders Delivered" value={weeklyOrders}  />
+        <StatRow label="Online Hours" value={hours}  />
+      </View>
+    </TouchableOpacity>
   );
 };
 

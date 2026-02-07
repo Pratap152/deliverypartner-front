@@ -75,12 +75,40 @@ export const RiderProvider = ({ children }) => {
         console.log("📩 Parsed data:", JSON.stringify(data, null, 2));
         console.log("📩 Message type:", data.type);
 
+        // if (data.type === "ORDER_POPUP") {
+        //   console.log("🔔 ORDER_POPUP received! Adding to queue...");
+        //   addOrderToQueue(data);
+        // } else {
+        //   console.log("📩 Unknown message type, ignoring:", data.type);
+        // }
         if (data.type === "ORDER_POPUP") {
-          console.log("🔔 ORDER_POPUP received! Adding to queue...");
-          addOrderToQueue(data);
-        } else {
-          console.log("📩 Unknown message type, ignoring:", data.type);
-        }
+  console.log("🔔 ORDER_POPUP received! Adding to queue...");
+  addOrderToQueue(data);
+
+} else if (data.type === "ORDER_CANCELLED") {
+  console.log("🚫 ORDER_CANCELLED received:", data.orderId);
+
+  // 1️⃣ Remove from queue if it exists
+  removeOrderFromQueue(data.orderId);
+
+  // 2️⃣ Clear expanded order if needed
+  setExpandedOrderId(prev =>
+    prev === data.orderId ? null : prev
+  );
+
+  // 3️⃣ Optional: Notify rider
+  Alert.alert(
+    "Order Cancelled",
+    "Order was cancelled by the system.",
+  );
+
+  // 4️⃣ Optional: Force navigation away from order flow
+  navigate("HomeDashboard"); // <-- MUST exist in navigator
+
+} else {
+  console.log("📩 Unknown message type, ignoring:", data.type);
+}
+
       } catch (e) {
         console.log("🔴 WS message parse error:", e);
         console.log("🔴 Raw data that failed:", event.data);

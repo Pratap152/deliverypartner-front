@@ -48,20 +48,39 @@ export const orderUIConfig = {
     navigateTo: 'QRScannerScreen',
   },
 
-  AT_DROP: {
-    showMap: false, // Map Hidden
-    headerIcon: 'call',
-    bottomButtons: [
-      {
-        label: 'Order Delivered',
-        type: 'primary',
-        nextStatus: 'ORDER_DELIVERED',
-      },
-    ],
-  },
+  // AT_DROP: {
+  //   showMap: false, // Map Hidden
+  //   headerIcon: 'call',
+  //   bottomButtons: [
+  //     {
+  //       label: 'Order Delivered',
+  //       type: 'primary',
+  //       nextStatus: 'ORDER_DELIVERED',
+  //     },
+  //   ],
+  // },
 
-  ORDER_DELIVERED: {
-    bottomButtons: [],
-    // triggering navigation to Success screen handled in component
-  },
+  // ORDER_DELIVERED: {
+  //   bottomButtons: [],
+  //   // triggering navigation to Success screen handled in component
+  // },
+  AT_DROP: {
+  showMap: false,
+  headerIcon: 'call',
+
+  secondaryButtons: [
+    {
+      label: 'Customer not responding',
+      action: 'openModal',
+    },
+  ],
+
+  bottomButtons: [
+    {
+      label: 'Order Delivered',
+      type: 'primary',
+      nextStatus: 'ORDER_DELIVERED',
+    },
+  ],
+},
 };
