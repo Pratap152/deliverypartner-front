@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity,Linking} from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -16,21 +16,34 @@ export default function CustomerNotResponding({
 }) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
-  useEffect(() => {
-    if (timeLeft <= 0) return;
+   useEffect(() => {
+    setTimeLeft(duration);
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) return 0;
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [duration]);
+
 
   const progress =
     CIRCUMFERENCE - (timeLeft / duration) * CIRCUMFERENCE;
+  const isDisabled = timeLeft !== 0;
+
+  // 📞 Call dialer
+  const handleCallCustomer = () => {
+    const fakeNumber = "tel:9876543210";
+    Linking.openURL(fakeNumber).catch(() => {
+      console.log("Unable to open dialer");
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -69,29 +82,24 @@ export default function CustomerNotResponding({
       <Text style={styles.subText}>Wait for {duration} Seconds</Text>
 
       {/* Buttons */}
-<TouchableOpacity
-  style={[
-    styles.callBtn,
-    timeLeft !== 0 && styles.disabledBtn
-  ]}
-  disabled={timeLeft !== 0}
-  onPress={onCallPress}
->
-  <Ionicons name="call-outline" size={18} color="#fff" />
-  <Text style={styles.btnText}>Call Customer</Text>
-</TouchableOpacity>
-
-<TouchableOpacity
-  style={[
-    styles.issueBtn,
-    timeLeft !== 0 && styles.disabledBtn
-  ]}
-  disabled={timeLeft !== 0}
-  onPress={onMarkIssuePress}
->
-  <Ionicons name="alert-circle-outline" size={18} color="#fff" />
-  <Text style={styles.btnText}>Mark as Issue</Text>
-</TouchableOpacity>
+    {/* Call Button */}
+      <TouchableOpacity
+        style={[styles.callBtn, isDisabled && styles.disabledBtn]}
+        disabled={isDisabled}
+        onPress={handleCallCustomer}
+      >
+        <Ionicons name="call-outline" size={18} color="#fff" />
+        <Text style={styles.btnText}>Call Customer</Text>
+      </TouchableOpacity>
+      {/* Mark Issue Button */}
+      <TouchableOpacity
+        style={[styles.issueBtn, isDisabled && styles.disabledBtn]}
+        disabled={isDisabled}
+        onPress={onMarkIssuePress}
+      >
+        <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+        <Text style={styles.btnText}>Mark as Issue</Text>
+      </TouchableOpacity>
 
     </View>
   );
@@ -152,6 +160,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
   },
+disabledBtn: {
+  opacity: 0.4,
+},
 
   btnText: {
     color: "#fff",

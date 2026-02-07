@@ -8,6 +8,7 @@ import {
   Alert,
   ScrollView,
   Modal,
+  ActivityIndicator
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
@@ -15,7 +16,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { orderService } from "../../services/order/OrderService";
-  const REASONS = [
+const REASONS = [
   "Customer not answering calls",
   "Customer phone switched off",
   "Wrong contact number provided",
@@ -42,61 +43,55 @@ export default function ReportIssue({ route, navigation }) {
   const [selectedReason, setSelectedReason] = useState("");
   const [notes, setNotes] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-
-  // const handleSubmit = () => {
-  //   if (!selectedReason) return;
-
-  //   const payload = { reason: selectedReason, notes };
-  //   onSubmit ? onSubmit(payload) : console.log(payload);
-  //   Alert.alert("Success", "Issue submitted successfully");
-
-  //      setSelectedReason("");
-  //       setNotes("");
-  // };
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-  if (!selectedReason) return;
+    if (!selectedReason || submitting) return;
 
-  try {
-    const reasonCode =
-      REASON_CODE_MAP[selectedReason] || "OTHER";
+    try {
+      setSubmitting(true);
 
-    const reasonText =
-      notes?.trim() || selectedReason;
+      const reasonCode =
+        REASON_CODE_MAP[selectedReason] || "OTHER";
 
-    const res = await orderService.cancelOrder(
-      orderId,
-      reasonCode,
-      reasonText
-    );
+      const reasonText =
+        notes?.trim() || selectedReason;
 
-    Alert.alert(
-      "Order Cancelled",
-      res.message || "Order cancelled successfully",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "HomeDashboard" }], // or Orders screen
-            });
+      const res = await orderService.cancelOrder(
+        orderId,
+        reasonCode,
+        reasonText
+      );
+
+      Alert.alert(
+        "Order Cancelled",
+        res.message || "Order cancelled successfully",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainTabs" }],
+              });
+            },
           },
-        },
-      ]
-    );
-  } catch (error) {
-    console.error("Cancel order error:", error);
+        ]
+      );
+    } catch (error) {
+      console.error("Cancel order error:", error);
 
-    const msg =
-      error.response?.data?.message ||
-      "Unable to report issue. Please try again.";
+      const msg =
+        error.response?.data?.message ||
+        "Unable to report issue. Please try again.";
 
-    Alert.alert("Error", msg);
-  }
-};
+      Alert.alert("Error", msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  const isDisabled = !selectedReason;
+  const isDisabled = !selectedReason || submitting;
 
   return (
     <View style={styles.mainContainer}>
@@ -155,15 +150,20 @@ export default function ReportIssue({ route, navigation }) {
           disabled={isDisabled}
           onPress={handleSubmit}
         >
-          <Text
-            style={[
-              styles.submitText,
-              isDisabled && styles.disabledText,
-            ]}
-          >
-            Submit Issue
-          </Text>
+          {submitting ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text
+              style={[
+                styles.submitText,
+                isDisabled && styles.disabledText,
+              ]}
+            >
+              Submit Issue
+            </Text>
+          )}
         </TouchableOpacity>
+
       </View>
 
       {/* DROPDOWN MODAL */}
@@ -175,18 +175,18 @@ export default function ReportIssue({ route, navigation }) {
         >
           <View style={styles.dropdownContainer}>
             <ScrollView>
-             {REASONS.map((item, index) => (
-  <TouchableOpacity
-    key={index}
-    style={styles.dropdownItem}
-    onPress={() => {
-      setSelectedReason(item);
-      setShowDropdown(false);
-    }}
-  >
-    <Text style={styles.dropdownText}>{item}</Text>
-  </TouchableOpacity>
-))}
+              {REASONS.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedReason(item);
+                    setShowDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>{item}</Text>
+                </TouchableOpacity>
+              ))}
 
             </ScrollView>
           </View>
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    padding:5,
+    padding: 5,
   },
 
   scrollContent: {
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: "#10B7C4",
     paddingVertical: hp("2.2%"),
-    marginVertical:hp("2%"),
+    marginVertical: hp("2%"),
     borderRadius: wp("8%"),
     alignItems: "center",
   },

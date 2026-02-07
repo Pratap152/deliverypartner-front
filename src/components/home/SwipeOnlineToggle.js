@@ -4,7 +4,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-
+import ShiftStartedBanner from './ShiftStartedBanner'
 const SWIPE_WIDTH = wp("87%");
 const TRACK_HEIGHT = hp("7.5%");
 const THUMB_SIZE = hp("6.5%");
@@ -147,6 +147,7 @@ const SwipeOnlineToggle = ({
           </Animated.View>
         )}
       </View>
+      {isOnline && <ShiftStartedBanner/>}
     </View>
   );
 };

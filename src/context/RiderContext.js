@@ -103,7 +103,7 @@ export const RiderProvider = ({ children }) => {
   );
 
   // 4️⃣ Optional: Force navigation away from order flow
-  navigate("HomeDashboard"); // <-- MUST exist in navigator
+  navigate("MainTabs"); // <-- MUST exist in navigator
 
 } else {
   console.log("📩 Unknown message type, ignoring:", data.type);
