@@ -1,10 +1,21 @@
 // src/modules/slots/slots.hooks.js
 export function formatWeeks(apiWeeks = []) {
-  return apiWeeks.map((item) => ({
-    date: item.date,                 // "2025-12-01"
-    label: item.dayName,             // "Mon", "Tue"
-    day: new Date(item.date).getDate().toString(), // "1", "2"
-  }));
+  // Get today's date at midnight (no time component) for accurate comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  return apiWeeks
+    .filter((item) => {
+      // Parse the date string and compare (exclude dates strictly before today)
+      const itemDate = new Date(item.date);
+      itemDate.setHours(0, 0, 0, 0);
+      return itemDate >= today;
+    })
+    .map((item) => ({
+      date: item.date,                 // "2025-12-01"
+      label: item.dayName,             // "Mon", "Tue"
+      day: new Date(item.date).getDate().toString(), // "1", "2"
+    }));
 }
 
 import { useState } from "react";
@@ -57,7 +68,50 @@ export function useSlots() {
       console.log("loadSlotsApi exited....", slotsRes?.data);
 
       if (slotsRes.data?.success) {
-        setSlots(slotsRes.data.data);
+        const slotDate = slotsRes.data.date; // e.g., "2026-02-01"
+        let filteredSlots = slotsRes.data.data;
+
+        // Only filter by time if the slot date is today
+        if (slotDate) {
+          const today = new Date();
+          const slotDateObj = new Date(slotDate);
+          
+          // Compare dates (ignore time component)
+          const isToday =
+            today.getFullYear() === slotDateObj.getFullYear() &&
+            today.getMonth() === slotDateObj.getMonth() &&
+            today.getDate() === slotDateObj.getDate();
+
+          if (isToday) {
+            // Filter out slots where endTime has already passed
+            const currentTime = new Date();
+            const currentHours = currentTime.getHours();
+            const currentMinutes = currentTime.getMinutes();
+
+            filteredSlots = filteredSlots.filter((slot) => {
+              // Parse endTime (format: "HH:MM" or "HH:mm")
+              const endTime = slot.endTime;
+              if (!endTime) return true; // Keep slot if no endTime
+
+              // Handle "24:00" as midnight (next day)
+              let [endHours, endMinutes] = endTime.split(":").map(Number);
+              if (endHours === 24) {
+                endHours = 23;
+                endMinutes = 59;
+              }
+
+              // Compare: keep slot if endTime is in the future
+              if (endHours > currentHours) {
+                return true;
+              } else if (endHours === currentHours && endMinutes > currentMinutes) {
+                return true;
+              }
+              return false;
+            });
+          }
+        }
+
+        setSlots(filteredSlots);
       }
     } catch (err) {
       console.log("loadSlots error:", err?.response?.data || err.message);
