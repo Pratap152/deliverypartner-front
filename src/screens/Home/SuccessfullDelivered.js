@@ -14,7 +14,7 @@ import {
 
 export default function SuccessfullDelivered({ route, navigation }) {
   const { amount, codCollected, orderId } = route.params || {};
-
+  const roundedAmount = Math.round(amount || 0);
   console.log('🎉 [SuccessfulDelivered] Received params:', {
     amount,
     codCollected,
@@ -34,7 +34,7 @@ export default function SuccessfullDelivered({ route, navigation }) {
 
       <View style={styles.earningsCard}>
         <Text style={styles.earningsTitle}>Earnings Added</Text>
-        <Text style={styles.amount}>₹{amount || 0}</Text>
+        <Text style={styles.amount}>₹{roundedAmount}</Text>
 
         {codCollected > 0 && (
           <>

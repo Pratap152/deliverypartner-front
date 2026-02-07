@@ -99,7 +99,7 @@ export default function CustomerNotResponding({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: "100%",
     backgroundColor: "#fff",
     alignItems: "center",
     paddingTop: 40,
