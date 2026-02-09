@@ -28,8 +28,35 @@ import apiClient from '../../services/ApiClient';
 const PAGE_SIZE = 10;
 const getCacheKey = filter => `SLOT_HISTORY_CACHE_${filter}`;
 
-/* ================= MEMORY CACHE (FASTEST) ================= */
 let memoryCache = {};
+
+/* ===== STATUS CONFIG OUTSIDE COMPONENT (perf safe) ===== */
+const STATUS_CONFIG = {
+  COMPLETED: {
+    label: 'Completed',
+    bgColor: '#DCFCE7',
+    textColor: '#008236',
+    icon: 'checkmark-circle',
+  },
+  ACTIVE: {
+    label: 'Active',
+    bgColor: '#DBEAFE',
+    textColor: '#1447E6',
+    icon: 'time-outline',
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    bgColor: '#FFE2E2',
+    textColor: '#C10007',
+    icon: 'close-circle',
+  },
+  MISSED: {
+    label: 'Missed',
+    bgColor: '#FFEDD4',
+    textColor: '#CA3500',
+    icon: 'alert-circle',
+  },
+};
 
 const SlotHistory = ({ navigation }) => {
   const [slots, setSlots] = useState([]);
@@ -45,13 +72,15 @@ const SlotHistory = ({ navigation }) => {
   const [initialRendered, setInitialRendered] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  /* ⭐ NEW STATES */
+  const [filterLoading, setFilterLoading] = useState(false);
+  const requestIdRef = useRef(0);
+
   const isFetchingRef = useRef(false);
 
-  /* ================= LOAD CACHE (MEMORY → STORAGE) ================= */
-
+  /* ================= CACHE LOAD ================= */
   useEffect(() => {
     const loadCache = async () => {
-      // 1️⃣ MEMORY CACHE (instant)
       if (memoryCache[activeFilter]) {
         setSlots(memoryCache[activeFilter].slots);
         setSummary(memoryCache[activeFilter].summary);
@@ -59,17 +88,18 @@ const SlotHistory = ({ navigation }) => {
         return;
       }
 
-      // 2️⃣ ASYNC STORAGE (fallback)
       try {
-        const cached = await AsyncStorage.getItem(getCacheKey(activeFilter));
+        const cached = await AsyncStorage.getItem(
+          getCacheKey(activeFilter),
+        );
         if (cached) {
           const parsed = JSON.parse(cached);
           memoryCache[activeFilter] = parsed;
           setSlots(parsed.slots || []);
           setSummary(parsed.summary || { totalSlots: 0, totalEarnings: 0 });
         }
-      } catch (e) {
-      } finally {
+      } catch {}
+      finally {
         setInitialRendered(true);
       }
     };
@@ -77,17 +107,21 @@ const SlotHistory = ({ navigation }) => {
     loadCache();
   }, [activeFilter]);
 
-  /* ================= API ================= */
+  /* ================= FETCH ================= */
 
   const fetchSlotHistory = useCallback(
     async (filterType, pageNo = 1, isRefresh = false) => {
       if (isFetchingRef.current) return;
       if (!hasMore && pageNo !== 1) return;
 
+      const reqId = ++requestIdRef.current;
       isFetchingRef.current = true;
 
       try {
-        // 🔥 Do NOT block UI if cached data exists
+        if (pageNo === 1 && !isRefresh) {
+          setFilterLoading(true);
+        }
+
         if (pageNo === 1 && !isRefresh && slots.length === 0) {
           setListLoading(true);
         }
@@ -100,29 +134,40 @@ const SlotHistory = ({ navigation }) => {
           },
         });
 
-        if (!res.data?.success) throw new Error('API_FAILED');
+        if (reqId !== requestIdRef.current) return;
+
+        if (!res.data?.success) throw new Error();
 
         const newData = res.data.data || [];
 
         setSlots(prev => {
-          const updated = pageNo === 1 ? newData : [...prev, ...newData];
+          const merged =
+            pageNo === 1 ? newData : [...prev, ...newData];
+
+          /* ✅ DEDUP SAFE */
+          const unique = Object.values(
+            merged.reduce((acc, item) => {
+              acc[item.slotBookingId] = item;
+              return acc;
+            }, {})
+          );
 
           const cachePayload = {
-            slots: updated,
+            slots: unique,
             summary: {
               totalSlots: Number(res.data.totalSlots ?? 0),
               totalEarnings: Number(res.data.totalEarnings ?? 0),
             },
           };
 
-          // 🔥 Update both caches
           memoryCache[filterType] = cachePayload;
+
           AsyncStorage.setItem(
             getCacheKey(filterType),
             JSON.stringify(cachePayload),
           );
 
-          return updated;
+          return unique;
         });
 
         setSummary({
@@ -135,6 +180,10 @@ const SlotHistory = ({ navigation }) => {
       } catch (e) {
         Alert.alert('Error', 'Unable to fetch the data');
       } finally {
+        if (reqId === requestIdRef.current) {
+          setFilterLoading(false);
+        }
+
         isFetchingRef.current = false;
         setListLoading(false);
         setRefreshing(false);
@@ -144,15 +193,11 @@ const SlotHistory = ({ navigation }) => {
     [hasMore, slots.length],
   );
 
-  /* ================= FETCH ON FILTER CHANGE ================= */
-
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     fetchSlotHistory(activeFilter, 1);
   }, [activeFilter]);
-
-  /* ================= PULL TO REFRESH ================= */
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -161,7 +206,7 @@ const SlotHistory = ({ navigation }) => {
     fetchSlotHistory(activeFilter, 1, true);
   };
 
-  /* ================= GROUP DATA ================= */
+  /* ================= GROUPING ================= */
 
   const groupedSlots = useMemo(() => {
     return slots.reduce((acc, slot) => {
@@ -177,9 +222,13 @@ const SlotHistory = ({ navigation }) => {
     }, {});
   }, [slots]);
 
-  const sortedDates = useMemo(() => {
-    return Object.keys(groupedSlots).sort((a, b) => new Date(b) - new Date(a));
-  }, [groupedSlots]);
+  const sortedDates = useMemo(
+    () =>
+      Object.keys(groupedSlots).sort(
+        (a, b) => new Date(b) - new Date(a),
+      ),
+    [groupedSlots],
+  );
 
   const flatData = useMemo(() => {
     if (!sortedDates.length) return [];
@@ -193,7 +242,7 @@ const SlotHistory = ({ navigation }) => {
     ]);
   }, [sortedDates, groupedSlots]);
 
-  /* ================= DATE HELPERS ================= */
+  /* ================= HELPERS ================= */
 
   const formatDateMMDDYYYY = date => {
     const d = new Date(date);
@@ -231,36 +280,7 @@ const SlotHistory = ({ navigation }) => {
     });
   };
 
-  /* ================= STATUS ================= */
-
-  const STATUS_CONFIG = {
-    COMPLETED: {
-      label: 'Completed',
-      bgColor: '#DCFCE7',
-      textColor: '#008236',
-      icon: 'checkmark-circle',
-    },
-    ACTIVE: {
-      label: 'Active',
-      bgColor: '#DBEAFE',
-      textColor: '#1447E6',
-      icon: 'time-outline',
-    },
-    CANCELLED: {
-      label: 'Cancelled',
-      bgColor: '#FFE2E2',
-      textColor: '#C10007',
-      icon: 'close-circle',
-    },
-    MISSED: {
-      label: 'Missed',
-      bgColor: '#FFEDD4',
-      textColor: '#CA3500',
-      icon: 'alert-circle',
-    },
-  };
-
-  /* ================= RENDER ITEM ================= */
+  /* ================= RENDER ================= */
 
   const renderItem = useCallback(({ item }) => {
     if (item.type === 'header') {
@@ -284,8 +304,7 @@ const SlotHistory = ({ navigation }) => {
           </Text>
 
           <View
-            style={[styles.statusBadge, { backgroundColor: status.bgColor }]}
-          >
+            style={[styles.statusBadge, { backgroundColor: status.bgColor }]}>
             <Ionicons
               name={status.icon}
               size={rf(1.6)}
@@ -300,13 +319,15 @@ const SlotHistory = ({ navigation }) => {
 
         <View style={[styles.rowBetween, { marginTop: rh(0.6) }]}>
           <Text style={styles.subText}>Orders: {item.totalOrders}</Text>
-          <Text style={styles.earningText}>Earnings: ₹{item.slotEarnings}</Text>
+          <Text style={styles.earningText}>
+            Earnings: ₹{item.slotEarnings}
+          </Text>
         </View>
       </View>
     );
   }, []);
 
-  /* ================= UI (UNCHANGED) ================= */
+  /* ================= UI ================= */
 
   return (
     <View style={styles.container}>
@@ -324,7 +345,7 @@ const SlotHistory = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* BANNER (FILTERS + SUMMARY) */}
+      {/* FILTER + SUMMARY */}
       <View style={{ padding: rw(4) }}>
         <View style={styles.filterRow}>
           {[
@@ -342,14 +363,12 @@ const SlotHistory = ({ navigation }) => {
               onPress={() => {
                 if (activeFilter === item.value) return;
                 setActiveFilter(item.value);
-              }}
-            >
+              }}>
               <Text
                 style={[
                   styles.filterText,
                   activeFilter === item.value && styles.activeFilterText,
-                ]}
-              >
+                ]}>
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -371,13 +390,14 @@ const SlotHistory = ({ navigation }) => {
               source={require('../../assets/profile/SEarnings.png')}
               style={styles.summaryIcon}
             />
-            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
+            <Text style={styles.summaryValue}>
+              ₹{summary.totalEarnings}
+            </Text>
             <Text style={styles.summaryLabel}>Total Earnings</Text>
           </View>
         </View>
       </View>
 
-      {/* LIST */}
       <FlatList
         data={flatData}
         keyExtractor={item => item.id}
@@ -403,19 +423,32 @@ const SlotHistory = ({ navigation }) => {
         }
         ListEmptyComponent={
           initialRendered && (
-            <Text
-              style={{ textAlign: 'center', marginTop: rh(4), color: '#777' }}
-            >
+            <Text style={{ textAlign: 'center', marginTop: rh(4), color: '#777' }}>
               No slots found
             </Text>
           )
         }
       />
+
+      {/* ⭐ FILTER LOADER OVERLAY */}
+      {filterLoading && (
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: 'rgba(255,255,255,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999,
+          }}>
+          <ActivityIndicator size="large" />
+        </View>
+      )}
     </View>
   );
 };
 
 export default SlotHistory;
+
 
 /* ================= STYLES (UNCHANGED) ================= */
 
