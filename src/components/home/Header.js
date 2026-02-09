@@ -23,7 +23,10 @@ import {
   openSettings,
 } from 'react-native-permissions';
 
-import apiClient from '../../services/ApiClient';
+// import apiClient from '../../services/ApiClient';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProfile } from '../../redux/slices/profileSlice';
+
 
 const LOG = '[HEADER-LOCATION]';
 
@@ -35,37 +38,46 @@ const Header = () => {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
 
-  /* 🔥 PROFILE STATE */
-  const [profile, setProfile] = useState(null);
+  /*  PROFILE STATE */
+  // const [profile, setProfile] = useState(null);
+  const dispatch = useDispatch();
+  const { data: profile } = useSelector(state => state.profile);
+
   const getSelfieUri = (selfie) => {
-  if (!selfie) return null;
- 
-  // backend string URL
-  if (typeof selfie === 'string') return selfie;
- 
-  // backend object { url }
-  if (typeof selfie === 'object' && selfie.url) return selfie.url;
- 
-  return null;
-};
+    if (!selfie) return null;
+
+    // backend string URL
+    if (typeof selfie === 'string') return selfie;
+
+    // backend object { url }
+    if (typeof selfie === 'object' && selfie.url) return selfie.url;
+
+    return null;
+  };
   const selfieUri = getSelfieUri(profile?.selfie);
 
   /* ---------------- FETCH PROFILE (SAME AS PROFILE SCREEN) ---------------- */
-  const fetchProfile = async () => {
-    try {
-      const res = await apiClient.get('/api/profile/rider/profile');
-      setProfile(res.data?.data);
-    } catch (e) {
-      console.log('Header profile fetch error', e);
-    }
-  };
+  // const fetchProfile = async () => {
+  //   try {
+  //     const res = await apiClient.get('/api/profile/rider/profile');
+  //     setProfile(res.data?.data);
+  //   } catch (e) {
+  //     console.log('Header profile fetch error', e);
+  //   }
+  // };
 
-  /* 🔥 AUTO REFRESH WHEN SCREEN FOCUSES */
+  /* AUTO REFRESH WHEN SCREEN FOCUSES */
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchProfile();
+  //   }, [])
+  // );
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-    }, [])
+      dispatch(fetchProfile());
+    }, [dispatch])
   );
+
 
   /* ---------------- PERMISSION ---------------- */
   const checkLocationPermission = async () => {
@@ -155,12 +167,12 @@ const Header = () => {
             onPress={() => navigation.navigate('Profile')}
           >
             <Image
-  source={
-    selfieUri
-      ? { uri: selfieUri }
-      : require('../../assets/profile/profileicon.png')
-  }
-  
+              source={
+                selfieUri
+                  ? { uri: selfieUri }
+                  : require('../../assets/profile/profileicon.png')
+              }
+
               style={styles.profileIcon}
             />
           </TouchableOpacity>

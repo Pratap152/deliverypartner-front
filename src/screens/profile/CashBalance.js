@@ -31,20 +31,16 @@ export default function CashBalanceScreen({ navigation }) {
 
       const formattedData = {
         cashSummary: apiData.cashSummary,
-
         lastDeposit: {
           amount: apiData.latestDeposit || 0,
           date: apiData.latestDeposit
             ? "Last deposit recorded"
             : "No deposits yet",
         },
-
         pendingOrdersSummary: {
-          count:
-            apiData.pendingOrdersSummary?.pendingOrdersCount || 0,
+          count: apiData.pendingOrdersSummary?.pendingOrdersCount || 0,
           label: "To be deposited",
         },
-
         cashOrderHistory: apiData.cashOrderHistory || [],
         rules: apiData.rules,
       };
@@ -76,9 +72,7 @@ export default function CashBalanceScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={rf(2.6)} />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Cash Balance</Text>
-
         <Image
           source={require("../../assets/profile/HelpcenterIcon.png")}
           style={styles.robotIcon}
@@ -90,11 +84,7 @@ export default function CashBalanceScreen({ navigation }) {
         <View style={styles.greenCard}>
           <View style={styles.row}>
             <View style={styles.greenIconWrap}>
-              <Ionicons
-                name="wallet-outline"
-                size={rf(2.2)}
-                color="#12B76A"
-              />
+              <Ionicons name="wallet-outline" size={rf(2.2)} color="#12B76A" />
             </View>
             <Text style={styles.greenLabel}>Cash Collected</Text>
           </View>
@@ -127,14 +117,17 @@ export default function CashBalanceScreen({ navigation }) {
 
         {/* ORDER HISTORY */}
         {hasOrders && (
-          <Text style={styles.sectionTitle}>
-            Cash Order History
-          </Text>
+          <Text style={styles.sectionTitle}>Cash Order History</Text>
         )}
 
         {hasOrders &&
           data.cashOrderHistory.map((item, index) => {
-            const pending = item.status === "PENDING";
+            const isPending = item.status === "PENDING";
+            const isPartial = item.status === "PARTIAL_DEPOSITED";
+
+            const displayAmount = isPending || isPartial
+              ? item.pendingAmount
+              : item.totalAmount;
 
             return (
               <View key={index} style={styles.orderCard}>
@@ -143,42 +136,36 @@ export default function CashBalanceScreen({ navigation }) {
                     style={[
                       styles.statusIconWrap,
                       {
-                        backgroundColor: pending
+                        backgroundColor: isPending
                           ? "#FFF4E5"
+                          : isPartial
+                          ? "#FEF3F2"
                           : "#ECFDF3",
                       },
                     ]}
                   >
                     <Ionicons
-                      name={
-                        pending
-                          ? "time-outline"
-                          : "checkmark"
-                      }
+                      name={isPending ? "time-outline" : "checkmark"}
                       size={rf(2)}
                       color={
-                        pending ? "#F79009" : "#12B76A"
+                        isPending
+                          ? "#F79009"
+                          : isPartial
+                          ? "#F04438"
+                          : "#12B76A"
                       }
                     />
                   </View>
 
                   <View style={{ marginLeft: rw(3) }}>
-                    <Text style={styles.orderId}>
-                      {item.orderId}
-                    </Text>
-                    <Text style={styles.orderName}>
-                      {item.customerName}
-                    </Text>
+                    <Text style={styles.orderId}>{item.orderId}</Text>
+                    <Text style={styles.orderName}>{item.customerName}</Text>
                     <Text style={styles.orderTime}>
                       {item.collectedAt
-                        ? `Collected at ${new Date(
-                          item.collectedAt
-                        ).toLocaleString()}`
+                        ? `Collected at ${new Date(item.collectedAt).toLocaleString()}`
                         : item.depositedAt
-                          ? `Deposited at ${new Date(
-                            item.depositedAt
-                          ).toLocaleString()}`
-                          : ""}
+                        ? `Deposited at ${new Date(item.depositedAt).toLocaleString()}`
+                        : ""}
                     </Text>
                   </View>
                 </View>
@@ -188,35 +175,53 @@ export default function CashBalanceScreen({ navigation }) {
                     style={[
                       styles.orderAmount,
                       {
-                        color: pending
-                          ? "#F79009"
-                          : "#12B76A",
+                        color: isPending || isPartial ? "#F79009" : "#12B76A",
                       },
                     ]}
                   >
-                    ₹{item.amount}
+                    ₹{displayAmount}
                   </Text>
+
+                  {isPartial && (
+                    <Text
+                      style={{
+                        fontSize: rf(1.3),
+                        color: "#667085",
+                        marginTop: rh(0.2),
+                      }}
+                    >
+                      Deposited ₹{item.depositedAmount}
+                    </Text>
+                  )}
 
                   <View
                     style={[
                       styles.statusPill,
                       {
-                        backgroundColor: pending
+                        backgroundColor: isPending
                           ? "#FFF4E5"
+                          : isPartial
+                          ? "#FEF3F2"
                           : "#ECFDF3",
                       },
                     ]}
                   >
                     <Text
                       style={{
-                        color: pending
+                        color: isPending
                           ? "#F79009"
+                          : isPartial
+                          ? "#F04438"
                           : "#12B76A",
                         fontSize: rf(1.3),
                         fontWeight: "600",
                       }}
                     >
-                      {pending ? "Pending" : "Deposited"}
+                      {isPending
+                        ? "Pending"
+                        : isPartial
+                        ? "Partially Deposited"
+                        : "Deposited"}
                     </Text>
                   </View>
                 </View>
@@ -225,15 +230,10 @@ export default function CashBalanceScreen({ navigation }) {
           })}
 
         <TouchableOpacity
-          style={[
-            styles.depositNowBtn,
-            !hasOrders && { opacity: 0.5 },
-          ]}
+          style={[styles.depositNowBtn, !hasOrders && { opacity: 0.5 }]}
           disabled={!hasOrders}
         >
-          <Text style={styles.depositNowText}>
-            Deposit Cash Now
-          </Text>
+          <Text style={styles.depositNowText}>Deposit Cash Now</Text>
         </TouchableOpacity>
 
         <Text style={styles.noteText}>
@@ -249,11 +249,7 @@ export default function CashBalanceScreen({ navigation }) {
 const InfoCard = ({ icon, value, title, subtitle }) => (
   <View style={styles.infoCard}>
     <View style={styles.infoIconWrap}>
-      <Ionicons
-        name={icon}
-        size={rf(2.1)}
-        color="#12B76A"
-      />
+      <Ionicons name={icon} size={rf(2.1)} color="#12B76A" />
     </View>
     <Text style={styles.infoValue}>{value}</Text>
     <Text style={styles.infoTitle}>{title}</Text>
