@@ -19,9 +19,15 @@ import {
 } from 'react-native-responsive-screen';
 import { authService } from '../../services/AuthService';
 import apiClient from '../../services/ApiClient';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProfile } from '../../redux/slices/profileSlice';
+
 
 export default function ProfileScreen({ navigation }) {
-  const [profile, setProfile] = useState(null);
+  // const [profile, setProfile] = useState(null);
+  const dispatch = useDispatch();
+  const { data: profile } = useSelector(state => state.profile);
+
 
   const onLogoutPress = () => {
     authService.logout();
@@ -53,34 +59,51 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const fetchProfile = async () => {
-    try {
-      const res = await apiClient.get('/api/profile/rider/profile');
-      setProfile(res.data?.data);
-    } catch (e) {
-      console.log('Profile fetch error', e);
-    }
-  };
+  // const fetchProfile = async () => {
+  //   try {
+  //     const res = await apiClient.get('/api/profile/rider/profile');
+  //     setProfile(res.data?.data);
+  //   } catch (e) {
+  //     console.log('Profile fetch error', e);
+  //   }
+  // };
+
+  //   useFocusEffect(
+  //   useCallback(() => {
+  //     fetchProfile();
+  //   }, [])
+  // );
 
   useFocusEffect(
-  useCallback(() => {
-    fetchProfile();
-  }, [])
-);
+    useCallback(() => {
+      dispatch(fetchProfile());
+    }, [dispatch])
+  );
 
-const getSelfieUri = (selfie) => {
-  if (!selfie) return null;
+  // const getSelfieUri = (selfie) => {
+  //   if (!selfie) return null;
 
-  // backend string URL
-  if (typeof selfie === 'string') return selfie;
+  //   // backend string URL
+  //   if (typeof selfie === 'string') return selfie;
 
-  // backend object { url }
-  if (typeof selfie === 'object' && selfie.url) return selfie.url;
+  //   // backend object { url }
+  //   if (typeof selfie === 'object' && selfie.url) return selfie.url;
 
-  return null;
-};
+  //   return null;
+  // };
 
-const selfieUri = getSelfieUri(profile?.selfie);
+  // const selfieUri = getSelfieUri(profile?.selfie);
+
+  const getSelfieUri = (selfie) => {
+    if (!selfie) return null;
+
+    if (typeof selfie === 'string') return selfie;
+    if (typeof selfie === 'object' && selfie.url) return selfie.url;
+
+    return null;
+  };
+
+  const selfieUri = getSelfieUri(profile?.selfie);
 
 
   return (
@@ -99,19 +122,19 @@ const selfieUri = getSelfieUri(profile?.selfie);
             <View style={styles.profileRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatar}>
-                 <Image
-  source={
-    selfieUri
-      ? { uri: selfieUri }
-      : require('../../assets/profile/profileicon.png')
-  }
-  style={styles.avatarImage}
-/>
+                  <Image
+                    source={
+                      selfieUri
+                        ? { uri: selfieUri }
+                        : require('../../assets/profile/profileicon.png')
+                    }
+                    style={styles.avatarImage}
+                  />
 
                 </View>
               </View>
 
-              <View style={{ flex: 1, marginLeft: wp('4%') }}>    
+              <View style={{ flex: 1, marginLeft: wp('4%') }}>
                 <Text style={styles.name}>
                   {profile?.personalInfo?.fullName || '—'}
                 </Text>
@@ -119,7 +142,7 @@ const selfieUri = getSelfieUri(profile?.selfie);
                 <Text style={styles.driverId}>
                   Driver ID: DRV123456
                 </Text>
-                
+
                 <View style={styles.activeBadge}>
                   <Text style={styles.activeText}>Active</Text>
                 </View>
