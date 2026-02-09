@@ -1,15 +1,23 @@
 import React, { useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Animated, PanResponder, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  PanResponder,
+  ActivityIndicator,
+} from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import ShiftStartedBanner from './ShiftStartedBanner'
+import ShiftStartedBanner from "./ShiftStartedBanner";
+ 
 const SWIPE_WIDTH = wp("87%");
 const TRACK_HEIGHT = hp("7.5%");
 const THUMB_SIZE = hp("6.5%");
 const MAX_SWIPE = SWIPE_WIDTH - THUMB_SIZE;
-
+ 
 const SwipeOnlineToggle = ({
   onSwipeOnline,
   onSwipeOffline,
@@ -19,34 +27,15 @@ const SwipeOnlineToggle = ({
   const translateX = useRef(
     new Animated.Value(isOnline ? MAX_SWIPE : 0)
   ).current;
-
+ 
   const startX = useRef(0);
-
-  // Use refs to track current values (fixes stale closure issue)
-  const isOnlineRef = useRef(isOnline);
   const isLoadingRef = useRef(isLoading);
-  const onSwipeOnlineRef = useRef(onSwipeOnline);
-  const onSwipeOfflineRef = useRef(onSwipeOffline);
-
-  // Keep refs in sync with props
-  useEffect(() => {
-    isOnlineRef.current = isOnline;
-    console.log("🔄 SwipeOnlineToggle: isOnline updated to", isOnline);
-  }, [isOnline]);
-
+ 
   useEffect(() => {
     isLoadingRef.current = isLoading;
   }, [isLoading]);
-
-  useEffect(() => {
-    onSwipeOnlineRef.current = onSwipeOnline;
-  }, [onSwipeOnline]);
-
-  useEffect(() => {
-    onSwipeOfflineRef.current = onSwipeOffline;
-  }, [onSwipeOffline]);
-
-  // Sync animation with isOnline state
+ 
+  // Sync animation with actual isOnline state
   useEffect(() => {
     Animated.timing(translateX, {
       toValue: isOnline ? MAX_SWIPE : 0,
@@ -54,46 +43,37 @@ const SwipeOnlineToggle = ({
       useNativeDriver: true,
     }).start();
   }, [isOnline]);
-
+ 
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, g) => {
-        // Disable gestures while loading
         if (isLoadingRef.current) return false;
         return Math.abs(g.dx) > 5;
       },
-
+ 
       onPanResponderGrant: () => {
-        if (isLoadingRef.current) return;
         startX.current = translateX.__getValue();
       },
-
+ 
       onPanResponderMove: (_, g) => {
         if (isLoadingRef.current) return;
         let newX = startX.current + g.dx;
         newX = Math.max(0, Math.min(MAX_SWIPE, newX));
         translateX.setValue(newX);
       },
-
+ 
       onPanResponderRelease: () => {
         if (isLoadingRef.current) return;
-
+ 
         const finalX = translateX.__getValue();
-        const currentIsOnline = isOnlineRef.current;
-
-        console.log("👆 SwipeOnlineToggle: Release - finalX:", finalX, "currentIsOnline:", currentIsOnline);
-
+ 
         if (finalX > MAX_SWIPE / 2) {
           Animated.timing(translateX, {
             toValue: MAX_SWIPE,
             duration: 200,
             useNativeDriver: true,
           }).start(() => {
-            console.log("👆 SwipeOnlineToggle: Swipe completed to RIGHT");
-            if (!currentIsOnline) {
-              console.log("👆 SwipeOnlineToggle: Calling onSwipeOnline()");
-              onSwipeOnlineRef.current?.();
-            }
+            onSwipeOnline?.(); // ✅ ALWAYS CALL
           });
         } else {
           Animated.timing(translateX, {
@@ -101,37 +81,37 @@ const SwipeOnlineToggle = ({
             duration: 200,
             useNativeDriver: true,
           }).start(() => {
-            console.log("👆 SwipeOnlineToggle: Swipe completed to LEFT");
-            if (currentIsOnline) {
-              console.log("👆 SwipeOnlineToggle: Calling onSwipeOffline()");
-              onSwipeOfflineRef.current?.();
-            }
+            onSwipeOffline?.(); // ✅ ALWAYS CALL
           });
         }
       },
     })
   ).current;
-
+ 
   return (
-    <View style={styles.wrapper}>
-      <Text
+<View style={styles.wrapper}>
+<Text
         style={[
           styles.label,
           { color: isOnline ? "#16A34A" : "#9CA3AF" },
         ]}
-      >
+>
         {isLoading
-          ? (isOnline ? "Going Offline..." : "Going Online...")
-          : (isOnline ? "Swipe For Offline" : "Swipe For Online")}
-      </Text>
-
+          ? isOnline
+            ? "Going Offline..."
+            : "Going Online..."
+          : isOnline
+          ? "Swipe For Offline"
+          : "Swipe For Online"}
+</Text>
+ 
       <View style={styles.track}>
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#16A34A" />
-          </View>
+<View style={styles.loadingContainer}>
+<ActivityIndicator size="small" color="#16A34A" />
+</View>
         ) : (
-          <Animated.View
+<Animated.View
             {...panResponder.panHandlers}
             style={[
               styles.thumb,
@@ -140,18 +120,19 @@ const SwipeOnlineToggle = ({
                 transform: [{ translateX }],
               },
             ]}
-          >
-            <Text style={styles.arrow}>
+>
+<Text style={styles.arrow}>
               {isOnline ? "<<" : ">>"}
-            </Text>
-          </Animated.View>
+</Text>
+</Animated.View>
         )}
-      </View>
-      {isOnline && <ShiftStartedBanner/>}
-    </View>
+</View>
+ 
+      {isOnline && <ShiftStartedBanner />}
+</View>
   );
 };
-
+ 
 export default SwipeOnlineToggle;
 
 const styles = StyleSheet.create({
@@ -196,4 +177,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
