@@ -1,14 +1,25 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../services/ApiClient';
 
 const PAGE_SIZE = 10;
 const getCacheKey = filter => `ORDER_HISTORY_${filter}`;
 
-/* ================= MEMORY CACHE ================= */
+const API_FILTER_MAP = {
+  all: 'all',
+  today: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+};
+
 let memoryCache = {};
 
-export const useOrderHistory = filter => {
+export const useOrderHistory = (filter) => {
+  const mountedRef = useRef(true);
+  const requestIdRef = useRef(0);
+  const abortRef = useRef(null);
+  const isFetching = useRef(false);
+
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({
     totalOrders: 0,
@@ -20,70 +31,86 @@ export const useOrderHistory = filter => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const isFetchingRef = useRef(false);
+  /* UNMOUNT CLEANUP */
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
 
-  /* ================= LOAD CACHE ================= */
+  const cancelRequest = () => abortRef.current?.abort();
 
+  /* LOAD CACHE FIRST */
   useEffect(() => {
     const loadCache = async () => {
-      // 1️⃣ MEMORY (instant)
       if (memoryCache[filter]) {
         setOrders(memoryCache[filter].orders);
         setSummary(memoryCache[filter].summary);
         return;
       }
 
-      // 2️⃣ ASYNC STORAGE (fallback)
       try {
         const cached = await AsyncStorage.getItem(getCacheKey(filter));
         if (cached) {
           const parsed = JSON.parse(cached);
           memoryCache[filter] = parsed;
           setOrders(parsed.orders || []);
-          setSummary(parsed.summary || summary);
+          setSummary(parsed.summary);
         }
-      } catch (e) {}
+      } catch {}
     };
 
     loadCache();
   }, [filter]);
 
-  /* ================= FETCH ORDERS ================= */
+  /* FETCH */
+  const fetchOrders = useCallback(async (
+    pageNo = 1,
+    { refresh = false, activeFilter = filter } = {}
+  ) => {
 
-  const fetchOrders = async (pageNo = 1, isRefresh = false) => {
-    if (isFetchingRef.current) return;
+    if (isFetching.current) return;
     if (!hasMore && pageNo !== 1) return;
 
-    isFetchingRef.current = true;
+    cancelRequest();
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+    isFetching.current = true;
+
+    const reqId = ++requestIdRef.current;
 
     try {
-      // 🔥 Non-blocking loader if cached data exists
-      if (pageNo === 1 && orders.length === 0 && !isRefresh) {
-        setLoading(true);
-      } else if (pageNo > 1) {
-        setLoadingMore(true);
-      }
+      if (refresh) setRefreshing(true);
+      else if (pageNo === 1) setLoading(true);
+      else setLoadingMore(true);
 
       const res = await apiClient.get('/api/profile/orders/history', {
+        signal: controller.signal,
         params: {
-          filter: filter === 'all' ? undefined : filter,
+          filter: API_FILTER_MAP[activeFilter],
           page: pageNo,
           limit: PAGE_SIZE,
         },
       });
 
-      if (!res.data?.success) return;
+      if (!mountedRef.current) return;
+      if (reqId !== requestIdRef.current) return;
+      if (!res?.data?.success) return;
 
-      const mappedOrders = res.data.data.map((item, index) => ({
-        // ✅ UNIQUE & STABLE KEY (fixes your warning)
-        id: `${item.orderId}-${pageNo}-${index}`,
+      const list = res.data.data || [];
+
+      const mapped = list.map((item, i) => ({
+        id: `${item.orderId}-${pageNo}-${i}`,
         orderId: item.orderId,
         restaurantName: item.items?.[0]?.itemName ?? 'Order',
-        earning: item.pricing.totalAmount,
-        distance: item.distanceTravelled,
-        rating: item.rating,
+        earning: item.pricing?.totalAmount ?? 0,
+        distance: item.distanceTravelled ?? 0,
+        rating: item.rating ?? 0,
         time: new Date(item.deliveredAt).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
@@ -95,18 +122,14 @@ export const useOrderHistory = filter => {
 
       setOrders(prev => {
         const combined =
-          pageNo === 1 ? mappedOrders : [...prev, ...mappedOrders];
+          pageNo === 1 ? mapped : [...prev, ...mapped];
 
-        // 🔒 DEDUPLICATE BY orderId (backend-safe)
-        const uniqueMap = new Map();
-        combined.forEach(item => {
-          uniqueMap.set(item.orderId, item);
-        });
+        const unique = Array.from(
+          new Map(combined.map(o => [o.orderId, o])).values()
+        );
 
-        const uniqueOrders = Array.from(uniqueMap.values());
-
-        const cachePayload = {
-          orders: uniqueOrders,
+        const payload = {
+          orders: unique,
           summary: {
             totalOrders: res.data.totalOrders,
             totalEarnings: res.data.totalEarnings,
@@ -115,10 +138,13 @@ export const useOrderHistory = filter => {
           },
         };
 
-        memoryCache[filter] = cachePayload;
-        AsyncStorage.setItem(getCacheKey(filter), JSON.stringify(cachePayload));
+        memoryCache[activeFilter] = payload;
+        AsyncStorage.setItem(
+          getCacheKey(activeFilter),
+          JSON.stringify(payload)
+        );
 
-        return uniqueOrders;
+        return unique;
       });
 
       setSummary({
@@ -128,24 +154,30 @@ export const useOrderHistory = filter => {
         km: Math.round(res.data.totalDistance),
       });
 
-      setHasMore(mappedOrders.length === PAGE_SIZE);
+      setHasMore(mapped.length === PAGE_SIZE);
       setPage(pageNo);
+
+    } catch (e) {
+      if (e.name !== 'CanceledError') {
+        console.warn('Order fetch failed:', e.message);
+      }
     } finally {
-      isFetchingRef.current = false;
+      if (!mountedRef.current) return;
+
+      isFetching.current = false;
       setLoading(false);
       setLoadingMore(false);
+      setRefreshing(false);
     }
-  };
 
-  /* ================= FILTER CHANGE ================= */
+  }, [filter, hasMore]);
 
   useEffect(() => {
+    cancelRequest();
     setPage(1);
     setHasMore(true);
-    fetchOrders(1);
+    fetchOrders(1, { activeFilter: filter });
   }, [filter]);
-
-  /* ================= LOAD MORE ================= */
 
   const loadMore = () => {
     if (!loadingMore && hasMore) {
@@ -153,11 +185,18 @@ export const useOrderHistory = filter => {
     }
   };
 
+  const onRefresh = () => {
+    cancelRequest();
+    fetchOrders(1, { refresh: true });
+  };
+
   return {
     orders,
     summary,
     loading,
     loadingMore,
+    refreshing,
     loadMore,
+    onRefresh,
   };
 };
