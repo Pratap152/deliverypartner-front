@@ -12,7 +12,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NetInfo from "@react-native-community/netinfo";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-
+import { formatMoney } from '../../utils/formatMoney';
 import { EarningsNewAPI } from "../../api/api";
 import { EarningsCache } from "../../utils/earningsCache";
 import { Analytics } from "../../utils/analytics";
@@ -400,14 +400,14 @@ const headerTitle = useMemo(() => {
         ListHeaderComponent={
           <>
             {mode === "HISTORY" && renderHistorySelectors()}
-            <TotalCard title="Total" amount={Math.floor(weekData.total) || 0} />
+            <TotalCard title="Total" amount={formatMoney(weekData.total) || 0} />
           </>
         }
         renderItem={({ item }) => (
           <Row
             title={`${item.day} (${item.date})`}
             subtitle={`${item.orders || 0} orders`}
-            right={`₹${Math.floor(item.amount) || 0}`}
+            right={`₹${formatMoney(item.amount) || 0}`}
             onPress={() => {
               Analytics.track("earnings_select_day", { date: item.date });
               setSelectedDay(item.date);
@@ -426,7 +426,7 @@ const headerTitle = useMemo(() => {
       refreshing={refreshing}
       onRefresh={onRefresh}
       ListHeaderComponent={
-        <TotalCard title="Total Earnings" amount={Math.floor(dayData?.totalEarnings )|| 0} />
+        <TotalCard title="Total Earnings" amount={formatMoney(dayData?.totalEarnings )|| 0} />
       }
       ListEmptyComponent={<EmptyState />}
       onEndReached={() => loadDay(selectedDay, false)}
@@ -438,7 +438,7 @@ const headerTitle = useMemo(() => {
         <Row
           title={item.type}
           subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
-          right={`₹${Math.floor(item.amount) || 0}`}
+          right={`₹${formatMoney(item.amount) || 0}`}
           onPress={() => {
             if (item.type === "DELIVERY") loadOrder(item.orderId);
           }}
@@ -454,10 +454,14 @@ const headerTitle = useMemo(() => {
 
     return (
       <View style={{ padding: 16 }}>
-        <TotalCard title="Total Earnings" amount={Math.floor(orderData.totalEarnings) || 0} />
+        <TotalCard title="Total Earnings" amount={formatMoney(orderData.totalEarnings) || 0} />
         <View style={styles.box}>
+          <View style={{ flexDirection: "column", alignItems: "center",padding:7 }}>
+          <Text style={{ fontSize: 16, fontWeight: "600" }}>{orderData.store || "Store"}</Text>
+          <Text style={{ marginLeft: 8, color: "#777" }}>#{orderData.orderId || ""}</Text>
+        </View>
           <BreakRow label="Base Fare" value={b.basePay} />
-          <BreakRow label="Distance Fare" value={b.distancePay} />
+          <BreakRow label="Distance Fare" value={formatMoney(b.distancePay)} />
           <BreakRow label="Surge" value={b.surgePay} />
           <BreakRow label="Tips" value={b.tips} />
         </View>
@@ -559,7 +563,7 @@ function Dropdown({ label, onPress }) {
   );
 }
 
-function TotalCard({ title, amount }) {
+function TotalCard({ title, amount}) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardLabel}>{title}</Text>
@@ -651,13 +655,15 @@ const styles = StyleSheet.create({
   },
   cardLabel: { color: "#fff" },
   cardAmount: { fontSize: 28, fontWeight: "800", color: "#fff" },
-
   row: {
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEE",
+    borderWidth: 2,
+    marginHorizontal: 16,
+    marginBottom: 8,
     flexDirection: "row",
     justifyContent: "space-between",
+    borderRadius: 10,
+    borderColor: "#e5b6fd",
   },
   rowTitle: { fontSize: 15, fontWeight: "600" },
   rowSub: { fontSize: 12, color: "#777", marginTop: 4 },
@@ -671,6 +677,8 @@ const styles = StyleSheet.create({
 
   box: {
     backgroundColor: "#fff",
+    borderColor: "#e5b6fd",
+    borderWidth: 1,
     borderRadius: 10,
     marginTop: 16,
     overflow: "hidden",
