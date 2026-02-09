@@ -1,4 +1,344 @@
-import React, { useState, useCallback } from "react";
+// import React, { useState, useCallback } from "react";
+// import {
+//   View,
+//   Text,
+//   StyleSheet,
+//   Image,
+//   ActivityIndicator,
+//   ScrollView,
+//   TouchableOpacity,
+//   Alert,
+//   TextInput,
+//   Modal,
+// } from "react-native";
+// import Ionicons from "react-native-vector-icons/Ionicons";
+// import { useFocusEffect } from "@react-navigation/native";
+// import { launchImageLibrary } from "react-native-image-picker";
+// import apiClient from "../../services/ApiClient";
+// import {
+//   responsiveWidth as rw,
+//   responsiveHeight as rh,
+//   responsiveFontSize as rf,
+// } from "react-native-responsive-dimensions";
+
+// const PersonalDetailsScreen = ({ navigation }) => {
+//   const [loading, setLoading] = useState(false);
+//   const [profile, setProfile] = useState(null);
+//   const [form, setForm] = useState(null);
+//   const [isEditing, setIsEditing] = useState(false);
+//   const [imageModal, setImageModal] = useState(false);
+
+//   /* ---------------- FETCH PROFILE ---------------- */
+//   const fetchProfile = useCallback(async () => {
+//     try {
+//       setLoading(true);
+
+//       const res = await apiClient.get("/api/profile/rider/profile");
+//       const data = res.data?.data;
+
+//       if (!data) {
+//         Alert.alert("Error", "Profile data is missing");
+//         return;
+//       }
+
+//       setProfile(data);
+//       setForm({
+//         fullName: data.personalInfo?.fullName || "",
+//         email: data.personalInfo?.email || "",
+//         dob: data.personalInfo?.dob || "",
+//         phoneNumber: data.phone?.number || "",
+//         countryCode: data.phone?.countryCode || "+91",
+//         streetAddress: data.location?.streetAddress || "",
+//         area: data.location?.area || "",
+//         city: data.location?.city || "",
+//         state: data.location?.state || "",
+//         pincode: data.location?.pincode || "",
+//         selfie: data.selfie || null,
+//       });
+//     } catch (e) {
+//       Alert.alert("Error", "Failed to fetch profile");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   useFocusEffect(
+//     useCallback(() => {
+//       fetchProfile();
+//     }, [fetchProfile])
+//   );
+
+//   /* ---------------- HELPERS ---------------- */
+//   const handleChange = (key, value) =>
+//     setForm((prev) => ({ ...prev, [key]: value }));
+
+//   const getSelfieUri = (selfie) => {
+//     if (!selfie) return null;
+//     if (typeof selfie === "string") return selfie;
+//     if (typeof selfie === "object" && selfie.url) return selfie.url;
+//     if (typeof selfie === "object" && selfie.uri) return selfie.uri;
+//     return null;
+//   };
+
+//   const pickImage = async () => {
+//     const res = await launchImageLibrary({
+//       mediaType: "photo",
+//       quality: 0.7,
+//     });
+
+//     if (!res.didCancel && res.assets?.length > 0) {
+//       handleChange("selfie", res.assets[0].uri);
+//     }
+//   };
+
+//   /* ---------------- SAVE PROFILE ---------------- */
+//   const handleSave = async () => {
+//     try {
+//       setLoading(true);
+
+//       const formData = new FormData();
+
+//       // keep keys same as your backend expects
+//       formData.append("personalInfo[fullName]", form.fullName);
+//       formData.append("personalInfo[email]", form.email);
+//       formData.append("personalInfo[dob]", form.dob);
+//       formData.append("phone[number]", form.phoneNumber);
+//       formData.append("phone[countryCode]", form.countryCode);
+//       formData.append("location[streetAddress]", form.streetAddress);
+//       formData.append("location[area]", form.area);
+//       formData.append("location[city]", form.city);
+//       formData.append("location[state]", form.state);
+//       formData.append("location[pincode]", form.pincode);
+
+//       if (form.selfie && typeof form.selfie === "string") {
+//         formData.append("selfie", {
+//           uri: form.selfie,
+//           name: "selfie.jpg",
+//           type: "image/jpeg",
+//         });
+//       }
+
+//       await apiClient.put("/api/profile/update", formData, {
+//         headers: { "Content-Type": "multipart/form-data" },
+//       });
+
+//       Alert.alert("Success", "Profile updated successfully");
+//       setIsEditing(false);
+//       fetchProfile();
+//     } catch (e) {
+//       Alert.alert("Error", "Update failed");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   if (loading && !profile) {
+//     return (
+//       <View style={styles.center}>
+//         <ActivityIndicator size="large" color="#00B2C9" />
+//       </View>
+//     );
+//   }
+
+//   if (!profile || !form) return null;
+
+//   const selfieUri = getSelfieUri(form.selfie);
+
+//   /* ================= UI BELOW (UNCHANGED) ================= */
+
+//   return (
+//     <View style={styles.container}>
+//       {/* HEADER */}
+//       <View style={styles.header}>
+//         <TouchableOpacity onPress={() => navigation.goBack()}>
+//           <Ionicons name="arrow-back" size={rf(2.5)} color="#101828" />
+//         </TouchableOpacity>
+
+//         <Text style={styles.headerTitle}>Personal Information</Text>
+
+//         <TouchableOpacity
+//           onPress={() => {
+//             if (isEditing) fetchProfile();
+//             setIsEditing((prev) => !prev);
+//           }}
+//         >
+//           <Text style={styles.editText}>
+//             {isEditing ? "Cancel" : "Edit"}
+//           </Text>
+//         </TouchableOpacity>
+//       </View>
+
+//       <ScrollView showsVerticalScrollIndicator={false}>
+//         {/* PROFILE CARD */}
+//         <View style={styles.profileCard}>
+//           <TouchableOpacity
+//             onPress={() =>
+//               isEditing ? pickImage() : form.selfie && setImageModal(true)
+//             }
+//             activeOpacity={0.8}
+//           >
+//             <View style={styles.avatarOuterWrapper}>
+//              <View style={styles.avatarWrapper}>
+//   {selfieUri ? (
+//     <Image source={{ uri: selfieUri }} style={styles.avatar} />
+//   ) : (
+//     <View style={styles.placeholder}>
+//       <Ionicons name="person" size={rf(6)} color="#98A2B3" />
+//     </View>
+//   )}
+// </View>
+
+
+//               {isEditing && (
+//                 <View style={styles.addIcon}>
+//                   <Ionicons name="camera" size={rf(2)} color="#FFF" />
+//                 </View>
+//               )}
+//             </View>
+//           </TouchableOpacity>
+
+//           <View style={styles.profileInfo}>
+//             <Text style={styles.name}>{form.fullName}</Text>
+//             <Text style={styles.driverId}>Driver ID: DRV123456</Text>
+//           </View>
+//         </View>
+
+//         {/* BASIC INFORMATION */}
+//         <Section title="Basic Information">
+//           <Label iconName="person-outline" text="Full Name" />
+//           <Field editable={isEditing} value={form.fullName}
+//             onChangeText={(v) => handleChange("fullName", v)} />
+
+//           <Label iconName="mail-outline" text="Email" />
+//           <Field editable={isEditing} value={form.email}
+//             onChangeText={(v) => handleChange("email", v)} />
+
+//           <Label iconName="call-outline" text="Phone Number" />
+//           <Field editable={isEditing} value={form.phoneNumber}
+//             keyboardType="phone-pad"
+//             onChangeText={(v) => handleChange("phoneNumber", v)} />
+
+//           <Label iconName="calendar-outline" text="Date of Birth" />
+//           <Field editable={isEditing} value={form.dob}
+//             onChangeText={(v) => handleChange("dob", v)} />
+//         </Section>
+
+//         {/* ADDRESS */}
+//         <Section title="Address" iconName="location-outline">
+//           <Label text="Street Address" />
+//           <Field editable={isEditing} value={form.streetAddress}
+//             onChangeText={(v) => handleChange("streetAddress", v)} />
+
+//           <View style={styles.row}>
+//             <View style={styles.rowInput}>
+//               <Label text="Area" />
+//               <Field editable={isEditing} value={form.area}
+//                 onChangeText={(v) => handleChange("area", v)} />
+//             </View>
+
+//             <View style={styles.rowInput}>
+//               <Label text="City" />
+//               <Field editable={isEditing} value={form.city}
+//                 onChangeText={(v) => handleChange("city", v)} />
+//             </View>
+//           </View>
+
+//           <View style={styles.row}>
+//             <View style={styles.rowInput}>
+//               <Label text="State" />
+//               <Field editable={isEditing} value={form.state}
+//                 onChangeText={(v) => handleChange("state", v)} />
+//             </View>
+
+//             <View style={styles.rowInput}>
+//               <Label text="Pincode" />
+//               <Field editable={isEditing} value={form.pincode}
+//                 keyboardType="number-pad"
+//                 onChangeText={(v) => handleChange("pincode", v)} />
+//             </View>
+//           </View>
+//         </Section>
+
+//         {isEditing && (
+//           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+//             <Text style={styles.saveText}>Save Changes</Text>
+//           </TouchableOpacity>
+//         )}
+
+//         <View style={{ height: rh(4) }} />
+//       </ScrollView>
+
+//       {/* IMAGE MODAL */}
+//       <Modal
+//         visible={imageModal}
+//         transparent
+//         animationType="fade"
+//         onRequestClose={() => setImageModal(false)}
+//       >
+//         <View style={styles.modal}>
+//           <TouchableOpacity
+//             style={styles.closeButton}
+//             onPress={() => setImageModal(false)}
+//           >
+//             <Ionicons name="close" size={rf(3)} color="#FFF" />
+//           </TouchableOpacity>
+
+//         {selfieUri && (
+//   <Image
+//     source={{ uri: selfieUri }}
+//     style={styles.fullImage}
+//     resizeMode="contain"
+//   />
+// )}
+
+//         </View>
+//       </Modal>
+//     </View>
+//   );
+// };
+
+// const Section = ({ title, iconName, children }) => (
+//   <View style={styles.sectionCard}>
+//     <View style={styles.sectionHeader}>
+//       {iconName && (
+//         <Ionicons
+//           name={iconName}
+//           size={rf(2.2)}
+//           color="#101828"
+//           style={{ marginRight: rw(2) }}
+//         />
+//       )}
+//       <Text style={styles.sectionTitle}>{title}</Text>
+//     </View>
+//     {children}
+//   </View>
+// );
+
+// const Label = ({ iconName, text }) => (
+//   <View style={styles.labelRow}>
+//     {iconName && (
+//       <Ionicons
+//         name={iconName}
+//         size={rf(1.8)}
+//         color="#667085"
+//         style={{ marginRight: rw(1.5) }}
+//       />
+//     )}
+//     <Text style={styles.labelText}>{text}</Text>
+//   </View>
+// );
+
+// const Field = ({ editable, style, ...props }) => (
+//   <TextInput
+//     {...props}
+//     editable={editable}
+//     style={[styles.input, !editable && styles.disabledInput, style]}
+//   />
+// );
+
+// export default PersonalDetailsScreen;
+
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,122 +354,103 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import { launchImageLibrary } from "react-native-image-picker";
-import apiClient from "../../services/ApiClient";
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from "react-native-responsive-dimensions";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchProfile,
+  updateProfile,
+} from "../../redux/slices/profileSlice";
 
 const PersonalDetailsScreen = ({ navigation }) => {
-  const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState(null);
+  const dispatch = useDispatch();
+  const { data: profile, loading } = useSelector((state) => state.profile);
+
   const [form, setForm] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [imageModal, setImageModal] = useState(false);
 
-  /* ---------------- FETCH PROFILE ---------------- */
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const res = await apiClient.get("/api/profile/rider/profile");
-      const data = res.data?.data;
-
-      if (!data) {
-        Alert.alert("Error", "Profile data is missing");
-        return;
-      }
-
-      setProfile(data);
-      setForm({
-        fullName: data.personalInfo?.fullName || "",
-        email: data.personalInfo?.email || "",
-        dob: data.personalInfo?.dob || "",
-        phoneNumber: data.phone?.number || "",
-        countryCode: data.phone?.countryCode || "+91",
-        streetAddress: data.location?.streetAddress || "",
-        area: data.location?.area || "",
-        city: data.location?.city || "",
-        state: data.location?.state || "",
-        pincode: data.location?.pincode || "",
-        selfie: data.selfie || null,
-      });
-    } catch (e) {
-      Alert.alert("Error", "Failed to fetch profile");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  /* ---------- FETCH PROFILE ---------- */
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-    }, [fetchProfile])
+      dispatch(fetchProfile());
+    }, [dispatch])
   );
 
-  /* ---------------- HELPERS ---------------- */
+  /* ---------- SYNC FORM ---------- */
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        fullName: profile.personalInfo?.fullName || "",
+        email: profile.personalInfo?.email || "",
+        dob: profile.personalInfo?.dob || "",
+        phoneNumber: profile.phone?.number || "",
+        countryCode: profile.phone?.countryCode || "+91",
+        streetAddress: profile.location?.streetAddress || "",
+        area: profile.location?.area || "",
+        city: profile.location?.city || "",
+        state: profile.location?.state || "",
+        pincode: profile.location?.pincode || "",
+        selfie: profile.selfie || null,
+      });
+    }
+  }, [profile]);
+
+  /* ---------- HELPERS ---------- */
   const handleChange = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const getSelfieUri = (selfie) => {
     if (!selfie) return null;
     if (typeof selfie === "string") return selfie;
-    if (typeof selfie === "object" && selfie.url) return selfie.url;
-    if (typeof selfie === "object" && selfie.uri) return selfie.uri;
+    if (selfie?.url) return selfie.url;
+    if (selfie?.uri) return selfie.uri;
     return null;
   };
 
   const pickImage = async () => {
-    const res = await launchImageLibrary({
-      mediaType: "photo",
-      quality: 0.7,
-    });
-
-    if (!res.didCancel && res.assets?.length > 0) {
+    const res = await launchImageLibrary({ mediaType: "photo", quality: 0.7 });
+    if (!res.didCancel && res.assets?.length) {
       handleChange("selfie", res.assets[0].uri);
     }
   };
 
-  /* ---------------- SAVE PROFILE ---------------- */
-  const handleSave = async () => {
-    try {
-      setLoading(true);
+  /* ---------- SAVE PROFILE (REDUX) ---------- */
+  const handleSave = () => {
+    const formData = new FormData();
 
-      const formData = new FormData();
+    formData.append("personalInfo[fullName]", form.fullName);
+    formData.append("personalInfo[email]", form.email);
+    formData.append("personalInfo[dob]", form.dob);
+    formData.append("phone[number]", form.phoneNumber);
+    formData.append("phone[countryCode]", form.countryCode);
+    formData.append("location[streetAddress]", form.streetAddress);
+    formData.append("location[area]", form.area);
+    formData.append("location[city]", form.city);
+    formData.append("location[state]", form.state);
+    formData.append("location[pincode]", form.pincode);
 
-      // keep keys same as your backend expects
-      formData.append("personalInfo[fullName]", form.fullName);
-      formData.append("personalInfo[email]", form.email);
-      formData.append("personalInfo[dob]", form.dob);
-      formData.append("phone[number]", form.phoneNumber);
-      formData.append("phone[countryCode]", form.countryCode);
-      formData.append("location[streetAddress]", form.streetAddress);
-      formData.append("location[area]", form.area);
-      formData.append("location[city]", form.city);
-      formData.append("location[state]", form.state);
-      formData.append("location[pincode]", form.pincode);
-
-      if (form.selfie && typeof form.selfie === "string") {
-        formData.append("selfie", {
-          uri: form.selfie,
-          name: "selfie.jpg",
-          type: "image/jpeg",
-        });
-      }
-
-      await apiClient.put("/api/profile/update", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+    if (form.selfie && typeof form.selfie === "string") {
+      formData.append("selfie", {
+        uri: form.selfie,
+        name: "selfie.jpg",
+        type: "image/jpeg",
       });
-
-      Alert.alert("Success", "Profile updated successfully");
-      setIsEditing(false);
-      fetchProfile();
-    } catch (e) {
-      Alert.alert("Error", "Update failed");
-    } finally {
-      setLoading(false);
     }
+
+    dispatch(updateProfile(formData))
+      .unwrap()
+      .then(() => {
+        Alert.alert("Success", "Profile updated successfully");
+        setIsEditing(false);
+        dispatch(fetchProfile());
+      })
+      .catch(() => {
+        Alert.alert("Error", "Update failed");
+      });
   };
 
   if (loading && !profile) {
@@ -140,11 +461,9 @@ const PersonalDetailsScreen = ({ navigation }) => {
     );
   }
 
-  if (!profile || !form) return null;
+  if (!form) return null;
 
   const selfieUri = getSelfieUri(form.selfie);
-
-  /* ================= UI BELOW (UNCHANGED) ================= */
 
   return (
     <View style={styles.container}>
@@ -158,8 +477,22 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
         <TouchableOpacity
           onPress={() => {
-            if (isEditing) fetchProfile();
-            setIsEditing((prev) => !prev);
+            if (isEditing && profile) {
+              setForm({
+                fullName: profile.personalInfo?.fullName || "",
+                email: profile.personalInfo?.email || "",
+                dob: profile.personalInfo?.dob || "",
+                phoneNumber: profile.phone?.number || "",
+                countryCode: profile.phone?.countryCode || "+91",
+                streetAddress: profile.location?.streetAddress || "",
+                area: profile.location?.area || "",
+                city: profile.location?.city || "",
+                state: profile.location?.state || "",
+                pincode: profile.location?.pincode || "",
+                selfie: profile.selfie || null,
+              });
+            }
+            setIsEditing((p) => !p);
           }}
         >
           <Text style={styles.editText}>
@@ -173,21 +506,19 @@ const PersonalDetailsScreen = ({ navigation }) => {
         <View style={styles.profileCard}>
           <TouchableOpacity
             onPress={() =>
-              isEditing ? pickImage() : form.selfie && setImageModal(true)
+              isEditing ? pickImage() : selfieUri && setImageModal(true)
             }
-            activeOpacity={0.8}
           >
             <View style={styles.avatarOuterWrapper}>
-             <View style={styles.avatarWrapper}>
-  {selfieUri ? (
-    <Image source={{ uri: selfieUri }} style={styles.avatar} />
-  ) : (
-    <View style={styles.placeholder}>
-      <Ionicons name="person" size={rf(6)} color="#98A2B3" />
-    </View>
-  )}
-</View>
-
+              <View style={styles.avatarWrapper}>
+                {selfieUri ? (
+                  <Image source={{ uri: selfieUri }} style={styles.avatar} />
+                ) : (
+                  <View style={styles.placeholder}>
+                    <Ionicons name="person" size={rf(6)} color="#98A2B3" />
+                  </View>
+                )}
+              </View>
 
               {isEditing && (
                 <View style={styles.addIcon}>
@@ -203,22 +534,22 @@ const PersonalDetailsScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* BASIC INFORMATION */}
+        {/* BASIC INFO */}
         <Section title="Basic Information">
-          <Label iconName="person-outline" text="Full Name" />
+          <Label text="Full Name" />
           <Field editable={isEditing} value={form.fullName}
             onChangeText={(v) => handleChange("fullName", v)} />
 
-          <Label iconName="mail-outline" text="Email" />
+          <Label text="Email" />
           <Field editable={isEditing} value={form.email}
             onChangeText={(v) => handleChange("email", v)} />
 
-          <Label iconName="call-outline" text="Phone Number" />
+          <Label text="Phone Number" />
           <Field editable={isEditing} value={form.phoneNumber}
             keyboardType="phone-pad"
             onChangeText={(v) => handleChange("phoneNumber", v)} />
 
-          <Label iconName="calendar-outline" text="Date of Birth" />
+          <Label text="Date of Birth" />
           <Field editable={isEditing} value={form.dob}
             onChangeText={(v) => handleChange("dob", v)} />
         </Section>
@@ -235,7 +566,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
               <Field editable={isEditing} value={form.area}
                 onChangeText={(v) => handleChange("area", v)} />
             </View>
-
             <View style={styles.rowInput}>
               <Label text="City" />
               <Field editable={isEditing} value={form.city}
@@ -249,7 +579,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
               <Field editable={isEditing} value={form.state}
                 onChangeText={(v) => handleChange("state", v)} />
             </View>
-
             <View style={styles.rowInput}>
               <Label text="Pincode" />
               <Field editable={isEditing} value={form.pincode}
@@ -259,9 +588,18 @@ const PersonalDetailsScreen = ({ navigation }) => {
           </View>
         </Section>
 
+        {/* SAVE BUTTON */}
         {isEditing && (
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveText}>Save Changes</Text>
+          <TouchableOpacity
+            style={[styles.saveButton, loading && { opacity: 0.7 }]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.saveText}>Save Changes</Text>
+            )}
           </TouchableOpacity>
         )}
 
@@ -269,12 +607,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
       </ScrollView>
 
       {/* IMAGE MODAL */}
-      <Modal
-        visible={imageModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setImageModal(false)}
-      >
+      <Modal visible={imageModal} transparent animationType="fade">
         <View style={styles.modal}>
           <TouchableOpacity
             style={styles.closeButton}
@@ -283,19 +616,16 @@ const PersonalDetailsScreen = ({ navigation }) => {
             <Ionicons name="close" size={rf(3)} color="#FFF" />
           </TouchableOpacity>
 
-        {selfieUri && (
-  <Image
-    source={{ uri: selfieUri }}
-    style={styles.fullImage}
-    resizeMode="contain"
-  />
-)}
-
+          {selfieUri && (
+            <Image source={{ uri: selfieUri }} style={styles.fullImage} />
+          )}
         </View>
       </Modal>
     </View>
   );
 };
+
+export default PersonalDetailsScreen;
 
 const Section = ({ title, iconName, children }) => (
   <View style={styles.sectionCard}>
@@ -332,11 +662,15 @@ const Field = ({ editable, style, ...props }) => (
   <TextInput
     {...props}
     editable={editable}
-    style={[styles.input, !editable && styles.disabledInput, style]}
+    style={[
+      styles.input,
+      !editable && styles.disabledInput,
+      style,
+    ]}
   />
 );
 
-export default PersonalDetailsScreen;
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F6F8" },
