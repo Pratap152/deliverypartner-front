@@ -43,12 +43,11 @@ const KitPickupSelection = ({ navigation, route }) => {
 
               <View style={{ flex: 1 }}>
                 <Text style={styles.name}>
-                  {displayData.name || displayData.zoneName}
+                  {displayData.name || displayData.storeName}
                 </Text>
                 <Text style={styles.address}>
                   {displayData.address || displayData.completeAddress}
                   {displayData.pincode && `, ${displayData.pincode}`}
-                  {displayData.pin && `, ${displayData.pin}`}
                 </Text>
               </View>
             </View>

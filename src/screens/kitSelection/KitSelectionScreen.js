@@ -243,42 +243,43 @@ const KitSelectionScreen = ({ navigation }) => {
               </Text>
             </View>
           ) : (
-            zones.map((zone, index) => (
-              <TouchableOpacity
-                key={zone.id || index}
-                style={[
-                  styles.zoneCard,
-                  selectedZone?.id === zone.id && styles.zoneCardSelected
-                ]}
-                onPress={() => setSelectedZone(zone)}
-              >
-                <View style={styles.zoneRow}>
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      selectedZone?.id === zone.id && styles.radioOuterActive
-                    ]}
-                  >
-                    {selectedZone?.id === zone.id && (
-                      <View style={styles.radioInner} />
-                    )}
-                  </View>
+            zones.map((zone, index) => {
+              const isSelected = selectedZone?._id === zone._id; // Use _id from API
+              
+              return (
+                <TouchableOpacity
+                  key={zone._id || index}
+                  style={[
+                    styles.zoneCard,
+                    isSelected && styles.zoneCardSelected
+                  ]}
+                  onPress={() => setSelectedZone(zone)}
+                >
+                  <View style={styles.zoneRow}>
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        isSelected && styles.radioOuterActive
+                      ]}
+                    >
+                      {isSelected && (
+                        <View style={styles.radioInner} />
+                      )}
+                    </View>
 
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.zoneName}>
-                      {zone.name || zone.zoneName || `Zone ${index + 1}`}
-                    </Text>
-                    <Text style={styles.zoneAddress}>
-                      {zone.address || zone.completeAddress || "Address not available"}
-                      {zone.pincode || zone.pin ? `, ${zone.pincode || zone.pin}` : ""}
-                    </Text>
-                    {zone.distance && (
-                      <Text style={styles.zoneDistance}>📏 {zone.distance}</Text>
-                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.zoneName}>
+                        {zone.storeName || `Store ${index + 1}`}
+                      </Text>
+                      <Text style={styles.zoneAddress}>
+                        {zone.completeAddress || "Address not available"}
+                        {zone.pincode ? `, ${zone.pincode}` : ""}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))
+                </TouchableOpacity>
+              );
+            })
           )}
 
           {zonesError && (

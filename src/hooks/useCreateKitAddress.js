@@ -51,7 +51,7 @@ export function useKitAddress() {
     setError(null);
 
     try {
-      const response = await apiClient.get("/api/rider/kit-address", {
+      const response = await apiClient.get("/api/admin/get-offline-stores", {
         headers: {
           "x-client": "mobile",
         },
