@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
@@ -26,10 +28,36 @@ const FILTERS = [
 const OrderHistory = ({ navigation }) => {
   const [selectedFilter, setSelectedFilter] = useState('weekly');
 
-  const { orders, summary, loading, loadingMore, loadMore } =
-    useOrderHistory(selectedFilter);
+  // ⭐ Loader state ONLY for filter change
+  const [filterLoading, setFilterLoading] = useState(false);
 
-  const renderOrder = ({ item }) => (
+  const {
+    orders,
+    summary,
+    loading,
+    loadingMore,
+    refreshing,
+    loadMore,
+    onRefresh,
+  } = useOrderHistory(selectedFilter);
+
+  /* ========= FILTER CHANGE ========= */
+  const changeFilter = useCallback((value) => {
+    if (value === selectedFilter) return;
+
+    setFilterLoading(true);   // Show loader immediately
+    setSelectedFilter(value);
+  }, [selectedFilter]);
+
+  /* ========= STOP LOADER WHEN DATA ARRIVES ========= */
+  useEffect(() => {
+    if (!loading) {
+      setFilterLoading(false);
+    }
+  }, [loading]);
+
+  /* ========= RENDER ITEM ========= */
+  const renderOrder = useCallback(({ item }) => (
     <View style={styles.orderCard}>
       <View style={styles.rowBetween}>
         <Text style={styles.restaurant}>{item.restaurantName}</Text>
@@ -61,23 +89,30 @@ const OrderHistory = ({ navigation }) => {
         </View>
       ) : null}
     </View>
-  );
+  ), []);
 
-  if (loading && orders.length === 0) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  const handleEndReached = () => {
+    if (!loadingMore && !refreshing && orders.length > 0) {
+      loadMore();
+    }
+  };
+
+  /* ========= EMPTY STATE ========= */
+  const EmptyComponent = () => (
+    <View style={styles.empty}>
+      <Text>No Orders Found</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
+
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Order History</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -91,7 +126,7 @@ const OrderHistory = ({ navigation }) => {
               styles.filterChip,
               selectedFilter === item.value && styles.filterChipActive,
             ]}
-            onPress={() => setSelectedFilter(item.value)}
+            onPress={() => changeFilter(item.value)}
           >
             <Text
               style={[
@@ -105,71 +140,64 @@ const OrderHistory = ({ navigation }) => {
         ))}
       </View>
 
-      {/* ===== LIGHT COLORED SUMMARY BOXES ===== */}
+      {/* SUMMARY */}
       <View style={styles.summaryGrid}>
-        <SummaryCard
-          label="Total Orders"
-          value={summary.totalOrders}
-          bgColor="#DCFCE7"
-          textColor="#166534"
-        />
-        <SummaryCard
-          label="Total Earnings"
-          value={`₹${summary.totalEarnings}`}
-          bgColor="#FFE4D5"
-          textColor="#9A3412"
-        />
-        <SummaryCard
-          label="Average Rating"
-          value={summary.rating}
-          bgColor="#FEF3C7"
-          textColor="#92400E"
-        />
-        <SummaryCard
-          label="KM Traveled"
-          value={summary.km}
-          bgColor="#DBEAFE"
-          textColor="#1E40AF"
-        />
+        <SummaryCard label="Total Orders" value={summary.totalOrders} bgColor="#DCFCE7" textColor="#166534"/>
+        <SummaryCard label="Total Earnings" value={`₹${summary.totalEarnings}`} bgColor="#FFE4D5" textColor="#9A3412"/>
+        <SummaryCard label="Average Rating" value={summary.rating} bgColor="#FEF3C7" textColor="#92400E"/>
+        <SummaryCard label="KM Traveled" value={summary.km} bgColor="#DBEAFE" textColor="#1E40AF"/>
       </View>
 
-      {/* LIST */}
-      <FlatList
-        data={orders}
-        keyExtractor={item => item.id}
-        renderItem={renderOrder}
-        onEndReached={() => {
-          if (!loadingMore) loadMore();
-        }}
-        onEndReachedThreshold={0.4}
-        showsVerticalScrollIndicator={false}
-        /* 🔥 PERFORMANCE */
-        initialNumToRender={6}
-        maxToRenderPerBatch={6}
-        windowSize={7}
-        removeClippedSubviews
-        ListFooterComponent={
-          loadingMore ? (
-            <ActivityIndicator style={{ marginVertical: 20 }} />
-          ) : null
-        }
-      />
+      {/* ⭐ FILTER LOADER */}
+   <FlatList
+  data={orders}
+  keyExtractor={item => item.orderId}
+  renderItem={renderOrder}
+  refreshing={refreshing}
+  onRefresh={onRefresh}
+  onEndReached={handleEndReached}
+  onEndReachedThreshold={0.4}
+  showsVerticalScrollIndicator={false}
+  ListEmptyComponent={!loading ? EmptyComponent : null}
+  ListFooterComponent={
+    loadingMore ? (
+      <ActivityIndicator style={{ marginVertical: 20 }} />
+    ) : null
+  }
+/>
+
+{filterLoading && (
+  <View
+    style={{
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255,255,255,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
+    }}
+  >
+    <ActivityIndicator size="large" />
+  </View>
+)}
+
+
     </View>
   );
 };
 
+/* ========= SUMMARY CARD ========= */
+
 const SummaryCard = ({ label, value, bgColor, textColor }) => (
   <View style={[styles.summaryCard, { backgroundColor: bgColor }]}>
-    <Text style={[styles.summaryValue, { color: textColor }]}>
-      {value}
-    </Text>
-    <Text style={[styles.summaryLabel, { color: textColor }]}>
-      {label}
-    </Text>
+    <Text style={[styles.summaryValue, { color: textColor }]}>{value}</Text>
+    <Text style={[styles.summaryLabel, { color: textColor }]}>{label}</Text>
   </View>
 );
 
 export default OrderHistory;
+
+
+
 
 /* ================= STYLES ================= */
 
@@ -327,4 +355,7 @@ const styles = StyleSheet.create({
     color: '#777',
     fontSize: rf(1.8),
   },
+ 
+
+
 });
