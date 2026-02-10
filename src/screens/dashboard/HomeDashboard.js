@@ -13,7 +13,6 @@ import { banners, todayStats } from "../../components/home/data/home.mock";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
-
 const HomeDashboard = () => {
   const navigation = useNavigation();
   const { isOnline, goOnline, goOffline, isLoading } = useRider();
@@ -45,12 +44,6 @@ const HomeDashboard = () => {
             <StatsCard key={item.id} {...item} />
           ))}
         </View>
-
-        {/* <View style={styles.banner}>
-          <TouchableOpacity onPress={() => { navigation.navigate("OrderPopupScreen") }}>
-            <Text>Navigate to OrderPopupScreen</Text>
-          </TouchableOpacity>
-        </View> */}
         <ActiveShiftBanner />
         <PeakHoursBanner />
 
