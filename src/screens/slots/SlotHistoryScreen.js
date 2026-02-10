@@ -208,7 +208,46 @@ export default function SlotHistoryScreen({navigation}){
         );
     };
    
-    
+    const getStatusStyle = (status = '') => {
+  switch (status) {
+    case 'completed':
+      return {
+        bg: COLORS.completedBg,
+        text: COLORS.completedText,
+      };
+
+    case 'missed':
+      return {
+        bg: COLORS.missedBg,
+        text: COLORS.missedText,
+      };
+
+    case 'cancelled':
+      return {
+        bg: COLORS.cancelledBg,
+        text: COLORS.cancelledText,
+      };
+
+    case 'booked':
+      return {
+        bg: COLORS.bookedBg,
+        text: COLORS.bookedText,
+      };
+
+    case 'ongoing':
+      return {
+        bg: COLORS.ongoingBg,
+        text: COLORS.ongoingText,
+      };
+
+    default:
+      return {
+        bg: COLORS.neutralBg,
+        text: COLORS.textSecondary,
+      };
+  }
+};
+
 
     const renderDay = useCallback(({ item: day }) => {
       const isOpen = expandedDates.includes(day.date);
