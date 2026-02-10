@@ -1,37 +1,3 @@
-// import React from 'react';
-// import { View, Text, StyleSheet } from 'react-native';
-// import {
-//   widthPercentageToDP as wp,
-//   heightPercentageToDP as hp,
-// } from 'react-native-responsive-screen';
-
-
-// const StatsCard = ({ value, label }) => (
-//   <View style={styles.card}>
-//     <Text style={styles.value}>{value}</Text>
-//     <Text style={styles.label}>{label}</Text>
-//   </View>
-// );
-
-// const styles = StyleSheet.create({
-//   card: {
-//     width: wp('28%'),
-//     backgroundColor: '#fff',
-//     borderRadius: wp('4%'),
-//     padding: wp('4%'),
-//     alignItems: 'center',
-//   },
-//   value: {
-//     fontSize: wp('4.5%'),
-//     fontWeight: '700',
-//   },
-//   label: {
-//     fontSize: wp('3.2%'),
-//     marginTop: wp('1%'),
-//   },
-// });
-
-// export default React.memo(StatsCard);
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
@@ -48,7 +14,22 @@ import EarningsHistoryScreen from '../../screens/earnings/EarningsHistoryScreen'
  
 
 const StatItem = ({ icon, value, label, bgColor, screen }) => {
- const navigation = useNavigation();
+  const navigation = useNavigation();
+
+  const handlePress = () => {
+    if (!screen) return;
+
+    // If nested navigation
+    if (typeof screen === 'object') {
+      navigation.navigate(screen.parent, {
+        screen: screen.child,
+      });
+    } else {
+      // Normal screen
+      navigation.navigate(screen);
+    }
+  };
+
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={()=>navigation.navigate(screen,)}>
@@ -61,6 +42,7 @@ const StatItem = ({ icon, value, label, bgColor, screen }) => {
     </View>
   );
 };
+
 
 const StatsCard = () => {
   const {data} = useEarningsDashboard();
