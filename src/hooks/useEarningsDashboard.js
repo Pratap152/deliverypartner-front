@@ -105,14 +105,17 @@ export default function useEarningsDashboard() {
 };
 
 
-  const mapEarningsSummary = res => ({
-  month: {
-    baseEarnings: res.month?.baseEarnings ?? 0, 
-    incentives: res.month?.incentives ?? 0,     
-    tips: res.month?.tips ?? 0,               
-    earnings: res.month?.total ?? 0,
-  },
-});
+  const mapEarningsSummary = (res) => {
+    return{
+    month: {
+      baseEarnings: res.month?.baseEarnings ?? 0, 
+      incentives: res.month?.incentives ?? 0,     
+      tips: res.month?.tips ?? 0,               
+      earnings: res.month?.total ?? 0,
+      orders: res.month.orders ??0
+      }
+  };
+};
 
 
 const mapWeeklyChart = (res) => {
