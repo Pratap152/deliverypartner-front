@@ -1,23 +1,12 @@
 
-// move to env later
 import { useState } from "react";
-import axios from "axios";
-import WEBSITE_URL from "../utils/host";
-import { useAuth } from "./useAuth";
+import apiClient from "../services/ApiClient";
 
 export function useKitAddress() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [data, setData] = useState(null);
-
-  const { authToken } = useAuth();
-
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${authToken}`,
-    "x-client": "mobile",
-  };
 
   // 🔹 POST – create / update address
   const createKitAddress = async (name, address, pincode) => {
@@ -26,14 +15,18 @@ export function useKitAddress() {
     setSuccess(false);
 
     try {
-      const response = await axios.post(
-        `${WEBSITE_URL}/api/rider/kit-address`,
+      const response = await apiClient.post(
+        "/api/rider/kit-address",
         {
           name,
           completeAddress: address,
           pincode,
         },
-        { headers }
+        {
+          headers: {
+            "x-client": "mobile",
+          },
+        }
       );
 
       setData(response.data);
@@ -58,10 +51,11 @@ export function useKitAddress() {
     setError(null);
 
     try {
-      const response = await axios.get(
-        `${WEBSITE_URL}/api/rider/kit-address`,
-        { headers }
-      );
+      const response = await apiClient.get("/api/admin/get-offline-stores", {
+        headers: {
+          "x-client": "mobile",
+        },
+      });
 
       // 👇 because backend returns { data: {...} }
       setData(response.data?.data);
