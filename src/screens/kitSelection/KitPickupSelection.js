@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,177 +6,380 @@ import {
   StyleSheet,
   ScrollView,
   useWindowDimensions,
-  ActivityIndicator,
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
-import { startEditingAddress,assignAddress } from "../../redux/slices/addressSlice";
 import KitHeader from "../../components/kit/KitHeader";
-import { useKitAddress } from "../../hooks/useCreateKitAddress";
 
-const KitPickupSelection = ({ navigation }) => {
+const KitPickupSelection = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
-  const dispatch = useDispatch();
-  const {address:globalAddress} = useSelector(state => state.address);
-  const { getKitAddress, loading } = useKitAddress();
   
-  
-  const handleEdit = () => {
-  dispatch(startEditingAddress());
-  navigation.navigate("KitSelectionScreen");
-};
+  // Get data from navigation params
+  const { deliveryMode, addressData, selectedZone } = route?.params || {};
 
+  // Handle Submit button - navigate to bottom tab navigator (home)
+  const handleSubmit = () => {
+    navigation.replace("MainTabs"); // Navigate to BottomTabNavigator (registered as "MainTabs")
+  };
 
+  // Determine display data based on mode
+  const displayData = deliveryMode === "online" ? addressData : selectedZone;
 
-useEffect(() => {
-  async function fetchAddress() {
-    try {
-      const address = await getKitAddress();
-      if (address) {
-        dispatch(assignAddress(address));
-      }
-    } catch (e) {
-      console.log("Failed to fetch address");
-    }
-  }
-
-  fetchAddress();
-}, []);
-if (loading) return  (
-  <View style={{flex:1,justifyContent:"center",alignItems:"center"}}>
-<ActivityIndicator/>
-  </View>
-);
   return (
-  <>
     <ScrollView style={[styles.container, { padding: width * 0.05 }]}>
       <Text style={styles.title}>Kit Selection</Text>
       <KitHeader />
 
-      {globalAddress && (
-        <TouchableOpacity style={[styles.card, styles.cardSelected]}>
-          <View style={styles.row}>
-            <View style={[styles.radioOuter, styles.radioOuterActive]}>
-              <View style={styles.radioInner} />
-            </View>
+      {/* Selected Address/Zone Card - NOW FIRST */}
+      {displayData && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {deliveryMode === "online" ? "📍 Delivery Address" : "📍 Pickup Location"}
+          </Text>
+          
+          <TouchableOpacity style={[styles.card, styles.cardSelected]}>
+            <View style={styles.row}>
+              <View style={[styles.radioOuter, styles.radioOuterActive]}>
+                <View style={styles.radioInner} />
+              </View>
 
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{globalAddress.name}</Text>
-              <Text style={styles.address}>
-                {globalAddress.address || globalAddress.completeAddress}, {globalAddress.pincode || globalAddress.pin}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>
+                  {displayData.name || displayData.storeName}
+                </Text>
+                <Text style={styles.address}>
+                  {displayData.address || displayData.completeAddress}
+                  {displayData.pincode && `, ${displayData.pincode}`}
+                </Text>
+              </View>
             </View>
+          </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => handleEdit(globalAddress)}>
-              <Text style={styles.editIcon}>✎</Text>
-            </TouchableOpacity>
+          {/* Mode-specific Message */}
+          <View style={styles.infoCard}>
+            <Text style={styles.infoIcon}>
+              {deliveryMode === "online" ? "🚚" : "🏪"}
+            </Text>
+            <Text style={styles.infoText}>
+              {deliveryMode === "online"
+                ? "We will deliver your kit as soon as possible to the selected address."
+                : "You can pick your kit from the selected zone by providing related user details."}
+            </Text>
           </View>
-        </TouchableOpacity>
+        </View>
       )}
-    </ScrollView>
 
-    
-    <View style={styles.bottomContainer}>
-      <TouchableOpacity style={styles.addBtn} onPress={handleEdit}>
-        <Text style={styles.addText}>Change Address</Text>
-      </TouchableOpacity>
-
-      <View style={styles.footerBtns}>
-        <TouchableOpacity style={styles.payBtn}>
-          <Text style={styles.payText}>Pay Now</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.payBtn}>
-          <Text style={styles.payText}>Pay On EMI</Text>
-        </TouchableOpacity>
+      {/* Free Kit Promotional Card - NOW SECOND */}
+      <View style={styles.promoCard}>
+        <View style={styles.promoIconContainer}>
+          <Text style={styles.promoIcon}>🎁</Text>
+        </View>
+        <Text style={styles.promoTitle}>Congratulations!</Text>
+        <Text style={styles.promoSubtitle}>
+          You're eligible for a FREE Kit
+        </Text>
+        <Text style={styles.promoDescription}>
+          Limited to first 100 users. Get your exclusive delivery partner kit at no cost!
+        </Text>
+        <View style={styles.promoBadge}>
+          <Text style={styles.promoBadgeText}>100% FREE</Text>
+        </View>
       </View>
-    </View>
-  </>
-);
+
+      {/* Empty state if no data */}
+      {!displayData && (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>📦</Text>
+          <Text style={styles.emptyText}>
+            No delivery information available.{"\n"}
+            Please go back and select your delivery method.
+          </Text>
+        </View>
+      )}
+
+      {/* Submit Button - NOW INSIDE SCROLLVIEW */}
+      <TouchableOpacity 
+        style={[
+          styles.submitBtn,
+          !displayData && styles.submitBtnDisabled
+        ]} 
+        onPress={handleSubmit}
+        disabled={!displayData}
+      >
+        <Text style={styles.submitText}>Submit</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
 };
 
-export default KitPickupSelection;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "600", marginBottom: 20, textAlign: "center" },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#F8FAFC" 
+  },
+  title: { 
+    fontSize: 28, 
+    fontWeight: "700", 
+    marginBottom: 16,
+    marginTop: 10,
+    textAlign: "center",
+    color: "#1E293B",
+    letterSpacing: 0.5,
+  },
 
-  kitBox: {
-    borderWidth: 1,
-    borderColor: "#00BCD4",
-    borderRadius: 10,
-    padding: 15,
+  // Free Kit Promotional Card - Premium Design
+  promoCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 28,
+    marginBottom: 24,
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#0EA5E9",
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  promoIconContainer: {
+    marginBottom: 16,
+  },
+  promoIcon: {
+    fontSize: 72,
+  },
+  promoTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  promoSubtitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#0EA5E9",
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
+  promoDescription: {
+    fontSize: 14,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    letterSpacing: 0.2,
+  },
+  promoBadge: {
+    backgroundColor: "#0EA5E9",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  promoBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+  },
+
+  // Section
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#334155",
+    marginBottom: 14,
+    letterSpacing: 0.3,
+  },
+
+  // Info Card - Mode specific message
+  infoCard: {
+    backgroundColor: "#F0F9FF",
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#BAE6FD",
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  infoIcon: {
+    fontSize: 32,
+    marginRight: 14,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#0C4A6E",
+    lineHeight: 22,
+    fontWeight: "500",
+    letterSpacing: 0.2,
+  },
+
+  // Empty State
+  emptyContainer: {
+    paddingVertical: 80,
+    paddingHorizontal: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  emptyIcon: {
+    fontSize: 64,
     marginBottom: 20,
   },
-  kitTitle: { fontSize: 15, marginBottom: 10 },
+  emptyText: {
+    fontSize: 16,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 24,
+    fontWeight: "500",
+    letterSpacing: 0.2,
+  },
+
+  kitBox: {
+    borderWidth: 2,
+    borderColor: "#0EA5E9",
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 24,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  kitTitle: { 
+    fontSize: 16, 
+    fontWeight: "600",
+    marginBottom: 12,
+    color: "#334155",
+    letterSpacing: 0.2,
+  },
   imagesRow: { flexDirection: "row", alignItems: "center" },
   placeholderImg: {
     width: 90,
     height: 90,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 8,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 12,
   },
-  plus: { marginHorizontal: 10, fontSize: 20 },
+  plus: { 
+    marginHorizontal: 12, 
+    fontSize: 24,
+    color: "#64748B",
+  },
 
+  // Address Card - Enhanced Design
   card: {
-    borderWidth: 1,
-    borderColor: "#bdbdbd",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 8,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardSelected: {
-    borderColor: "#00BCD4",
-    backgroundColor: "#E0F8FB",
+    borderColor: "#0EA5E9",
+    backgroundColor: "#F0F9FF",
+    borderWidth: 2.5,
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
 
   row: { flexDirection: "row" },
   radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: "#999",
-    marginRight: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2.5,
+    borderColor: "#CBD5E1",
+    marginRight: 14,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 5,
+    backgroundColor: "#FFFFFF",
   },
-  radioOuterActive: { borderColor: "#00BCD4" },
+  radioOuterActive: { 
+    borderColor: "#0EA5E9",
+    borderWidth: 3,
+  },
   radioInner: {
     width: 12,
     height: 12,
-    backgroundColor: "#00BCD4",
+    backgroundColor: "#0EA5E9",
     borderRadius: 6,
   },
 
-  name: { fontSize: 14, fontWeight: "600" },
-  address: { fontSize: 12, marginTop: 3, color: "#555" },
-  editIcon: { fontSize: 18, paddingHorizontal: 5, color: "#00BCD4" },
-
-  bottomContainer: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
+  name: { 
+    fontSize: 17, 
+    fontWeight: "700",
+    color: "#1E293B",
+    letterSpacing: 0.2,
   },
-  addBtn: {
-    paddingVertical: 15,
-    backgroundColor: "#00BCD4",
-    borderRadius: 25,
-    marginBottom: 25,
+  address: { 
+    fontSize: 14, 
+    marginTop: 6, 
+    color: "#64748B",
+    lineHeight: 20,
+    letterSpacing: 0.1,
+  },
+  
+  // Submit Button - Inside ScrollView
+  submitBtn: {
+    backgroundColor: "#0EA5E9",
+    borderRadius: 16,
+    paddingVertical: 18,
     alignItems: "center",
+    marginTop: 24,
+    marginBottom: 30,
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  addText: { color: "#fff", fontSize: 15 },
-
-  footerBtns: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  submitBtnDisabled: {
+    backgroundColor: "#94A3B8",
+    opacity: 0.6,
+    shadowOpacity: 0.1,
+    elevation: 2,
   },
-  payBtn: {
-    backgroundColor: "#00BCD4",
-    paddingVertical: 14,
-    borderRadius: 25,
-    width: "48%",
-    alignItems: "center",
+  submitText: { 
+    color: "#FFFFFF", 
+    fontSize: 18, 
+    fontWeight: "700",
+    letterSpacing: 0.6,
   },
-  payText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });
+
+export default KitPickupSelection;
+
