@@ -21,24 +21,24 @@ export default function useEarningsDashboard() {
       wallet: {},
       incentives: [],
     });
-    console.log('SCREEN DATA ', JSON.stringify(data, null, 2));
+    // console.log('SCREEN DATA ', JSON.stringify(data, null, 2));
 
 
   const fetchDashboard = async () => {
   try {
     const dailyEarnings = await getDailyEarnings();
-    console.log('DAILY EARNINGS OK')
+    // console.log('DAILY EARNINGS OK')
 
     const summaryRes = await getEarningsSummary();
-    console.log('SUMMARY OK');
+    // console.log('SUMMARY OK');
 
     const weeklyChart = await getWeeklyBarChart();
-    console.log('WEEK BAR CHART OK');
+    // console.log('WEEK BAR CHART OK');
 
     let walletRes = null;
     try {
       walletRes = await getWalletDetails();
-      console.log('WALLET OK');
+      // console.log('WALLET OK');
     } catch (e) {
       console.log(' WALLET FAILED', e.response?.data);
     }
@@ -46,7 +46,7 @@ export default function useEarningsDashboard() {
     let peakRes = null;
     try {
       peakRes = await getPeakHourIncentives();
-      console.log('PEAK OK');
+      // console.log('PEAK OK');
     } catch (e) {
       console.log(' PEAK FAILED', e.response?.data);
     }
@@ -54,7 +54,7 @@ export default function useEarningsDashboard() {
     let dailyRes = null;
     try {
       dailyRes = await getDailyIncentives();
-      console.log('DAILY OK');
+      // console.log('DAILY OK');
     } catch (e) {
       console.log(' DAILY FAILED', e.response?.data);
     }
@@ -62,7 +62,7 @@ export default function useEarningsDashboard() {
     let weeklyRes = null;
     try {
       weeklyRes = await getWeeklyIncentives();
-      console.log('WEEKLY INCENTIVE OK');
+      // console.log('WEEKLY INCENTIVE OK');
     } catch (e) {
       console.log(' WEEKLY INCENTIVE FAILED', e.response?.data);
     }

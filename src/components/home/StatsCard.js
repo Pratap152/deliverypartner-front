@@ -39,11 +39,11 @@ import {
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import EarningsNavigator from '../../navigation/EarningsNavigator';
 import SlotHistory from '../../screens/profile/SlotHistory';
 import OrderHistory from '../../screens/profile/OrderHistory';
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import { formatMoney } from '../../utils/formatMoney';
+import EarningsHistoryScreen from '../../screens/earnings/EarningsHistoryScreen';
 
  
 
@@ -51,7 +51,7 @@ const StatItem = ({ icon, value, label, bgColor, screen }) => {
  const navigation = useNavigation();
   return (
     <View style={styles.card}>
-      <TouchableOpacity onPress={()=>navigation.navigate(screen)}>
+      <TouchableOpacity onPress={()=>navigation.navigate(screen,)}>
       <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
         <Ionicons name={icon} size={wp('5%')} color="#fff" />
       </View>
@@ -74,7 +74,7 @@ const StatsCard = () => {
           value={`₹${formatMoney(todayEarnings.totalEarnings ?? 0)}`}
           label="Earnings"
           bgColor="#2ECC71" // green
-          screen={EarningsNavigator}
+          screen={EarningsHistoryScreen}
           />
         <StatItem
           icon="time-outline"

@@ -24,19 +24,13 @@ const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
   const {data} = useEarningsDashboard();
   const {weeklyTotal = 0,weeklyOrders=0 }= data;
   return (
-    <TouchableOpacity onPress={()=>navigation.navigate('EarningsNavigator', {
-                                                                screen: 'EarningsHistoryScreen',
-                                                                params: { mode: 'WEEK' }
-                                                              })
+    <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })
                                                             }>
       <View style={styles.container}>
         {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>This Week</Text>
-            <TouchableOpacity onPress={()=>navigation.navigate('EarningsNavigator', {
-                                                                    screen: 'EarningsHistoryScreen',
-                                                                    params: { mode: 'WEEK' }
-                                                                  })
+            <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })
                                                                 }>
               <Text style={styles.link}>View Details</Text>
             </TouchableOpacity>

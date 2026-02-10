@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native'; // safer
 import apiClient from '../../services/ApiClient';
-
+import SlotBookingScreen from "../../screens/dashboard/SlotBookingScreen";
 /* ================= TIME FORMAT HELPERS ================= */
 const formatTime = time => {
   if (!time) return '';
@@ -64,7 +64,7 @@ const ActiveShiftBanner = () => {
       subtitleSuffix: '',
       info: slot?.incentiveText || 'Go online and earn more',
       background: styles.active,
-      onPress: () => navigation.navigate('SlotsNavigator'),
+      onPress: () => navigation.navigate(SlotBookingScreen),
     },
     UPCOMING: {
       title: 'Next Shift',
