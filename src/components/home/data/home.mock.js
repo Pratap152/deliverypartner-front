@@ -16,9 +16,9 @@ export const banners = [
 ];
 
 export const todayStats = [
-  { id: 'earnings', label: 'Earnings', value: '₹842' },
-  { id: 'hours', label: 'Online', value: '4h 23m' },
-  { id: 'orders', label: 'Orders', value: '12' },
+  { id: 'earnings', label: 'Earnings' },
+  { id: 'hours', label: 'Online' },
+  { id: 'orders', label: 'Orders'},
 ];
 
 export const weeklyStats = {

@@ -27,7 +27,6 @@ import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
 import ReportIssue from '../screens/Home/ReportIssue';
 import AddBankDetails from '../screens/Home/AddBankDetails';
-import ReferEarn from '../screens/Home/ReferEarn';
 import IncentiveDetails from '../screens/Home/IncentiveDetails';
 import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
@@ -49,6 +48,7 @@ import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
 import WalletScreen from '../screens/profile/Wallet';
+import ReferEarn from '../screens/Home/ReferEarn';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -90,7 +90,6 @@ const AppNavigator = () => {
 
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="SuccessfullDelivered" component={SuccessfullDelivered} />
-      <Stack.Screen name="ReferEarn" component={ReferEarn} />
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
       <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: false, title: "Incentive Details" }} />
       <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
@@ -108,6 +107,7 @@ const AppNavigator = () => {
       <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
       <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
       <Stack.Screen name="Wallet" component={WalletScreen} />
+      <Stack.Screen name='ReferEarn' component={ReferEarn}/>
     </Stack.Navigator>
   );
 };
