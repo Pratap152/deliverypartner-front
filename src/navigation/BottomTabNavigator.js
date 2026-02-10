@@ -13,6 +13,7 @@ import HomeDashboard from '../screens/dashboard/HomeDashboard';
 import ProfileNavigator from "./ProfileNavigator";
 import NotificationScreen from '../screens/dashboard/NotificationScreen';
 import EarningsNavigator from './EarningsNavigator';
+import HomeNavigator from './HomeNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -62,7 +63,7 @@ const BottomTabNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeDashboard} />
+      <Tab.Screen name="Home" component={HomeNavigator} />
       <Tab.Screen name="Earnings" component={EarningsNavigator} />
       <Tab.Screen name="SlotBooking" component={SlotsNavigator} />
       <Tab.Screen name="Alerts" component={NotificationScreen} />

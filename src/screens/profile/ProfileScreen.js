@@ -22,12 +22,13 @@ import apiClient from '../../services/ApiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 
-
 export default function ProfileScreen({ navigation }) {
   // const [profile, setProfile] = useState(null);
   const dispatch = useDispatch();
   const { data: profile } = useSelector(state => state.profile);
 
+  const partnerId = profile?.partnerId;
+  const isPartnerActive = profile?.isPartnerActive;
 
   const onLogoutPress = () => {
     authService.logout();
@@ -77,7 +78,7 @@ export default function ProfileScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchProfile());
-    }, [dispatch])
+    }, [dispatch]),
   );
 
   // const getSelfieUri = (selfie) => {
@@ -94,7 +95,7 @@ export default function ProfileScreen({ navigation }) {
 
   // const selfieUri = getSelfieUri(profile?.selfie);
 
-  const getSelfieUri = (selfie) => {
+  const getSelfieUri = selfie => {
     if (!selfie) return null;
 
     if (typeof selfie === 'string') return selfie;
@@ -104,7 +105,6 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const selfieUri = getSelfieUri(profile?.selfie);
-
 
   return (
     <View style={styles.root}>
@@ -130,7 +130,6 @@ export default function ProfileScreen({ navigation }) {
                     }
                     style={styles.avatarImage}
                   />
-
                 </View>
               </View>
 
@@ -140,11 +139,25 @@ export default function ProfileScreen({ navigation }) {
                 </Text>
 
                 <Text style={styles.driverId}>
-                  Driver ID: DRV123456
+                  Rider ID: {partnerId || '—'}
                 </Text>
 
-                <View style={styles.activeBadge}>
-                  <Text style={styles.activeText}>Active</Text>
+                <View
+                  style={[
+                    styles.activeBadge,
+                    {
+                      backgroundColor: isPartnerActive ? '#E6F6EC' : '#FDECEA',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.activeText,
+                      { color: isPartnerActive ? '#2E7D32' : '#C62828' },
+                    ]}
+                  >
+                    {isPartnerActive ? 'Active' : 'Inactive'}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -244,7 +257,7 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
               onPress={() => navigation.navigate('Insurance')}
@@ -262,7 +275,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
               <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* EARNINGS & FINANCE */}
@@ -330,7 +343,7 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
             >
@@ -345,7 +358,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
               <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* PERFORMANCE & REWARDS */}
@@ -415,7 +428,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
             >
@@ -432,11 +445,11 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
               <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* LEARNING & SUPPORT */}
-          <View style={styles.sectionContainer}>
+          {/* <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>LEARNING & SUPPORT</Text>
             <TouchableOpacity
               style={styles.listItemReduced}
@@ -456,10 +469,10 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {/* APP SETTINGS */}
-          <View style={styles.sectionContainer}>
+          {/* <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>APP SETTINGS</Text>
             <TouchableOpacity
               style={styles.listItemReduced}
@@ -495,7 +508,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           <TouchableOpacity
             onPress={onLogoutPress}
@@ -592,7 +605,6 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-
 
   name: {
     fontSize: wp('4.8%'),
@@ -734,5 +746,4 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-
 });
