@@ -26,6 +26,7 @@ import {formatMoney} from '../../utils/formatMoney';
 
 
 
+
 export default function EarningsScreen({ navigation }) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
@@ -64,6 +65,10 @@ export default function EarningsScreen({ navigation }) {
         start={{ x: 0, y: 1 }}
         end={{ x: 1, y: 0 }}>
           <View style={styles.topBar}>
+            <TouchableOpacity
+                            onPress={() => navigation.goBack()}>
+                            <Ionicons name='chevron-back-outline' size={24} color="#FFF" />
+                          </TouchableOpacity>
             <Text style={styles.title}>Earnings</Text>
 
             <View style={styles.topBarIcons}>
@@ -75,7 +80,8 @@ export default function EarningsScreen({ navigation }) {
                 <MaterialIcons name="history" size={22} color="#FFFFFF" />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.iconBtn}>
+              <TouchableOpacity style={styles.iconBtn}
+                                onPress={()=>navigation.navigate('HelpCenterList')}>
                 <Image
                   source={require('../../assets/chat.png')}
                   style={styles.chatIcon}
@@ -294,6 +300,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: wp(6),
     fontWeight: '500',
+    paddingRight:wp(35)
   },
   chat_icon: {
     width: wp(6),
@@ -304,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: hp(3),
-    paddingHorizontal: wp(5)
+    paddingHorizontal: wp(3)
   },
   topBarIcons: {
     flexDirection: 'row',

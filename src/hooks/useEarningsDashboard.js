@@ -6,6 +6,7 @@ import {
   getWeeklyIncentives,
   getDailyIncentives,
 } from '../services/earnings/incentiveService';
+import {getEarningsDashboardData} from '../services/earnings/dashboardService';
 
 
 export default function useEarningsDashboard() {
@@ -25,6 +26,10 @@ export default function useEarningsDashboard() {
 
 
   const fetchDashboard = async () => {
+    const res = await getEarningsDashboardData();
+    
+    console.log("DASHBOARD RAW RESPONSE → ", res);
+
   try {
     const dailyEarnings = await getDailyEarnings();
     // console.log('DAILY EARNINGS OK')
@@ -66,6 +71,9 @@ export default function useEarningsDashboard() {
     } catch (e) {
       console.log(' WEEKLY INCENTIVE FAILED', e.response?.data);
     }
+
+    
+    
     const weeklyMapped = mapWeeklyChart(weeklyChart);
     setData({
       todayEarnings : mapDailyEarnings(dailyEarnings),
