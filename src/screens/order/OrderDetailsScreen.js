@@ -23,7 +23,7 @@ import OrderHeader from '../../components/order/OrderHeader';
 import OrderAddressCard from '../../components/order/OrderAddressCard';
 import OrderItemsCard from '../../components/order/OrderItemsCard';
 import OrderEarningsCard from '../../components/order/OrderEarningsCard';
-import SwipeButton from '../../components/common/SwipeButton';
+// SwipeButton removed - using normal button now
 // import LiveMap from '../../components/map/LiveMap';
 // import { getDistance } from '../../utils/mapUtils';
 import { orderService } from '../../services/order/OrderService';
@@ -43,6 +43,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const mapRef = useRef(null);
   const [deliveryResult, setDeliveryResult] = useState(null);
+  const [buttonLoading, setButtonLoading] = useState(false);
 
   const ui = orderUIConfig[status] || {};
 
@@ -126,7 +127,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   };
 
   /**
-   * Swipe action
+   * Button action (previously swipe action)
    */
   const handleSwipeSuccess = async () => {
     const action = ui.bottomButtons && ui.bottomButtons[0];
@@ -162,6 +163,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
     if (action.nextStatus) {
       try {
+        setButtonLoading(true);
         console.log(`[OrderDetailsScreen] Update status to ${action.nextStatus}`);
         const res = await orderService.updateOrderStatus(orderId, action.nextStatus);
 
@@ -178,6 +180,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         console.error("Status update error:", err);
         const errorMessage = err.response?.data?.message || err.message || "Failed to update status";
         Alert.alert("Update Failed", errorMessage);
+      } finally {
+        setButtonLoading(false);
       }
     }
   };
@@ -246,7 +250,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: ui.bottomButtons && ui.bottomButtons.length > 0 ? 100 : 20 }}>
         <View style={styles.container}>
 
           <OrderHeader
@@ -386,16 +390,30 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               ))}
             </View>
           )}
-          {ui.bottomButtons && ui.bottomButtons.length > 0 && (
-            <SwipeButton
-              key={status} // Force re-render on status change to reset button state
-              title={ui.bottomButtons[0].label}
-              onSwipeSuccess={handleSwipeSuccess}
-            />
-          )}
 
         </View>
       </ScrollView>
+
+      {/* Sticky Bottom Button - Replaces SwipeButton */}
+      {ui.bottomButtons && ui.bottomButtons.length > 0 && (
+        <View style={styles.stickyButtonContainer}>
+          <TouchableOpacity
+            style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
+            onPress={handleSwipeSuccess}
+            disabled={buttonLoading}
+            activeOpacity={0.8}
+          >
+            {buttonLoading ? (
+              <>
+                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 10 }} />
+                <Text style={styles.actionButtonText}>Loading...</Text>
+              </>
+            ) : (
+              <Text style={styles.actionButtonText}>{ui.bottomButtons[0].label}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Customer Not Responding Modal */}
       <Modal
@@ -1043,6 +1061,48 @@ dropStoreName:{
     borderColor: '#C7D2FE',
   },
 
-
-
+  // Sticky Bottom Button Styles
+  stickyButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: wp('4%'),
+    paddingTop: hp('2%'),
+    paddingBottom: hp('3%'),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  actionButton: {
+    backgroundColor: '#00C4B4',
+    paddingVertical: hp('2.2%'),
+    borderRadius: wp('14%'),
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    shadowColor: '#00C4B4',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  actionButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.7,
+    shadowOpacity: 0.15,
+    elevation: 4,
+  },
+  actionButtonText: {
+    fontSize: wp('4.2%'),
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'System',
+    letterSpacing: 0.6,
+  },
 });
