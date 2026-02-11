@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, Platform, Linking, ActivityIndicator, Alert, Text } from 'react-native';
+import { View, StyleSheet, Platform, Linking, ActivityIndicator, Alert, Text, TouchableOpacity } from 'react-native';
 import { AnimatedRegion } from 'react-native-maps';
 import Geolocation from "@react-native-community/geolocation";
  
 // import LiveMap from '../../components/map/LiveMap';
 import EtaBanner from '../../components/map/EtaBanner';
-import SwipeButton from '../../components/common/SwipeButton';
+// SwipeButton removed - using normal button now
  
 // import { useRiderSocket } from '../../hooks/useRiderSocket';
 // import { useLocation } from '../../hooks/useLocation';
@@ -25,6 +25,7 @@ const MapScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(!passedOrderDetails);
   const [riderLocation, setRiderLocation] = useState(null);
   const [distanceToTarget, setDistanceToTarget] = useState(null);
+  const [buttonLoading, setButtonLoading] = useState(false);
  
   const mapRef = useRef(null);
  
@@ -86,6 +87,7 @@ const MapScreen = ({ route, navigation }) => {
     }
  
     try {
+      setButtonLoading(true);
       // Update order status
       await orderService.updateOrderStatus(orderId, nextStatus);
  
@@ -97,6 +99,8 @@ const MapScreen = ({ route, navigation }) => {
     } catch (err) {
       console.error('Arrival error:', err);
       Alert.alert("Error", "Failed to update status");
+    } finally {
+      setButtonLoading(false);
     }
   };
  
@@ -143,10 +147,23 @@ const MapScreen = ({ route, navigation }) => {
         </View>
  
         <View style={{ marginTop: 20 }}>
-          <SwipeButton
-            title={isPickup ? 'Arrived at Restaurant' : 'Arrived at Drop Location'}
-            onSwipeSuccess={handleArrival}
-          />
+          <TouchableOpacity
+            style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
+            onPress={handleArrival}
+            disabled={buttonLoading}
+            activeOpacity={0.8}
+          >
+            {buttonLoading ? (
+              <>
+                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 10 }} />
+                <Text style={styles.actionButtonText}>Loading...</Text>
+              </>
+            ) : (
+              <Text style={styles.actionButtonText}>
+                {isPickup ? 'Arrived at Restaurant' : 'Arrived at Drop Location'}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -227,6 +244,31 @@ const styles = StyleSheet.create({
   locationAddress: {
     fontSize: 14,
     color: '#777'
-  }
+  },
+  actionButton: {
+    backgroundColor: '#00C4B4',
+    paddingVertical: 18,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    shadowColor: '#00C4B4',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  actionButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.7,
+    shadowOpacity: 0.15,
+    elevation: 3,
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
 });
  

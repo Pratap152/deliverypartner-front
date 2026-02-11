@@ -79,6 +79,7 @@ export const RiderProvider = ({ children }) => {
     socketRef.current = ws;
 
     ws.onopen = () => {
+      console.log("WS connected");
       setStatus("CONNECTED");
     };
 
