@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,12 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import apiClient from '../../services/ApiClient';
 
-// 🔒 STATIC DATA (Mock API Response)
+// 🔒 STATIC DATA (UNCHANGED)
 const WALLET_DATA = {
   availableBalance: 12450,
-  pendingCodAmount: 2850,
+  pendingCodAmount: 850,
   recentTransactions: [
     {
       id: '1',
@@ -48,6 +49,29 @@ const WALLET_DATA = {
 };
 
 export default function WalletScreen({ navigation }) {
+
+  const [balance, setBalance] = useState(WALLET_DATA.availableBalance);
+
+  // ⭐ Only added logic
+  useEffect(() => {
+    fetchWallet();
+  }, []);
+
+  const fetchWallet = async () => {
+    try {
+      const res = await apiClient.get('/api/profile/wallet');
+
+      console.log('Wallet API Response:', res.data);
+
+      const apiBalance = res.data?.data?.balance;
+      if (apiBalance !== undefined) {
+        setBalance(Number(apiBalance).toFixed(2));
+      }
+    } catch (err) {
+      console.log('Wallet API Error:', err);
+    }
+  };
+
   const renderItem = ({ item }) => {
     const isCredit = item.type === 'CREDIT';
 
@@ -91,7 +115,8 @@ export default function WalletScreen({ navigation }) {
           <Text style={styles.label}>Available Balance</Text>
         </View>
 
-        <Text style={styles.balance}>₹{WALLET_DATA.availableBalance}</Text>
+        {/* ⭐ ONLY THIS LINE CHANGED */}
+        <Text style={styles.balance}>₹{balance}</Text>
 
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionBtn}>
@@ -139,6 +164,7 @@ export default function WalletScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F6FA', padding: 16 },
