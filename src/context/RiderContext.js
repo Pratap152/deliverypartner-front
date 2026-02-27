@@ -11,7 +11,6 @@ import { ORDER_STATUS } from "../config/orderStates";
 import { orderService } from "../services/order/OrderService";
 import { tokenService } from "../services/TokenService";
 import OrderQueueModal from "../components/order/OrderQueueModal";
-import {WEBSOCKET_URL} from '../utils/host';
 
 const RiderContext = createContext();
 
@@ -74,7 +73,7 @@ export const RiderProvider = ({ children }) => {
     setStatus("CONNECTING");
 
     const ws = new WebSocket(
-      `${WEBSOCKET_URL}/ws?type=RIDER_NOTIFICATION&token=${accessToken}`
+      `wss://delivarypartner.onrender.com/ws?type=RIDER_NOTIFICATION&token=${accessToken}`
     );
 
     socketRef.current = ws;
