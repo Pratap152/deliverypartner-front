@@ -26,9 +26,6 @@ export default function useEarningsDashboard() {
 
 
   const fetchDashboard = async () => {
-    const res = await getEarningsDashboardData();
-    
-    console.log("DASHBOARD RAW RESPONSE → ", res);
 
   try {
     const dailyEarnings = await getDailyEarnings();
