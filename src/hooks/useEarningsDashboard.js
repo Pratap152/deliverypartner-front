@@ -1,103 +1,167 @@
-import { useEffect, useState, useCallback } from 'react';
-import { getDailyEarnings, getEarningsSummary,getWeeklyBarChart} from '../services/earnings/earningsService';
+import { useEffect, useState, useCallback, useRef } from 'react';
+
+import {
+  getDailyEarnings,
+  getEarningsSummary,
+  getWeeklyBarChart,
+} from '../services/earnings/earningsService';
+
 import { getWalletDetails } from '../services/earnings/walletService';
+
 import {
   getPeakHourIncentives,
-  getWeeklyIncentives,
   getDailyIncentives,
+  getWeeklyIncentives,
 } from '../services/earnings/incentiveService';
-import {getEarningsDashboardData} from '../services/earnings/dashboardService';
 
+
+
+/* GLOBAL CACHE (prevents reload when revisiting screen) */
+let dashboardCache = null;
+let dashboardLoaded = false;
 
 export default function useEarningsDashboard() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!dashboardLoaded);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [data, setData] = useState({
-      todayEarnings:{},
-      earningsSummary: {},
-      weeklyBarChart:[],
-      weeklyTotal : 0,
-      weeklyOrders:0,
-      wallet: {},
-      incentives: [],
-    });
+  const [data, setData] = useState(
+      dashboardCache ||{
+        todayEarnings:{},
+        earningsSummary: {},
+        weeklyBarChart:[],
+        weeklyTotal : 0,
+        weeklyOrders:0,
+        wallet: {},
+        incentives: [],
+      });
     // console.log('SCREEN DATA ', JSON.stringify(data, null, 2));
 
+  const mounted = useRef(false);
 
   const fetchDashboard = async () => {
 
-  try {
-    const dailyEarnings = await getDailyEarnings();
-    // console.log('DAILY EARNINGS OK')
+      if (mounted.current) return;
+        mounted.current = true;
 
-    const summaryRes = await getEarningsSummary();
-    // console.log('SUMMARY OK');
+      try {
 
-    const weeklyChart = await getWeeklyBarChart();
-    // console.log('WEEK BAR CHART OK');
+        /** FASTEST API */
+        const daily = await getDailyEarnings();
 
-    let walletRes = null;
-    try {
-      walletRes = await getWalletDetails();
-      // console.log('WALLET OK');
-    } catch (e) {
-      console.log(' WALLET FAILED', e.response?.data);
-    }
+          setData(prev => ({
+            ...prev,
+            todayEarnings: mapDailyEarnings(daily),
+          }));
 
-    let peakRes = null;
-    try {
-      peakRes = await getPeakHourIncentives();
-      // console.log('PEAK OK');
-    } catch (e) {
-      console.log(' PEAK FAILED', e.response?.data);
-    }
+          setLoading(false);
 
-    let dailyRes = null;
-    try {
-      dailyRes = await getDailyIncentives();
-      // console.log('DAILY OK');
-    } catch (e) {
-      console.log(' DAILY FAILED', e.response?.data);
-    }
 
-    let weeklyRes = null;
-    try {
-      weeklyRes = await getWeeklyIncentives();
-      // console.log('WEEKLY INCENTIVE OK');
-    } catch (e) {
-      console.log(' WEEKLY INCENTIVE FAILED', e.response?.data);
-    }
+        /** load everything else in background */
 
-    
-    
-    const weeklyMapped = mapWeeklyChart(weeklyChart);
-    setData({
-      todayEarnings : mapDailyEarnings(dailyEarnings),
-      earningsSummary: mapEarningsSummary(summaryRes),
-      weeklyBarChart: weeklyMapped.chart,
-      weeklyTotal: weeklyMapped?.total ?? 0,
-      weeklyOrders: weeklyMapped?.total_orders ?? 0,
-      wallet: walletRes ? mapWallet(walletRes) : {},
-      incentives: mapIncentives(peakRes, weeklyRes, dailyRes),
-    });
+          getEarningsSummary()
+            .then(summary => {
 
-  } catch (err) {
-    console.log(' SUMMARY FAILED');
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
+              setData(prev => {
+
+                const updated = {
+                  ...prev,
+                  earningsSummary: mapEarningsSummary(summary),
+                };
+
+                dashboardCache = updated;
+                return updated;
+              });
+
+            })
+            .catch(()=>{});
+
+
+          getWeeklyBarChart()
+            .then(res => {
+
+              const weekly = mapWeeklyChart(res);
+
+              setData(prev => {
+
+                const updated = {
+                  ...prev,
+                  weeklyBarChart: weekly.chart,
+                  weeklyTotal: weekly.total,
+                  weeklyOrders: weekly.total_orders,
+                };
+
+                dashboardCache = updated;
+                return updated;
+              });
+
+            })
+            .catch(()=>{});
+
+
+          getWalletDetails()
+            .then(res => {
+
+              setData(prev => {
+
+                const updated = {
+                  ...prev,
+                  wallet: mapWallet(res),
+                };
+
+                dashboardCache = updated;
+                return updated;
+              });
+
+            })
+            .catch(()=>{});
+
+
+        setTimeout(() => {
+            Promise.allSettled([
+              getPeakHourIncentives(),
+              getDailyIncentives(),
+              getWeeklyIncentives(),
+            ])
+            .then(([peak, daily, weekly]) => {
+
+              setData(prev => {
+
+                const updated = {
+                  ...prev,
+                  incentives: mapIncentives(
+                    peak.status==="fulfilled"?peak.value:null,
+                    weekly.status==="fulfilled"?weekly.value:null,
+                    daily.status==="fulfilled"?daily.value:null,
+                  )
+                };
+
+                dashboardCache = updated;
+                dashboardLoaded = true;
+
+                return updated;
+              });
+
+            });
+
+          }, 1000);
+
+
+        }
+        catch {
+          setLoading(false);
+        }
+
+      };
+
 
   const mapDailyEarnings = (res) => {
   const items = res?.items ?? [];
 
   return {
-    date: res?.date ?? '',
+    date: res?.date ?? "",
     totalEarnings: res?.totalEarnings ?? 0,
-    orders: items.length,   
-    items,                
+    orders: items.length,
+    items,
   };
 };
 

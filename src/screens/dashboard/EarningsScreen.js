@@ -23,6 +23,7 @@ import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySumma
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PremiumPressable from '../../components/common/PremiumPressable';
 import {formatMoney} from '../../utils/formatMoney';
+import {dashboardCache} from '../../hooks/useEarningsDashboard';
 
 
 
@@ -30,14 +31,6 @@ import {formatMoney} from '../../utils/formatMoney';
 export default function EarningsScreen({ navigation }) {
   const { data, loading, refreshing, onRefresh } =
     useEarningsDashboard();
- 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#00A63E" />
-      </View>
-    );
-  }
 
   const {
     todayEarnings={},
@@ -262,6 +255,7 @@ export default function EarningsScreen({ navigation }) {
 
 
   return (
+  <View style={{flex:1}}>
     <FlatList
       data={incentives}
       keyExtractor={(item, index) => `${item.title}-${index}`}
@@ -275,9 +269,17 @@ export default function EarningsScreen({ navigation }) {
       refreshing={refreshing} 
       onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
-      removeClippedSubviews={false}
+      removeClippedSubviews={false}/>
 
-    />
+      {/* OVERLAY LOADER */}
+      {loading && dashboardCache && (
+        <View style={styles.overlayLoader}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
+  
+    </View>
+    
   );
 }
 
@@ -523,4 +525,14 @@ walletStatValue: {
     marginTop: hp(4),
     marginBottom: hp(1)
   },
+  overlayLoader: {
+    position: 'absolute',
+    top: hp(4),
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'flex-start',
+    alignItems:'center',
+    backgroundColor: 'rgba(0,0,0,0.25)', // no white background
+  }
 });
