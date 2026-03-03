@@ -226,12 +226,11 @@ export const RiderProvider = ({ children }) => {
       setLoading(true);
 
       const res = await orderService.acceptOrder(orderId);
-      const assignedOrderId = res.data.orderId;
-
+    
       removeOrderFromQueue(orderId);
 
       navigate("OrderDetailsScreen", {
-        orderId: assignedOrderId,
+        orderId: orderId, 
         status: ORDER_STATUS.PICKUP_ASSIGNED,
       });
     } catch (err) {

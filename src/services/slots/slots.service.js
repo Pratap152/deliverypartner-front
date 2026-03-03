@@ -45,7 +45,7 @@ export const loadWeeksApi = async (payload = {}) => {
   const weekNumber = payload.weekNumber || getWeekNumber();
 
 
-  const { city = "Hyderabad", zone = "Gachibowli", year = "2026" } = payload;
+  const { city = "Hyderabad", zone = "Madhapur", year = "2026" } = payload;
   console.log("city zone weekNumber year.....", city, zone, weekNumber, year);
 
   const headers = await getAuthHeaders();
@@ -59,7 +59,7 @@ export const loadWeeksApi = async (payload = {}) => {
 // 1️⃣ Load slots
 export const loadSlotsApi = async (payload = {}) => {
   console.log("entered...loadslotsapi", payload);
-  const { date = "2026-01-05", city = "Hyderabad", zone = "Gachibowli", filter: status = "all" } = payload;
+  const { date = "2026-01-05", city = "Hyderabad", zone = "Madhapur", filter: status = "all" } = payload;
   console.log("status....inner", status, date);
   const headers = await getAuthHeaders();
   console.log("entered into loadslotsstatus api...")
