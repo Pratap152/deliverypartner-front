@@ -29,6 +29,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
   // Fetch order details
   useEffect(() => {
+     console.log("FINAL URL:", `/api/orders/${orderId}/details`);
+
     const fetchOrderDetails = async () => {
       if (!orderId) {
         console.error('❌ OrderDetailsScreen - No orderId provided');
@@ -36,7 +38,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         setLoading(false);
         return;
       }
-
+     
       try {
         console.log('🔄 OrderDetailsScreen - Fetching order details for:', orderId);
         setLoading(true);
@@ -46,6 +48,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         console.log('✅ OrderDetailsScreen - Order data received:', JSON.stringify(data));
 
         setOrderData(data);
+        setStatus(data.orderStatus);
         setLoading(false);
       } catch (err) {
         console.error('❌ OrderDetailsScreen - Fetch failed:', err);
