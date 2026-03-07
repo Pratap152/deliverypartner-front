@@ -27,8 +27,6 @@ const FILTERS = [
 
 const OrderHistory = ({ navigation }) => {
   const [selectedFilter, setSelectedFilter] = useState('weekly');
-
-  // ⭐ Loader state ONLY for filter change
   const [filterLoading, setFilterLoading] = useState(false);
 
   const {
@@ -41,55 +39,60 @@ const OrderHistory = ({ navigation }) => {
     onRefresh,
   } = useOrderHistory(selectedFilter);
 
-  /* ========= FILTER CHANGE ========= */
-  const changeFilter = useCallback((value) => {
-    if (value === selectedFilter) return;
+  /*  FILTER CHANGE  */
+  const changeFilter = useCallback(
+    value => {
+      if (value === selectedFilter) return;
+      setFilterLoading(true); // Show loader immediately
+      setSelectedFilter(value);
+    },
+    [selectedFilter],
+  );
 
-    setFilterLoading(true);   // Show loader immediately
-    setSelectedFilter(value);
-  }, [selectedFilter]);
-
-  /* ========= STOP LOADER WHEN DATA ARRIVES ========= */
+  /* STOP LOADER WHEN DATA ARRIVES */
   useEffect(() => {
     if (!loading) {
       setFilterLoading(false);
     }
   }, [loading]);
 
-  /* ========= RENDER ITEM ========= */
-  const renderOrder = useCallback(({ item }) => (
-    <View style={styles.orderCard}>
-      <View style={styles.rowBetween}>
-        <Text style={styles.restaurant}>{item.restaurantName}</Text>
-        <Text style={styles.earning}>₹{item.earning}</Text>
-      </View>
+  /*  RENDER ITEM  */
+  const renderOrder = useCallback(
+    ({ item }) => (
+      <View style={styles.orderCard}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.restaurant}>{item.restaurantName}</Text>
+          <Text style={styles.earning}>₹{item.earning}</Text>
+        </View>
 
-      <Text style={styles.orderId}>{item.orderId}</Text>
+        <Text style={styles.orderId}>{item.orderId}</Text>
 
-      <Text style={styles.metaText}>
-        {item.customerName} → {item.area}
-      </Text>
+        <Text style={styles.metaText}>
+          {item.customerName} → {item.area}
+        </Text>
 
-      <View style={styles.rowBetween}>
-        <View style={styles.row}>
-          <Text style={styles.metaSmall}>{item.distance} km</Text>
-          <View style={styles.starRow}>
-            <Ionicons name="star" size={14} color="#F5A623" />
-            <Text style={styles.metaSmall}>{item.rating}</Text>
+        <View style={styles.rowBetween}>
+          <View style={styles.row}>
+            <Text style={styles.metaSmall}>{item.distance} km</Text>
+            <View style={styles.starRow}>
+              <Ionicons name="star" size={14} color="#F5A623" />
+              <Text style={styles.metaSmall}>{item.rating}</Text>
+            </View>
           </View>
+
+          <Text style={styles.metaSmall}>{item.time}</Text>
         </View>
 
-        <Text style={styles.metaSmall}>{item.time}</Text>
+        {item.tip ? (
+          <View style={styles.tipRow}>
+            <Text style={styles.tipLabel}>Customer Tip</Text>
+            <Text style={styles.tipValue}>+₹{item.tip}</Text>
+          </View>
+        ) : null}
       </View>
-
-      {item.tip ? (
-        <View style={styles.tipRow}>
-          <Text style={styles.tipLabel}>Customer Tip</Text>
-          <Text style={styles.tipValue}>+₹{item.tip}</Text>
-        </View>
-      ) : null}
-    </View>
-  ), []);
+    ),
+    [],
+  );
 
   const handleEndReached = () => {
     if (!loadingMore && !refreshing && orders.length > 0) {
@@ -97,7 +100,7 @@ const OrderHistory = ({ navigation }) => {
     }
   };
 
-  /* ========= EMPTY STATE ========= */
+  /*  EMPTY STATE  */
   const EmptyComponent = () => (
     <View style={styles.empty}>
       <Text>No Orders Found</Text>
@@ -106,7 +109,6 @@ const OrderHistory = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -142,51 +144,68 @@ const OrderHistory = ({ navigation }) => {
 
       {/* SUMMARY */}
       <View style={styles.summaryGrid}>
-        <SummaryCard label="Total Orders" value={summary.totalOrders} bgColor="#DCFCE7" textColor="#166534"/>
-        <SummaryCard label="Total Earnings" value={`₹${summary.totalEarnings}`} bgColor="#FFE4D5" textColor="#9A3412"/>
-        <SummaryCard label="Average Rating" value={summary.rating} bgColor="#FEF3C7" textColor="#92400E"/>
-        <SummaryCard label="KM Traveled" value={summary.km} bgColor="#DBEAFE" textColor="#1E40AF"/>
+        <SummaryCard
+          label="Total Orders"
+          value={summary.totalOrders}
+          bgColor="#DCFCE7"
+          textColor="#166534"
+        />
+        <SummaryCard
+          label="Total Earnings"
+          value={`₹${summary.totalEarnings}`}
+          bgColor="#FFE4D5"
+          textColor="#9A3412"
+        />
+        <SummaryCard
+          label="Average Rating"
+          value={summary.rating}
+          bgColor="#FEF3C7"
+          textColor="#92400E"
+        />
+        <SummaryCard
+          label="KM Traveled"
+          value={summary.km}
+          bgColor="#DBEAFE"
+          textColor="#1E40AF"
+        />
       </View>
 
-      {/* ⭐ FILTER LOADER */}
-   <FlatList
-  data={orders}
-  keyExtractor={item => item.orderId}
-  renderItem={renderOrder}
-  refreshing={refreshing}
-  onRefresh={onRefresh}
-  onEndReached={handleEndReached}
-  onEndReachedThreshold={0.4}
-  showsVerticalScrollIndicator={false}
-  ListEmptyComponent={!loading ? EmptyComponent : null}
-  ListFooterComponent={
-    loadingMore ? (
-      <ActivityIndicator style={{ marginVertical: 20 }} />
-    ) : null
-  }
-/>
+      {/* FILTER LOADER */}
+      <FlatList
+        data={orders}
+        keyExtractor={item => item.orderId}
+        renderItem={renderOrder}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={!loading ? EmptyComponent : null}
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator style={{ marginVertical: 20 }} />
+          ) : null
+        }
+      />
 
-{filterLoading && (
-  <View
-    style={{
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(255,255,255,0.6)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 999,
-    }}
-  >
-    <ActivityIndicator size="large" />
-  </View>
-)}
-
-
+      {filterLoading && (
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: 'rgba(255,255,255,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999,
+          }}
+        >
+          <ActivityIndicator size="large" />
+        </View>
+      )}
     </View>
   );
 };
 
-/* ========= SUMMARY CARD ========= */
-
+/*  SUMMARY CARD  */
 const SummaryCard = ({ label, value, bgColor, textColor }) => (
   <View style={[styles.summaryCard, { backgroundColor: bgColor }]}>
     <Text style={[styles.summaryValue, { color: textColor }]}>{value}</Text>
@@ -195,11 +214,6 @@ const SummaryCard = ({ label, value, bgColor, textColor }) => (
 );
 
 export default OrderHistory;
-
-
-
-
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -226,7 +240,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  /* FILTERS */
   filterRow: {
     flexDirection: 'row',
     marginBottom: rh(2),
@@ -254,7 +267,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  /* SUMMARY */
   summaryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -279,7 +291,6 @@ const styles = StyleSheet.create({
     marginTop: rh(0.5),
   },
 
-  /* ORDER CARD */
   orderCard: {
     borderRadius: 12,
     padding: rw(4),
@@ -355,7 +366,4 @@ const styles = StyleSheet.create({
     color: '#777',
     fontSize: rf(1.8),
   },
- 
-
-
 });

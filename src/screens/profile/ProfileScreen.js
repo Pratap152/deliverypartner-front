@@ -23,7 +23,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 
 export default function ProfileScreen({ navigation }) {
-  // const [profile, setProfile] = useState(null);
   const dispatch = useDispatch();
   const { data: profile } = useSelector(state => state.profile);
 
@@ -60,40 +59,11 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // const fetchProfile = async () => {
-  //   try {
-  //     const res = await apiClient.get('/api/profile/rider/profile');
-  //     setProfile(res.data?.data);
-  //   } catch (e) {
-  //     console.log('Profile fetch error', e);
-  //   }
-  // };
-
-  //   useFocusEffect(
-  //   useCallback(() => {
-  //     fetchProfile();
-  //   }, [])
-  // );
-
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchProfile());
     }, [dispatch]),
   );
-
-  // const getSelfieUri = (selfie) => {
-  //   if (!selfie) return null;
-
-  //   // backend string URL
-  //   if (typeof selfie === 'string') return selfie;
-
-  //   // backend object { url }
-  //   if (typeof selfie === 'object' && selfie.url) return selfie.url;
-
-  //   return null;
-  // };
-
-  // const selfieUri = getSelfieUri(profile?.selfie);
 
   const getSelfieUri = selfie => {
     if (!selfie) return null;
@@ -256,26 +226,6 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Insurance')}
-            >
-              <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Insurance.png')}
-                  style={styles.icon}
-                />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Insurance</Text>
-                  <Text style={styles.listSubtitle}>
-                    View insurance coverage details
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity> */}
           </View>
 
           {/* EARNINGS & FINANCE */}
@@ -342,23 +292,6 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-            >
-              <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Vega.png')}
-                  style={styles.icon}
-                />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Vega Card</Text>
-                  <Text style={styles.listSubtitle}>Manage your Vega card</Text>
-                </View>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity> */}
           </View>
 
           {/* PERFORMANCE & REWARDS */}
@@ -428,87 +361,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-            >
-              <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Message.png')}
-                  style={styles.icon}
-                />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Message Center</Text>
-                  <Text style={styles.listSubtitle}>
-                    View all messages & updates
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity> */}
           </View>
-
-          {/* LEARNING & SUPPORT */}
-          {/* <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>LEARNING & SUPPORT</Text>
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-            >
-              <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Academy.png')}
-                  style={styles.icon}
-                />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Academy</Text>
-                  <Text style={styles.listSubtitle}>
-                    Training & learning resources
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-          </View> */}
-
-          {/* APP SETTINGS */}
-          {/* <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>APP SETTINGS</Text>
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-            >
-              <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Language.png')}
-                  style={styles.icon}
-                />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Language</Text>
-                  <Text style={styles.listSubtitle}>Change app language</Text>
-                </View>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.listItemReduced}
-              activeOpacity={0.7}
-            >
-              <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/About.png')}
-                  style={styles.icon}
-                />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>About</Text>
-                  <Text style={styles.listSubtitle}>
-                    App version & information
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-          </View> */}
 
           <TouchableOpacity
             onPress={onLogoutPress}
