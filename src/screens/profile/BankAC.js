@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
@@ -39,7 +38,7 @@ const BankAC = ({ navigation }) => {
     ifsc: '',
   });
 
-  /* ================= FETCH BANK DETAILS ================= */
+  /*  FETCH BANK DETAILS  */
   const fetchBankDetails = async () => {
     try {
       const res = await apiClient.get(`/api/profile/bank-details`);
@@ -70,7 +69,7 @@ const BankAC = ({ navigation }) => {
     fetchBankDetails();
   }, []);
 
-  /* ================= UPDATE BANK DETAILS ================= */
+  /*  UPDATE BANK DETAILS  */
   const updateBankDetails = async () => {
     try {
       const payload = {
@@ -87,9 +86,8 @@ const BankAC = ({ navigation }) => {
       const res = await apiClient.put(`/api/profile/bank-details`, payload);
 
       if (res?.data?.success) {
-        // Alert.alert('Success', 'Bank details updated successfully');
         setIsEditing(false);
-        fetchBankDetails(); // refresh data after update
+        fetchBankDetails();
       } else {
         Alert.alert('Error', 'Failed to update bank details');
       }
@@ -134,7 +132,6 @@ const BankAC = ({ navigation }) => {
         )}
       </View>
 
-      {/* INFO */}
       <View>
         <View style={styles.infoContainer}>
           <TouchableOpacity onPress={toggleTooltip} style={styles.infoRow}>
@@ -152,7 +149,6 @@ const BankAC = ({ navigation }) => {
         </View>
       </View>
 
-      {/* BANK DETAILS */}
       <View style={styles.detailsContainer}>
         <View style={styles.accountHeader}>
           <Image
@@ -190,7 +186,6 @@ const BankAC = ({ navigation }) => {
         )}
       </View>
 
-      {/* VERIFICATION STATUS */}
       {/* VERIFICATION STATUS */}
       {!isEditing && (
         <View style={styles.detailsContainer1}>
@@ -230,8 +225,6 @@ const BankAC = ({ navigation }) => {
 };
 
 export default BankAC;
-
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },

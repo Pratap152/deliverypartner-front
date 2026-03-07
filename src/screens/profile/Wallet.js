@@ -12,7 +12,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import apiClient from '../../services/ApiClient';
 
-// 🔒 STATIC DATA (UNCHANGED)
+// STATIC DATA (UNCHANGED)
 const WALLET_DATA = {
   availableBalance: 12450,
   pendingCodAmount: 850,
@@ -49,10 +49,9 @@ const WALLET_DATA = {
 };
 
 export default function WalletScreen({ navigation }) {
-
   const [balance, setBalance] = useState(WALLET_DATA.availableBalance);
 
-  // ⭐ Only added logic
+  //  Only added logic
   useEffect(() => {
     fetchWallet();
   }, []);
@@ -115,7 +114,7 @@ export default function WalletScreen({ navigation }) {
           <Text style={styles.label}>Available Balance</Text>
         </View>
 
-        {/* ⭐ ONLY THIS LINE CHANGED */}
+        {/*  ONLY THIS LINE CHANGED */}
         <Text style={styles.balance}>₹{balance}</Text>
 
         <View style={styles.actionRow}>
@@ -164,7 +163,6 @@ export default function WalletScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F6FA', padding: 16 },

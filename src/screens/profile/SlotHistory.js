@@ -30,7 +30,7 @@ const getCacheKey = filter => `SLOT_HISTORY_CACHE_${filter}`;
 
 let memoryCache = {};
 
-/* ===== STATUS CONFIG OUTSIDE COMPONENT (perf safe) ===== */
+/* STATUS CONFIG OUTSIDE COMPONENT  */
 const STATUS_CONFIG = {
   COMPLETED: {
     label: 'Completed',
@@ -72,13 +72,13 @@ const SlotHistory = ({ navigation }) => {
   const [initialRendered, setInitialRendered] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  /* ⭐ NEW STATES */
+  /* NEW STATES */
   const [filterLoading, setFilterLoading] = useState(false);
   const requestIdRef = useRef(0);
 
   const isFetchingRef = useRef(false);
 
-  /* ================= CACHE LOAD ================= */
+  /*  CACHE LOAD */
   useEffect(() => {
     const loadCache = async () => {
       if (memoryCache[activeFilter]) {
@@ -89,17 +89,15 @@ const SlotHistory = ({ navigation }) => {
       }
 
       try {
-        const cached = await AsyncStorage.getItem(
-          getCacheKey(activeFilter),
-        );
+        const cached = await AsyncStorage.getItem(getCacheKey(activeFilter));
         if (cached) {
           const parsed = JSON.parse(cached);
           memoryCache[activeFilter] = parsed;
           setSlots(parsed.slots || []);
           setSummary(parsed.summary || { totalSlots: 0, totalEarnings: 0 });
         }
-      } catch {}
-      finally {
+      } catch {
+      } finally {
         setInitialRendered(true);
       }
     };
@@ -107,8 +105,7 @@ const SlotHistory = ({ navigation }) => {
     loadCache();
   }, [activeFilter]);
 
-  /* ================= FETCH ================= */
-
+  /*  FETCH */
   const fetchSlotHistory = useCallback(
     async (filterType, pageNo = 1, isRefresh = false) => {
       if (isFetchingRef.current) return;
@@ -141,15 +138,14 @@ const SlotHistory = ({ navigation }) => {
         const newData = res.data.data || [];
 
         setSlots(prev => {
-          const merged =
-            pageNo === 1 ? newData : [...prev, ...newData];
+          const merged = pageNo === 1 ? newData : [...prev, ...newData];
 
-          /* ✅ DEDUP SAFE */
+          /* DEDUP SAFE */
           const unique = Object.values(
             merged.reduce((acc, item) => {
               acc[item.slotBookingId] = item;
               return acc;
-            }, {})
+            }, {}),
           );
 
           const cachePayload = {
@@ -206,7 +202,7 @@ const SlotHistory = ({ navigation }) => {
     fetchSlotHistory(activeFilter, 1, true);
   };
 
-  /* ================= GROUPING ================= */
+  /*  GROUPING */
 
   const groupedSlots = useMemo(() => {
     return slots.reduce((acc, slot) => {
@@ -223,10 +219,7 @@ const SlotHistory = ({ navigation }) => {
   }, [slots]);
 
   const sortedDates = useMemo(
-    () =>
-      Object.keys(groupedSlots).sort(
-        (a, b) => new Date(b) - new Date(a),
-      ),
+    () => Object.keys(groupedSlots).sort((a, b) => new Date(b) - new Date(a)),
     [groupedSlots],
   );
 
@@ -242,8 +235,7 @@ const SlotHistory = ({ navigation }) => {
     ]);
   }, [sortedDates, groupedSlots]);
 
-  /* ================= HELPERS ================= */
-
+  /*  HELPERS  */
   const formatDateMMDDYYYY = date => {
     const d = new Date(date);
     return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(
@@ -280,8 +272,7 @@ const SlotHistory = ({ navigation }) => {
     });
   };
 
-  /* ================= RENDER ================= */
-
+  /*  RENDER  */
   const renderItem = useCallback(({ item }) => {
     if (item.type === 'header') {
       return (
@@ -304,7 +295,8 @@ const SlotHistory = ({ navigation }) => {
           </Text>
 
           <View
-            style={[styles.statusBadge, { backgroundColor: status.bgColor }]}>
+            style={[styles.statusBadge, { backgroundColor: status.bgColor }]}
+          >
             <Ionicons
               name={status.icon}
               size={rf(1.6)}
@@ -319,15 +311,11 @@ const SlotHistory = ({ navigation }) => {
 
         <View style={[styles.rowBetween, { marginTop: rh(0.6) }]}>
           <Text style={styles.subText}>Orders: {item.totalOrders}</Text>
-          <Text style={styles.earningText}>
-            Earnings: ₹{item.slotEarnings}
-          </Text>
+          <Text style={styles.earningText}>Earnings: ₹{item.slotEarnings}</Text>
         </View>
       </View>
     );
   }, []);
-
-  /* ================= UI ================= */
 
   return (
     <View style={styles.container}>
@@ -363,12 +351,14 @@ const SlotHistory = ({ navigation }) => {
               onPress={() => {
                 if (activeFilter === item.value) return;
                 setActiveFilter(item.value);
-              }}>
+              }}
+            >
               <Text
                 style={[
                   styles.filterText,
                   activeFilter === item.value && styles.activeFilterText,
-                ]}>
+                ]}
+              >
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -390,9 +380,7 @@ const SlotHistory = ({ navigation }) => {
               source={require('../../assets/profile/SEarnings.png')}
               style={styles.summaryIcon}
             />
-            <Text style={styles.summaryValue}>
-              ₹{summary.totalEarnings}
-            </Text>
+            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
             <Text style={styles.summaryLabel}>Total Earnings</Text>
           </View>
         </View>
@@ -423,14 +411,16 @@ const SlotHistory = ({ navigation }) => {
         }
         ListEmptyComponent={
           initialRendered && (
-            <Text style={{ textAlign: 'center', marginTop: rh(4), color: '#777' }}>
+            <Text
+              style={{ textAlign: 'center', marginTop: rh(4), color: '#777' }}
+            >
               No slots found
             </Text>
           )
         }
       />
 
-      {/* ⭐ FILTER LOADER OVERLAY */}
+      {/*  FILTER LOADER OVERLAY */}
       {filterLoading && (
         <View
           style={{
@@ -439,7 +429,8 @@ const SlotHistory = ({ navigation }) => {
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 999,
-          }}>
+          }}
+        >
           <ActivityIndicator size="large" />
         </View>
       )}
@@ -448,9 +439,6 @@ const SlotHistory = ({ navigation }) => {
 };
 
 export default SlotHistory;
-
-
-/* ================= STYLES (UNCHANGED) ================= */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F8' },

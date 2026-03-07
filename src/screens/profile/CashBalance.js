@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-} from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
-} from "react-native-responsive-dimensions";
-import apiClient from "../../services/ApiClient";
+} from 'react-native-responsive-dimensions';
+import apiClient from '../../services/ApiClient';
 
 export default function CashBalanceScreen({ navigation }) {
   const [data, setData] = useState(null);
@@ -26,7 +26,7 @@ export default function CashBalanceScreen({ navigation }) {
 
   const fetchCashBalance = async () => {
     try {
-      const res = await apiClient.get("/api/rider/cashbalance");
+      const res = await apiClient.get('/api/rider/cashbalance');
       const apiData = res.data?.data;
 
       const formattedData = {
@@ -34,12 +34,12 @@ export default function CashBalanceScreen({ navigation }) {
         lastDeposit: {
           amount: apiData.latestDeposit || 0,
           date: apiData.latestDeposit
-            ? "Last deposit recorded"
-            : "No deposits yet",
+            ? 'Last deposit recorded'
+            : 'No deposits yet',
         },
         pendingOrdersSummary: {
           count: apiData.pendingOrdersSummary?.pendingOrdersCount || 0,
-          label: "To be deposited",
+          label: 'To be deposited',
         },
         cashOrderHistory: apiData.cashOrderHistory || [],
         rules: apiData.rules,
@@ -47,7 +47,7 @@ export default function CashBalanceScreen({ navigation }) {
 
       setData(formattedData);
     } catch (err) {
-      console.log("Cash balance error", err?.response || err);
+      console.log('Cash balance error', err?.response || err);
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export default function CashBalanceScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Cash Balance</Text>
         <Image
-          source={require("../../assets/profile/HelpcenterIcon.png")}
+          source={require('../../assets/profile/HelpcenterIcon.png')}
           style={styles.robotIcon}
         />
       </View>
@@ -122,12 +122,11 @@ export default function CashBalanceScreen({ navigation }) {
 
         {hasOrders &&
           data.cashOrderHistory.map((item, index) => {
-            const isPending = item.status === "PENDING";
-            const isPartial = item.status === "PARTIAL_DEPOSITED";
+            const isPending = item.status === 'PENDING';
+            const isPartial = item.status === 'PARTIAL_DEPOSITED';
 
-            const displayAmount = isPending || isPartial
-              ? item.pendingAmount
-              : item.totalAmount;
+            const displayAmount =
+              isPending || isPartial ? item.pendingAmount : item.totalAmount;
 
             return (
               <View key={index} style={styles.orderCard}>
@@ -137,22 +136,22 @@ export default function CashBalanceScreen({ navigation }) {
                       styles.statusIconWrap,
                       {
                         backgroundColor: isPending
-                          ? "#FFF4E5"
+                          ? '#FFF4E5'
                           : isPartial
-                          ? "#FEF3F2"
-                          : "#ECFDF3",
+                          ? '#FEF3F2'
+                          : '#ECFDF3',
                       },
                     ]}
                   >
                     <Ionicons
-                      name={isPending ? "time-outline" : "checkmark"}
+                      name={isPending ? 'time-outline' : 'checkmark'}
                       size={rf(2)}
                       color={
                         isPending
-                          ? "#F79009"
+                          ? '#F79009'
                           : isPartial
-                          ? "#F04438"
-                          : "#12B76A"
+                          ? '#F04438'
+                          : '#12B76A'
                       }
                     />
                   </View>
@@ -162,20 +161,24 @@ export default function CashBalanceScreen({ navigation }) {
                     <Text style={styles.orderName}>{item.customerName}</Text>
                     <Text style={styles.orderTime}>
                       {item.collectedAt
-                        ? `Collected at ${new Date(item.collectedAt).toLocaleString()}`
+                        ? `Collected at ${new Date(
+                            item.collectedAt,
+                          ).toLocaleString()}`
                         : item.depositedAt
-                        ? `Deposited at ${new Date(item.depositedAt).toLocaleString()}`
-                        : ""}
+                        ? `Deposited at ${new Date(
+                            item.depositedAt,
+                          ).toLocaleString()}`
+                        : ''}
                     </Text>
                   </View>
                 </View>
 
-                <View style={{ alignItems: "flex-end" }}>
+                <View style={{ alignItems: 'flex-end' }}>
                   <Text
                     style={[
                       styles.orderAmount,
                       {
-                        color: isPending || isPartial ? "#F79009" : "#12B76A",
+                        color: isPending || isPartial ? '#F79009' : '#12B76A',
                       },
                     ]}
                   >
@@ -186,7 +189,7 @@ export default function CashBalanceScreen({ navigation }) {
                     <Text
                       style={{
                         fontSize: rf(1.3),
-                        color: "#667085",
+                        color: '#667085',
                         marginTop: rh(0.2),
                       }}
                     >
@@ -199,29 +202,29 @@ export default function CashBalanceScreen({ navigation }) {
                       styles.statusPill,
                       {
                         backgroundColor: isPending
-                          ? "#FFF4E5"
+                          ? '#FFF4E5'
                           : isPartial
-                          ? "#FEF3F2"
-                          : "#ECFDF3",
+                          ? '#FEF3F2'
+                          : '#ECFDF3',
                       },
                     ]}
                   >
                     <Text
                       style={{
                         color: isPending
-                          ? "#F79009"
+                          ? '#F79009'
                           : isPartial
-                          ? "#F04438"
-                          : "#12B76A",
+                          ? '#F04438'
+                          : '#12B76A',
                         fontSize: rf(1.3),
-                        fontWeight: "600",
+                        fontWeight: '600',
                       }}
                     >
                       {isPending
-                        ? "Pending"
+                        ? 'Pending'
                         : isPartial
-                        ? "Partially Deposited"
-                        : "Deposited"}
+                        ? 'Partially Deposited'
+                        : 'Deposited'}
                     </Text>
                   </View>
                 </View>
@@ -236,9 +239,7 @@ export default function CashBalanceScreen({ navigation }) {
           <Text style={styles.depositNowText}>Deposit Cash Now</Text>
         </TouchableOpacity>
 
-        <Text style={styles.noteText}>
-          Note: {data.rules?.warningMessage}
-        </Text>
+        <Text style={styles.noteText}>Note: {data.rules?.warningMessage}</Text>
 
         <View style={{ height: rh(4) }} />
       </ScrollView>
@@ -258,93 +259,93 @@ const InfoCard = ({ icon, value, title, subtitle }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F7FA" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: rw(4),
-    backgroundColor: "#FFF",
-    justifyContent: "space-between",
+    backgroundColor: '#FFF',
+    justifyContent: 'space-between',
   },
-  headerTitle: { fontSize: rf(2.2), fontWeight: "600" },
-  robotIcon: { width: rw(7), height: rw(7), resizeMode: "contain" },
-  row: { flexDirection: "row", alignItems: "center" },
+  headerTitle: { fontSize: rf(2.2), fontWeight: '600' },
+  robotIcon: { width: rw(7), height: rw(7), resizeMode: 'contain' },
+  row: { flexDirection: 'row', alignItems: 'center' },
   greenCard: {
-    backgroundColor: "#12B76A",
+    backgroundColor: '#12B76A',
     margin: rw(4),
     padding: rw(5),
     borderRadius: rw(3),
   },
   greenIconWrap: {
-    backgroundColor: "#ECFDF3",
+    backgroundColor: '#ECFDF3',
     padding: rw(2),
     borderRadius: 50,
   },
   greenLabel: {
-    color: "#EFFFF6",
+    color: '#EFFFF6',
     marginLeft: rw(2),
     fontSize: rf(1.7),
   },
   greenAmount: {
-    color: "#FFF",
+    color: '#FFF',
     fontSize: rf(3.2),
-    fontWeight: "700",
+    fontWeight: '700',
     marginVertical: rh(1),
   },
   depositRow: {
-    backgroundColor: "#FFF",
+    backgroundColor: '#FFF',
     padding: rw(4),
     borderRadius: rw(2),
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  depositText: { color: "#667085" },
-  depositAmount: { fontWeight: "700", fontSize: rf(2) },
+  depositText: { color: '#667085' },
+  depositAmount: { fontWeight: '700', fontSize: rf(2) },
   infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     margin: rw(4),
   },
   infoCard: {
-    width: "48%",
-    backgroundColor: "#FFF",
+    width: '48%',
+    backgroundColor: '#FFF',
     padding: rw(4),
     borderRadius: rw(3),
   },
   infoIconWrap: {
-    backgroundColor: "#ECFDF3",
+    backgroundColor: '#ECFDF3',
     padding: rw(2),
     borderRadius: 50,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   infoValue: {
     fontSize: rf(2.2),
-    fontWeight: "700",
+    fontWeight: '700',
     marginTop: rh(1),
   },
-  infoTitle: { color: "#667085", marginTop: rh(0.4) },
-  infoSub: { color: "#98A2B3", fontSize: rf(1.4) },
+  infoTitle: { color: '#667085', marginTop: rh(0.4) },
+  infoSub: { color: '#98A2B3', fontSize: rf(1.4) },
   sectionTitle: {
     marginHorizontal: rw(4),
     marginBottom: rh(1),
     fontSize: rf(2),
-    fontWeight: "600",
+    fontWeight: '600',
   },
   orderCard: {
-    backgroundColor: "#FFF",
+    backgroundColor: '#FFF',
     marginHorizontal: rw(4),
     marginBottom: rh(1.2),
     padding: rw(4),
     borderRadius: rw(3),
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   statusIconWrap: { padding: rw(2), borderRadius: 50 },
-  orderId: { fontWeight: "600" },
-  orderName: { color: "#667085" },
-  orderTime: { color: "#98A2B3", fontSize: rf(1.3) },
-  orderAmount: { fontSize: rf(1.9), fontWeight: "700" },
+  orderId: { fontWeight: '600' },
+  orderName: { color: '#667085' },
+  orderTime: { color: '#98A2B3', fontSize: rf(1.3) },
+  orderAmount: { fontSize: rf(1.9), fontWeight: '700' },
   statusPill: {
     paddingHorizontal: rw(3),
     paddingVertical: rh(0.5),
@@ -352,20 +353,20 @@ const styles = StyleSheet.create({
     marginTop: rh(0.6),
   },
   depositNowBtn: {
-    backgroundColor: "#12B76A",
+    backgroundColor: '#12B76A',
     margin: rw(4),
     paddingVertical: rh(1.8),
     borderRadius: rw(3),
-    alignItems: "center",
+    alignItems: 'center',
   },
   depositNowText: {
-    color: "#FFF",
+    color: '#FFF',
     fontSize: rf(2),
-    fontWeight: "600",
+    fontWeight: '600',
   },
   noteText: {
     marginHorizontal: rw(4),
-    color: "#667085",
+    color: '#667085',
     fontSize: rf(1.4),
     lineHeight: rf(2.1),
   },

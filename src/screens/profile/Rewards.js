@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,14 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-} from "react-native";
-import axios from "axios";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import apiClient from "../../services/ApiClient";
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import apiClient from '../../services/ApiClient';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
-} from "react-native-responsive-dimensions";
+} from 'react-native-responsive-dimensions';
 
 const RewardsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
@@ -32,15 +31,15 @@ const RewardsScreen = ({ navigation }) => {
     try {
       const [peakRes, dailyRes, weeklyRes] = await Promise.all([
         apiClient.get(`/api/home/peakhours-incentives`),
-        apiClient.get(`/api/home/incentives/daily-earning`, ),
-        apiClient.get(`/api/home/incentives/weekly-earning`,),
+        apiClient.get(`/api/home/incentives/daily-earning`),
+        apiClient.get(`/api/home/incentives/weekly-earning`),
       ]);
 
       setPeakHours(peakRes.data?.incentives || []);
       setDaily(dailyRes.data?.data || null);
       setWeekly(weeklyRes.data?.data || null);
     } catch (e) {
-      console.log("Rewards error", e?.response || e);
+      console.log('Rewards error', e?.response || e);
     } finally {
       setLoading(false);
     }
@@ -65,10 +64,10 @@ const RewardsScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>Rewards</Text>
 
         <TouchableOpacity
-          onPress={() => Alert.alert("Help", "Contact support for assistance")}
+          onPress={() => Alert.alert('Help', 'Contact support for assistance')}
         >
           <Image
-            source={require("../../assets/profile/HelpcenterIcon.png")}
+            source={require('../../assets/profile/HelpcenterIcon.png')}
             style={styles.robotIcon}
           />
         </TouchableOpacity>
@@ -99,9 +98,9 @@ const RewardsScreen = ({ navigation }) => {
                       <Text style={styles.points}>₹{item.rewardValue}</Text>
                     </View>
 
-                   <Text style={styles.description}>{item.description}</Text>
+                    <Text style={styles.description}>{item.description}</Text>
                     <Text style={styles.meta}>
-                      ⏰ {item.condition.startTime} – {item.condition.endTime}
+                      {item.condition.startTime} – {item.condition.endTime}
                     </Text>
                     <Text style={styles.meta}>
                       Min Orders: {item.condition.minOrders}
@@ -156,9 +155,10 @@ const RewardsScreen = ({ navigation }) => {
                     style={[
                       styles.progressFill,
                       {
-                        width: `${(daily.completedOrders / daily.requiredOrders) * 100
-                          }%`,
-                        backgroundColor: "#12B76A",
+                        width: `${
+                          (daily.completedOrders / daily.requiredOrders) * 100
+                        }%`,
+                        backgroundColor: '#12B76A',
                       },
                     ]}
                   />
@@ -200,9 +200,10 @@ const RewardsScreen = ({ navigation }) => {
                     style={[
                       styles.progressFill,
                       {
-                        width: `${(weekly.completedOrders / weekly.requiredOrders) * 100
-                          }%`,
-                        backgroundColor: "#F79009",
+                        width: `${
+                          (weekly.completedOrders / weekly.requiredOrders) * 100
+                        }%`,
+                        backgroundColor: '#F79009',
                       },
                     ]}
                   />
@@ -223,64 +224,64 @@ export default RewardsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F9FC",
+    backgroundColor: '#F7F9FC',
   },
 
   center: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: rw(4),
     paddingVertical: rh(2.2),
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     elevation: 3,
   },
 
   headerTitle: {
     fontSize: rf(2.3),
-    fontWeight: "700",
-    color: "#101828",
+    fontWeight: '700',
+    color: '#101828',
   },
 
   robotIcon: {
     width: rw(7.5),
     height: rw(7.5),
-    resizeMode: "contain",
+    resizeMode: 'contain',
   },
 
   sectionTitle: {
     fontSize: rf(2.5),
-    fontWeight: "700",
+    fontWeight: '700',
     marginHorizontal: rw(4),
     marginTop: rh(2),
     marginBottom: rh(1),
-    color: "#101828",
+    color: '#101828',
   },
 
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     borderRadius: rw(4),
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: rw(5),
     marginHorizontal: rw(4),
     marginBottom: rh(2.2),
     elevation: 2,
-    minHeight: rh(12), // slightly increased height
+    minHeight: rh(12),
   },
 
   iconBox: {
     width: rw(14),
     height: rw(14),
     borderRadius: rw(3.5),
-    backgroundColor: "#EEF4FF",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#EEF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: rw(3.2),
   },
 
@@ -289,52 +290,52 @@ const styles = StyleSheet.create({
   },
 
   rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
   title: {
     fontSize: rf(2.1),
-    fontWeight: "600",
-    color: "#101828",
+    fontWeight: '600',
+    color: '#101828',
   },
 
   points: {
     fontSize: rf(2),
-    fontWeight: "700",
-    color: "#00B2C9",
+    fontWeight: '700',
+    color: '#00B2C9',
   },
 
   description: {
     fontSize: rf(1.8),
-    color: "#667085",
+    color: '#667085',
     marginTop: rh(0.7),
   },
 
   meta: {
     fontSize: rf(1.7),
-    color: "#475467",
+    color: '#475467',
     marginTop: rh(0.5),
   },
 
   progressText: {
     marginTop: rh(1.2),
     fontSize: rf(1.7),
-    fontWeight: "500",
-    color: "#344054",
+    fontWeight: '500',
+    color: '#344054',
   },
 
   progressBar: {
     height: rh(1.2),
-    backgroundColor: "#E4E7EC",
+    backgroundColor: '#E4E7EC',
     borderRadius: rw(2.5),
     marginTop: rh(0.7),
-    overflow: "hidden",
+    overflow: 'hidden',
   },
 
   progressFill: {
-    height: "100%",
-    backgroundColor: "#00B2C9",
+    height: '100%',
+    backgroundColor: '#00B2C9',
   },
 });

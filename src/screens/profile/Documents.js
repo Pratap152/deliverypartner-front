@@ -22,8 +22,7 @@ import ImageResizer from '@bam.tech/react-native-image-resizer';
 
 import apiClient from '../../services/ApiClient';
 
-/* ================= HELPERS ================= */
-
+/*  HELPERS  */
 const formatTitle = key =>
   key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
 
@@ -38,20 +37,18 @@ const DOCUMENT_UPLOAD_CONFIG = {
   },
 };
 
-/* ================= COMPONENT ================= */
-
+/*  COMPONENT  */
 const DocumentsScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState(null);
   const [loading, setLoading] = useState(true);
   const [previewImages, setPreviewImages] = useState([]);
-  const [uploadingKey, setUploadingKey] = useState(null); // ✅ upload loader
+  const [uploadingKey, setUploadingKey] = useState(null);
 
   useEffect(() => {
     fetchDocuments();
   }, []);
 
-  /* ================= FETCH DOCUMENTS ================= */
-
+  /*  FETCH DOCUMENTS  */
   const fetchDocuments = async () => {
     try {
       setLoading(true);
@@ -69,8 +66,7 @@ const DocumentsScreen = ({ navigation }) => {
     }
   };
 
-  /* ================= GALLERY PICKER ================= */
-
+  /*  GALLERY PICKER  */
   const openGallery = count =>
     new Promise((resolve, reject) => {
       launchImageLibrary(
@@ -86,15 +82,14 @@ const DocumentsScreen = ({ navigation }) => {
       );
     });
 
-  /* ================= IMAGE COMPRESSION (FASTER) ================= */
-
+  /*  IMAGE COMPRESSION (FASTER)  */
   const compressImage = async uri => {
     const resized = await ImageResizer.createResizedImage(
       uri,
-      1024, // ⬇ smaller size
+      1024, // smaller size
       1024,
       'JPEG',
-      60, // ⬇ faster upload, no visible quality loss
+      60, // faster upload, no visible quality loss
     );
 
     return {
@@ -104,11 +99,10 @@ const DocumentsScreen = ({ navigation }) => {
     };
   };
 
-  /* ================= UPLOAD DOCUMENT ================= */
-
+  /*  UPLOAD DOCUMENT  */
   const uploadDocument = async (docKey, images) => {
     try {
-      setUploadingKey(docKey); // ✅ start loader
+      setUploadingKey(docKey); // start loader
 
       const formData = new FormData();
 
@@ -132,7 +126,7 @@ const DocumentsScreen = ({ navigation }) => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 30000, // ✅ prevent hanging
+          timeout: 30000, // prevent hanging
         },
       );
 
@@ -157,10 +151,8 @@ const DocumentsScreen = ({ navigation }) => {
     }
   };
 
-  /* ================= UI HELPERS ================= */
-
+  /*  UI HELPERS  */
   const isVerified = status => status === 'approved';
-
   const getImageUrls = doc => {
     if (!doc) return [];
     const urls = [];
@@ -192,8 +184,7 @@ const DocumentsScreen = ({ navigation }) => {
   const verifiedCount = docsArray.filter(d => isVerified(d.data.status)).length;
   const pendingCount = docsArray.length - verifiedCount;
 
-  /* ================= RENDER ================= */
-
+  /*  RENDER  */
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -213,7 +204,6 @@ const DocumentsScreen = ({ navigation }) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        
         {/* SUMMARY */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Document Status</Text>
@@ -362,8 +352,6 @@ const DocumentsScreen = ({ navigation }) => {
 };
 
 export default DocumentsScreen;
-
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F8' },
