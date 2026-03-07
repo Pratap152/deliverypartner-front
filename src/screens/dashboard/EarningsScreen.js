@@ -14,10 +14,9 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
-
 
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
+import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -27,10 +26,8 @@ import {dashboardCache} from '../../hooks/useEarningsDashboard';
 
 
 
-
 export default function EarningsScreen({ navigation }) {
-  const { data, loading, refreshing, onRefresh } =
-    useEarningsDashboard();
+  const { data, loading, refreshing, onRefresh } = useEarningsDashboard();
 
   const {
     todayEarnings={},
@@ -47,12 +44,10 @@ export default function EarningsScreen({ navigation }) {
   const CARD_PADDING = wp(4);
 
 
-
-
-  /* HEADER IS A STABLE ELEMENT — NOT A FUNCTION */
+  /* HEADER */
   const HEADER = (
     <View style={{ backgroundColor: '#F4F6F8' }}>
-      {/* TOP GRADIENT */}
+      {/* GRADIENT */}
       <LinearGradient
        colors={['#065F46', '#10B981', '#34D399']}
         start={{ x: 0, y: 1 }}
@@ -65,22 +60,18 @@ export default function EarningsScreen({ navigation }) {
             <Text style={styles.title}>Earnings</Text>
 
             <View style={styles.topBarIcons}>
-              
               <TouchableOpacity
                 style={styles.iconBtn}
                 onPress={() =>
                   navigation.navigate('EarningsHistoryScreen', { mode: 'HISTORY' })}>
                 <MaterialIcons name="history" size={22} color="#FFFFFF" />
               </TouchableOpacity>
-
               <TouchableOpacity style={styles.iconBtn}
                                 onPress={()=>navigation.navigate('HelpCenterList')}>
                 <Image
                   source={require('../../assets/chat.png')}
-                  style={styles.chatIcon}
-                />
+                  style={styles.chatIcon}/>
               </TouchableOpacity>
-
             </View>
           </View>
               
@@ -101,12 +92,9 @@ export default function EarningsScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Divider */}
           <View style={styles.dailyDivider} />
-
-          {/* Stats Row */}
+          
           <View style={styles.dailyStatsRow}>
-
             <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>
                 ₹{formatMoney(todayEarnings.totalEarnings ?? 0)}
@@ -133,41 +121,33 @@ export default function EarningsScreen({ navigation }) {
 
           </View>
         </TouchableOpacity>
-
       </LinearGradient>
 
       {/* WEEKLY CARD */}
       <View style={[styles.card,{width:CARD_WIDTH, padding: CARD_PADDING}]}>
         <PremiumPressable onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'WEEK'})} >
-        <View style={styles.cardHeader}>
-          
-          <Text style={styles.cardTitle}>This Week</Text>
-          <Text style={styles.cardValue}>₹{formatMoney(weeklyTotal)}</Text>
-        </View>
+          <View style={styles.cardHeader}>
+            
+            <Text style={styles.cardTitle}>This Week</Text>
+            <Text style={styles.cardValue}>₹{formatMoney(weeklyTotal)}</Text>
+          </View>
         
-        <WeeklyEarningsChart
-          data={weeklyBarChart}
-          width={CARD_WIDTH - CARD_PADDING * 2}
-          height={hp(30)}  
-        />   
-    </PremiumPressable>
- 
- 
+          <WeeklyEarningsChart
+            data={weeklyBarChart}
+            width={CARD_WIDTH - CARD_PADDING * 2}
+            height={hp(30)} />   
+        </PremiumPressable>
       </View>
 
       {/* WALLET */}
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => navigation.navigate('Wallet')}
-      >
+        onPress={() => navigation.navigate('Wallet')}>
         <LinearGradient
           colors={['#4338CA', '#6366F1', '#818CF8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.walletCard}
-        >
-
-          {/* Top Row */}
+          style={styles.walletCard}>
           <View style={styles.walletTop}>
             <View>
               <Text style={styles.walletLabel}>Wallet Balance</Text>
@@ -175,13 +155,10 @@ export default function EarningsScreen({ navigation }) {
                 ₹{formatMoney(wallet.balance ?? 0)}
               </Text>
             </View>
-
             <View style={styles.walletIconWrap}>
               <Ionicons name="wallet" size={26} color="#6366F1" />
             </View>
           </View>
-
-          {/* Action Buttons */}
           <View style={styles.walletActions}>
             <TouchableOpacity style={styles.walletBtn}
               activeOpacity={0.9}
@@ -189,7 +166,6 @@ export default function EarningsScreen({ navigation }) {
               <Ionicons name="arrow-up-circle-outline" size={18} color="#6366F1" />
               <Text style={styles.walletBtnText}>Withdraw</Text>
             </TouchableOpacity>
-
             <TouchableOpacity style={styles.walletBtnOutline}
               activeOpacity={0.7}
               onPress={() => navigation.navigate('Wallet')}>
@@ -197,11 +173,7 @@ export default function EarningsScreen({ navigation }) {
               <Text style={styles.walletBtnTextOutline}>History</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Divider */}
           <View style={styles.walletDivider} />
-
-          {/* Stats Row */}
           <View style={styles.walletStats}>
             <View>
               <Text style={styles.walletStatLabel}>Total Earned</Text>
@@ -209,7 +181,6 @@ export default function EarningsScreen({ navigation }) {
                 ₹{formatMoney(wallet.totalEarned ?? 0)}
               </Text>
             </View>
-
             <View>
               <Text style={styles.walletStatLabel}>Total Withdrawn</Text>
               <Text style={styles.walletStatValue}>
@@ -217,43 +188,36 @@ export default function EarningsScreen({ navigation }) {
               </Text>
             </View>
           </View>
-
         </LinearGradient>
       </TouchableOpacity>
-
-
 
       <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
     </View>
   );
 
-  /*  FOOTER IS ALSO A STABLE ELEMENT */
+  /*  FOOTER */
   const FOOTER = (
     <TouchableOpacity style={{ marginBottom: hp(4) }} >
       <MonthlySummaryCard summary={month} />
     </TouchableOpacity>
   );
 
+  // NAVIGATIONS TO INCENTIVE PAGES
   const handleItemPress = (item) => {
     if (item.type === 'peak') {
       navigation.navigate('PeakHourBonusScreen', { ...item });
       return;
     }
-
     if (item.type === 'weekly') {
       navigation.navigate('WeekEarnings', { ...item });
       return;
     }
-
     if (item.type === 'daily') {
       navigation.navigate('DailyGuarentee', { ...item });
     }
   };
 
-
-
-
-
+  // UI
   return (
   <View style={{flex:1}}>
     <FlatList
@@ -271,7 +235,7 @@ export default function EarningsScreen({ navigation }) {
       showsVerticalScrollIndicator={false}
       removeClippedSubviews={false}/>
 
-      {/* OVERLAY LOADER */}
+      {/* LOADER */}
       {loading && dashboardCache && (
         <View style={styles.overlayLoader}>
           <ActivityIndicator size="large" color="#FFFFFF" />
@@ -533,6 +497,6 @@ walletStatValue: {
     right: 0,
     justifyContent: 'flex-start',
     alignItems:'center',
-    backgroundColor: 'rgba(0,0,0,0.25)', // no white background
+    backgroundColor: 'rgba(0,0,0,0.25)', 
   }
 });
