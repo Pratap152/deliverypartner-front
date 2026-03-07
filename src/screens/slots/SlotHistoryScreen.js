@@ -170,7 +170,7 @@ export default function SlotHistoryScreen({navigation}){
                       >
                         <Text style={styles.summaryGradientLabel}>Missed</Text>
                         <Text style={styles.summaryGradientValue}>
-                          {summary?.missed ?? 0}
+                          {summary?.noShow ?? 0}
                         </Text>
                     </LinearGradient>
 
