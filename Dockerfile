@@ -1,5 +1,5 @@
 # Base image
-FROM node:18
+FROM node:20
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y \
