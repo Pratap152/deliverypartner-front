@@ -1,22 +1,29 @@
 FROM node:20
 
-# Install Java + Android tools (but don't build APK here)
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     openjdk-17-jdk \
     wget \
     unzip \
     git \
     curl \
+    python3 \
+    python3-pip \
+    build-essential \
+    libc6 \
+    libstdc++6 \
+    awscli \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Java
+# Java setup
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-# Android SDK paths
+# Android SDK
 ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
 ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
 
-# Install Android SDK (minimal)
+# Install Android SDK
 RUN mkdir -p $ANDROID_HOME/cmdline-tools && \
     cd $ANDROID_HOME/cmdline-tools && \
     wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip && \
@@ -28,14 +35,18 @@ RUN mkdir -p $ANDROID_HOME/cmdline-tools && \
 # Accept licenses
 RUN yes | sdkmanager --licenses
 
-# Install required SDK packages
+# Install SDK packages
 RUN sdkmanager \
     "platform-tools" \
     "platforms;android-33" \
-    "build-tools;33.0.0"
+    "build-tools;33.0.0" \
+    "extras;android;m2repository" \
+    "extras;google;m2repository"
+
+# Gradle config
+ENV GRADLE_USER_HOME=/gradle
 
 # Working directory
 WORKDIR /app
 
-# Default command
 CMD ["bash"]
