@@ -9,6 +9,7 @@ import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
 import AppPermissionScreen from '../screens/onboarding/AppPermissionScreen';
 import RiderTypeScreen from '../screens/onboarding/RiderTypeScreen';
 import EmployeeDetailsScreen from '../screens/onboarding/EmployeeDetailsScreen'
+import DocumentDetailsScreen from '../screens/onboarding/DocumentDetailsScreen';
 import VehicleSelectionScreen from '../screens/onboarding/VehicleSelectionScreen';
 import PersonalInfoScreen from '../screens/onboarding/PersonalInfoScreen';
 import FaceInstructionScreen from '../screens/onboarding/FaceInstructionScreen';
@@ -69,6 +70,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AppPermissionScreen" component={AppPermissionScreen} />
       <Stack.Screen name="RiderTypeScreen" component={RiderTypeScreen} />
       <Stack.Screen name="EmployeeDetailsScreen" component={EmployeeDetailsScreen} />
+      <Stack.Screen name="DocumentDetailsScreen" component={DocumentDetailsScreen} />
       <Stack.Screen name="SelectCityScreen" component={SelectCityScreen} />
       <Stack.Screen name="AreaSelectionScreen" component={AreaSelectionScreen} />
       <Stack.Screen name="VehicleSelectionScreen" component={VehicleSelectionScreen} />
