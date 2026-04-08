@@ -112,7 +112,7 @@ export default function useEmployeeDetails(navigation) {
     setSubmitting(true);
     try {
       await uploadEmployeeDetails(payload);
-      navigation.replace('OnBoardingScreen');
+      navigation.replace('DocumentDetailsScreen');
     } catch (err) {
       console.log('API ERROR:', err.response?.status, err.response?.data);
     } finally {
