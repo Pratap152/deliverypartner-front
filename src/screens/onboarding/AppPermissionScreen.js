@@ -52,7 +52,7 @@ const AppPermissionScreen = ({ navigation }) => {
   async function handleSubmit() {
     try {
       await apiClient.post(
-        '/api/rider/permissions',
+        '/api/rider/app-permissions',
         {
           camera: true,
           foregroundLocation: true,
@@ -65,8 +65,8 @@ const AppPermissionScreen = ({ navigation }) => {
         },
       );
 
-      // ✅ Always go through Splash
-      navigation.replace('SplashScreen');
+      // Always go through Splash
+      navigation.replace('RiderTypeScreen');
     } catch (e) {
       console.log('Permission API error:', e);
     }
