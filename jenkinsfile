@@ -1,0 +1,97 @@
+pipeline {
+    agent {
+        docker {
+            image 'pratap1371/rider-build-env:latest'
+            args '-u root:root'
+        }
+    }
+
+    environment {
+        AWS_BUCKET = "rider-app"
+        APK_PATH = "android/app/build/outputs/apk/release/app-release.apk"
+        APK_NAME = "rider-app-${BUILD_NUMBER}.apk"
+    }
+
+    tools {
+        nodejs "node20"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'Final_DEV', url: 'https://github.com/Pratap152/rider-app.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+
+        stage('Fix Gradle Permission') {
+            steps {
+                sh 'chmod +x android/gradlew'
+            }
+        }
+
+        stage('Clean Android Build') {
+            steps {
+                dir('android') {
+                    sh './gradlew clean'
+                }
+            }
+        }
+
+        stage('Build APK') {
+            steps {
+                dir('android') {
+                    sh './gradlew assembleRelease --no-daemon'
+                }
+            }
+        }
+
+        stage('Verify APK') {
+            steps {
+                sh 'ls -lh android/app/build/outputs/apk/release/'
+            }
+        }
+
+        stage('Rename APK with Version') {
+            steps {
+                sh """
+                cp ${APK_PATH} ${APK_NAME}
+                """
+            }
+        }
+
+        stage('Upload APK to S3') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                    sh """
+                    aws s3 cp ${APK_NAME} s3://${AWS_BUCKET}/${APK_NAME}
+                    """
+                }
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: '*.apk', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Build Successful"
+            echo "📦 APK: ${APK_NAME}"
+            echo "☁️ Uploaded to S3"
+        }
+
+        failure {
+            echo "❌ Build Failed"
+        }
+    }
+}
