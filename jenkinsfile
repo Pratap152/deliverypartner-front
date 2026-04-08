@@ -23,7 +23,16 @@ pipeline {
                 git branch: 'Final_DEV', url: 'https://github.com/Pratap152/rider-app.git'
             }
         }
-
+        stage('Cleanup Workspace') {
+            steps {
+                sh '''
+                rm -rf node_modules
+                rm -rf android/.gradle
+                rm -rf android/build
+                rm -rf android/app/build
+                '''
+           }
+       }
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci'
@@ -43,7 +52,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Build APK') {
             steps {
                 dir('android') {
