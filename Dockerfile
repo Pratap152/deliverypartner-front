@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libc6 \
     libstdc++6 \
+    cmake \
+    ninja-build \
     awscli \
     && rm -rf /var/lib/apt/lists/*
 
