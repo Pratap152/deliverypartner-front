@@ -8,6 +8,7 @@ import {
     Alert,
     StyleSheet,
     TouchableOpacity,
+    ScrollView
 } from 'react-native';
 import {
     responsiveWidth,
@@ -33,7 +34,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
     const [errors, setErrors] = useState({
         dlNumber: "",
         panNumber: "",
-    })
+    });
 
     const handleSelect = type => {
         setLocalSelected(type);
@@ -42,7 +43,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
 
     const validateImage = (image) => {
         const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-        const maxSize = 2 * 1024 * 1024; // 2MB
+        const maxSize = 2 * 1024 * 1024;
 
         if (!image?.type || !allowedTypes.includes(image.type)) {
             return "Only JPG and PNG images are allowed";
@@ -89,7 +90,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
         const newErrors = {
             dlNumber: "",
             panNumber: "",
-        }
+        };
 
         const dlRegex = /^[A-Z]{2}[0-9]{2,3}[0-9]{4}[0-9]{7}$/;
         if (!dlNumber.trim()) {
@@ -110,23 +111,19 @@ const DocumentDetailsScreen = ({ navigation }) => {
         }
 
         setErrors(newErrors);
-
         return valid;
-    }
+    };
 
     const handleSubmit = async () => {
-        if(!validate() || !selectedVehicle || !photo) {
+        if (!validate() || !selectedVehicle || !photo) {
             Alert.alert("Missing", "Fill all fields");
             return;
         }
-
-        console.log(dlNumber, panNumber, selectedVehicle, photo);
 
         try {
             setLoading(true);
 
             const formData = new FormData();
-
             formData.append("dlNumber", dlNumber.trim());
             formData.append("panNumber", panNumber.trim());
             formData.append("type", selectedVehicle);
@@ -148,16 +145,10 @@ const DocumentDetailsScreen = ({ navigation }) => {
             );
 
             if (res.data.success) {
-
-                if (res.data.nextStage === "EMPLOYEEKYC_VERIFICATION") {
-                    navigation.navigate("SplashScreen");
-                }
+                navigation.replace("SplashScreen");
             }
 
         } catch (error) {
-            console.log(error);
-            console.log(error?.response.data);
-            console.log(error?.response.status);
             Alert.alert("Error", "Something went wrong");
         } finally {
             setLoading(false);
@@ -165,113 +156,83 @@ const DocumentDetailsScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={24} color="#000" />
-                </TouchableOpacity>
+        <View style={{ flex: 1 }}>
 
+            {/* SCROLLABLE CONTENT */}
+            <ScrollView
+                contentContainerStyle={{
+                    padding: responsiveWidth(5),
+                    paddingBottom: 120
+                }}
+                showsVerticalScrollIndicator={false}
+            >
                 <Text style={styles.header}>Document Details</Text>
 
-                <View style={{ width: 30 }}></View>
-            </View>
+                <Text style={styles.sideHeading}>Driving License Number</Text>
+                <TextInput
+                    placeholder="Enter Driving License Number"
+                    placeholderTextColor="#888"
+                    style={styles.input}
+                    maxLength={16}
+                    value={dlNumber}
+                    onChangeText={t => setDlNumber(t.toUpperCase())}
+                />
+                {errors.dlNumber && <Text style={styles.error}>{errors.dlNumber}</Text>}
 
-            <Text style={styles.sideHeading}>Driving License Number</Text>
+                <Text style={styles.sideHeading}>PAN Number</Text>
+                <TextInput
+                    placeholder="Enter PAN Number"
+                    placeholderTextColor="#888"
+                    style={styles.input}
+                    maxLength={10}
+                    value={panNumber}
+                    onChangeText={t => setPanNumber(t.toUpperCase())}
+                />
+                {errors.panNumber && <Text style={styles.error}>{errors.panNumber}</Text>}
 
-            <TextInput
-                placeholder="Enter Driving License Number"
-                placeholderTextColor="#888"
-                style={styles.input}
-                maxLength={16}
-                value={dlNumber}
-                onChangeText={t => setDlNumber(t.toUpperCase())}
-                autoCapitalize="characters"
-            />
-            {errors.dlNumber && <Text style={styles.error}>{errors.dlNumber}</Text>}
+                <Text style={styles.sideHeading}>Select Vehicle Type</Text>
 
-            <Text style={styles.sideHeading}>PAN Number</Text>
-
-            <TextInput
-                placeholder="Enter PAN Number"
-                placeholderTextColor="#888"
-                style={styles.input}
-                maxLength={10}
-                value={panNumber}
-                onChangeText={t => setPanNumber(t.toUpperCase())}
-                autoCapitalize="characters"
-            />
-            {errors.panNumber && <Text style={styles.error}>{errors.panNumber}</Text>}
-
-            <Text style={styles.sideHeading}>Select Vehicle Type</Text>
-
-            {/* Bike */}
-            <Pressable
-                style={[styles.card, localSelected === 'bike' && styles.selectedCard]}
-                onPress={() => handleSelect('bike')}
-            >
-                <Image source={require('../../assets/Bike.png')} style={styles.image} />
-                <Text
-                    style={[styles.text, localSelected === 'bike' && styles.selectedText]}
+                <Pressable
+                    style={[styles.card, localSelected === 'bike' && styles.selectedCard]}
+                    onPress={() => handleSelect('bike')}
                 >
-                    Bike / Scooty
-                </Text>
+                    <Image source={require('../../assets/Bike.png')} style={styles.image} />
+                    <Text style={[styles.text, localSelected === 'bike' && styles.selectedText]}>
+                        Bike / Scooty
+                    </Text>
+                    {localSelected === 'bike' && <Ionicons name="checkmark" size={20} color="#fff" />}
+                </Pressable>
 
-                {localSelected === 'bike' && (
-                    <Ionicons
-                        name="checkmark"
-                        size={responsiveFontSize(3.5)}
-                        color="#fff"
-                    />
-                )}
-            </Pressable>
-
-            {/* EV */}
-            <Pressable
-                style={[styles.card, localSelected === 'ev' && styles.selectedCard]}
-                onPress={() => handleSelect('ev')}
-            >
-                <Image source={require('../../assets/Ev.png')} style={styles.image} />
-                <Text
-                    style={[styles.text, localSelected === 'ev' && styles.selectedText]}
+                <Pressable
+                    style={[styles.card, localSelected === 'ev' && styles.selectedCard]}
+                    onPress={() => handleSelect('ev')}
                 >
-                    EV Vehicle
-                </Text>
+                    <Image source={require('../../assets/Ev.png')} style={styles.image} />
+                    <Text style={[styles.text, localSelected === 'ev' && styles.selectedText]}>
+                        EV Vehicle
+                    </Text>
+                    {localSelected === 'ev' && <Ionicons name="checkmark" size={20} color="#fff" />}
+                </Pressable>
 
-                {localSelected === 'ev' && (
-                    <Ionicons
-                        name="checkmark"
-                        size={responsiveFontSize(3.5)}
-                        color="#fff"
-                    />
-                )}
-            </Pressable>
-
-            <Text style={styles.sideHeading}>Upload Selfie</Text>
-            <View style={styles.uploadCard}>
-                {photo ? (
-                    <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-                        <Image
-                            source={{ uri: photo.uri }}
-                            style={{ width: 80, height: 120, }}
-                        />
-                        {/* Remove Button */}
-                        <TouchableOpacity
-                            onPress={() => setPhoto(null)}
-                            style={styles.removeButton}
-                        >
-                            <Text style={{ color: "#fff", textAlign: "center" }}>
-                                Remove Photo
-                            </Text>
+                <Text style={styles.sideHeading}>Upload Selfie</Text>
+                <View style={styles.uploadCard}>
+                    {photo ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+                            <Image source={{ uri: photo.uri }} style={{ width: 80, height: 120 }} />
+                            <TouchableOpacity onPress={() => setPhoto(null)} style={styles.removeButton}>
+                                <Text style={{ color: "#fff" }}>Remove Photo</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <TouchableOpacity onPress={takeSelfie} style={styles.upload}>
+                            <Text style={styles.uploadText}>Upload Selfie</Text>
                         </TouchableOpacity>
-                    </View>
-                ) : (
-                    <TouchableOpacity onPress={takeSelfie} style={styles.upload}>
-                        <Text style={styles.uploadText}>Upload Selfie</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
+                    )}
+                </View>
+            </ScrollView>
 
-            <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+            {/* FIXED BUTTON */}
+            <View style={styles.fixedButton}>
                 <PrimaryButton
                     title={loading ? 'Submitting...' : 'Submit'}
                     onPress={handleSubmit}
@@ -288,19 +249,12 @@ const DocumentDetailsScreen = ({ navigation }) => {
 export default DocumentDetailsScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: responsiveWidth(5),
-        backgroundColor: '#fff',
-    },
-
     header: {
         fontSize: responsiveFontSize(3),
         fontWeight: '700',
         textAlign: 'center',
         marginVertical: responsiveHeight(2),
     },
-
     sideHeading: {
         marginTop: 10,
         marginBottom: 10,
@@ -330,18 +284,15 @@ const styles = StyleSheet.create({
         borderRadius: responsiveWidth(3),
         backgroundColor: '#fff',
     },
-
     selectedCard: {
         backgroundColor: '#00B5CC',
         borderColor: '#00B5CC',
     },
-
     image: {
         width: responsiveWidth(20),
         height: responsiveHeight(5),
         resizeMode: 'contain',
     },
-
     text: {
         fontSize: responsiveFontSize(2.2),
         fontWeight: '600',
@@ -349,7 +300,6 @@ const styles = StyleSheet.create({
         marginLeft: responsiveWidth(3),
         flex: 1,
     },
-
     selectedText: {
         color: '#fff',
     },
@@ -360,7 +310,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 10,
         paddingVertical: 30,
-
     },
     upload: {
         width: 210,
@@ -374,9 +323,18 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
     },
     removeButton: {
-        marginTop: 5,
         padding: 6,
         backgroundColor: "#F67C71",
         borderRadius: 6
+    },
+    fixedButton: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 15,
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderColor: '#eee'
     }
 });
