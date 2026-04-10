@@ -42,6 +42,8 @@ RUN sdkmanager \
     "platform-tools" \
     "platforms;android-33" \
     "build-tools;33.0.0" \
+    "ndk;27.1.12297006" \
+    "cmake;3.22.1" \
     "extras;android;m2repository" \
     "extras;google;m2repository"
 
