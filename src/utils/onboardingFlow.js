@@ -11,7 +11,7 @@
 
 //   const { onboardingProgress } = res;
 
-//   // 1️⃣ App permissions
+//   // 1️⃣ App permissions 
 //   if (!onboardingProgress.appPermissionDone) {
 //     return 'AppPermissionScreen';
 //   }
@@ -59,95 +59,116 @@
 //   // ✅ VERIFIED → HOME
 //   return 'MainTabs';
 // };
-
 import { getOnboardingStatus } from '../services/onboardingApi';
 
 export const resolveNextScreen = async () => {
-  try {
-    const res = await getOnboardingStatus();
 
-    console.log('ONBOARDING STATUS:', JSON.stringify(res, null, 2));
+  const res = await getOnboardingStatus();
+ 
+  console.log('ONBOARDING STATUS:', JSON.stringify(res, null, 2));
+ 
+  if (!res?.success) return 'LoginEntryScreen';
+ 
+  const p = res?.onboardingProgress;
+ 
+  if (!p) return 'LoginEntryScreen';
 
-    if (!res?.success) {
-      return 'LoginEntryScreen';
-    }
+  const isFalse = (val) => val === false;
+ 
+  // Phone
 
-    const { onboardingProgress, riderType } = res;
+  if (isFalse(p.phoneVerified)) return 'OtpVerificationScreen';
+ 
+  // App Permission
 
-    // Permissions
-    if (!onboardingProgress.appPermissionDone) {
-      return 'AppPermissionScreen';
-    }
+  if (isFalse(p.appPermissionDone)) return 'AppPermissionScreen';
+ 
+  // City (only if exists)
 
-    // Rider Type (NEW STEP)
-    if (!riderType) {
-      return 'RiderTypeScreen';
-    }
+  if ('citySelected' in p && isFalse(p.citySelected)) {
 
-   
-    //  INDIVIDUAL FLOW
-   
-    if (riderType === 'INDIVIDUAL_EMPLOYEE') {
+    return 'SelectCityScreen';
 
-      if (!onboardingProgress.citySelected) {
-        return 'SelectCityScreen';
-      }
-
-      if (!onboardingProgress.vehicleSelected) {
-        return 'VehicleSelectionScreen';
-      }
-
-      if (!onboardingProgress.personalInfoSubmitted) {
-        return 'PersonalInfoScreen';
-      }
-
-      if (!onboardingProgress.selfieUploaded) {
-        return 'FaceInstructionScreen';
-      }
-
-      if (!onboardingProgress.aadharVerified) {
-        return 'AadharEntryScreen';
-      }
-
-      if (!onboardingProgress.panUploaded) {
-        return 'PanUploadScreen';
-      }
-
-      if (!onboardingProgress.dlUploaded) {
-        return 'LicenseUploadScreen';
-      }
-
-      if (!onboardingProgress.kycCompleted) {
-        return 'ProcessingVerificationScreen';
-      }
-
-      return 'MainTabs';
-    }
-
-    
-    //  COMPANY FLOW
-   
-    if (riderType === 'COMPANY_EMPLOYEE') {
-
-      if (!onboardingProgress.employeeDetailsSubmitted) {
-        return 'EmployeeDetailsScreen';
-      }
-
-      if (!onboardingProgress.documentsUploaded) {
-        return 'DocumentDetailsScreen';
-      }
-
-      if (!onboardingProgress.kycCompleted) {
-        return 'KycVerificationScreen';
-      }
-
-      return 'MainTabs';
-    }
-
-    return 'SplashScreen';
-
-  } catch (err) {
-    console.log('ONBOARDING ERROR:', err);
-    return 'LoginEntryScreen';
   }
+ 
+  // Vehicle
+
+  if ('vehicleSelected' in p && isFalse(p.vehicleSelected)) {
+
+    return 'VehicleSelectionScreen';
+
+  }
+ 
+  // Personal Info
+
+  if ('personalInfoSubmitted' in p && isFalse(p.personalInfoSubmitted)) {
+
+    return 'PersonalInfoScreen';
+
+  }
+ 
+  // Selfie
+
+  if ('selfieUploaded' in p && isFalse(p.selfieUploaded)) {
+
+    return 'FaceInstructionScreen';
+
+  }
+ 
+  // Docs
+
+  if ('aadharVerified' in p && isFalse(p.aadharVerified)) {
+
+    return 'AadharEntryScreen';
+
+  }
+ 
+  if ('panUploaded' in p && isFalse(p.panUploaded)) {
+
+    return 'PanUploadScreen';
+
+  }
+ 
+  if ('dlUploaded' in p && isFalse(p.dlUploaded)) {
+
+    return 'LicenseUploadScreen';
+
+  }
+ 
+  //  Document Details
+
+  if ('documentDetailsSubmitted' in p && isFalse(p.documentDetailsSubmitted)) {
+
+    return 'DocumentDetailsScreen';
+
+  }
+ 
+  //  Employee Details
+
+  if ('employeeDetailsSubmitted' in p && isFalse(p.employeeDetailsSubmitted)) {
+
+    return 'EmployeeDetailsScreen';
+
+  }
+ 
+  //  Employee KYC
+
+  if ('employeeKycVerified' in p && isFalse(p.employeeKycVerified)) {
+
+    return 'ProcessingVerificationScreen';
+
+  }
+ 
+  //  Final
+
+  if (isFalse(p.kycCompleted)) {
+
+    return 'ProcessingVerificationScreen';
+
+  }
+ 
+  return 'MainTabs';
+
 };
+
+ 
