@@ -49,6 +49,7 @@ RUN sdkmanager \
 
 # Gradle config
 ENV GRADLE_USER_HOME=/gradle
+RUN mkdir -p /gradle && chmod -R 777 /gradle
 
 # Working directory
 WORKDIR /app
