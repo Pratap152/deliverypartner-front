@@ -134,6 +134,15 @@ export const resolveNextScreen = async () => {
     return 'LicenseUploadScreen';
 
   }
+
+   //  Employee Details
+
+  if ('employeeDetailsSubmitted' in p && isFalse(p.employeeDetailsSubmitted)) {
+
+    return 'EmployeeDetailsScreen';
+
+  }
+ 
  
   //  Document Details
 
@@ -143,13 +152,6 @@ export const resolveNextScreen = async () => {
 
   }
  
-  //  Employee Details
-
-  if ('employeeDetailsSubmitted' in p && isFalse(p.employeeDetailsSubmitted)) {
-
-    return 'EmployeeDetailsScreen';
-
-  }
  
   //  Employee KYC
 
