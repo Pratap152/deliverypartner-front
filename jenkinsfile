@@ -20,14 +20,18 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'Final_DEV', url: 'https://github.com/Pratap152/rider-app.git'
+                git branch: 'merge-final-dev', url: 'https://github.com/Pratap152/rider-app.git'
             }
         }
         stage('Cleanup Workspace') {
             steps {
                 sh '''
                 rm -rf node_modules
+                rm -rf ~/.gradle
+                rm -rf /gradle/*
                 rm -rf android/.gradle
+                rm -rf android/.cxx
+                rm -rf android/app/.cxx
                 rm -rf android/build
                 rm -rf android/app/build
                 '''
