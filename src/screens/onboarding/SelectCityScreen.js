@@ -13,19 +13,9 @@ import PrimaryButton from '../../components/common/PrimaryButton';
 import apiClient from '../../services/ApiClient';
 
 export default function SelectCityScreen({ navigation }) {
-  const [allCities, setAllCities] = useState([
-    'Hyderabad',
-    'Vijayawada',
-    'Visakhapatnam',
-    'Bangalore',
-    'Chennai',
-    'Mumbai',
-    'Pune',
-    'Delhi',
-  ]);
-
-  const [citiesList, setCitiesList] = useState(allCities);
-  const [selectedCity, setSelectedCity] = useState('Hyderabad');
+  const [allCities, setAllCities] = useState([]);
+  const [citiesList, setCitiesList] = useState([]);
+  const [selectedCity, setSelectedCity] = useState('');
   const [searchText, setSearchText] = useState('');
 
   /* ================= FETCH CITIES ================= */
@@ -34,8 +24,16 @@ export default function SelectCityScreen({ navigation }) {
       try {
         const response = await apiClient.get('/api/location/cities');
 
-        setAllCities(response.data.cities);
-        setCitiesList(response.data.cities);
+        const cities = response?.data?.cities || [];
+
+        setAllCities(cities);
+        setCitiesList(cities);
+
+        // set default selected city (first item)
+        if (cities.length > 0) {
+          setSelectedCity(cities[0]);
+          setSearchText(cities[0]);
+        }
       } catch (err) {
         console.log('Error fetching cities', err);
       }
@@ -47,6 +45,7 @@ export default function SelectCityScreen({ navigation }) {
   /* ================= SEARCH ================= */
   function handleSearch(text) {
     setSearchText(text);
+    setSelectedCity(text);
 
     if (!text || text.trim() === '') {
       setCitiesList(allCities);
@@ -82,7 +81,7 @@ export default function SelectCityScreen({ navigation }) {
           style={styles.searchInput}
           placeholderTextColor="#999"
           onChangeText={handleSearch}
-          value={searchText}
+          value={selectedCity}
         />
       </View>
 
@@ -92,7 +91,7 @@ export default function SelectCityScreen({ navigation }) {
       </View>
 
       {/* Cities List */}
-      <ScrollView contentContainerStyle={{ paddingVertical: 10 }}>
+      <ScrollView contentContainerStyle={{ paddingVertical: 10 }} showsVerticalScrollIndicator={false}>
         {citiesList.length === 0 ? (
           <Text style={{ textAlign: 'center', color: '#999', marginTop: 20 }}>
             No cities found
@@ -105,7 +104,10 @@ export default function SelectCityScreen({ navigation }) {
                 styles.cityItem,
                 selectedCity === city && styles.citySelected,
               ]}
-              onPress={() => setSelectedCity(city)}
+              onPress={() => {
+                setSelectedCity(city);
+                setSearchText(city);
+              }}
             >
               <Icon
                 name="home-outline"
@@ -125,19 +127,18 @@ export default function SelectCityScreen({ navigation }) {
         )}
       </ScrollView>
 
-      {/* Submit Button */}
-  
-        <PrimaryButton
-            title="Submit"
-            onPress={() =>
-              navigation.navigate('AreaSelectionScreen', {
-                city: selectedCity,
-              })}
-            bgColor="#00B5CC"
-            textColor="#fff"/>
-      
-        <Text style={styles.submitText}>Submit</Text>
-    
+      {/* ✅ ONLY ONE BUTTON (PrimaryButton) */}
+      <PrimaryButton
+        title="Submit"
+        onPress={() =>
+          navigation.navigate('AreaSelectionScreen', {
+            city: selectedCity,
+          })
+        }
+        bgColor="#00B5CC"
+        textColor="#fff"
+        disabled={!selectedCity}
+      />
     </View>
   );
 }
