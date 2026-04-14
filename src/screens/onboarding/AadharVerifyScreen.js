@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 30,
-    borderRadius: 10,
+    borderRadius: 30,
     cursor: 'pointer',
   },
   btnText: {
