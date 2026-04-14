@@ -1,4 +1,4 @@
-// import { getOnboardingStatus } from '../services/onboardingApi';
+import { getOnboardingStatus } from '../services/onboardingApi';
 
 // export const resolveNextScreen = async () => {
 //   const res = await getOnboardingStatus();
@@ -59,10 +59,8 @@
 //   // ✅ VERIFIED → HOME
 //   return 'MainTabs';
 // };
-import { getOnboardingStatus } from '../services/onboardingApi';
-
 export const resolveNextScreen = async () => {
-
+ 
   const res = await getOnboardingStatus();
  
   console.log('ONBOARDING STATUS:', JSON.stringify(res, null, 2));
@@ -72,7 +70,7 @@ export const resolveNextScreen = async () => {
   const p = res?.onboardingProgress;
  
   if (!p) return 'LoginEntryScreen';
-
+ 
   const isFalse = (val) => val === false;
  
   // Phone
@@ -83,7 +81,15 @@ export const resolveNextScreen = async () => {
 
   if (isFalse(p.appPermissionDone)) return 'AppPermissionScreen';
  
-  // City (only if exists)
+  // ✅ NEW STEP: Rider Type
+
+  if ('riderType' in p && isFalse(p.riderType)) {
+
+    return 'RiderTypeScreen';
+
+  }
+ 
+  // City
 
   if ('citySelected' in p && isFalse(p.citySelected)) {
 
@@ -134,8 +140,8 @@ export const resolveNextScreen = async () => {
     return 'LicenseUploadScreen';
 
   }
-
-   //  Employee Details
+ 
+  // Employee Details
 
   if ('employeeDetailsSubmitted' in p && isFalse(p.employeeDetailsSubmitted)) {
 
@@ -143,8 +149,7 @@ export const resolveNextScreen = async () => {
 
   }
  
- 
-  //  Document Details
+  // Document Details
 
   if ('documentDetailsSubmitted' in p && isFalse(p.documentDetailsSubmitted)) {
 
@@ -152,8 +157,7 @@ export const resolveNextScreen = async () => {
 
   }
  
- 
-  //  Employee KYC
+  // Employee KYC
 
   if ('employeeKycVerified' in p && isFalse(p.employeeKycVerified)) {
 
@@ -161,7 +165,7 @@ export const resolveNextScreen = async () => {
 
   }
  
-  //  Final
+  // Final
 
   if (isFalse(p.kycCompleted)) {
 
