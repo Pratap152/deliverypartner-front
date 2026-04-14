@@ -8,15 +8,14 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { launchCamera } from 'react-native-image-picker';
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
 import apiClient from '../../services/ApiClient';
+
 
 export default function FaceVerificationScreen({ navigation, route }) {
   const initialUri = route?.params?.photoUri ?? null;
@@ -154,8 +153,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
       <TouchableOpacity
         onPress={uploadSelfie}
         style={styles.uploadBtn}
-        disabled={uploading}
-      >
+        disabled={uploading}>
         {uploading ? (
           <>
             <ActivityIndicator
@@ -174,8 +172,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
               fontSize: wp('5%'),
               color: 'white',
               fontWeight: '600',
-            }}
-          >
+            }}>
             Upload Photo
           </Text>
         )}
@@ -189,8 +186,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
             fontSize: wp('5%'),
             color: '#0CBACE',
             fontWeight: '600',
-          }}
-        >
+          }}>
           Retake Photo
         </Text>
       </TouchableOpacity>
@@ -221,7 +217,7 @@ const styles = StyleSheet.create({
   uploadBtn: {
     alignSelf: 'center',
     marginBottom: hp('1.2%'),
-    backgroundColor: '#0CBACE',
+    backgroundColor: '#00B5CC',
     paddingVertical: hp('1.5%'),
     borderRadius: wp('8%'),
     width: wp('80%'),
@@ -235,7 +231,7 @@ const styles = StyleSheet.create({
     marginTop: hp('2.4%'),
     alignSelf: 'center',
     backgroundColor: 'white',
-    borderColor: '#0CBACE',
+    borderColor: '#00B5CC',
     borderWidth: 1,
     paddingVertical: hp('1.5%'),
     borderRadius: wp('8%'),

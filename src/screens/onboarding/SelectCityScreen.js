@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import PrimaryButton from '../../components/common/PrimaryButton';
 
 import apiClient from '../../services/ApiClient';
 
@@ -125,16 +126,18 @@ export default function SelectCityScreen({ navigation }) {
       </ScrollView>
 
       {/* Submit Button */}
-      <TouchableOpacity
-        style={styles.submitBtn}
-        onPress={() =>
-          navigation.navigate('AreaSelectionScreen', {
-            city: selectedCity,
-          })
-        }
-      >
+  
+        <PrimaryButton
+            title="Submit"
+            onPress={() =>
+              navigation.navigate('AreaSelectionScreen', {
+                city: selectedCity,
+              })}
+            bgColor="#00B5CC"
+            textColor="#fff"/>
+      
         <Text style={styles.submitText}>Submit</Text>
-      </TouchableOpacity>
+    
     </View>
   );
 }

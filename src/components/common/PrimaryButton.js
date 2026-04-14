@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     paddingVertical: responsiveHeight(2),
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: responsiveWidth(4),
+    borderRadius: responsiveWidth(8),
     alignSelf: 'center',
     marginVertical: responsiveHeight(2),
   },

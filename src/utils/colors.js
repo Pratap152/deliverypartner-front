@@ -2,7 +2,7 @@ export const COLORS = {
   white: '#fff',
   black: '#000',
   black60: 'rgba(0, 0, 0, 0.6)',
-  primary: '#0CBACE',
+  primary: '#00B5CC',
   success: '#15A721',
   lightBackground: '#F4F3F8',
   border: '#969AA4',
