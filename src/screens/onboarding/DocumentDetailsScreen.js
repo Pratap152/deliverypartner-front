@@ -8,7 +8,9 @@ import {
     Alert,
     StyleSheet,
     TouchableOpacity,
-    ScrollView
+    ScrollView,
+    PermissionsAndroid,
+    Platform
 } from 'react-native';
 import {
     responsiveWidth,
@@ -17,7 +19,8 @@ import {
 } from 'react-native-responsive-dimensions';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
-import { launchCamera } from "react-native-image-picker";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient';
@@ -31,14 +34,59 @@ const DocumentDetailsScreen = ({ navigation }) => {
     const [localSelected, setLocalSelected] = useState(null);
     const [loading, setLoading] = useState(false);
     const [photo, setPhoto] = useState(null);
-    const [errors, setErrors] = useState({
-        dlNumber: "",
-        panNumber: "",
-    });
+    const [dlError, setDlError] = useState("");
+    const [panError, setPanError] = useState("");
+    const [photoError, setPhotoError] = useState("");
 
     const handleSelect = type => {
         setLocalSelected(type);
         dispatch(setSelectedVehicle(type));
+    };
+
+    const requestCameraPermission = async () => {
+        if (Platform.OS === 'android') {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA,
+                    {
+                        title: "Camera Permission",
+                        message: "App needs camera access to take your selfie",
+                        buttonPositive: "OK",
+                    }
+                );
+                return granted === PermissionsAndroid.RESULTS.GRANTED;
+            } catch (err) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const requestGalleryPermission = async () => {
+        if (Platform.OS === 'android') {
+            try {
+                let permission;
+
+                if (Platform.Version >= 33) {
+                    // Android 13+
+                    permission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+                } else {
+                    // Android 12 and below
+                    permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+                }
+
+                const granted = await PermissionsAndroid.request(permission, {
+                    title: "Gallery Permission",
+                    message: "App needs access to your photos",
+                    buttonPositive: "OK",
+                });
+
+                return granted === PermissionsAndroid.RESULTS.GRANTED;
+            } catch (err) {
+                return false;
+            }
+        }
+        return true;
     };
 
     const validateImage = (image) => {
@@ -57,6 +105,13 @@ const DocumentDetailsScreen = ({ navigation }) => {
     };
 
     const takeSelfie = async () => {
+
+        const hasPermission = await requestCameraPermission();
+        if (!hasPermission) {
+            Alert.alert("Permission denied", "Camera permission is required");
+            return;
+        }
+
         const result = await launchCamera({
             mediaType: "photo",
             cameraType: "front",
@@ -84,39 +139,90 @@ const DocumentDetailsScreen = ({ navigation }) => {
         }
     };
 
-    const validate = () => {
+    const pickImageFromGallery = async () => {
+
+        const hasPermission = await requestGalleryPermission();
+        if (!hasPermission) {
+            Alert.alert("Permission denied", "Gallery permission is required");
+            return;
+        }
+
+        const result = await launchImageLibrary({
+            mediaType: "photo",
+            quality: 0.7,
+        });
+
+        if (result.didCancel) return;
+
+        if (result.errorCode) {
+            Alert.alert("Error", result.errorMessage || "Gallery error");
+            return;
+        }
+
+        if (result.assets && result.assets.length > 0) {
+            const selectedImage = result.assets[0];
+
+            const error = validateImage(selectedImage);
+            if (error) {
+                Alert.alert("Error", error);
+                return;
+            }
+
+            setPhoto(selectedImage);
+        }
+    };
+
+    const dlValidate = (dlNumber) => {
         let valid = true;
 
-        const newErrors = {
-            dlNumber: "",
-            panNumber: "",
-        };
-
         const dlRegex = /^[A-Z]{2}[0-9]{2,3}[0-9]{4}[0-9]{7}$/;
-        if (!dlNumber.trim()) {
-            newErrors.dlNumber = "Driving License number is required";
+        if (!dlNumber?.trim()) {
+            setDlError("Driving License number is required");
             valid = false;
         } else if (!dlRegex.test(dlNumber)) {
-            newErrors.dlNumber = "Driving License Format is wrong";
+            setDlError("Driving License Format is wrong");
             valid = false;
         }
 
-        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-        if (!panNumber.trim()) {
-            newErrors.panNumber = "PAN number is required";
-            valid = false;
-        } else if (!panRegex.test(panNumber)) {
-            newErrors.panNumber = "PAN number format is wrong";
-            valid = false;
-        }
-
-        setErrors(newErrors);
         return valid;
     };
 
+    const panValidate = (panNumber) => {
+        let valid = true;
+
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        if (!panNumber?.trim()) {
+            setPanError("PAN number is required");
+            valid = false;
+        } else if (!panRegex.test(panNumber)) {
+            setPanError("PAN number format is wrong");
+            valid = false;
+        }
+
+        return valid;
+    };
+
+    const handleDLNumber = (dl) => {
+        setDlNumber(dl);
+        if (dlValidate(dl)) {
+            setDlError("");
+        }
+    };
+
+    const handlePanNumber = (pan) => {
+        setPanNumber(pan);
+        if (panValidate(pan)) {
+            setPanError("");
+        }
+    };
+
     const handleSubmit = async () => {
-        if (!validate() || !selectedVehicle || !photo) {
-            Alert.alert("Missing", "Fill all fields");
+        let isDLValid = dlValidate(dlNumber);
+        let isPANValid = panValidate(panNumber);
+        if (!photo) {
+            setPhotoError("Photo is required");
+        }
+        if (!isDLValid || !isPANValid || !selectedVehicle || !photo) {
             return;
         }
 
@@ -162,36 +268,37 @@ const DocumentDetailsScreen = ({ navigation }) => {
             <ScrollView
                 contentContainerStyle={{
                     padding: responsiveWidth(5),
-                    paddingBottom: 120
+                    paddingBottom: 140
                 }}
                 showsVerticalScrollIndicator={false}
             >
                 <Text style={styles.header}>Document Details</Text>
 
                 <Text style={styles.sideHeading}>Driving License Number</Text>
+                <Text style={styles.hintText}>Example: AP1234567890123</Text>
                 <TextInput
                     placeholder="Enter Driving License Number"
                     placeholderTextColor="#888"
                     style={styles.input}
                     maxLength={16}
                     value={dlNumber}
-                    onChangeText={t => setDlNumber(t.toUpperCase())}
+                    onChangeText={t => handleDLNumber(t.toUpperCase())}
                 />
-                {errors.dlNumber && <Text style={styles.error}>{errors.dlNumber}</Text>}
+                {dlError && <Text style={styles.error}>{dlError}</Text>}
 
                 <Text style={styles.sideHeading}>PAN Number</Text>
+                <Text style={styles.hintText}>Example: ABCDE1234F</Text>
                 <TextInput
                     placeholder="Enter PAN Number"
                     placeholderTextColor="#888"
                     style={styles.input}
                     maxLength={10}
                     value={panNumber}
-                    onChangeText={t => setPanNumber(t.toUpperCase())}
+                    onChangeText={t => handlePanNumber(t.toUpperCase())}
                 />
-                {errors.panNumber && <Text style={styles.error}>{errors.panNumber}</Text>}
+                {panError && <Text style={styles.error}>{panError}</Text>}
 
                 <Text style={styles.sideHeading}>Select Vehicle Type</Text>
-
                 <Pressable
                     style={[styles.card, localSelected === 'bike' && styles.selectedCard]}
                     onPress={() => handleSelect('bike')}
@@ -224,11 +331,18 @@ const DocumentDetailsScreen = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        <TouchableOpacity onPress={takeSelfie} style={styles.upload}>
-                            <Text style={styles.uploadText}>Upload Selfie</Text>
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            <TouchableOpacity onPress={takeSelfie} style={styles.upload}>
+                                <Text style={styles.uploadText}>Camera</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={pickImageFromGallery} style={styles.upload}>
+                                <Text style={styles.uploadText}>Gallery</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                 </View>
+                { photoError && <Text style={styles.error}>{photoError}</Text> }
             </ScrollView>
 
             {/* FIXED BUTTON */}
@@ -258,19 +372,29 @@ const styles = StyleSheet.create({
     sideHeading: {
         marginTop: 10,
         marginBottom: 10,
-        fontWeight: '600',
-        fontSize: 16,
+        fontSize: wp(4),
+        fontWeight: '400',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
+        borderColor: 'grey',
+        borderRadius: wp('2.5%'),
+        padding: hp('1.2%'),
+        marginBottom: hp('1'),
+        width: wp('90%'),
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        color: 'black'
     },
     error: {
         color: "#F67C71",
         fontSize: 13
+    },
+    hintText: {
+        fontSize: 13,
+        color: "#6B7280",
+        marginBottom: 4,
     },
     card: {
         width: responsiveWidth(90),
@@ -294,8 +418,8 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     text: {
-        fontSize: responsiveFontSize(2.2),
-        fontWeight: '600',
+        fontSize: responsiveFontSize(2.1),
+        fontWeight: '400',
         color: '#000',
         marginLeft: responsiveWidth(3),
         flex: 1,
@@ -305,6 +429,7 @@ const styles = StyleSheet.create({
     },
     uploadCard: {
         marginTop: 5,
+        marginBottom: 5,
         alignItems: 'center',
         borderColor: '#dcd3d1',
         borderWidth: 1,
@@ -312,8 +437,8 @@ const styles = StyleSheet.create({
         paddingVertical: 30,
     },
     upload: {
-        width: 210,
-        height: 40,
+        paddingHorizontal: 50,
+        paddingVertical: 10,
         borderRadius: 10,
         backgroundColor: '#00B5CC',
         alignItems: 'center',
