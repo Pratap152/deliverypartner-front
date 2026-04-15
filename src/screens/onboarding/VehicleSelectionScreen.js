@@ -59,11 +59,16 @@ const VehicleSelectionScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Icon name="arrow-back" size={22} color="#000" />
-      </TouchableOpacity>
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-back" size={22} color="#000" />
+        </TouchableOpacity>
 
-      <Text style={styles.header}>Select Vehicle</Text>
+        <Text style={styles.header}>Select Vehicle</Text>
+      </View>
 
       {/* Bike */}
       <Pressable
@@ -131,13 +136,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  header: {
-    fontSize: responsiveFontSize(3),
-    fontWeight: '700',
-    textAlign: 'center',
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // 🔥 this centers the title
     marginVertical: responsiveHeight(2),
+    position: 'relative',
   },
 
+  backButton: {
+    position: 'absolute',
+    left: 0, // keeps arrow on left
+  },
+
+  header: {
+    fontSize: responsiveFontSize(2.7),
+    fontWeight: '600',
+  },
   card: {
     width: responsiveWidth(90),
     minHeight: responsiveHeight(18),
@@ -164,7 +179,7 @@ const styles = StyleSheet.create({
 
   text: {
     fontSize: responsiveFontSize(2.2),
-    fontWeight: '600',
+    fontWeight: '420',
     color: '#000',
     marginLeft: responsiveWidth(3),
     flex: 1,

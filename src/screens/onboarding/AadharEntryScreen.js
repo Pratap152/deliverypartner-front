@@ -8,6 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  responsiveWidth,
+  responsiveHeight,
+  responsiveFontSize,
+} from 'react-native-responsive-dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLORS } from '../../utils/colors';
@@ -98,8 +103,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Roboto',
-    fontSize: 28,
-    fontWeight: '500',
+    fontSize: responsiveFontSize(2.7),
+    fontWeight: '600',
     color: COLORS.textPrimary,
     lineHeight: 20,
   },
