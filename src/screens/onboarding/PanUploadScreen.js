@@ -8,6 +8,12 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
+import {
+  responsiveWidth,
+  responsiveHeight,
+  responsiveFontSize,
+} from 'react-native-responsive-dimensions';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
@@ -21,6 +27,7 @@ const PanUploadScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
   const [panNumber, setPanNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [panError, setPanError] = useState('');
 
   const actionSheetRef = useRef();
   const dispatch = useDispatch();
@@ -58,7 +65,7 @@ const PanUploadScreen = ({ navigation }) => {
     }
 
     if (!validatePAN(panNumber)) {
-      Alert.alert('Invalid PAN', 'Enter a valid PAN format (ABCDE1234F)');
+      setPanError('Invalid PAN format');
       return;
     }
 
@@ -98,10 +105,19 @@ const PanUploadScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <Header />
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.replace('DocumentVerifyScreen')
+            }
+          >
+            <Icon name="arrow-back" size={22} color="#000" />
+          </TouchableOpacity>
+
+          <Text style={styles.headerTitle}>PAN card details</Text>
+        </View>
 
         <View style={{ flex: 1, marginTop: 20 }}>
-          <Text style={styles.title}>PAN card details</Text>
           <Text style={styles.subtitle}>
             Upload clear photo & enter your PAN number.
           </Text>
@@ -109,12 +125,24 @@ const PanUploadScreen = ({ navigation }) => {
           <TextInput
             placeholder="Enter PAN Number"
             value={panNumber}
-            onChangeText={text => setPanNumber(text.toUpperCase())}
+            onChangeText={text => {
+              const value = text.toUpperCase();
+              setPanNumber(value);
+
+              // Validate only when length = 10
+              if (value.length === 10 && !validatePAN(value)) {
+                setPanError('Invalid PAN format');
+              } else {
+                setPanError('');
+              }
+            }}
             autoCapitalize="characters"
             maxLength={10}
             style={styles.input}
           />
-
+          {panError ? (
+            <Text style={styles.errorText}>{panError}</Text>
+          ) : null}
           <Text>PAN format: ABCDE1234F</Text>
 
           <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
@@ -203,7 +231,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 20 },
   title: { fontSize: 22, fontWeight: '700', color: '#000' },
   subtitle: { fontSize: 14, color: '#777', marginTop: 4 },
-
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: responsiveFontSize(2.6),
+    fontWeight: '600',
+    marginRight: 30,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#999',
@@ -211,7 +250,11 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 20,
   },
-
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+  },
   uploadBox: {
     width: '100%',
     height: 240,

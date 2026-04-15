@@ -8,6 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  responsiveWidth,
+  responsiveHeight,
+  responsiveFontSize,
+} from 'react-native-responsive-dimensions';
 
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -49,7 +54,7 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <Header />
+        <Header onBack={() => navigation.goBack()} />
 
         <View style={{ alignItems: 'center' }}>
           <Image
@@ -130,7 +135,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Roboto',
-    fontSize: 28,
+    fontSize: responsiveFontSize(2.7),
     fontWeight: '500',
     color: COLORS.black,
     lineHeight: 20,
