@@ -176,7 +176,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
             }
           >
             <View style={styles.avatarOuterWrapper}>
-              <View style={styles.avatarWrapper}>
+              <View style={[styles.avatarWrapper, isEditing && styles.avatarEditing]}>
                 {selfieUri ? (
                   <Image source={{ uri: selfieUri }} style={styles.avatar} />
                 ) : (
@@ -202,11 +202,12 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
         {/* BASIC INFO */}
         <Section title="Basic Information">
-          <Label text="Full Name" />
+          <Label text="Full Name"/>
           <Field
-            editable={isEditing}
+            editable={false}
             value={form.fullName}
             onChangeText={v => handleChange('fullName', v)}
+            isEditing={isEditing}
           />
 
           <Label text="Email" />
@@ -214,21 +215,24 @@ const PersonalDetailsScreen = ({ navigation }) => {
             editable={isEditing}
             value={form.email}
             onChangeText={v => handleChange('email', v)}
+            isEditing={isEditing}
           />
 
           <Label text="Phone Number" />
           <Field
-            editable={isEditing}
+            editable={false}
             value={form.phoneNumber}
             keyboardType="phone-pad"
             onChangeText={v => handleChange('phoneNumber', v)}
+            isEditing={isEditing}
           />
 
           <Label text="Date of Birth" />
           <Field
-            editable={isEditing}
+            editable={false}
             value={form.dob}
             onChangeText={v => handleChange('dob', v)}
+            isEditing={isEditing}
           />
         </Section>
 
@@ -239,6 +243,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
             editable={isEditing}
             value={form.streetAddress}
             onChangeText={v => handleChange('streetAddress', v)}
+            isEditing={isEditing}
           />
 
           <View style={styles.row}>
@@ -248,6 +253,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
                 editable={isEditing}
                 value={form.area}
                 onChangeText={v => handleChange('area', v)}
+                isEditing={isEditing}
               />
             </View>
             <View style={styles.rowInput}>
@@ -256,6 +262,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
                 editable={isEditing}
                 value={form.city}
                 onChangeText={v => handleChange('city', v)}
+                isEditing={isEditing}
               />
             </View>
           </View>
@@ -267,6 +274,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
                 editable={isEditing}
                 value={form.state}
                 onChangeText={v => handleChange('state', v)}
+                isEditing={isEditing}
               />
             </View>
             <View style={styles.rowInput}>
@@ -276,6 +284,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
                 value={form.pincode}
                 keyboardType="number-pad"
                 onChangeText={v => handleChange('pincode', v)}
+                isEditing={isEditing}
               />
             </View>
           </View>
@@ -351,13 +360,21 @@ const Label = ({ iconName, text }) => (
   </View>
 );
 
-const Field = ({ editable, style, ...props }) => (
-  <TextInput
-    {...props}
-    editable={editable}
-    style={[styles.input, !editable && styles.disabledInput, style]}
-  />
-);
+const Field = ({ editable, isEditing, style, ...props }) => {
+  const isDisabled = isEditing && !editable;
+  return( 
+    <TextInput
+        {...props}
+      editable={isEditing ? editable : false}
+      style={[
+        styles.input,
+        isEditing && editable && styles.activeInput,   
+        isDisabled && styles.disabledInput,          
+      ]}  
+      />
+    );
+  };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F8' },
@@ -455,11 +472,20 @@ const styles = StyleSheet.create({
     paddingVertical: rh(1.5),
     fontSize: rf(1.9),
     marginBottom: rh(1.8),
-    backgroundColor: '#FFF',
+    backgroundColor: '#f9f9fa',
     color: '#101828',
   },
 
-  disabledInput: { backgroundColor: '#F9FAFB' },
+  activeInput: {
+    borderColor: '#00B2C9',
+    backgroundColor: '#FFFFFF',
+  },
+
+  disabledInput: {
+    backgroundColor: '#F2F4F7',
+    color: '#98A2B3',
+    borderColor: '#E4E7EC',
+  },
 
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   rowInput: { width: '48%' },
@@ -539,5 +565,9 @@ const styles = StyleSheet.create({
     borderRadius: rw(5),
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarEditing: {
+    borderWidth: 4,
+    borderColor: '#00B2C9',
   },
 });
