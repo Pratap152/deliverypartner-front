@@ -6,18 +6,19 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ScrollView,
-  Keyboard,
-  ActivityIndicator,
+  Keyboard
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
 import apiClient from '../../services/ApiClient';
+import PrimaryButton from '../../components/common/PrimaryButton';
+
+
 
 export default function PersonalInfoScreen({ navigation }) {
   // FORM DATA
@@ -125,7 +126,7 @@ export default function PersonalInfoScreen({ navigation }) {
       console.log('STATUS:', res.status);
       console.log('BODY:', res.data);
 
-      // ✅ Always go to Splash to re-evaluate onboarding stage
+      // Always go to Splash to re-evaluate onboarding stage
       navigation.replace('SplashScreen');
     } catch (err) {
       console.log('API ERROR:', err.response?.status, err.response?.data);
@@ -155,38 +156,37 @@ export default function PersonalInfoScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: hp('6%') }}
-        keyboardShouldPersistTaps="handled"
-      >
         <View style={{ marginTop: hp('5%'), alignItems: 'center' }}>
           <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
             Personal Information
           </Text>
         </View>
-
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: hp('6%') }}
+        keyboardShouldPersistTaps="handled">
         <View style={{ marginTop: hp('3%'), marginLeft: wp('6%') }}>
           {/* NAME */}
-          <Text>User Name</Text>
+          <Text style={styles.field_name}>User Name</Text>
           <TextInput
             value={formData.fullName}
             onChangeText={t => handleChange('fullName', t)}
             style={styles.input}
+            placeholder='Enter Your Name'
+            placeholderTextColor='darkgrey'
           />
           {errors.fullName && <Text style={styles.err}>{errors.fullName}</Text>}
 
           {/* DOB */}
-          <Text>Date of Birth</Text>
+          <Text style={styles.field_name}>Date of Birth</Text>
           <TouchableOpacity
             onPress={() => {
-              Keyboard.dismiss();
-              setModalVisible(true);
-            }}
-            style={styles.input}
-          >
+                        Keyboard.dismiss();
+                        setModalVisible(true);
+                      }}
+            style={styles.input}>
             <Text>{formData.dob || 'DD-MM-YYYY'}</Text>
+            <Ionicons name='calendar-outline' size={17}/>
           </TouchableOpacity>
-
           <DateTimePickerModal
             isVisible={isModalVisible}
             mode="date"
@@ -196,58 +196,61 @@ export default function PersonalInfoScreen({ navigation }) {
           />
 
           {/* MOBILE */}
-          <Text>Mobile Number</Text>
+          <Text style={styles.field_name}>Mobile Number</Text>
           <TextInput
             keyboardType="number-pad"
             value={formData.primaryPhone}
             onChangeText={t => handleChange('primaryPhone', t)}
             style={styles.input}
+            placeholder='Enter Your Mobile No.'
+            placeholderTextColor='darkgrey'
           />
           {errors.primaryPhone && (
             <Text style={styles.err}>{errors.primaryPhone}</Text>
           )}
 
           {/* ALT MOBILE */}
-          <Text>Alternative Mobile Number</Text>
+          <Text style={styles.field_name}>Alternative Mobile Number</Text>
           <TextInput
             keyboardType="number-pad"
             value={formData.secondaryPhone}
             onChangeText={t => handleChange('secondaryPhone', t)}
             style={styles.input}
+            placeholder='Enter Your Alernative Mobile No.'
+            placeholderTextColor='darkgrey'
           />
           {errors.secondaryPhone && (
             <Text style={styles.err}>{errors.secondaryPhone}</Text>
           )}
 
           {/* EMAIL */}
-          <Text>Email</Text>
+          <Text style={styles.field_name}>Email</Text>
           <TextInput
             value={formData.email}
             onChangeText={t => handleChange('email', t.toLowerCase())}
             style={styles.input}
+            placeholder='Enter Your Email ID'
+            placeholderTextColor='darkgrey'
           />
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
           {/* GENDER */}
-          <Text>Gender</Text>
-          <View style={{ flexDirection: 'row', gap: wp('12%') }}>
+          <Text style={styles.field_name}>Gender</Text>
+          <View style={{ flexDirection: 'row', gap: wp('12%'),marginBottom:hp(18) }}>
             <GenderRadio value="male" label="Male" />
             <GenderRadio value="female" label="Female" />
           </View>
-
-          {/* SUBMIT */}
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={submitting}
-            style={styles.submit}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={{ color: '#fff', fontWeight: '600' }}>Submit</Text>
-            )}
-          </TouchableOpacity>
+          
         </View>
+        {/* SUBMIT */}
+          <PrimaryButton
+            title="Submit"
+            onPress={handleSubmit}
+            bgColor="#00B5CC"
+            textColor="#fff"
+            loading={submitting}
+            disabled={submitting}
+          />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -261,19 +264,20 @@ const styles = {
     borderColor: 'grey',
     borderRadius: wp('2.5%'),
     padding: hp('1.2%'),
-    marginBottom: hp('1.5%'),
+    marginBottom: hp('2.5%'),
     width: wp('90%'),
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent:'space-between',
+    color:'black'
   },
-  submit: {
-    marginTop: hp('5%'),
-    backgroundColor: '#0CBACE',
-    paddingVertical: hp('1.5%'),
-    borderRadius: wp('4%'),
-    width: wp('90%'),
-    alignItems: 'center',
-  },
+  field_name:{
+    fontSize:wp(4),
+    fontWeight:'400',
+    marginBottom:hp(0.2)
+    },
   err: {
     color: 'red',
-    marginBottom: hp('1%'),
+    marginBottom: hp('2%'),
   },
 };

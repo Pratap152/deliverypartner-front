@@ -1,12 +1,9 @@
-// src/modules/slots/slots.hooks.js
 export function formatWeeks(apiWeeks = []) {
-  // Get today's date at midnight (no time component) for accurate comparison
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   return apiWeeks
     .filter((item) => {
-      // Parse the date string and compare (exclude dates strictly before today)
       const itemDate = new Date(item.date);
       itemDate.setHours(0, 0, 0, 0);
       return itemDate >= today;
@@ -27,7 +24,7 @@ import {
 } from "../services/slots/slots.service";
 
 export function useSlots() {
-  const [weeks, setWeeks] = useState([]);      // 👈 NEW
+  const [weeks, setWeeks] = useState([]);      
   const [slots, setSlots] = useState([]);
   const [weeksLoading, setWeeksLoading] = useState(false);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -68,7 +65,7 @@ export function useSlots() {
       console.log("loadSlotsApi exited....", slotsRes?.data);
 
       if (slotsRes.data?.success) {
-        const slotDate = slotsRes.data.date; // e.g., "2026-02-01"
+        const slotDate = slotsRes.data.date; // ex: "2026-02-01"
         let filteredSlots = slotsRes.data.data;
 
         // Only filter by time if the slot date is today

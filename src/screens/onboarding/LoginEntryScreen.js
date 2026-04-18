@@ -26,7 +26,7 @@ const { width, height } = Dimensions.get('window');
 
 const CURVE_TOP = '#FFFFFFF5';
 const CURVE_BOTTOM = '#CDF5E7';
-const BUTTON_BLUE = '#16C2D5';
+const BUTTON_BLUE = '#00B5CC';
 
 export const sendOTPApi = async (phone) => {
   console.log("📤 Sending OTP to:", phone);

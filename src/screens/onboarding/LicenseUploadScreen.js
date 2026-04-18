@@ -10,8 +10,14 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
+import {
+  responsiveWidth,
+  responsiveHeight,
+  responsiveFontSize,
+} from 'react-native-responsive-dimensions';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Header from '../../components/common/Header';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
@@ -23,6 +29,7 @@ const LicenseUploadScreen = ({ navigation }) => {
   const [back, setBack] = useState(null);
   const [dlNumber, setDlNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dlError, setDlError] = useState('');
 
   const actionSheetRef = useRef();
   const selectedBox = useRef(null);
@@ -41,7 +48,20 @@ const LicenseUploadScreen = ({ navigation }) => {
     if (!allowed.includes(image.type))
       throw new Error('Invalid file format — only JPG or PNG allowed');
   };
+  const handleDLChange = text => {
+    const value = text.toUpperCase();
+    setDlNumber(value);
 
+    const normalized = value.replace(/\s+/g, '');
+
+    if (!normalized) {
+      setDlError('DL Number is required');
+    } else if (!validateDL(normalized)) {
+      setDlError('Invalid DL format');
+    } else {
+      setDlError('');
+    }
+  };
   const validateDL = dl => {
     if (!dl) return false;
     const normalized = dl.replace(/\s+/g, '').toUpperCase();
@@ -86,7 +106,7 @@ const LicenseUploadScreen = ({ navigation }) => {
     if (!validateDL(normalizedDL)) {
       Alert.alert(
         'Invalid DL Number',
-        'Enter valid DL format: e.g., TS00920180001234',
+        'Enter valid DL format',
       );
       return;
     }
@@ -139,10 +159,22 @@ const LicenseUploadScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <Header />
+        <View style={styles.headerRow}>
+          {/* BACK BUTTON */}
+          <TouchableOpacity
+            onPress={() => navigation.replace('DocumentVerifyScreen')}
+            style={styles.backBtn}
+          >
+            <Icon name="arrow-back" size={22} color="#000" />
+          </TouchableOpacity>
+
+          {/* CENTER TITLE */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.headerTitle}>Driving Licence details</Text>
+          </View>
+        </View>
         <View style={{ flex: 1, marginTop: 20 }}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.title}>Driving Licence details</Text>
             <Text style={styles.subtitle}>
               Upload focused photo of your Driving Licence for faster
               verification
@@ -151,18 +183,22 @@ const LicenseUploadScreen = ({ navigation }) => {
             <TextInput
               placeholder="Enter Driving License Number"
               placeholderTextColor="#888"
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                borderRadius: 8,
-                padding: 12,
-                marginTop: 15,
-                fontSize: 16,
-              }}
+              style={[
+                {
+                  borderWidth: 1,
+                  borderRadius: 8,
+                  padding: 12,
+                  marginTop: 15,
+                  fontSize: 16,
+                },
+              ]}
               value={dlNumber}
-              onChangeText={t => setDlNumber(t.toUpperCase())}
+              onChangeText={handleDLChange}
               autoCapitalize="characters"
             />
+            {dlError ? (
+              <Text style={{ color: 'red', marginTop: 5 }}>{dlError}</Text>
+            ) : null}
             <Text>DL format: AP00720249992221</Text>
 
             <TouchableOpacity
@@ -274,18 +310,35 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
-  },
-
   subtitle: {
     fontSize: 14,
     color: '#777',
     marginTop: 4,
   },
+  headerRow: {
+    height: 50,
+    justifyContent: 'center',
+  },
 
+  backBtn: {
+    position: 'absolute',
+    left: 0,
+    zIndex: 2,
+  },
+
+  titleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+
+  headerTitle: {
+    fontSize: responsiveFontSize(2.6),
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+  },
   uploadBox: {
     height: 230,
     borderWidth: 1,
@@ -335,7 +388,7 @@ const styles = StyleSheet.create({
   submitBtn: {
     backgroundColor: '#0CBACE',
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 30,
     marginTop: 7,
     alignItems: 'center',
   },

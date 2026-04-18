@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     right: rw(5),
     backgroundColor: COLORS.primary,
     paddingVertical: rh(2),
-    borderRadius: rw(3),
+    borderRadius: rw(8),
     alignItems: 'center',
   },
 

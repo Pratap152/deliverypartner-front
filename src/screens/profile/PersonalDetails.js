@@ -10,6 +10,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  KeyboardAvoidingView
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -166,138 +167,142 @@ const PersonalDetailsScreen = ({ navigation }) => {
           <Text style={styles.editText}>{isEditing ? 'Cancel' : 'Edit'}</Text>
         </TouchableOpacity>
       </View>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
+        <ScrollView showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1, paddingBottom: rh('6%') }} 
+                                        keyboardShouldPersistTaps="handled">
+          {/* PROFILE CARD */}
+          <View style={styles.profileCard}>
+            <TouchableOpacity
+              onPress={() =>
+                isEditing ? pickImage() : selfieUri && setImageModal(true)
+              }
+            >
+              <View style={styles.avatarOuterWrapper}>
+                <View style={[styles.avatarWrapper, isEditing && styles.avatarEditing]}>
+                  {selfieUri ? (
+                    <Image source={{ uri: selfieUri }} style={styles.avatar} />
+                  ) : (
+                    <View style={styles.placeholder}>
+                      <Ionicons name="person" size={rf(6)} color="#98A2B3" />
+                    </View>
+                  )}
+                </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* PROFILE CARD */}
-        <View style={styles.profileCard}>
-          <TouchableOpacity
-            onPress={() =>
-              isEditing ? pickImage() : selfieUri && setImageModal(true)
-            }
-          >
-            <View style={styles.avatarOuterWrapper}>
-              <View style={styles.avatarWrapper}>
-                {selfieUri ? (
-                  <Image source={{ uri: selfieUri }} style={styles.avatar} />
-                ) : (
-                  <View style={styles.placeholder}>
-                    <Ionicons name="person" size={rf(6)} color="#98A2B3" />
+                {isEditing && (
+                  <View style={styles.addIcon}>
+                    <Ionicons name="camera" size={rf(2)} color="#FFF" />
                   </View>
                 )}
               </View>
+            </TouchableOpacity>
 
-              {isEditing && (
-                <View style={styles.addIcon}>
-                  <Ionicons name="camera" size={rf(2)} color="#FFF" />
-                </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.name}>{form.fullName}</Text>
+              <Text style={styles.driverId}>Driver ID: DRV123456</Text>
+            </View>
+          </View>
+
+          {/* BASIC INFO */}
+          <Section title="Basic Information">
+            <Label text="Full Name"/>
+            <Field
+              editable={false}
+              value={form.fullName}
+              onChangeText={v => handleChange('fullName', v)}
+              isEditing={isEditing}
+            />
+
+            <Label text="Email" />
+            <Field
+              editable={isEditing}
+              value={form.email}
+              onChangeText={v => handleChange('email', v)}
+              isEditing={isEditing}
+            />
+
+            <Label text="Phone Number" />
+            <Field
+              editable={false}
+              value={form.phoneNumber}
+              keyboardType="phone-pad"
+              onChangeText={v => handleChange('phoneNumber', v)}
+              isEditing={isEditing}
+            />
+
+            <Label text="Date of Birth" />
+            <Field
+              editable={false}
+              value={form.dob}
+              onChangeText={v => handleChange('dob', v)}
+              isEditing={isEditing}
+            />
+          </Section>
+
+          {/* ADDRESS */}
+          <Section title="Address" iconName="location-outline">
+            <View style={styles.row}>
+              <View style={styles.rowInput}>
+                <Label text="Area" />
+                <Field
+                  editable={false}
+                  value={form.area}
+                  onChangeText={v => handleChange('area', v)}
+                  isEditing={isEditing}
+                />
+              </View>
+              <View style={styles.rowInput}>
+                <Label text="City" />
+                <Field
+                  editable={false}
+                  value={form.city}
+                  onChangeText={v => handleChange('city', v)}
+                  isEditing={isEditing}
+                />
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowInput}>
+                <Label text="State" />
+                <Field
+                  editable={false}
+                  value={form.state}
+                  onChangeText={v => handleChange('state', v)}
+                  isEditing={isEditing}
+                />
+              </View>
+              <View style={styles.rowInput}>
+                <Label text="Pincode" />
+                <Field
+                  editable={false}
+                  value={form.pincode}
+                  keyboardType="number-pad"
+                  onChangeText={v => handleChange('pincode', v)}
+                  isEditing={isEditing}
+                />
+              </View>
+            </View>
+          </Section>
+
+          {/* SAVE BUTTON */}
+          {isEditing && (
+            <TouchableOpacity
+              style={[styles.saveButton, loading && { opacity: 0.7 }]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.saveText}>Save Changes</Text>
               )}
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
-          <View style={styles.profileInfo}>
-            <Text style={styles.name}>{form.fullName}</Text>
-            <Text style={styles.driverId}>Driver ID: DRV123456</Text>
-          </View>
-        </View>
-
-        {/* BASIC INFO */}
-        <Section title="Basic Information">
-          <Label text="Full Name" />
-          <Field
-            editable={isEditing}
-            value={form.fullName}
-            onChangeText={v => handleChange('fullName', v)}
-          />
-
-          <Label text="Email" />
-          <Field
-            editable={isEditing}
-            value={form.email}
-            onChangeText={v => handleChange('email', v)}
-          />
-
-          <Label text="Phone Number" />
-          <Field
-            editable={isEditing}
-            value={form.phoneNumber}
-            keyboardType="phone-pad"
-            onChangeText={v => handleChange('phoneNumber', v)}
-          />
-
-          <Label text="Date of Birth" />
-          <Field
-            editable={isEditing}
-            value={form.dob}
-            onChangeText={v => handleChange('dob', v)}
-          />
-        </Section>
-
-        {/* ADDRESS */}
-        <Section title="Address" iconName="location-outline">
-          <Label text="Street Address" />
-          <Field
-            editable={isEditing}
-            value={form.streetAddress}
-            onChangeText={v => handleChange('streetAddress', v)}
-          />
-
-          <View style={styles.row}>
-            <View style={styles.rowInput}>
-              <Label text="Area" />
-              <Field
-                editable={isEditing}
-                value={form.area}
-                onChangeText={v => handleChange('area', v)}
-              />
-            </View>
-            <View style={styles.rowInput}>
-              <Label text="City" />
-              <Field
-                editable={isEditing}
-                value={form.city}
-                onChangeText={v => handleChange('city', v)}
-              />
-            </View>
-          </View>
-
-          <View style={styles.row}>
-            <View style={styles.rowInput}>
-              <Label text="State" />
-              <Field
-                editable={isEditing}
-                value={form.state}
-                onChangeText={v => handleChange('state', v)}
-              />
-            </View>
-            <View style={styles.rowInput}>
-              <Label text="Pincode" />
-              <Field
-                editable={isEditing}
-                value={form.pincode}
-                keyboardType="number-pad"
-                onChangeText={v => handleChange('pincode', v)}
-              />
-            </View>
-          </View>
-        </Section>
-
-        {/* SAVE BUTTON */}
-        {isEditing && (
-          <TouchableOpacity
-            style={[styles.saveButton, loading && { opacity: 0.7 }]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.saveText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
-        )}
-
-        <View style={{ height: rh(4) }} />
-      </ScrollView>
+          <View style={{ height: rh(4) }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* IMAGE MODAL */}
       <Modal visible={imageModal} transparent animationType="fade">
@@ -351,13 +356,21 @@ const Label = ({ iconName, text }) => (
   </View>
 );
 
-const Field = ({ editable, style, ...props }) => (
-  <TextInput
-    {...props}
-    editable={editable}
-    style={[styles.input, !editable && styles.disabledInput, style]}
-  />
-);
+const Field = ({ editable, isEditing, style, ...props }) => {
+  const isDisabled = isEditing && !editable;
+  return( 
+    <TextInput
+        {...props}
+      editable={isEditing ? editable : false}
+      style={[
+        styles.input,
+        isEditing && editable && styles.activeInput,   
+        isDisabled && styles.disabledInput,          
+      ]}  
+      />
+    );
+  };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F8' },
@@ -455,11 +468,20 @@ const styles = StyleSheet.create({
     paddingVertical: rh(1.5),
     fontSize: rf(1.9),
     marginBottom: rh(1.8),
-    backgroundColor: '#FFF',
+    backgroundColor: '#f9f9fa',
     color: '#101828',
   },
 
-  disabledInput: { backgroundColor: '#F9FAFB' },
+  activeInput: {
+    borderColor: '#00B2C9',
+    backgroundColor: '#FFFFFF',
+  },
+
+  disabledInput: {
+    backgroundColor: '#F2F4F7',
+    color: '#98A2B3',
+    borderColor: '#E4E7EC',
+  },
 
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   rowInput: { width: '48%' },
@@ -539,5 +561,9 @@ const styles = StyleSheet.create({
     borderRadius: rw(5),
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarEditing: {
+    borderWidth: 4,
+    borderColor: '#00B2C9',
   },
 });

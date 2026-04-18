@@ -64,7 +64,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
     try {
       await apiClient.post(
         '/api/rider/location',
-        {
+        {  
           city,
           area: selectedArea,
         },
@@ -113,8 +113,11 @@ export default function AreaSelectionScreen({ route, navigation }) {
           placeholder="Search area"
           style={styles.searchInput}
           placeholderTextColor="#999"
-          onChangeText={handleSearch}
-          value={searchText}
+          onChangeText={(text) => {
+            handleSearch(text);
+            setSelectedArea(text);
+          }}
+          value={selectedArea || searchText}
         />
       </View>
 
@@ -124,7 +127,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
       </View>
 
       {/* Area List */}
-      <ScrollView contentContainerStyle={{ paddingVertical: 10 }}>
+      <ScrollView contentContainerStyle={{ paddingVertical: 10 }} showsVerticalScrollIndicator={false}>
         {areaList.length === 0 ? (
           <Text style={{ textAlign: 'center', color: '#999', marginTop: 20 }}>
             No areas found
@@ -137,7 +140,10 @@ export default function AreaSelectionScreen({ route, navigation }) {
                 styles.cityItem,
                 selectedArea === area && styles.citySelected,
               ]}
-              onPress={() => setSelectedArea(area)}
+              onPress={() => {
+                setSelectedArea(area);
+                setSearchText(area);
+              }}
             >
               <Icon
                 name="location-outline"

@@ -1,13 +1,12 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-
 import { launchCamera } from 'react-native-image-picker';
+
 
 export default function FaceInstructionScreen({ navigation }) {
   const openCamera = async () => {
@@ -125,7 +124,7 @@ export default function FaceInstructionScreen({ navigation }) {
         style={{
           marginBottom: hp('12%'),
           alignSelf: 'center',
-          backgroundColor: '#0CBACE',
+          backgroundColor: '#00B5CC',
           paddingVertical: hp('1.5%'),
           borderRadius: wp('8%'),
           width: wp('80%'),

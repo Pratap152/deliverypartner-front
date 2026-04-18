@@ -41,7 +41,7 @@ const HomeDashboard = () => {
 
         <View style={styles.statsRow}>
           {todayStats.map(item => (
-            <StatsCard key={item.id} {...item} />
+            <StatsCard key={item.id} {...item} isActive={isOnline || false} />
           ))}
         </View>
         <ActiveShiftBanner />

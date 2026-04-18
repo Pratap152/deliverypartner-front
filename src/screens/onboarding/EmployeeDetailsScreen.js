@@ -8,6 +8,7 @@ import RadioButton from '../../components/common/RadioButton';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import useEmployeeDetails from '../../hooks/useEmployeeDetails';
 
+
 export default function EmployeeDetailsScreen({navigation}) {
   const {
     formData, 
@@ -22,12 +23,11 @@ export default function EmployeeDetailsScreen({navigation}) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: hp('6%') }} 
-                    keyboardShouldPersistTaps="handled">
         <View style={{ marginTop: hp('5%'), alignItems: 'center' }}>
           <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>Employee Details</Text>
         </View>
-
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: hp('6%') }} 
+                    keyboardShouldPersistTaps="handled">
         <View style={{ marginTop: hp('3%'), marginLeft: wp('5%') }}>
           <Text style={styles.field_name}>Company Name</Text>
           <TextInput value={formData.companyName} 
@@ -68,13 +68,6 @@ export default function EmployeeDetailsScreen({navigation}) {
                         onCancel={() => setDobPickerVisible(false)} />
           {errors.dob && <Text style={styles.err}>{errors.dob}</Text>}
 
-          <Text style={styles.field_name}>Gender</Text>
-          <View style={{ flexDirection: 'row', gap: wp('12%'), marginBottom: hp('1.5%') }}>
-            <RadioButton value="male"   label="Male"   selectedValue={formData.gender} onSelect={v => handleChange('gender', v)} />
-            <RadioButton value="female" label="Female" selectedValue={formData.gender} onSelect={v => handleChange('gender', v)} />
-          </View>
-          {errors.gender && <Text style={styles.err}>{errors.gender}</Text>}
-
           <Text style={styles.field_name}>Secondary Phone Number</Text>
           <TextInput 
                     keyboardType="number-pad" 
@@ -92,6 +85,14 @@ export default function EmployeeDetailsScreen({navigation}) {
                     placeholder='Enter Email Address'
                     placeholderTextColor='darkgrey'/>
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
+
+           <Text style={styles.field_name}>Gender</Text>
+            <View style={{ flexDirection: 'row', gap: wp('12%'), marginBottom: hp('12') }}>
+              <RadioButton value="male"   label="Male"   selectedValue={formData.gender} onSelect={v => handleChange('gender', v)} />
+              <RadioButton value="female" label="Female" selectedValue={formData.gender} onSelect={v => handleChange('gender', v)} />
+            </View>
+            {errors.gender && <Text style={styles.err}>{errors.gender}</Text>}
+
           
         </View>
         <PrimaryButton title="Next" 
