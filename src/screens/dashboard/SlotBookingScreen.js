@@ -56,7 +56,9 @@ export default function SlotBookingScreen() {
   // Load weeks on mount
   useEffect(() => {
     if (city && zone) {
+      const today = new Date().toISOString().split('T')[0];
       loadWeeks({ city, zone });
+      loadSlots({ date: today, filter, city, zone });
     }
   }, [city, zone]);
 
