@@ -5,6 +5,7 @@ import { useSlotSelection } from '../../hooks/useSlotSelection';
 import { TABS, FILTERS } from '../../utils/constants/slotConstants';
 import { extractSlotIds } from '../../utils/slotHelpers';
 import { getWeekNumber } from '../../services/slots/slots.service';
+import { useSelector } from 'react-redux';
 
 // Components
 import SlotBookingHeader from '../../components/dashboard/slots/SlotBookingHeader';
@@ -15,12 +16,10 @@ import BookSlotModal from '../../components/dashboard/slots/modals/BookSlotModal
 import CancelSlotModal from '../../components/dashboard/slots/modals/CancelSlotModal';
 import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
 import SlotHistory from '../../components/common/SlotHistory';
-/**
- * SlotBookingScreen - Main screen for slot booking functionality
- * Orchestrates child components and manages business logic
- */
+
+
 export default function SlotBookingScreen() {
-  // Hook: Slot data and operations
+  // Slot data and operations
   const {
     weeks,
     slots,
@@ -32,7 +31,7 @@ export default function SlotBookingScreen() {
     cancelSlot,
   } = useSlots();
 
-  // Hook: Slot selection management
+  // Slot selection management
   const {
     selectedSlots,
     selectedCount,
@@ -50,24 +49,29 @@ export default function SlotBookingScreen() {
   const [successVisible, setSuccessVisible] = useState(false);
   const [activeSlot, setActiveSlot] = useState(null);
 
-  // Effect: Load weeks on mount
-  useEffect(() => {
-    loadWeeks();
-  }, []);
+  // Getting city and zone from profileSlice
+  const city = useSelector((state) => state.profile.data?.location?.city?.trim());
+  const zone = useSelector((state) => state.profile.data?.location?.area?.trim());
 
-  // Effect: Auto-select first week
+  // Load weeks on mount
   useEffect(() => {
-    // Only select if weeks loaded and we aren't currently loading new ones
+    if (city && zone) {
+      loadWeeks({ city, zone });
+    }
+  }, [city, zone]);
+
+  // Auto select first week
+  useEffect(() => {
     if (weeks?.length > 0 && !selectedWeek && !weeksLoading) {
       console.log("tab change..... selecting first week");
       setSelectedWeek(weeks[0].date);
     }
   }, [weeks, selectedWeek, activeTab, weeksLoading]);
 
-  // Effect: Load slots when week or filter changes
+  // Load slots when week or filter changes
   useEffect(() => {
     if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter });
+      loadSlots({ date: selectedWeek, filter, city, zone });
     }
   }, [selectedWeek, filter,]);
 
@@ -81,14 +85,13 @@ export default function SlotBookingScreen() {
 
     if (tab === TABS.CURRENT) {
       // Load current week
-      loadWeeks({ weekNumber: undefined });
+      loadWeeks({city, zone});
     } else if (tab === TABS.NEXT) {
       // Load next week (current + 1)
       const currentWeekNum = getWeekNumber();
       const nextWeekNum = currentWeekNum + 1;
-      loadWeeks({ weekNumber: nextWeekNum });
+      loadWeeks({ weekNumber: nextWeekNum, city, zone});
     }
-    // For UPCOMING, we don't need to load slots as it shows LockedWeekView
   };
 
   const handleWeekSelect = (date) => {
@@ -140,9 +143,10 @@ export default function SlotBookingScreen() {
 
   const handleRefresh = () => {
     if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter });
+      loadSlots({ date: selectedWeek, filter, city, zone});
     }
   };
+
 
   return (
     <View style={styles.container}>
