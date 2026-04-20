@@ -18,20 +18,22 @@ const StatItem = ({ icon, value, label, bgColor, screen }) => {
   const handlePress = () => {
     if (!screen) return;
 
-    // If nested navigation
     if (typeof screen === 'object') {
       navigation.navigate(screen.parent, {
         screen: screen.child,
       });
     } else {
-      // Normal screen
       navigation.navigate(screen);
     }
   };
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity style={{alignItems: 'center'}} onPress={() => navigation.navigate(screen,)}>
+      <TouchableOpacity
+        style={{ alignItems: 'center' }}
+        onPress={handlePress}
+        disabled={!screen}
+      >
         <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
           <Ionicons name={icon} size={wp('5%')} color="#fff" />
         </View>
@@ -53,7 +55,7 @@ const StatsCard = ({ isActive }) => {
     const fetchStatus = async () => {
       try {
         const response = await apiClient.get('/api/status/online-status');
-        console.log("AZAZAZAZ: ",response.data.data.totalOnlineMinutesToday);
+        console.log("AZAZAZAZ: ", response.data.data.totalOnlineMinutesToday);
         if (response.data.success) {
           setIsOnline(response.data.data.isOnline);
           setMinutes(response.data.data.totalOnlineMinutesToday);
@@ -99,7 +101,7 @@ const StatsCard = ({ isActive }) => {
           value={formatTime(minutes)}
           label="Online"
           bgColor="#8E7CF3" // purple
-          screen={SlotHistory}
+          screen={null}
         />
         <StatItem
           icon="cart-outline"
