@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +15,11 @@ import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
 const HomeDashboard = () => {
   const navigation = useNavigation();
-  const { isOnline, goOnline, goOffline, isLoading } = useRider();
+  const { isOnline, goOnline, goOffline, isLoading, isActive, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
+
+  useEffect(() => {
+    fetchRiderStatus();
+  }, [isOnline]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -24,8 +28,8 @@ const HomeDashboard = () => {
 
         {/* ONLINE / OFFLINE TOGGLE */}
         <SwipeOnlineToggle
-          isOnline={isOnline}
-          isLoading={isLoading}
+          isOnline={isActive}
+          isLoading={refreshing}
           onSwipeOnline={goOnline}
           onSwipeOffline={goOffline}
         />
@@ -41,7 +45,7 @@ const HomeDashboard = () => {
 
         <View style={styles.statsRow}>
           {todayStats.map(item => (
-            <StatsCard key={item.id} {...item} isActive={isOnline || false} />
+            <StatsCard key={item.id} {...item} isActive={isActive} totalOnlineMinutes={totalOnlineMinutes} />
           ))}
         </View>
         <ActiveShiftBanner />
