@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useSlots } from '../../hooks/useSlots';
 import { useSlotSelection } from '../../hooks/useSlotSelection';
@@ -40,9 +40,11 @@ export default function SlotBookingScreen() {
     isSlotSelected,
   } = useSlotSelection();
 
+  const today = new Date().toISOString().split('T')[0];
+
   // Local state
   const [activeTab, setActiveTab] = useState(TABS.CURRENT);
-  const [selectedWeek, setSelectedWeek] = useState(null);
+  const [selectedWeek, setSelectedWeek] = useState(today);
   const [filter, setFilter] = useState(FILTERS.ALL);
   const [bookModalVisible, setBookModalVisible] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
@@ -53,38 +55,32 @@ export default function SlotBookingScreen() {
   const city = useSelector((state) => state.profile.data?.location?.city?.trim());
   const zone = useSelector((state) => state.profile.data?.location?.area?.trim());
 
-  // Load weeks on mount
+  
+  // Load weeks and slots in parallel on mount
   useEffect(() => {
-    if (city && zone) {
-      const today = new Date().toISOString().split('T')[0];
-      loadWeeks({ city, zone });
-      loadSlots({ date: today, filter, city, zone });
-    }
-  }, [city, zone]);
+    loadWeeks({ city, zone });
+    loadSlots({ date: today, filter, city, zone });
+  }, []);
 
-  // Auto select first week
-  useEffect(() => {
-    if (weeks?.length > 0 && !selectedWeek && !weeksLoading) {
-      console.log("tab change..... selecting first week");
-      setSelectedWeek(weeks[0].date);
-    }
-  }, [weeks, selectedWeek, activeTab, weeksLoading]);
 
-  // Load slots when week or filter changes
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return; // skip on mount since we already loaded todays slots
+    }
     if (selectedWeek) {
       loadSlots({ date: selectedWeek, filter, city, zone });
     }
-  }, [selectedWeek, filter,]);
+  }, [selectedWeek, filter]);
 
   // Handlers
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-
     // Clear selection when changing tabs
     setSelectedWeek(null);
     clearSelection();
-
+    
     if (tab === TABS.CURRENT) {
       // Load current week
       loadWeeks({city, zone});
@@ -127,7 +123,7 @@ export default function SlotBookingScreen() {
       clearSelection();
       // Refresh slots
       if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter });
+        loadSlots({ date: selectedWeek, filter, city, zone });
       }
     }
   };
@@ -138,7 +134,7 @@ export default function SlotBookingScreen() {
       setCancelModalVisible(false);
       // Refresh slots
       if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter });
+        loadSlots({ date: selectedWeek, filter, city, zone });
       }
     }
   };
