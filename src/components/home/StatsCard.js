@@ -45,39 +45,22 @@ const StatItem = ({ icon, value, label, bgColor, screen }) => {
 };
 
 
-const StatsCard = ({ isActive }) => {
+const StatsCard = ({ isActive, totalOnlineMinutes }) => {
   const { data } = useEarningsDashboard();
   const { todayEarnings = {} } = data;
   const [minutes, setMinutes] = useState(0);
-  const [isOnline, setIsOnline] = useState(false);
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const response = await apiClient.get('/api/status/online-status');
-        console.log("AZAZAZAZ: ", response.data.data.totalOnlineMinutesToday);
-        if (response.data.success) {
-          setIsOnline(response.data.data.isOnline);
-          setMinutes(response.data.data.totalOnlineMinutesToday);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
-    fetchStatus();
-  }, [isActive]);
 
   // Increment only if online
   useEffect(() => {
-    if (!isOnline) return;
+    setMinutes(totalOnlineMinutes)
+    if (!isActive) return;
 
     const interval = setInterval(() => {
       setMinutes(prev => prev + 1);
     }, 60000); // 1 minute
 
     return () => clearInterval(interval);
-  }, [isOnline]);
+  }, [isActive]);
 
   const formatTime = (totalMinutes) => {
     const hrs = Math.floor(totalMinutes / 60);
