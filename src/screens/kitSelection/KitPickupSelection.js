@@ -9,12 +9,16 @@ import {
 } from "react-native";
 import KitHeader from "../../components/kit/KitHeader";
 
+
 const KitPickupSelection = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
-  
-  // Get data from navigation params
-  const { deliveryMode, addressData, selectedZone } = route?.params || {};
 
+  // Get data from navigation params
+  const { deliveryMode, addressData, selectedZone, apiResponse } = route?.params || {};
+
+  const isFree = apiResponse?.data?.[0]?.isFree ?? true;
+  const responseMessage = apiResponse?.message;
+  
   // Handle Submit button - navigate to bottom tab navigator (home)
   const handleSubmit = () => {
     navigation.replace("MainTabs"); // Navigate to BottomTabNavigator (registered as "MainTabs")
@@ -28,7 +32,7 @@ const KitPickupSelection = ({ navigation, route }) => {
       <Text style={styles.title}>Kit Selection</Text>
       <KitHeader />
 
-      {/* Selected Address/Zone Card - NOW FIRST */}
+      {/* Selected Address/Zone Card*/}
       {displayData && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -67,20 +71,31 @@ const KitPickupSelection = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* Free Kit Promotional Card - NOW SECOND */}
+      {/* Free Kit and Paid Kit Promotional Card */}
       <View style={styles.promoCard}>
         <View style={styles.promoIconContainer}>
-          <Text style={styles.promoIcon}>🎁</Text>
+          <Text style={styles.promoIcon}>{isFree ? "🎁" : "🛒"}</Text>
         </View>
-        <Text style={styles.promoTitle}>Congratulations!</Text>
+
+    
+        <Text style={styles.promoTitle}>
+          {(isFree ? "Congratulations!" : (responseMessage || "Kit Selected!"))}
+        </Text>
+
         <Text style={styles.promoSubtitle}>
-          You're eligible for a FREE Kit
+          {isFree ? "You're eligible for a FREE Kit" : "Your kit is ready to order"}
         </Text>
+
         <Text style={styles.promoDescription}>
-          Limited to first 100 users. Get your exclusive delivery partner kit at no cost!
+          {isFree
+            ? "Limited to first 100 users. Get your exclusive delivery partner kit at no cost!"
+            : "Complete your purchase to receive your delivery partner kit."}
         </Text>
-        <View style={styles.promoBadge}>
-          <Text style={styles.promoBadgeText}>100% FREE</Text>
+
+        <View style={[styles.promoBadge, !isFree && { backgroundColor: "#F59E0B" }]}>
+          <Text style={styles.promoBadgeText}>
+            {isFree ? "100% FREE" : "PAID KIT"}
+          </Text>
         </View>
       </View>
 
@@ -95,17 +110,24 @@ const KitPickupSelection = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* Submit Button - NOW INSIDE SCROLLVIEW */}
-      <TouchableOpacity 
-        style={[
-          styles.submitBtn,
-          !displayData && styles.submitBtnDisabled
-        ]} 
-        onPress={handleSubmit}
-        disabled={!displayData}
-      >
-        <Text style={styles.submitText}>Submit</Text>
-      </TouchableOpacity>
+      {/* Submit Button */}
+      {isFree ? (
+        <TouchableOpacity
+          style={[styles.submitBtn, !displayData && styles.submitBtnDisabled]}
+          onPress={handleSubmit}
+          disabled={!displayData}
+        >
+          <Text style={styles.submitText}>Submit</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={[styles.payBtn, !displayData && styles.submitBtnDisabled]}
+          onPress={() => navigation.navigate("PaymentsScreen", { apiResponse })}
+          disabled={!displayData}
+        >
+          <Text style={styles.submitText}>Proceed to Payment</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 };
@@ -153,6 +175,7 @@ const styles = StyleSheet.create({
     color: "#1E293B",
     marginBottom: 8,
     letterSpacing: 0.5,
+    textAlign:'center'
   },
   promoSubtitle: {
     fontSize: 18,
@@ -378,6 +401,19 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     fontWeight: "700",
     letterSpacing: 0.6,
+  },
+  payBtn: {
+    backgroundColor: "#F59E0B",
+    borderRadius: 16,
+    paddingVertical: 18,
+    alignItems: "center",
+    marginTop: 24,
+    marginBottom: 30,
+    shadowColor: "#F59E0B",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });
 

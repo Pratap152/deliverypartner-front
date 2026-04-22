@@ -8,6 +8,8 @@ import {
   ScrollView,
   useWindowDimensions,
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
 } from "react-native";
 import KitHeader from "../../components/kit/KitHeader";
 import { useKitAddress } from "../../hooks/useCreateKitAddress";
@@ -16,7 +18,7 @@ const KitSelectionScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
   
   // Delivery mode state
-  const [deliveryMode, setDeliveryMode] = useState("online"); // "online" or "offline"
+  const [deliveryMode, setDeliveryMode] = useState("online"); 
   
   // Online delivery form states
   const [name, setName] = useState("");
@@ -86,12 +88,12 @@ const KitSelectionScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     if (deliveryMode === "online") {
-      // Online delivery: validate and submit address
+      // validate and submit address
       if (!validate()) return;
       
       try {
         // API throws error on failure, returns data on success
-        await createKitAddress(name, address, pincode);
+        const result = await createKitAddress(name, address, pincode);
         
         // Navigate on success
         navigation.navigate("KitPickupSelection", {
@@ -100,7 +102,8 @@ const KitSelectionScreen = ({ navigation }) => {
             name,
             address,
             pincode
-          }
+          },
+          apiResponse: result
         });
       } catch (error) {
         // API failed - show error to user
@@ -108,7 +111,7 @@ const KitSelectionScreen = ({ navigation }) => {
         alert(error?.response?.data?.message || "Failed to save address. Please try again.");
       }
     } else {
-      // Offline pickup: ensure zone is selected
+      // ensure zone is selected
       if (!selectedZone) {
         alert("Please select a pickup zone");
         return;
@@ -140,8 +143,9 @@ const KitSelectionScreen = ({ navigation }) => {
   const buttonConfig = getButtonConfig();
 
   return (
-    <ScrollView style={[styles.container, { padding: width * 0.05 }]}>
-      <Text style={styles.title}>Kit Selection</Text>
+    <View style={[styles.container,{padding: width * 0.05}]}>
+     <Text style={styles.title}>Kit Selection</Text>
+      
       <KitHeader />
 
       {/* Segmented Control for Delivery Mode */}
@@ -184,124 +188,135 @@ const KitSelectionScreen = ({ navigation }) => {
       </View>
 
       {/* Online Delivery Mode - Address Form */}
-      {deliveryMode === "online" && (
-        <View style={styles.contentContainer}>
-            <Text style={styles.text}>
-              Enter Your Address To Deliver This Kit
-            </Text>
-          <Text style={styles.text}>Name:</Text>
-          <TextInput
-            placeholder="Please enter first name"
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-          />
-          {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+      <KeyboardAvoidingView style={{ flex: 1 ,}} behavior="height">
+        <ScrollView 
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }} 
+                  keyboardShouldPersistTaps="handled">
+       
+          {deliveryMode === "online" && (
+            <View style={styles.contentContainer}>
+                <Text style={styles.text}>
+                  Enter Your Address To Deliver This Kit
+                </Text>
+              <Text style={styles.text}>Name:</Text>
+              <TextInput
+                placeholder="Please enter your Name"
+                placeholderTextColor='darkgrey'
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+              />
+              {errors.name && <Text style={styles.error}>{errors.name}</Text>}
 
-          <Text style={styles.text}>Address:</Text>
-          <TextInput
-            placeholder="Please enter Address"
-            style={styles.input}
-            value={address}
-            onChangeText={setAddress}
-            multiline
-          />
-          {errors.address && <Text style={styles.error}>{errors.address}</Text>}
+              <Text style={styles.text}>Address:</Text>
+              <TextInput
+                placeholder="Please enter your Address"
+                placeholderTextColor='darkgrey'
+                style={styles.input}
+                value={address}
+                onChangeText={setAddress}
+                multiline
+              />
+              {errors.address && <Text style={styles.error}>{errors.address}</Text>}
 
-          <Text style={styles.text}>Pincode:</Text>
-          <TextInput
-            placeholder="Pincode"
-            style={styles.input}
-            keyboardType="numeric"
-            value={pincode}
-            onChangeText={setPincode}
-          />
-          {errors.pincode && <Text style={styles.error}>{errors.pincode}</Text>}
-        </View>
-      )}
-
-      {/* Offline Pickup Mode - Zone Selection */}
-      {deliveryMode === "offline" && (
-        <View style={styles.contentContainer}>
-          <View style={{ marginVertical: 10 }}>
-            <Text style={styles.text}>
-              Select a Pickup Zone Near You
-            </Text>
-          </View>
-
-          {zonesLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#00BCD4" />
-              <Text style={styles.loadingText}>Loading available zones...</Text>
+              <Text style={styles.text}>Pincode:</Text>
+              <TextInput
+                placeholder="Please enter your Pincode"
+                placeholderTextColor='darkgrey'
+                style={styles.input}
+                keyboardType="numeric"
+                value={pincode}
+                onChangeText={setPincode}
+              />
+              {errors.pincode && <Text style={styles.error}>{errors.pincode}</Text>}
             </View>
-          ) : zones.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📍</Text>
-              <Text style={styles.emptyText}>
-                Currently there are no zones around you.{"\n"}
-                Come back later!
-              </Text>
-            </View>
-          ) : (
-            zones.map((zone, index) => {
-              const isSelected = selectedZone?._id === zone._id; // Use _id from API
-              
-              return (
-                <TouchableOpacity
-                  key={zone._id || index}
-                  style={[
-                    styles.zoneCard,
-                    isSelected && styles.zoneCardSelected
-                  ]}
-                  onPress={() => setSelectedZone(zone)}
-                >
-                  <View style={styles.zoneRow}>
-                    <View
+          )}
+
+          {/* Offline Pickup Mode - Zone Selection */}
+          {deliveryMode === "offline" && (
+            <View style={styles.contentContainer}>
+              <View style={{ marginVertical: 10 }}>
+                <Text style={styles.text}>
+                  Select a Pickup Zone Near You
+                </Text>
+              </View>
+
+              {zonesLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#00BCD4" />
+                  <Text style={styles.loadingText}>Loading available zones...</Text>
+                </View>
+              ) : zones.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyIcon}>📍</Text>
+                  <Text style={styles.emptyText}>
+                    Currently there are no zones around you.{"\n"}
+                    Come back later!
+                  </Text>
+                </View>
+              ) : (
+                zones.map((zone, index) => {
+                  const isSelected = selectedZone?._id === zone._id; // Use _id from API
+                  
+                  return (
+                    <TouchableOpacity
+                      key={zone._id || index}
                       style={[
-                        styles.radioOuter,
-                        isSelected && styles.radioOuterActive
+                        styles.zoneCard,
+                        isSelected && styles.zoneCardSelected
                       ]}
+                      onPress={() => setSelectedZone(zone)}
                     >
-                      {isSelected && (
-                        <View style={styles.radioInner} />
-                      )}
-                    </View>
+                      <View style={styles.zoneRow}>
+                        <View
+                          style={[
+                            styles.radioOuter,
+                            isSelected && styles.radioOuterActive
+                          ]}
+                        >
+                          {isSelected && (
+                            <View style={styles.radioInner} />
+                          )}
+                        </View>
 
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.zoneName}>
-                        {zone.storeName || `Store ${index + 1}`}
-                      </Text>
-                      <Text style={styles.zoneAddress}>
-                        {zone.completeAddress || "Address not available"}
-                        {zone.pincode ? `, ${zone.pincode}` : ""}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.zoneName}>
+                            {zone.storeName || `Store ${index + 1}`}
+                          </Text>
+                          <Text style={styles.zoneAddress}>
+                            {zone.completeAddress || "Address not available"}
+                            {zone.pincode ? `, ${zone.pincode}` : ""}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+
+              {zonesError && (
+                <Text style={styles.error}>
+                  Error loading zones: {zonesError}
+                </Text>
+              )}
+            </View>
           )}
 
-          {zonesError && (
-            <Text style={styles.error}>
-              Error loading zones: {zonesError}
-            </Text>
-          )}
-        </View>
-      )}
-
-      {/* Continue Button */}
-      <TouchableOpacity
-        disabled={buttonConfig.disabled}
-        style={[
-          styles.continueBtn,
-          buttonConfig.disabled && styles.continueBtnDisabled
-        ]}
-        onPress={handleSave}
-      >
-        <Text style={styles.continueText}>{buttonConfig.text}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Continue Button */}
+        <TouchableOpacity
+          disabled={buttonConfig.disabled}
+          style={[
+            styles.continueBtn,
+            buttonConfig.disabled && styles.continueBtnDisabled
+          ]}
+          onPress={handleSave}
+        >
+          <Text style={styles.continueText}>{buttonConfig.text}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </View>
   );
 };
 
@@ -310,9 +325,8 @@ export default KitSelectionScreen;
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#F8FAFC" // Light gray background
-  },
-  
+    backgroundColor: "#F8FAFC"
+  }, 
   title: { 
     fontSize: 28, 
     fontWeight: "700", 
@@ -322,8 +336,6 @@ const styles = StyleSheet.create({
     color: "#1E293B",
     letterSpacing: 0.5,
   },
-
-  // Segmented Control Styles - Modern iOS Style
   segmentedControl: {
     flexDirection: "row",
     backgroundColor: "#E2E8F0",
@@ -369,14 +381,10 @@ const styles = StyleSheet.create({
     color: "#0EA5E9",
     fontWeight: "700",
   },
-
-  // Content Container
   contentContainer: {
     marginTop: 8,
     paddingHorizontal: 4,
   },
-
-  // Text and Input Styles - Enhanced
   text: {
     fontSize: 15,
     fontWeight: "600",
@@ -408,8 +416,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: "500",
   },
-
-  // Zone Card Styles - Modern Design
   zoneCard: {
     borderWidth: 2,
     borderColor: "#E2E8F0",
@@ -479,8 +485,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.2,
   },
-
-  // Loading State - Enhanced
   loadingContainer: {
     paddingVertical: 80,
     alignItems: "center",
@@ -501,8 +505,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 0.2,
   },
-
-  // Empty State - Beautiful Design
   emptyContainer: {
     paddingVertical: 80,
     paddingHorizontal: 30,
@@ -529,8 +531,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 0.2,
   },
-
-  // Continue Button - Gradient Style
   continueBtn: {
     backgroundColor: "#0EA5E9",
     borderRadius: 16,

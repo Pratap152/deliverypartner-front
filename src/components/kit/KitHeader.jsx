@@ -15,7 +15,7 @@ const KitHeader = () => {
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.heading}>ON Boarding Kit</Text>
+      <Text style={styles.heading}>ONBOARDING KIT</Text>
 
       <View style={styles.kitBox}>
         <View style={styles.imagesRow}>
