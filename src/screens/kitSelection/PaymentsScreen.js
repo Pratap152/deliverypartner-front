@@ -59,6 +59,7 @@ export default function PaymentsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [offlineAddress, setOfflineAddress] = useState([]);
   const [error, setError] = useState('');
+  const [paymentType, setPaymentType] = useState('');
   
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
@@ -70,6 +71,15 @@ export default function PaymentsScreen() {
       fetchOfflineStores();
     }
   }, [tab]);
+
+  const handlePaymentType = (type) => {
+    if (!selectedPayment) {
+      alert('Please select a payment method first');
+      return;
+    }
+    setPaymentType(type);
+    navigation.navigate('SuccessScreen', { paymentType: type });
+  };
 
   const fetchOfflineStores = async () => {
     try {
@@ -292,7 +302,7 @@ export default function PaymentsScreen() {
           <View style={styles.payTypeRow}>
             <TouchableOpacity
               style={styles.payTypeBtnActive}
-              onPress={()=>navigation.navigate('SuccessScreen')}
+              onPress={() => handlePaymentType('full')}
             >
               <Text style={styles.payTypeTextActive}>
                 Full Payment
@@ -301,13 +311,27 @@ export default function PaymentsScreen() {
 
             <TouchableOpacity
               style={styles.payTypeBtnActive}
-              onPress={() => navigation.navigate('SuccessScreen')}
+              onPress={() => handlePaymentType('emi')}
             >
               <Text style={styles.payTypeTextActive}>
                 Pay EMI
               </Text>
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* Continue button - only for Offline tab */}
+        {tab === 'Offline' && (
+          <TouchableOpacity
+            style={[
+              styles.payTypeBtnActive,
+              !selectedAddress && { backgroundColor: COLORS.border, borderColor: COLORS.border }
+            ]}
+            disabled={!selectedAddress}
+            onPress={() => navigation.navigate('MainTabs')}
+          >
+            <Text style={styles.payTypeTextActive}>Continue</Text>
+          </TouchableOpacity>
         )}
       </View>
     </SafeAreaView>
