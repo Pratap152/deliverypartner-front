@@ -1,14 +1,14 @@
-
 import { useState } from "react";
 import apiClient from "../services/ApiClient";
 
 export function useKitAddress() {
   const [loading, setLoading] = useState(false);
+  
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [data, setData] = useState(null);
 
-  // 🔹 POST – create / update address
+  // POST – create / update address
   const createKitAddress = async (name, address, pincode) => {
     setLoading(true);
     setError(null);
@@ -16,8 +16,9 @@ export function useKitAddress() {
 
     try {
       const response = await apiClient.post(
-        "/api/rider/kit-address",
+        "/api/kit/rider/joining-kit",
         {
+          deliveryMode: "HOME_DELIVERY",
           name,
           completeAddress: address,
           pincode,
@@ -45,7 +46,7 @@ export function useKitAddress() {
     }
   };
 
-  // 🔹 GET – fetch existing address
+  // GET – fetch existing address
   const getKitAddress = async () => {
     setLoading(true);
     setError(null);
@@ -57,7 +58,7 @@ export function useKitAddress() {
         },
       });
 
-      // 👇 because backend returns { data: {...} }
+      // because backend returns { data: {...} }
       setData(response.data?.data);
       return response.data?.data;
     } catch (err) {

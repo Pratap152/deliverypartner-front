@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/common/Header';
@@ -51,13 +52,16 @@ const OFFLINE_ADDRESSES = [
 ];
 
 export default function PaymentsScreen() {
-  const [tab, setTab] = useState('Online'); // 'Online' | 'Offline'
+  const [tab, setTab] = useState('Online');
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState();
 
   const [isLoading, setIsLoading] = useState(false);
   const [offlineAddress, setOfflineAddress] = useState([]);
   const [error, setError] = useState('');
+  
+  const { width, height } = useWindowDimensions();
+  const styles = getStyles(width, height);
 
   const navigation = useNavigation();
 
@@ -159,6 +163,7 @@ export default function PaymentsScreen() {
                   borderColor: COLORS.border,
                 }}
                 placeholder="Enter UPI ID here"
+                placeholderTextColor='darkgrey'
               />
 
               <TouchableOpacity
@@ -259,17 +264,17 @@ export default function PaymentsScreen() {
               keyExtractor={i => i.id}
               renderItem={renderPaymentItem}
             />
-          ) : (
-            <>
-              {isLoading ? (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <ActivityIndicator size={'large'} color={COLORS.primary} />
+            ) : (
+              <>
+                {isLoading ? (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                   <ActivityIndicator size={'large'} color={COLORS.primary} />
                 </View>
               ) : (
                 <FlatList
@@ -282,63 +287,72 @@ export default function PaymentsScreen() {
           )}
         </View>
 
-        {/* Continue button */}
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={styles.continueButton}
-          disabled={
-            (tab === 'Online' && !selectedPayment) ||
-            (tab === 'Offline' && !selectedAddress)
-          }
-          onPress={() => {
-            if (tab === 'Online') {
-              navigation.navigate('SuccessScreen');
-            } else {
-              navigation.navigate('MainTabs');
-            }
-          }}
-        >
-          <Text style={styles.continueText}>Continue</Text>
-        </TouchableOpacity>
+        {/* Pay in Full / EMI - only show for Online tab */}
+        {tab === 'Online' && (
+          <View style={styles.payTypeRow}>
+            <TouchableOpacity
+              style={styles.payTypeBtnActive}
+              onPress={()=>navigation.navigate('SuccessScreen')}
+            >
+              <Text style={styles.payTypeTextActive}>
+                Full Payment
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.payTypeBtnActive}
+              onPress={() => navigation.navigate('SuccessScreen')}
+            >
+              <Text style={styles.payTypeTextActive}>
+                Pay EMI
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (width, height) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.white },
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 18 },
-
+  container: { 
+    flex: 1, 
+    paddingHorizontal: width * 0.05, 
+    paddingTop: height * 0.022 
+  },
   segmentRow: {
     flexDirection: 'row',
     backgroundColor: COLORS.white,
-    borderRadius: 28,
-    padding: 4,
+    borderRadius: width * 0.07,
+    padding: width * 0.01,
     borderWidth: 1,
     borderColor: COLORS.border,
     alignSelf: 'stretch',
-    marginBottom: 18,
-    marginTop: 30,
+    marginBottom: height * 0.022,
+    marginTop: height * 0.035,
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: height * 0.01,
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: width * 0.06,
   },
-  segmentActive: {
-    backgroundColor: COLORS.primary,
+  segmentActive: { backgroundColor: COLORS.primary },
+  segmentText: { 
+    fontSize: width * 0.04, 
+    color: COLORS.textPrimary, 
+    fontWeight: '500' 
   },
-  segmentText: { fontSize: 16, color: COLORS.textPrimary, fontWeight: '500' },
   segmentTextActive: { color: COLORS.white },
   content: { flex: 1 },
   card: {
     borderWidth: 1,
     borderColor: COLORS.primary,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: width * 0.02,
+    padding: width * 0.03,
     backgroundColor: COLORS.white,
-    marginBottom: 20,
+    marginBottom: height * 0.025,
   },
   cardSelected: {
     borderColor: COLORS.primary,
@@ -347,32 +361,28 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-
-  cardLabel: { flex: 1, fontSize: 16 },
-
   radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: width * 0.055,
+    height: width * 0.055,
+    borderRadius: width * 0.028,
     borderWidth: 1.5,
     borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: width * 0.03,
+    height: width * 0.03,
+    borderRadius: width * 0.015,
     backgroundColor: COLORS.primary,
   },
-
   addressCard: {
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: width * 0.02,
+    padding: width * 0.03,
     backgroundColor: COLORS.primary,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    marginBottom: 10,
+    marginBottom: height * 0.012,
   },
   addressCardSelected: {
     backgroundColor: COLORS.primary,
@@ -383,37 +393,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addressRadioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: width * 0.055,
+    height: width * 0.055,
+    borderRadius: width * 0.028,
     borderWidth: 1.5,
     borderColor: '#bff0f2',
-    marginRight: 10,
+    marginRight: width * 0.025,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   addressRadioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: width * 0.025,
+    height: width * 0.025,
+    borderRadius: width * 0.013,
     backgroundColor: COLORS.white,
   },
   addressTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: width * 0.04,
     color: COLORS.white,
     fontWeight: '500',
   },
-
-  continueButton: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 10,
-    marginBottom: 12,
+  payTypeRow: {
+    flexDirection: 'row',
+    gap: width * 0.03,
+    marginBottom: height * 0.015,
+    marginHorizontal: width * 0.01,
   },
-  continueText: { color: COLORS.white, fontWeight: '600', fontSize: 16 },
+  payTypeBtnActive: {
+    backgroundColor: COLORS.primary,
+    flex: 1,
+    paddingVertical: height * 0.015,
+    borderRadius: width * 0.025,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  payTypeTextActive: {
+    color: COLORS.white,
+    fontSize: width * 0.038,
+    fontWeight: '600',
+  },
+  
 });
