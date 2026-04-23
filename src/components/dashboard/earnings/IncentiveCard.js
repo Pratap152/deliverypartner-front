@@ -106,7 +106,7 @@ const progressColor = GREEN_THEME.primary;
                   },
                 ]}
               >
-                <Text style={styles.slabOrders}>{s.orders} orders</Text>
+                <Text style={styles.slabOrders}>Minimum {s.minOrders} orders</Text>
                 <Text style={styles.slabReward}>₹{s.rewardAmount}</Text>
               </View>
             ))}
@@ -140,9 +140,7 @@ const progressColor = GREEN_THEME.primary;
 
               <ProgressBar
                 progress={
-                  item.peakRequired > 0
-                    ? (item.peakCompleted / item.peakRequired) * 100
-                    : 0
+                  (item.peakCompleted / item.peakRequired) * 100
                 }
                 progressColor={GREEN_THEME.primary}
 
@@ -160,9 +158,7 @@ const progressColor = GREEN_THEME.primary;
 
               <ProgressBar
                 progress={
-                  item.normalRequired > 0
-                    ? (item.normalCompleted / item.normalRequired) * 100
-                    : 0
+                  (item.normalCompleted / item.normalRequired) * 100
                 }
                 progressColor="#34D399"
 
@@ -185,7 +181,7 @@ const progressColor = GREEN_THEME.primary;
 
                   <ProgressBar
                     progress={Math.round(((Number(item.completedOrders ?? completed) || 0) / (Number(item.requiredOrders ?? required) || 1)) * 100)}
-                    accentColor={progressColor}
+                    progressColor={progressColor}
                   />
                 </>
               )}

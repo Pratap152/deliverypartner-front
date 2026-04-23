@@ -191,9 +191,9 @@ export default function useEarningsDashboard() {
         incentives.push({
           id: 'peak-slot',
           type: 'peak',
-          title: peakRes.data.title,
-          subtitle: `Peak Slot: ${peakRes.data.slotRule}`,
-          slabs: peakRes.data.slabs ?? [],
+          title: peakRes.data[0].title,
+          subtitle: peakRes.data[0].description,
+          slabs: peakRes.data[0].slabs ?? [],
           accentColor: '#FFF7ED',
           peak_data: peakRes
         });
@@ -204,11 +204,11 @@ export default function useEarningsDashboard() {
         incentives.push({
           id: 'weekly-incentive',
           type: 'weekly',
-          title: weeklyRes.data.title,
-          subtitle: `${weeklyRes.data.progress.eligibleDays}/${weeklyRes.data.progress.totalDaysRequired} days completed`,
-          value: `Earn ₹${weeklyRes.data.maxRewardPerWeek}`,
-          completedOrders: weeklyRes.data.progress.eligibleDays,
-          requiredOrders: weeklyRes.data.progress.totalDaysRequired,
+          title: weeklyRes.data[0].title,
+          subtitle: weeklyRes.data[0].description,
+          value: weeklyRes.data[0].progress.achievedReward,
+          completedOrders: weeklyRes.data[0].progress.totalOrders,
+          requiredOrders: weeklyRes.data[0].minCompletedOrders,
           accentColor: '#EFF6FF',
           weekly_data: weeklyRes
         });
@@ -219,17 +219,13 @@ export default function useEarningsDashboard() {
       incentives.push({
         id: 'daily-incentive',
         type: 'daily',
-        title: dailyRes.title,
-        subtitle: dailyRes.eligible
-          ? 'Target achieved'
-          : 'Daily target in progress',
-        value: dailyRes.eligible
-          ? `₹${dailyRes.totalRewardAmount}`
-          : 'In Progress',
-        peakCompleted: dailyRes.peakCompleted ?? 0,
-        peakRequired: dailyRes.slotRules?.minPeakSlots ?? 0,
-        normalCompleted: dailyRes.normalCompleted ?? 0,
-        normalRequired: dailyRes.slotRules?.minNormalSlots ?? 0,
+        title: dailyRes.data[0]?.title,
+        subtitle: dailyRes.data[0]?.description,
+        value: dailyRes.data[0]?.progress.achievedReward ?? 0,
+        peakCompleted: dailyRes.data[0]?.progress.completedPeakSlots ?? 0,
+        peakRequired: dailyRes.data[0]?.minPeakSlots ?? 0,
+        normalCompleted: dailyRes.data[0]?.progress.completedNormalSlots ?? 0,
+        normalRequired: dailyRes.data[0]?.minNormalSlots ?? 0,
         accentColor: '#F5F3FF',
         daily_data: dailyRes
       });
