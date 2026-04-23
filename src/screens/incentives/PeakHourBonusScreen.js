@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,12 +14,12 @@ import {
 } from "react-native-responsive-screen";
 
 /* --- PROGRESSIVE CHECKPOINT BAR COMPONENT --- */
-const ProgressiveCheckpointBar = ({ slabs = [], currentOrders = 0 }) => {
+const ProgressiveCheckpointBar = ({ slabs, currentOrders }) => {
   // If no slabs, return null
   if (!slabs || slabs.length === 0) return null;
 
-  const maxOrders = slabs[slabs.length - 1]?.orders || 10;
-  const progressPercent = Math.min((currentOrders / maxOrders) * 100, 100);
+  const minOrders = slabs[slabs.length - 1]?.minOrders;
+  const progressPercent = Math.min((currentOrders / minOrders) * 100, 100);
 
   return (
     <View style={styles.checkpointContainer}>
@@ -40,8 +40,8 @@ const ProgressiveCheckpointBar = ({ slabs = [], currentOrders = 0 }) => {
 
         {/* Checkpoint Markers */}
         {slabs.map((slab, index) => {
-          const position = (slab.orders / maxOrders) * 100;
-          const isCompleted = currentOrders >= slab.orders;
+          const position = (slab.minOrders / minOrders) * 100;
+          const isCompleted = currentOrders >= slab.minOrders;
 
           return (
             <View
@@ -69,7 +69,7 @@ const ProgressiveCheckpointBar = ({ slabs = [], currentOrders = 0 }) => {
                   isCompleted && styles.checkpointOrderLabelActive,
                 ]}
               >
-                {slab.orders}
+                {slab.minOrders}
               </Text>
 
               {/* Reward Label Below */}
@@ -88,25 +88,76 @@ const ProgressiveCheckpointBar = ({ slabs = [], currentOrders = 0 }) => {
 
       {/* Current Progress Text */}
       <Text style={styles.currentProgressText}>
-        {currentOrders} / {maxOrders} orders completed
+        {currentOrders} / {minOrders} orders completed
       </Text>
     </View>
   );
 };
 
 const PeakHourBonusScreen = ({ route, navigation }) => {
-  const data = route.params?.data || route.params || {};
-  console.log("data from peak hour bonus",data);
+  const data = route.params;
+  console.log("data from peak hour bonus: ", data);
 
   /* ---------------- EXTRACT DATA ---------------- */
-  const title = data.title || "Peak Slot Bonus";
-  const slotRule = data.slotRule || "6 - 10 hrs";
-  const slabs = data.slabs || [];
-  const payoutTiming = data.payoutTiming || "POST_SLOT";
-  const status = data.status || "ACTIVE";
+  const title = data.title;
+  const slabs = data.slabs;
+  const payoutTiming = data.peak_data.data[0].payoutTiming;
+  const status = data.peak_data.data[0].status;
+
+  const [slot, setSlot] = useState(null);
+  const peakSlots = data.peak_data.data[0].peakSlots;
 
   // Mock current orders completed - Replace with actual data from your state/API
-  const currentOrders = data.completedOrders || 0;
+  const currentOrders = data.peak_data.data[0].progress.totalOrders;
+
+  const parseTimeToMinutes = (timeStr) => {
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const getFirstValidSlot = (slots) => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const sorted = [...slots].sort(
+      (a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime)
+    );
+
+    for (let slot of sorted) {
+      const endMinutes = parseTimeToMinutes(slot.endTime);
+
+      // ✅ if current slot OR future slot
+      if (currentMinutes <= endMinutes) {
+        return slot;
+      }
+    }
+
+    return null;
+  };
+
+  const formatTo12Hour = (time24) => {
+    const [hours, minutes] = time24.split(":");
+    let h = parseInt(hours, 10);
+
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12; // convert 0 -> 12
+
+    return `${h}:${minutes} ${ampm}`;
+  };
+
+  useEffect(() => {
+    if (!peakSlots?.length) return;
+
+    const update = () => {
+      const result = getFirstValidSlot(peakSlots);
+      setSlot(result);
+    };
+
+    update();
+
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, [peakSlots]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -146,7 +197,13 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
         <View style={styles.rewardPill}>
           <Ionicons name="flash" size={16} color="#FFD700" />
           <Text style={styles.rewardLabel}>Peak Hours:</Text>
-          <Text style={styles.rewardValue}>{slotRule}</Text>
+          {
+            !slot
+              ? <Text style={styles.rewardValue}>No peak slots</Text>
+              : <Text style={styles.rewardValue}>
+                {formatTo12Hour(slot.startTime)} - {formatTo12Hour(slot.endTime)}
+              </Text>
+          }
         </View>
       </LinearGradient>
 
@@ -160,7 +217,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>Active Time Window</Text>
             <Text style={styles.cardSubText}>
-              Earn bonuses only during these busy hours: {slotRule}
+              Earn bonuses on peak hours
             </Text>
           </View>
         </View>
@@ -180,9 +237,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.infoTitle}>Payout Timing</Text>
               <Text style={styles.infoText}>
-                {payoutTiming === "POST_SLOT"
-                  ? "Credited after slot completion"
-                  : "Instant payout"}
+                {payoutTiming}
               </Text>
             </View>
           </View>
@@ -196,7 +251,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
               <Text style={styles.stepNumberText}>1</Text>
             </View>
             <Text style={styles.stepText}>
-              Work during peak hours ({slotRule})
+              Work during peak hours
             </Text>
           </View>
           <View style={styles.stepRow}>
@@ -425,7 +480,7 @@ const styles = StyleSheet.create({
   },
   checkpointRewardLabelActive: {
     color: "#00A63E",
-    fontSize: 14,
+    fontSize: 13,
   },
   currentProgressText: {
     fontSize: 14,

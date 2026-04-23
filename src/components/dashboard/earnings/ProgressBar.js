@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-export default function ProgressBar({ progress, accentColor }) {
+export default function ProgressBar({ progress, progressColor }) {
   return (
     <View style={styles.track}>
       <View
@@ -10,7 +10,7 @@ export default function ProgressBar({ progress, accentColor }) {
           styles.fill,
           {
             width: `${Math.min(progress, 100)}%`,
-            backgroundColor: accentColor,
+            backgroundColor: progressColor,
           },
         ]}
       />

@@ -93,38 +93,31 @@ const OverallProgressBar = ({ percentage }) => {
 
 const DailyGuarentee = ({ route, navigation }) => {
   // Safe extraction with default values
-  const params = route.params || {};
+  const params = route.params;
+  console.log("data in daily guarantee: ", params);
 
   // Slot Rules Defaults
-  const minPeakSlots = params.slotRules?.minPeakSlots || 2;
-  const minNormalSlots = params.slotRules?.minNormalSlots || 3;
+  const minPeakSlots = params.peakRequired;
+  const minNormalSlots = params.normalRequired;
 
   // New Progress Data Calculations
-  const peakCompleted = params.peakCompleted || params.completedPeakSlots || 0;
-  const normalCompleted = params.normalCompleted || params.completedNormalSlots || 0;
+  const peakCompleted = params.peakCompleted;
+  const normalCompleted = params.normalCompleted;
 
   // Weighted Calculation: Peak = 40%, Normal = 60%
   const peakProgressRaw = Math.min(peakCompleted / minPeakSlots, 1);
   const normalProgressRaw = Math.min(normalCompleted / minNormalSlots, 1);
   const overallPercentage = (peakProgressRaw * 40) + (normalProgressRaw * 60);
 
-  // Order Rules Defaults (Drilling down safely)
-  // Peak Slab: Try to get first slab's minOrders, else default to 5
-  const peakMinOrders = params.slabs?.peak?.[0]?.minOrders || 5;
-  const peakMaxOrders = params.slabs?.peak?.[0]?.maxOrders || 8;
-
-  // Normal Slab: Try to get first slab's minOrders, else default to 8
-  const normalMinOrders = params.slabs?.normal?.[0]?.minOrders || 8;
-  const normalMaxOrders = params.slabs?.normal?.[0]?.maxOrders || 12;
-
   // Progress Data
-  const completedOrders = params.completedOrders || 0;
+  const completedOrders = params.daily_data.data[0].progress.totalOrders;
   // We can sum the targets for a rough "Total Goal" visual, or just use a fixed max if mapped
-  const totalTarget = peakMinOrders + normalMinOrders;
+  const totalTarget = minPeakSlots + minNormalSlots;
   const progressPercent = Math.min((completedOrders / totalTarget) * 100, 100);
 
-  const status = params.status || "ACTIVE";
-  const rewardAmount = params.rewardAmount || params.value || 0;
+  const status = params.daily_data.data[0].status;
+  const slabsLength = params.daily_data.data[0].slabs.length;
+  const rewardAmount = params.daily_data.data[0].slabs[slabsLength - 1].rewardAmount;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -184,7 +177,7 @@ const DailyGuarentee = ({ route, navigation }) => {
           <View style={styles.ruleRow}>
             <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
             <Text style={styles.ruleText}>
-              Deliver <Text style={styles.boldPeak}>{peakMinOrders}+ Orders</Text> in peak hours
+              Deliver <Text style={styles.boldPeak}>{minPeakSlots}+ Orders</Text> in peak hours
             </Text>
           </View>
         </View>
@@ -213,7 +206,7 @@ const DailyGuarentee = ({ route, navigation }) => {
           <View style={styles.ruleRow}>
             <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
             <Text style={styles.ruleText}>
-              Deliver <Text style={styles.boldNormal}>{normalMinOrders}+ Orders</Text> in normal hours
+              Deliver <Text style={styles.boldNormal}>{minNormalSlots}+ Orders</Text> in normal hours
             </Text>
           </View>
         </View>
@@ -232,7 +225,7 @@ const DailyGuarentee = ({ route, navigation }) => {
               color1="#FF9966"
               color2="#FF5E62"
             />
-            <Text style={styles.contextText}>*Must also deliver {peakMinOrders}+ orders to unlock</Text>
+            <Text style={styles.contextText}>*Must also deliver {minPeakSlots}+ orders to unlock</Text>
           </View>
 
           {/* 2. Normal Slot Progress */}
@@ -247,7 +240,7 @@ const DailyGuarentee = ({ route, navigation }) => {
               color1="#56ab2f"
               color2="#a8e063"
             />
-            <Text style={styles.contextText}>*Must also deliver {normalMinOrders}+ orders to unlock</Text>
+            <Text style={styles.contextText}>*Must also deliver {minNormalSlots}+ orders to unlock</Text>
           </View>
 
           {/* 3. Overall Progress */}
