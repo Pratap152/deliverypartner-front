@@ -15,64 +15,73 @@ import PrimaryButton from '../../components/common/PrimaryButton';
 export default function AreaSelectionScreen({ route, navigation }) {
   const { city } = route.params;
 
-  const [allAreas, setAllAreas] = useState([]);
-  const [areaList, setAreaList] = useState([]);
-  const [selectedArea, setSelectedArea] = useState(null);
+  const [allPincodes, setAllPincodes] = useState([]);
+  const [pincodeList, setPincodeList] = useState([]);
+  const [selectedPincode, setSelectedPincode] = useState('');
   const [searchText, setSearchText] = useState('');
   const [errors, setErrors] = useState('');
 
-  /* ================= FETCH AREAS ================= */
+  /* ================= FETCH PINCODES ================= */
   useEffect(() => {
-    async function fetchAreas() {
+    async function fetchPincodes() {
       try {
         const response = await apiClient.get(
-          `/api/location/areas?city=${city}`,
+          `/api/location/areas?city=${city}`
         );
 
-        setAllAreas(response.data.areas);
-        setAreaList(response.data.areas);
+        const pincodesData = response?.data?.pincodes || [];
+
+        // Extract only unique pincodes using reduce
+        const uniquePincodes = pincodesData.reduce((acc, item) => {
+          if (!acc.includes(item.code)) {
+            acc.push(item.code);
+          }
+          return acc;
+        }, []);
+
+        setAllPincodes(uniquePincodes);
+        setPincodeList(uniquePincodes);
       } catch (err) {
-        console.log('Error fetching areas:', err);
+        console.log('Error fetching pincodes:', err);
         setErrors(err.message);
       }
     }
 
-    fetchAreas();
+    fetchPincodes();
   }, [city]);
 
   /* ================= SEARCH ================= */
   function handleSearch(text) {
     setSearchText(text);
 
-    if (!text || text.trim() === '') {
-      setAreaList(allAreas);
+    if (!text.trim()) {
+      setPincodeList(allPincodes);
       return;
     }
 
-    const query = text.toLowerCase().trim();
-    const filtered = allAreas.filter(area =>
-      (area || '').toLowerCase().includes(query),
+    const filtered = allPincodes.filter(code =>
+      code.includes(text)
     );
 
-    setAreaList(filtered);
+    setPincodeList(filtered);
   }
 
   /* ================= SUBMIT ================= */
   async function handleSubmit() {
-    if (!selectedArea) return;
+    if (!selectedPincode) return;
 
     try {
       await apiClient.post(
         '/api/rider/location',
-        {  
+        {
           city,
-          area: selectedArea,
+          pincode: selectedPincode,
         },
         {
           headers: {
             'x-client': 'mobile',
           },
-        },
+        }
       );
 
       navigation.replace('SplashScreen');
@@ -97,77 +106,66 @@ export default function AreaSelectionScreen({ route, navigation }) {
           <Icon name="arrow-back" size={22} color="#000" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>{city} - Select Area</Text>
+        <Text style={styles.headerTitle}>{city} - Select Pincode</Text>
         <View style={{ width: 22 }} />
       </View>
 
-      {/* Search Bar */}
+      {/* Search */}
       <View style={styles.searchContainer}>
-        <Icon
-          name="search-outline"
-          size={18}
-          color="#888"
-          style={{ marginRight: 6 }}
-        />
+        <Icon name="search-outline" size={18} color="#888" />
         <TextInput
-          placeholder="Search area"
+          placeholder="Search pincode"
           style={styles.searchInput}
-          placeholderTextColor="#999"
-          onChangeText={(text) => {
-            handleSearch(text);
-            setSelectedArea(text);
-          }}
-          value={selectedArea || searchText}
+          onChangeText={handleSearch}
+          value={searchText}
         />
       </View>
 
-      {/* Divider */}
-      <View style={styles.dividerBar}>
-        <Text style={styles.dividerText}>Available areas</Text>
-      </View>
-
-      {/* Area List */}
-      <ScrollView contentContainerStyle={{ paddingVertical: 10 }} showsVerticalScrollIndicator={false}>
-        {areaList.length === 0 ? (
-          <Text style={{ textAlign: 'center', color: '#999', marginTop: 20 }}>
-            No areas found
+      {/* List */}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {pincodeList.length === 0 ? (
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            No pincodes found
           </Text>
         ) : (
-          areaList.map(area => (
+          pincodeList.map(code => (
             <TouchableOpacity
-              key={area}
+              key={code}
               style={[
                 styles.cityItem,
-                selectedArea === area && styles.citySelected,
+                selectedPincode === code && styles.citySelected,
               ]}
               onPress={() => {
-                setSelectedArea(area);
-                setSearchText(area);
+                setSelectedPincode(code);
+                setSearchText(code);
               }}
             >
               <Icon
                 name="location-outline"
                 size={20}
-                color={selectedArea === area ? '#fff' : '#00A8E8'}
+                color={selectedPincode === code ? '#fff' : '#00A8E8'}
               />
+
               <Text
                 style={[
                   styles.cityText,
-                  selectedArea === area && styles.cityTextSelected,
+                  selectedPincode === code && styles.cityTextSelected,
                 ]}
               >
-                {area}
+                {code}
               </Text>
             </TouchableOpacity>
           ))
         )}
       </ScrollView>
 
+      {/* Submit */}
       <PrimaryButton
         title="Submit"
         onPress={handleSubmit}
         bgColor="#00B5CC"
         textColor="#fff"
+        disabled={!selectedPincode}
       />
     </View>
   );
@@ -178,60 +176,38 @@ export default function AreaSelectionScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 40,
   },
-
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
   },
-
   searchContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    padding: 10,
     marginBottom: 15,
+    alignItems: 'center',
   },
   searchInput: {
+    marginLeft: 8,
     flex: 1,
-    fontSize: 14,
   },
-
-  dividerBar: {
-    backgroundColor: '#ccc',
-    paddingVertical: 6,
-    alignItems: 'center',
-    borderRadius: 5,
-  },
-  dividerText: {
-    fontSize: 14,
-    color: '#555',
-    fontWeight: '600',
-  },
-
   cityItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    padding: 12,
     borderWidth: 1.5,
     borderColor: '#00A8E8',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    marginVertical: 6,
+    borderRadius: 10,
+    marginVertical: 5,
+    alignItems: 'center',
   },
   citySelected: {
     backgroundColor: '#00A8E8',
@@ -243,6 +219,5 @@ const styles = StyleSheet.create({
   },
   cityTextSelected: {
     color: '#fff',
-    fontWeight: '600',
   },
 });
