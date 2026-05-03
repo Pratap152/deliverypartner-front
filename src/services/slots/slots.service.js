@@ -13,19 +13,24 @@ export function getWeekNumber() {
 // Load weeks
 export const loadWeeksApi = async (payload = {}) => {
   const weekNumber = payload.weekNumber || getWeekNumber();
-  const { city, zone, year } = payload; // no hardcoded defaults
+  const { cityId, pincodeId, year } = payload;
 
   return apiClient.get(`/api/slots/week`, {
-    params: { city, zone, weekNumber, year },
+    params: { cityId, pincodeId, weekNumber, year },
   });
 };
 
 // Load slots
 export const loadSlotsApi = async (payload = {}) => {
-  const { date, city, zone, filter: status = "all" } = payload; // only "all" is a safe default
+  const { date, cityId, pincodeId, filter: status = "all" } = payload;
 
   return apiClient.get(`/api/slots/status`, {
-    params: { date, city, zone, status },
+    params: {
+      date,
+      cityId,
+      pincodeId,
+      status,
+    },
   });
 };
 

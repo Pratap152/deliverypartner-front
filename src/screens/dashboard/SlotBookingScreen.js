@@ -52,14 +52,13 @@ export default function SlotBookingScreen() {
   const [activeSlot, setActiveSlot] = useState(null);
 
   // Getting city and zone from profileSlice
-  const city = useSelector((state) => state.profile.data?.location?.city?.trim());
-  const zone = useSelector((state) => state.profile.data?.location?.area?.trim());
-
+  const cityId = useSelector((state) => state.profile.data?.location?.city?.trim());
+const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
   
   // Load weeks and slots in parallel on mount
   useEffect(() => {
-    loadWeeks({ city, zone });
-    loadSlots({ date: today, filter, city, zone });
+    loadWeeks({ cityId, pincodeId });
+loadSlots({ date: today, filter, cityId, pincodeId });
   }, []);
 
 
@@ -70,8 +69,7 @@ export default function SlotBookingScreen() {
       return; // skip on mount since we already loaded todays slots
     }
     if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter, city, zone });
-    }
+loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
   }, [selectedWeek, filter]);
 
   // Handlers
@@ -88,8 +86,7 @@ export default function SlotBookingScreen() {
       // Load next week (current + 1)
       const currentWeekNum = getWeekNumber();
       const nextWeekNum = currentWeekNum + 1;
-      loadWeeks({ weekNumber: nextWeekNum, city, zone});
-    }
+loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });    }
   };
 
   const handleWeekSelect = (date) => {
@@ -123,8 +120,7 @@ export default function SlotBookingScreen() {
       clearSelection();
       // Refresh slots
       if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter, city, zone });
-      }
+loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      }
     }
   };
 
@@ -134,15 +130,13 @@ export default function SlotBookingScreen() {
       setCancelModalVisible(false);
       // Refresh slots
       if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter, city, zone });
-      }
+loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      }
     }
   };
 
   const handleRefresh = () => {
     if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter, city, zone});
-    }
+loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
   };
 
 
