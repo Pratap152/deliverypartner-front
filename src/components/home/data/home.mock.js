@@ -13,6 +13,27 @@ export const banners = [
     cta: 'Claim Now',
     backgroundColor: '#E8EDFF',
   },
+   {
+    id: 'refer',
+    title: 'Refer & Earn',
+    subtitle: 'Invite friends and earn rewards',
+    cta: 'Refer Now',
+    backgroundColor: '#D1FAE5',
+  },
+  {
+    id: 'incentives',
+    title: 'Daily Incentives',
+    subtitle: 'Complete orders & earn extra',
+    cta: 'View Incentives',
+    backgroundColor: '#FEF3C7',
+  },
+  {
+    id: 'joining',
+    title: 'Joining Bonus',
+    subtitle: 'Complete 10 orders & unlock bonus',
+    cta: 'Start Now',
+    backgroundColor: '#E0E7FF',
+  },
 ];
 
 export const todayStats = [
