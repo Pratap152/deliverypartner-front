@@ -23,7 +23,7 @@ import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerifi
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 import SplashScreen from '../screens/onboarding/SplashScreen';
-import PaymentsScreen from '../screens/onboarding/PaymentsScreen';
+import PaymentsScreen from '../screens/kitSelection/PaymentsScreen';
 import SuccessScreen from '../screens/onboarding/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
@@ -39,7 +39,8 @@ import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
 import LiveTracking from '../screens/Home/LiveTracking';
-import MapScreen from '../screens/Home/MapScreen';
+// import MapScreen from '../screens/Home/MapScreen';
+import MapScreen from '../screens/order/MapScreen';
 import OrderHistory from '../screens/profile/OrderHistory';
 import ProfileNavigator from './ProfileNavigator';
 import HomeNavigator from './HomeNavigator';
@@ -98,7 +99,6 @@ const AppNavigator = () => {
       <Stack.Screen name="SuccessfullDelivered" component={SuccessfullDelivered} />
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
       <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: false, title: "Incentive Details" }} />
-      <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
       <Stack.Screen name="MapScreen" component={MapScreen} />
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
       <Stack.Screen name="OrderPopupScreen" component={OrderPopupScreen} />

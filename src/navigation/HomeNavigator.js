@@ -8,7 +8,7 @@ import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import AddBankDetails from '../screens/Home/AddBankDetails';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
 // import LiveTracking from '../screens/Home/LiveTracking';
-// import MapScreen from '../screens/order/MapScreen';
+import MapScreen from '../screens/order/MapScreen';
 import React from 'react';
 import EarningsHistoryScreen from '../screens/earnings/EarningsHistoryScreen';
 import SlotHistory from '../screens/profile/SlotHistory';
@@ -29,17 +29,17 @@ function HomeNavigator() {
                 <Stack.Screen name='QRScannerScreen' component={QRScannerScreen} />
                 <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
                 <Stack.Screen name='AddBankDetails' component={AddBankDetails} />
-                
-            <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} /> 
-                            <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
-      <Stack.Screen name="SlotHistory" component={SlotHistory} />
-      <Stack.Screen name="OrderHistory" component={OrderHistory} />
-            <Stack.Screen name="EarningsHistoryScreen" component={EarningsHistoryScreen} />
+
+                <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
+                <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
+                <Stack.Screen name="SlotHistory" component={SlotHistory} />
+                <Stack.Screen name="OrderHistory" component={OrderHistory} />
+                <Stack.Screen name="EarningsHistoryScreen" component={EarningsHistoryScreen} />
                 <Stack.Screen name='KitSelectionScreen' component={KitSelectionScreen} />
-                
-                {/* <Stack.Screen name='MapScreen' component={MapScreen}  options={{
-          gestureEnabled: false, // Prevent swipe back
-        }} /> */}
+
+                <Stack.Screen name='MapScreen' component={MapScreen} options={{
+                    gestureEnabled: false, // Prevent swipe back
+                }} />
             </Stack.Navigator>
         </>
     )

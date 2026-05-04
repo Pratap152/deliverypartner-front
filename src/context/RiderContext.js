@@ -20,6 +20,8 @@ import { ORDER_STATUS } from "../config/orderStates";
 
 import { orderService } from "../services/order/OrderService";
 
+import { getRiderOnlineStatus } from "../services/order/OnlineStatusService";
+
 import { tokenService } from "../services/TokenService";
 
 import OrderQueueModal from "../components/order/OrderQueueModal";
@@ -59,6 +61,12 @@ export const RiderProvider = ({ children }) => {
   const [actuallyOnline, setActuallyOnline] = useState(false);
  
   const isOnline = actuallyOnline;
+
+  const [isActive, setIsActive] = useState(false);
+
+  const [totalOnlineMinutes, setTotalOnlineMinutes] = useState(0);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const isLoading = isGoingOnline || isGoingOffline;
  
@@ -369,6 +377,23 @@ export const RiderProvider = ({ children }) => {
     }
 
   };
+
+  const fetchRiderStatus = async () => {
+    try {
+      setRefreshing(true);
+
+      const res = await getRiderOnlineStatus();
+
+      if (res?.success) {
+        setIsActive(res.data.isOnline);
+        setTotalOnlineMinutes(res.data.totalOnlineMinutesToday);
+      }
+    } catch (err) {
+      console.log('Rider status error:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
  
   /** ---------------------------
 
@@ -466,31 +491,30 @@ export const RiderProvider = ({ children }) => {
 
       setLoading(true);
  
-      await orderService.acceptOrder(orderId);
- 
+const res = await orderService.acceptOrder(orderId);
+
+if (!res?.success) {
+  throw new Error(res?.message || "Accept failed");
+} 
       removeOrderFromQueue(orderId);
  
       navigate("OrderDetailsScreen", {
 
         orderId,
 
-        status: ORDER_STATUS.PICKUP_ASSIGNED,
-
+status: "ASSIGNED",
       });
 
     } catch (err) {
+  console.log("ACCEPT ERROR:", err?.response?.data || err.message);
 
-      removeOrderFromQueue(orderId);
- 
-      Alert.alert(
+  removeOrderFromQueue(orderId);
 
-        "Error",
-
-        "Failed to accept order. It may have been assigned to another rider."
-
-      );
-
-    } finally {
+  Alert.alert(
+    "Error",
+    err?.response?.data?.message || "Failed to accept order"
+  );
+} finally {
 
       setLoading(false);
 
@@ -553,6 +577,13 @@ export const RiderProvider = ({ children }) => {
 
         isLoading,
 
+        isActive,
+
+        totalOnlineMinutes,
+
+        refreshing,
+
+        fetchRiderStatus,
       }}
 >
 

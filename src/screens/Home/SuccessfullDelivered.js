@@ -47,7 +47,7 @@ export default function SuccessfullDelivered({ route, navigation }) {
 
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate('MainTabs')}
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] })}
         activeOpacity={0.9}
       >
         <Text style={styles.backButtonText}>Back to Home</Text>

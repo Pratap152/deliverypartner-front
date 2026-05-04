@@ -2,37 +2,54 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { orderService } from '../../services/order/OrderService';
-import { ORDER_STATUS } from '../../config/orderStates';
 
 const { width } = Dimensions.get('window');
 
 const QRScannerScreen = ({ navigation, route }) => {
     const orderId = route.params?.orderId;
-    console.log('📱 QRScannerScreen - orderId:', orderId, 'nextStatus:', route.params?.nextStatus);
+
+    console.log('📱 QRScannerScreen - orderId:', orderId);
 
     useEffect(() => {
-        // Determine the next status based on params or default logic
-        const nextStatus = route.params?.nextStatus || ORDER_STATUS.AT_DROP;
-
-        // Auto-mock scan after 2 seconds for quicker testing
+        // backend decides next state via API, NOT frontend constants
         const timer = setTimeout(() => {
-            handleScanSuccess(nextStatus);
+            handleScanSuccess();
         }, 2500);
 
         return () => clearTimeout(timer);
     }, []);
 
-    const handleScanSuccess = async (nextStatus) => {
+    const handleScanSuccess = async () => {
         try {
-            console.log('📱 QRScannerScreen handleScanSuccess - orderId:', orderId, 'nextStatus:', nextStatus);
-            await orderService.updateOrderStatus(orderId, nextStatus);
-            console.log('📱 Navigating to OrderDetailsScreen with orderId:', orderId);
+            console.log('📱 Scanning complete for order:', orderId);
+
+            // 👉 Decide action based on flow type passed from previous screen
+            const type = route.params?.type;
+
+            let res;
+
+            if (type === 'pickupOrder') {
+                res = await orderService.pickupOrder(orderId);
+            } 
+            else if (type === 'deliverOrder') {
+                res = await orderService.deliverOrder(orderId);
+            }
+            else {
+                throw new Error('Unknown scan type');
+            }
+
+            console.log('📱 API response:', res);
+
+            // 🔥 Always fetch latest order (single source of truth)
+            const updated = await orderService.getOrderDetails(orderId);
+
             navigation.replace('OrderDetailsScreen', {
-                status: nextStatus,
-                orderId: orderId
+                orderId,
+                status: updated.orderStatus, // backend status only
             });
+
         } catch (error) {
-            console.error("❌ QRScannerScreen scan failed:", error);
+            console.error("❌ QR scan failed:", error);
         }
     };
 
@@ -41,12 +58,14 @@ const QRScannerScreen = ({ navigation, route }) => {
             <View style={styles.cameraPreview}>
                 <Text style={styles.scanText}>Scanning QR Code...</Text>
                 <View style={styles.scannerFrame} />
-                <Text style={styles.hintText}>Align the QR code within the frame to verify delivery location</Text>
+                <Text style={styles.hintText}>
+                    Align QR code inside frame
+                </Text>
             </View>
 
             <TouchableOpacity
                 style={styles.manualBtn}
-                onPress={() => handleScanSuccess(route.params?.nextStatus || ORDER_STATUS.AT_DROP)}
+                onPress={handleScanSuccess}
             >
                 <Text style={styles.btnText}>Simulate Success</Text>
             </TouchableOpacity>

@@ -14,7 +14,7 @@ import {
 } from "react-native-responsive-screen";
 
 /* --- 7-DAY WEEKLY CHECKPOINT BAR COMPONENT --- */
-const WeeklyCheckpointBar = ({ eligibleDays = 0, totalDaysRequired = 7, totalOrders = 0 }) => {
+const WeeklyCheckpointBar = ({ eligibleDays , totalDaysRequired, totalOrders }) => {
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const progressPercent = Math.min((eligibleDays / totalDaysRequired) * 100, 100);
 
@@ -104,20 +104,20 @@ const WeekEarnings = ({ route, navigation }) => {
   console.log("data from week Earnings",data);
 
   /* ---------------- EXTRACT DATA ---------------- */
-  const title =  "Weekly Target";
-  const description = data.description || "Complete daily targets to earn weekly bonus";
-  const weeklyRules = data.weeklyRules || {};
-  const progress = data.progress || {};
-  const maxRewardPerWeek = data.maxRewardPerWeek || 500;
+  const title =  data.title;
+  const description = data.subtitle;
+  const progress = data.weekly_data.data[0].progress;
+  const slabsLength = data.weekly_data.data[0].slabs.length;
+  const maxRewardPerWeek = data.weekly_data.data[0].slabs[slabsLength-1].rewardAmount;
 
-  const totalDaysInWeek = weeklyRules.totalDaysInWeek || 7;
-  const minOrdersPerDay = weeklyRules.minOrdersPerDay || 10;
-  const allowPartialDays = weeklyRules.allowPartialDays || false;
+  const totalDaysInWeek = data.weekly_data.data[0].totalDaysInWeek;
+  const minOrdersPerDay = data.weekly_data.data[0].minOrdersPerDay;
+  const allowPartialDays = data.weekly_data.data[0].allowPartialDays;
 
   const eligibleDays = progress.eligibleDays || 0;
-  const totalDaysRequired = progress.totalDaysRequired || 7;
-  const totalOrders = progress.totalOrders || 0;
-  const isEligible = progress.isEligible || false;
+  const totalDaysRequired = data.weekly_data.data[0].totalDaysInWeek;
+  const totalOrders = progress.totalOrders;
+  const isEligible = progress.eligible;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

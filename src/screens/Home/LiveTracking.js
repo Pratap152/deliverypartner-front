@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import LiveMap from '../../components/map/LiveMap';
 import OrderStatusCard from '../../components/map/OrderStatusCard';
-import { getMockRiderLocation } from '../../services/mockLocation';
+// import { getMockRiderLocation } from '../../services/mockLocation';
 
 export default function LiveTracking() {
   const riderPosition = useRef(null);
