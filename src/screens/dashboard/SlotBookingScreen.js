@@ -81,7 +81,7 @@ loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
     
     if (tab === TABS.CURRENT) {
       // Load current week
-      loadWeeks({city, zone});
+      loadWeeks({cityId, pincodeId});
     } else if (tab === TABS.NEXT) {
       // Load next week (current + 1)
       const currentWeekNum = getWeekNumber();
