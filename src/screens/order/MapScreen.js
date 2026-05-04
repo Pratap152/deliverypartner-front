@@ -1,40 +1,26 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, Platform, Linking, ActivityIndicator, Alert, Text, TouchableOpacity } from 'react-native';
-import { AnimatedRegion } from 'react-native-maps';
+import { View, StyleSheet, ActivityIndicator, Alert, Text, TouchableOpacity } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
- 
-// import LiveMap from '../../components/map/LiveMap';
-import EtaBanner from '../../components/map/EtaBanner';
-// SwipeButton removed - using normal button now
- 
-// import { useRiderSocket } from '../../hooks/useRiderSocket';
-// import { useLocation } from '../../hooks/useLocation';
-// Replaced custom hooks with direct implementation for stability in this task
-import { orderUIConfig } from '../../config/orderUIConfig';
- 
-import { ORDER_STATUS } from '../../config/orderStates';
+import LiveMap from '../../components/map/LiveMap';
 import { orderService } from '../../services/order/OrderService';
-// import { getDistance } from '../../utils/mapUtils';
-import { GOOGLE_MAPS_API_KEY } from '../../config/env';
- 
+import { getDistance } from 'geolib';
+
 const MapScreen = ({ route, navigation }) => {
-  const { orderId, nextStatus, orderDetails: passedOrderDetails } = route.params;
- 
-  /* ---------------- STATE ---------------- */
+
+  const { orderId, type, orderDetails: passedOrderDetails } = route.params;
+
   const [orderDetails, setOrderDetails] = useState(passedOrderDetails || null);
   const [loading, setLoading] = useState(!passedOrderDetails);
   const [riderLocation, setRiderLocation] = useState(null);
   const [distanceToTarget, setDistanceToTarget] = useState(null);
   const [buttonLoading, setButtonLoading] = useState(false);
- 
+
   const mapRef = useRef(null);
- 
-  // Fetch Order Details only if not provided
+
+  /* ---------------- FETCH ORDER ---------------- */
   useEffect(() => {
-    if (passedOrderDetails) {
-      return; // Already have order details
-    }
- 
+    if (passedOrderDetails) return;
+
     const fetchOrder = async () => {
       try {
         const data = await orderService.getOrderDetails(orderId);
@@ -46,27 +32,36 @@ const MapScreen = ({ route, navigation }) => {
         setLoading(false);
       }
     };
+
     fetchOrder();
-  }, [orderId, passedOrderDetails]);
- 
-  /* ---------------- TARGET LOGIC ---------------- */
-  const isPickup = nextStatus === ORDER_STATUS.AT_RESTAURANT;
-  const isDrop = nextStatus === ORDER_STATUS.QR_SCAN_REQUIRED || nextStatus === ORDER_STATUS.AT_DROP;
- 
+  }, [orderId]);
+
+  /* ---------------- TARGET ---------------- */
+const isPickup =
+  type === 'pickupOrder' ||
+  type === 'navigateToPickup';
+  
   const targetLocation = useMemo(() => {
     if (!orderDetails) return null;
+
     return isPickup
-      ? { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng }
-      : { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
+      ? {
+          latitude: orderDetails.pickupAddress.lat,
+          longitude: orderDetails.pickupAddress.lng,
+        }
+      : {
+          latitude: orderDetails.deliveryAddress.lat,
+          longitude: orderDetails.deliveryAddress.lng,
+        };
   }, [orderDetails, isPickup]);
- 
+
   /* ---------------- LOCATION TRACKING ---------------- */
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setRiderLocation({ latitude, longitude });
- 
+
         if (targetLocation) {
           const dist = getDistance({ latitude, longitude }, targetLocation);
           setDistanceToTarget(dist);
@@ -75,101 +70,117 @@ const MapScreen = ({ route, navigation }) => {
       (error) => console.log(error),
       { enableHighAccuracy: true, distanceFilter: 10 }
     );
+
     return () => Geolocation.clearWatch(watchId);
   }, [targetLocation]);
- 
+
+  /* ---------------- ACTION ---------------- */
   const handleArrival = async () => {
-    // Distance Check: 10m (using 150km for testing as established)
-    const MAX_DISTANCE = 150000;
-    if (distanceToTarget && distanceToTarget > MAX_DISTANCE) {
-      Alert.alert("Too Far", `You are ${(distanceToTarget).toFixed(0)}m away. Reach within 10m.`);
-      return;
-    }
- 
     try {
       setButtonLoading(true);
-      // Update order status
-      await orderService.updateOrderStatus(orderId, nextStatus);
- 
-      // Navigate back to OrderDetailsScreen with updated status
-      navigation.navigate('OrderDetailsScreen', {
-        orderId,
-        status: nextStatus
-      });
+
+      const MAX_DISTANCE = 150000; // testing
+      if (distanceToTarget && distanceToTarget > MAX_DISTANCE) {
+        Alert.alert("Too Far", `You are ${(distanceToTarget).toFixed(0)}m away`);
+        return;
+      }
+
+      if (type === 'pickupOrder' || type === 'navigateToPickup') {
+        const res = await orderService.pickupOrder(orderId);
+        console.log("Map API response (pickup):", res);
+        navigation.replace('OrderDetailsScreen', { orderId });
+      } 
+      else if (type === 'deliverOrder' || type === 'navigateToDrop') {
+        console.log("Arrived at drop location. Navigating back with UI state.");
+        navigation.replace('OrderDetailsScreen', {
+          orderId,
+          status: 'EN_ROUTE_TO_DROP',   // ✅ FORCE correct UI state
+        });
+      } 
+      else {
+        console.log("Invalid type received:", type);
+        Alert.alert("Error", "Invalid action type");
+        return;
+      }
+
     } catch (err) {
-      console.error('Arrival error:', err);
+      console.error(err);
       Alert.alert("Error", "Failed to update status");
     } finally {
       setButtonLoading(false);
     }
   };
- 
+
   /* ---------------- UI ---------------- */
   if (loading || !orderDetails) {
-    return <View style={styles.center}><ActivityIndicator size="large" color="#00C4B4" /></View>;
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#00C4B4" />
+      </View>
+    );
   }
- 
-  const targetName = isPickup ? orderDetails.vendorShopName : orderDetails.deliveryAddress.name;
-  const targetAddress = isPickup ? orderDetails.pickupAddress.addressLine : orderDetails.deliveryAddress.addressLine;
- 
+
+  const targetName = isPickup
+    ? orderDetails.vendorShopName
+    : orderDetails.deliveryAddress.name;
+
+  const targetAddress = isPickup
+    ? orderDetails.pickupAddress.addressLine
+    : orderDetails.deliveryAddress.addressLine;
+
   return (
     <View style={styles.container}>
+
       <View style={styles.mapContainer}>
         <LiveMap
           ref={mapRef}
           riderPosition={riderLocation}
           pickup={isPickup ? targetLocation : null}
           drop={!isPickup ? targetLocation : null}
-        // Route handled by LiveMap via MapViewDirections
         />
- 
-        {/* Helper Button to Open Google Maps */}
+
         <View style={styles.topOverlay}>
           <Text style={styles.distanceBadge}>
             {distanceToTarget ? `${(distanceToTarget / 1000).toFixed(2)} km` : "..."}
           </Text>
         </View>
       </View>
- 
+
       {/* BOTTOM CARD */}
       <View style={styles.bottomCard}>
-        {/* Drag Handle */}
         <View style={styles.dragHandle} />
- 
+
         <View style={styles.locationRow}>
-          <View style={styles.iconCircle}>
-            <Text style={{ fontSize: 20 }}>{isPickup ? '🏪' : '🏠'}</Text>
-          </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ fontSize: 20 }}>{isPickup ? '🏪' : '🏠'}</Text>
+
+          <View style={{ marginLeft: 12, flex: 1 }}>
             <Text style={styles.locationTitle}>{targetName}</Text>
-            <Text style={styles.locationAddress} numberOfLines={2}>{targetAddress}</Text>
+            <Text style={styles.locationAddress}>{targetAddress}</Text>
           </View>
         </View>
- 
-        <View style={{ marginTop: 20 }}>
-          <TouchableOpacity
-            style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
-            onPress={handleArrival}
-            disabled={buttonLoading}
-            activeOpacity={0.8}
-          >
-            {buttonLoading ? (
-              <>
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 10 }} />
-                <Text style={styles.actionButtonText}>Loading...</Text>
-              </>
-            ) : (
-              <Text style={styles.actionButtonText}>
-                {isPickup ? 'Arrived at Restaurant' : 'Arrived at Drop Location'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+
+        <TouchableOpacity
+          style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
+          onPress={handleArrival}
+          disabled={buttonLoading}
+        >
+          {buttonLoading ? (
+            <>
+              <ActivityIndicator color="#fff" />
+              <Text style={styles.actionButtonText}>Loading...</Text>
+            </>
+          ) : (
+            <Text style={styles.actionButtonText}>
+              {isPickup ? 'Arrived at Restaurant' : 'Arrived at Drop Location'}
+            </Text>
+          )}
+        </TouchableOpacity>
+
       </View>
     </View>
   );
 };
- 
+
 export default MapScreen;
  
 const styles = StyleSheet.create({

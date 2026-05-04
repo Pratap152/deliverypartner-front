@@ -1,227 +1,196 @@
 import apiClient from '../ApiClient';
-import { ORDER_STATUS } from '../../config/orderStates';
 
 class OrderService {
 
-    /**
-     * Reject order
-     */
-    async rejectOrder(orderId) {
-        try {
-            console.log(`[OrderService] Rejecting order ${orderId}`);
-            const response = await apiClient.patch(`/api/orders/${orderId}/reject`);
-            return response.data;
-        } catch (error) {
-            console.error(
-                '[OrderService] rejectOrder error:',
-                error?.response?.data || error.message
-            );
-            throw error;
-        }
-    }
-
-    /**
-     * Accept order
-     */
+    // ---------------------------
+    // ACCEPT ORDER
+    // ---------------------------
     async acceptOrder(orderId) {
         try {
             console.log(`[OrderService] Accepting order ${orderId}`);
-            // No riderId needed in body anymore
-            const response = await apiClient.patch(`/api/orders/${orderId}/accept`);
-            console.log("accept order from order service ", response);
 
-            return {
-                success: true,
-                status: ORDER_STATUS.PICKUP_ASSIGNED,
-                data: response.data
-            };
-        } catch (error) {
-            console.error(
-                '[OrderService] acceptOrder error:',
-                error?.response?.data || error.message
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/accept`
             );
+
+            console.log("[OrderService] accept response:", response.data);
+
+            return response.data; // { success, message }
+        } catch (error) {
+            console.error('[acceptOrder error]', error?.response?.data || error.message);
             throw error;
         }
     }
 
-    /**
-     * Update order status
-     */
-    async updateOrderStatus(orderId, newStatus) {
-        console.log(`[OrderService] Updating order ${orderId} to ${newStatus}`);
-
+    // ---------------------------
+    // REJECT ORDER
+    // ---------------------------
+    async rejectOrder(orderId) {
         try {
-            if (newStatus === ORDER_STATUS.ORDER_PICKED_UP) {
-                return await this.pickupOrder(orderId);
-            } else if (newStatus === ORDER_STATUS.ORDER_DELIVERED) {
-                return await this.deliverOrder(orderId);
-            }
+            console.log(`[OrderService] Rejecting order ${orderId}`);
 
-            // For static states (AT_RESTAURANT, AT_DROP), just return success
-            return {
-                success: true,
-                status: newStatus,
-            };
-        } catch (error) {
-            console.error(
-                '[OrderService] updateOrderStatus error:',
-                error?.response?.data || error.message
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/reject`
             );
+
+            console.log("[OrderService] reject response:", response.data);
+
+            return response.data; // { success, message, pendingRiders }
+        } catch (error) {
+            console.error('[rejectOrder error]', error?.response?.data || error.message);
             throw error;
         }
     }
 
-    /**j
-     * GET ORDER DETAILS (REAL API)
-     */
+    // ---------------------------
+    // GET ORDER DETAILS (SOURCE OF TRUTH)
+    // ---------------------------
     async getOrderDetails(orderId) {
         try {
             const url = `/api/orders/${orderId}/details`;
-            console.log(`[OrderService] Fetching details from: ${url}`);
+            console.log(`[OrderService] Fetching: ${url}`);
 
             const response = await apiClient.get(url);
-            console.log(`[OrderService] Received response: `, JSON.stringify(response.data));
+
+            console.log("[OrderService] details response:", response.data);
 
             if (!response.data?.success) {
-                throw new Error(response.data?.message || 'Order fetch failed');
+                throw new Error(response.data?.message || "Failed to fetch order");
             }
 
-            const order = response.data.order;
-            if (!order) {
-                console.log("[OrderService] 'order' field missing in response");
-                return null;
-            }
+            const order = response.data.order || response.data.filteredOrder;
 
-            // Map backend response to frontend expected structure
-            const mappedOrder = {
+            if (!order) return null;
+
+            // ❗ IMPORTANT: NO STATUS MAPPING — USE API DIRECTLY
+            return {
                 orderId: order.orderId,
                 vendorShopName: order.vendorShopName,
                 items: order.items || [],
+
                 pickupAddress: {
                     name: order.pickupAddress?.name,
                     addressLine: order.pickupAddress?.addressLine,
                     contactNumber: order.pickupAddress?.contactNumber,
-                    lat: order.pickupAddress?.location?.coordinates?.[1] || 0,
-                    lng: order.pickupAddress?.location?.coordinates?.[0] || 0,
+                    lat: order.pickupAddress?.lat,
+                    lng: order.pickupAddress?.lng,
                 },
+
                 deliveryAddress: {
                     name: order.deliveryAddress?.name,
                     addressLine: order.deliveryAddress?.addressLine,
                     contactNumber: order.deliveryAddress?.contactNumber,
-                    lat: order.deliveryAddress?.location?.coordinates?.[1] || 0,
-                    lng: order.deliveryAddress?.location?.coordinates?.[0] || 0,
+                    lat: order.deliveryAddress?.lat,
+                    lng: order.deliveryAddress?.lng,
                 },
+
                 pricing: order.pricing || {},
                 riderEarning: order.riderEarning || {},
-                orderStatus: order.orderStatus === 'PICKED_UP' ? ORDER_STATUS.ORDER_PICKED_UP : order.orderStatus,
-                tracking: order.tracking || {}, // distanceInKm, durationInMin
-                createdAt: order.createdAt
+                payment: order.payment || {},
+                allocation: order.allocation || {},
+                tracking: order.tracking || {},
+
+                // ✅ REAL STATUS FROM BACKEND ONLY
+                orderStatus: order.orderStatus || response.data.orderStatus,
+
+                createdAt: order.createdAt,
+                updatedAt: order.updatedAt,
             };
 
-            console.log(`[OrderService] Mapped order: `, JSON.stringify(mappedOrder));
-            return mappedOrder;
         } catch (error) {
-            console.error(
-                '[OrderService] getOrderDetails error:',
-                error?.response?.data || error.message
-            );
-            // If it's a 404 or similar, rethrow
-            throw error;
-        }
-    }
-    /**
-     * Mark order as picked up
-     */
-    async pickupOrder(orderId) {
-        console.log("from pickup order", orderId);
-        try {
-            const response = await apiClient.patch(
-                `/api/orders/${orderId}/pickup`,
-            );
-            console.log("pickupOder from order service", response)
-            return response.data;
-        } catch (error) {
-            console.error(
-                '[OrderService] pickupOrder error:',
-                error?.response?.data || error.message
-            );
+            console.error('[getOrderDetails error]', error?.response?.data || error.message);
             throw error;
         }
     }
 
-    /**
-     * Mark order as delivered
-     */
+    // ---------------------------
+    // PICKUP ORDER
+    // ---------------------------
+    async pickupOrder(orderId) {
+        try {
+            console.log(`[OrderService] Picking up ${orderId}`);
+
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/pickup`
+            );
+
+            console.log("[pickup response]", response.data);
+
+            return response.data; // { success, message, orderStatus }
+        } catch (error) {
+            console.error('[pickupOrder error]', error?.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    // ---------------------------
+    // DELIVER ORDER
+    // ---------------------------
     async deliverOrder(orderId) {
         try {
+            console.log(`[OrderService] Delivering ${orderId}`);
+
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/deliver`,
+                `/api/orders/${orderId}/deliver`
             );
-            console.log("delivered order from order service", response);
-            return response.data;
+
+            console.log("[deliver response]", response.data);
+
+            return response.data; 
+            // { success, message, orderId, earningCredited, codCollected }
         } catch (error) {
-            console.error(
-                '[OrderService] deliverOrder error:',
-                error?.response?.data || error.message
-            );
+            console.error('[deliverOrder error]', error?.response?.data || error.message);
             throw error;
         }
     }
 
-    /**
-     * Cancel order
-     */
+    // ---------------------------
+    // CANCEL ORDER
+    // ---------------------------
     async cancelOrder(orderId, reasonCode, reasonText) {
         try {
+            console.log(`[OrderService] Cancelling ${orderId}`);
+
             const response = await apiClient.patch(
                 `/api/orders/${orderId}/cancel`,
-                { reasonCode, reasonText }
+                {
+                    reasonCode,
+                    reasonText
+                }
             );
-            console.log("cancel order from order service", response);
+
+            console.log("[cancel response]", response.data);
+
             return response.data;
+            // { success, message, cancelIssue }
         } catch (error) {
-            console.error(
-                '[OrderService] cancelOrder error:',
-                error?.response?.data || error.message
-            );
+            console.error('[cancelOrder error]', error?.response?.data || error.message);
             throw error;
         }
     }
 
-    /**
-     * Set rider status to ONLINE
-     * @returns {Promise<{success: boolean, message: string, riderStatus: object}>}
-     */
+    // ---------------------------
+    // ONLINE
+    // ---------------------------
     async setRiderOnline() {
         try {
-            console.log('[OrderService] Setting rider status to ONLINE');
             const response = await apiClient.patch('/api/rider/status/online');
-            console.log('[OrderService] Rider ONLINE response:', response.data);
             return response.data;
         } catch (error) {
-            console.error(
-                '[OrderService] setRiderOnline error:',
-                error?.response?.data || error.message
-            );
+            console.error('[setRiderOnline error]', error?.response?.data || error.message);
             throw error;
         }
     }
 
-    /**
-     * Set rider status to OFFLINE
-     * @returns {Promise<{success: boolean, message: string, riderStatus: object}>}
-     */
+    // ---------------------------
+    // OFFLINE
+    // ---------------------------
     async setRiderOffline() {
         try {
-            console.log('[OrderService] Setting rider status to OFFLINE');
             const response = await apiClient.patch('/api/rider/status/offline');
-            console.log('[OrderService] Rider OFFLINE response:', response.data);
             return response.data;
         } catch (error) {
-            console.error(
-                '[OrderService] setRiderOffline error:',
-                error?.response?.data || error.message
-            );
+            console.error('[setRiderOffline error]', error?.response?.data || error.message);
             throw error;
         }
     }

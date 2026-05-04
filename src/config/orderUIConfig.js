@@ -1,86 +1,102 @@
-
 export const orderUIConfig = {
-  PICKUP_ASSIGNED: {
-    showMap: true, // Map Visible
+
+  // =========================
+  // 1️⃣ ASSIGNED (FROM API)
+  // =========================
+  ASSIGNED: {
+    showMap: true,
     headerIcon: 'help',
+label: "New order assigned",
     bottomButtons: [
       {
         label: 'Navigate to Pickup',
         type: 'primary',
-        nextStatus: 'AT_RESTAURANT', // Map should direct here
-        navigateTo: 'Map',
+        action: 'navigateToPickup', // only navigation
+        navigateTo: 'MapScreen',
+      },
+    ],
+
+    secondaryButtons: [
+      {
+        label: 'Reject Order',
+        action: 'rejectOrder',
       },
     ],
   },
 
+  // =========================
+  // 2️⃣ EN ROUTE TO PICKUP (UI STATE ONLY)
+  // =========================
+  EN_ROUTE_TO_PICKUP: {
+    showMap: true,
+    headerIcon: 'location',
 
-
-
-  AT_RESTAURANT: {
-    showMap: false, // Map Hidden
-    headerIcon: 'call',
     bottomButtons: [
       {
-        label: 'Order Picked Up',
+        label: 'Reached Restaurant',
         type: 'primary',
-        // navigateTo: 'MapScreen', // Removing navigation to trigger direct status update
-        nextStatus: 'ORDER_PICKED_UP', // Will call pickupOrder API
+        action: 'pickupOrder', // 🔥 calls /pickup API
       },
     ],
   },
 
-  ORDER_PICKED_UP: {
-    showMap: true, // Map Visible
+  // =========================
+  // 3️⃣ PICKED_UP (FROM API)
+  // =========================
+  PICKED_UP: {
+    showMap: true,
     headerIcon: 'call',
+
     bottomButtons: [
       {
         label: 'Navigate to Drop',
         type: 'primary',
-        nextStatus: 'AT_DROP', // Bypass QR Scanner, go directly to AT_DROP
-        navigateTo: 'Map',
+        action: 'navigateToDrop',
+        navigateTo: 'MapScreen',
       },
     ],
   },
 
-  // Intermediate state if needed, or MapScreen handles the transition to QR
-  QR_SCAN_REQUIRED: {
+  // =========================
+  // 4️⃣ EN ROUTE TO DROP (UI STATE ONLY)
+  // =========================
+  EN_ROUTE_TO_DROP: {
     showMap: false,
-    navigateTo: 'QRScannerScreen',
+    headerIcon: 'call',
+
+    secondaryButtons: [
+      {
+        label: 'Customer not responding',
+        action: 'openCancelModal',
+      },
+    ],
+
+    bottomButtons: [
+      {
+        label: 'Order Delivered',
+        type: 'primary',
+        action: 'deliverOrder', // 🔥 calls /deliver API
+      },
+    ],
   },
 
-  // AT_DROP: {
-  //   showMap: false, // Map Hidden
-  //   headerIcon: 'call',
-  //   bottomButtons: [
-  //     {
-  //       label: 'Order Delivered',
-  //       type: 'primary',
-  //       nextStatus: 'ORDER_DELIVERED',
-  //     },
-  //   ],
-  // },
+  // =========================
+  // 5️⃣ DELIVERED (FINAL STATE)
+  // =========================
+  DELIVERED: {
+    showMap: false,
+    headerIcon: 'check',
 
-  // ORDER_DELIVERED: {
-  //   bottomButtons: [],
-  //   // triggering navigation to Success screen handled in component
-  // },
-  AT_DROP: {
-  showMap: false,
-  headerIcon: 'call',
+    bottomButtons: [],
+  },
 
-  secondaryButtons: [
-    {
-      label: 'Customer not responding',
-      action: 'openModal',
-    },
-  ],
+  // =========================
+  // 6️⃣ CANCELLED
+  // =========================
+  CANCELLED: {
+    showMap: false,
+    headerIcon: 'close',
 
-  bottomButtons: [
-    {
-      label: 'Order Delivered',
-      type: 'primary',
-      nextStatus: 'ORDER_DELIVERED',
-    },
-  ],
-},
+    bottomButtons: [],
+  },
 };
