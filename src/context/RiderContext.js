@@ -491,31 +491,30 @@ export const RiderProvider = ({ children }) => {
 
       setLoading(true);
  
-      await orderService.acceptOrder(orderId);
- 
+const res = await orderService.acceptOrder(orderId);
+
+if (!res?.success) {
+  throw new Error(res?.message || "Accept failed");
+} 
       removeOrderFromQueue(orderId);
  
       navigate("OrderDetailsScreen", {
 
         orderId,
 
-        status: ORDER_STATUS.PICKUP_ASSIGNED,
-
+status: "ASSIGNED",
       });
 
     } catch (err) {
+  console.log("ACCEPT ERROR:", err?.response?.data || err.message);
 
-      removeOrderFromQueue(orderId);
- 
-      Alert.alert(
+  removeOrderFromQueue(orderId);
 
-        "Error",
-
-        "Failed to accept order. It may have been assigned to another rider."
-
-      );
-
-    } finally {
+  Alert.alert(
+    "Error",
+    err?.response?.data?.message || "Failed to accept order"
+  );
+} finally {
 
       setLoading(false);
 

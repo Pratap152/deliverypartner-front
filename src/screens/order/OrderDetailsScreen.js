@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Geolocation from "@react-native-community/geolocation";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { ORDER_STATUS } from '../../config/orderStates';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
   widthPercentageToDP as wp,
@@ -34,7 +33,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
   console.log("Order Id from OderDetailScreen", orderId);
 
-  const [status, setStatus] = useState(route?.params?.status || ORDER_STATUS.PICKUP_ASSIGNED);
+  const [status, setStatus] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,6 +63,12 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         const data = await orderService.getOrderDetails(orderId);
         console.log(`[OrderDetailsScreen] Fetched data:`, JSON.stringify(data));
         setOrderDetails(data);
+        
+        if (route.params?.status === 'EN_ROUTE_TO_DROP' && data.orderStatus === 'PICKED_UP') {
+          setStatus('EN_ROUTE_TO_DROP');
+        } else {
+          setStatus(data.orderStatus); 
+        }
       } catch (err) {
         console.error(`[OrderDetailsScreen] Error fetching details:`, err);
         setError('Failed to load order details');
@@ -87,8 +92,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         // Calculate Distance logic
         if (orderDetails) {
           let target = null;
-          if (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT) {
-            target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
+if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
+              target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
           } else { // All other statuses (ORDER_PICKED_UP, ON_WAY_TO_DROP, AT_DROP, etc.) target delivery
             target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
           }
@@ -115,10 +120,17 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     if (!riderLocation || !orderDetails) return;
 
     let target = null;
-    if (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT) {
-      target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
+
+    if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
+      target = {
+        latitude: orderDetails.pickupAddress.lat,
+        longitude: orderDetails.pickupAddress.lng,
+      };
     } else {
-      target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
+      target = {
+        latitude: orderDetails.deliveryAddress.lat,
+        longitude: orderDetails.deliveryAddress.lng,
+      };
     }
 
     if (mapRef.current && target) {
@@ -129,60 +141,67 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   /**
    * Button action (previously swipe action)
    */
-  const handleSwipeSuccess = async () => {
-    const action = ui.bottomButtons && ui.bottomButtons[0];
+  const handleAction = async () => {
+    const action = ui.bottomButtons?.[0];
     if (!action) return;
 
-    // SCENARIO 1: Navigate to Map (for navigation flow)
-    if (action.navigateTo === 'Map') {
-      console.log("from order details screen to map screen", orderId);
-      navigation.navigate('Map', {
-        orderId: orderId,
-        nextStatus: action.nextStatus,
-        orderDetails: orderDetails, // Pass full order details
-      });
-      return;
-    }
+    try {
+      setButtonLoading(true);
 
-    // SCENARIO 2: Navigate to other screens (e.g., QR Scanner)
-    if (action.navigateTo) {
-      navigation.navigate(action.navigateTo, {
-        orderId: orderId,
-        nextStatus: action.nextStatus
-      });
-      return;
-    }
+      // 🔥 NAVIGATION
+      if (action.navigateTo) {
+        navigation.navigate(action.navigateTo, {
+          orderId,
+          status,
+          orderDetails,
+            type: action.action, // useful for Map screen
 
-    // Distance check for "Reached" buttons (only if not navigating to MapScreen)
-    const MAX_DISTANCE = 150000; // TODO: Change to 10/20 for prod
-    if (distanceToTarget !== null && distanceToTarget > MAX_DISTANCE) {
-      Alert.alert("Too Far", `You are ${(distanceToTarget).toFixed(0)}m away. Reach within 10m.`);
-      return;
-    }
-
-    // SCENARIO 3: Direct Status Update (for buttons like "Order Picked up", "Arrived at Drop Location")
-    if (action.nextStatus) {
-      try {
-        setButtonLoading(true);
-        console.log(`[OrderDetailsScreen] Update status to ${action.nextStatus}`);
-        const res = await orderService.updateOrderStatus(orderId, action.nextStatus);
-
-        console.log(`[OrderDetailsScreen] API Success. Setting local status to ${action.nextStatus}`);
-
-        // Capture delivery result for success screen
-        if (action.nextStatus === ORDER_STATUS.ORDER_DELIVERED) {
-          setDeliveryResult(res);
-        }
-
-        setStatus(action.nextStatus);
-        navigation.setParams({ status: action.nextStatus });
-      } catch (err) {
-        console.error("Status update error:", err);
-        const errorMessage = err.response?.data?.message || err.message || "Failed to update status";
-        Alert.alert("Update Failed", errorMessage);
-      } finally {
-        setButtonLoading(false);
+        });
+        return;
       }
+
+      let res = null;
+
+      // 🔥 API CALL BASED ON ACTION
+      if (action.action === 'pickupOrder') {
+        res = await orderService.pickupOrder(orderId);
+      }
+
+      if (action.action === 'deliverOrder') {
+  res = await orderService.deliverOrder(orderId);
+
+  const earning =
+    res?.earningCredited ||
+    orderDetails?.riderEarning?.totalEarning ||
+    0;
+
+  const cod = res?.codCollected || 0;
+
+  navigation.replace('SuccessfullDelivered', {
+    amount: earning,
+    codCollected: cod,
+    orderId,
+  });
+
+  return;
+}
+
+      // 🔥 REFETCH ORDER (BEST PRACTICE)
+      const updated = await orderService.getOrderDetails(orderId);
+
+      setOrderDetails(updated);
+      setStatus(updated.orderStatus);
+
+      // 🔥 DELIVERY SUCCESS FLOW
+      if (updated.orderStatus === 'DELIVERED') {
+        setDeliveryResult(res);
+      }
+
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Something went wrong');
+    } finally {
+      setButtonLoading(false);
     }
   };
 
@@ -194,27 +213,6 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     // Also open external maps if needed, but for now zooming internal map
   };
 
-  /**
-   * Delivery completed
-   */
-  useEffect(() => {
-    if (status === ORDER_STATUS.ORDER_DELIVERED) {
-      // Wait a bit or check if we have result data if needed
-      // If we came from Swipe, deliveryResult should be set.
-      // If we loaded screen already in DELIVERED status (unlikely flow but possible), we might not have result.
-      // But usually user swipes to finish.
-
-      const earning = deliveryResult?.earningCredited || orderDetails?.riderEarning?.totalEarning || 0;
-      const cod = deliveryResult?.codCollected || 0;
-
-      setTimeout(() => {
-        navigation.replace('SuccessfullDelivered', {
-          amount: earning,
-          codCollected: cod
-        });
-      }, 500);
-    }
-  }, [status, deliveryResult]);
 
   /* ------------------ UI STATES ------------------ */
 
@@ -244,8 +242,9 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   let pickupTarget = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
   let dropTarget = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
 
-  const isPickupPhase = (status === ORDER_STATUS.PICKUP_ASSIGNED || status === ORDER_STATUS.AT_RESTAURANT);
-
+  const isPickupPhase =
+    status === 'ASSIGNED' ||
+    status === 'EN_ROUTE_TO_PICKUP';
   /* ------------------ MAIN UI ------------------ */
 
   return (
@@ -259,71 +258,71 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             icon={ui.headerIcon || "bike"}
           />
 
-          {(status === ORDER_STATUS.PICKUP_ASSIGNED) ? (
+          {isPickupPhase ? (
             <>
-                <View style={styles.pickupCard}>
-                  <View style={styles.pickupCardHeader}>
-                    
-                    <View style={styles.pickupTitleContainer}>
-                      <Text style={styles.pickupTitle}> 🏪 PICKUP LOCATION</Text>
-                    </View>
+              <View style={styles.pickupCard}>
+                <View style={styles.pickupCardHeader}>
 
+                  <View style={styles.pickupTitleContainer}>
+                    <Text style={styles.pickupTitle}> 🏪 PICKUP LOCATION</Text>
                   </View>
-                  
-                  <View style={styles.pickupAddressContainer}>
-                    <Text style={styles.pickupStoreName}>{orderDetails.pickupAddress.name}</Text>
-                    <Text style={styles.pickupAddress}>{orderDetails.pickupAddress.addressLine}</Text>
-                  </View>
-                
+
                 </View>
-             
+
+                <View style={styles.pickupAddressContainer}>
+                  <Text style={styles.pickupStoreName}>{orderDetails.pickupAddress.name}</Text>
+                  <Text style={styles.pickupAddress}>{orderDetails.pickupAddress.addressLine}</Text>
+                </View>
+
+              </View>
+
               {/* Custom Drop Location Card */}
               <View style={styles.dropCard}>
                 <View style={styles.dropCardHeader}>
-                  
+
                   <View style={styles.dropTitleContainer}>
                     <Text style={styles.dropTitle}> 🏪 DROP LOCATION</Text>
                   </View>
 
                 </View>
-                
+
                 <View style={styles.dropAddressContainer}>
                   <Text style={styles.dropStoreName}>{orderDetails.deliveryAddress.name}</Text>
                   <Text style={styles.dropAddress}>{orderDetails.deliveryAddress.addressLine}</Text>
                 </View>
-              
+
               </View>
             </>
           ) : (
             <>
-            
-            {/* Custom Deliver To Card */}
-            <View style={styles.deliverToCard}>
-              
 
-              <View style={styles.deliverHeader}>
-                <View style={styles.deliverIconContainer}>
-                  <Text>👤</Text>
-                </View>
-                <View style={styles.deliverTitleContainer}>
-                  <Text style={styles.deliverTitle}>DELIVER TO</Text>
-                  <Text style={styles.deliverSubtitle}>Final Destination</Text>
-                </View>
-              </View>
-              
-            
-              {/* Address Card */}
-              <View style={styles.addressCard}>
-                <Text style={styles.customerName}>{orderDetails.deliveryAddress.name}</Text>
-                <Text style={styles.addressText}>{orderDetails.deliveryAddress.addressLine}</Text>
-              </View>
-              
+              {/* Custom Deliver To Card */}
+              <View style={styles.deliverToCard}>
 
-              
-              
-            </View>
+
+                <View style={styles.deliverHeader}>
+                  <View style={styles.deliverIconContainer}>
+                    <Text>👤</Text>
+                  </View>
+                  <View style={styles.deliverTitleContainer}>
+                    <Text style={styles.deliverTitle}>DELIVER TO</Text>
+                    <Text style={styles.deliverSubtitle}>Final Destination</Text>
+                  </View>
+                </View>
+
+
+                {/* Address Card */}
+                <View style={styles.addressCard}>
+                  <Text style={styles.customerName}>{orderDetails.deliveryAddress.name}</Text>
+                  <Text style={styles.addressText}>{orderDetails.deliveryAddress.addressLine}</Text>
+                </View>
+
+
+
+
+              </View>
             </>
-            
+
           )}
 
           <OrderItemsCard
@@ -338,7 +337,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             items={orderDetails.items}
           />
           {/* Secondary Buttons (e.g., Customer Not Responding) */}
-          {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
+          {/* {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
             <View style={{ marginTop: 10, marginBottom: 30 }}>
               {ui.secondaryButtons.map((button, index) => (
                 // <TouchableOpacity
@@ -354,42 +353,54 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                 //   <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
                 // </TouchableOpacity>
                 <TouchableOpacity
-  key={index}
-  style={styles.customerIssueButton}
-  activeOpacity={0.85}
-  onPress={() => {
-    if (button.action === 'openModal') {
-      setShowCustomerModal(true);
-    }
-  }}
->
-  <View style={styles.issueLeft}>
-    <View style={styles.issueIconCircle}>
-      <MaterialCommunityIcons
-        name="alert-circle-outline"
-        size={22}
-        color="#F7931E"
-      />
-    </View>
+                  key={index}
+                  style={styles.customerIssueButton}
+                  activeOpacity={0.85}
+                  onPress={async () => {
+                    if (button.action === 'rejectOrder') {
+  try {
+    setButtonLoading(true);
+    await orderService.rejectOrder(orderId);
+    navigation.goBack();
+  } catch (err) {
+    Alert.alert("Error", "Failed to reject order");
+  } finally {
+    setButtonLoading(false);
+  }
+}
 
-    <View>
-      <Text style={styles.issueTitle}>Customer Not Responding</Text>
-      <Text style={styles.issueSubtitle}>
-        Try calling or report issue
-      </Text>
-    </View>
-  </View>
+                    if (button.action === 'openCancelModal') {
+                      setShowCustomerModal(true);
+                    }
+                  }}
+                >
+                  <View style={styles.issueLeft}>
+                    <View style={styles.issueIconCircle}>
+                      <MaterialCommunityIcons
+                        name="alert-circle-outline"
+                        size={22}
+                        color="#F7931E"
+                      />
+                    </View>
 
-  <MaterialCommunityIcons
-    name="chevron-right"
-    size={22}
-    color="#999"
-  />
-</TouchableOpacity>
+                    <View>
+<Text style={styles.issueTitle}>{button.label}</Text>
+                      <Text style={styles.issueSubtitle}>
+                        Try calling or report issue
+                      </Text>
+                    </View>
+                  </View>
+
+                  <MaterialCommunityIcons
+                    name="chevron-right"
+                    size={22}
+                    color="#999"
+                  />
+                </TouchableOpacity>
 
               ))}
             </View>
-          )}
+          )} */}
 
         </View>
       </ScrollView>
@@ -399,7 +410,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         <View style={styles.stickyButtonContainer}>
           <TouchableOpacity
             style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
-            onPress={handleSwipeSuccess}
+            onPress={handleAction}
             disabled={buttonLoading}
             activeOpacity={0.8}
           >
@@ -450,8 +461,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFF', // Softer blue tint background
   },
-  centerText: { 
-    textAlign: 'center', 
+  centerText: {
+    textAlign: 'center',
     marginTop: 20,
     fontSize: wp('3.8%'),
     color: '#5D6B98',
@@ -726,13 +737,13 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     letterSpacing: 0.2,
   },
-  
+
   // New Animation Styles
   fadeInUp: {
     opacity: 0,
     transform: [{ translateY: 20 }],
   },
-  
+
   cardShadow: {
     shadowColor: '#4A5568',
     shadowOffset: { width: 0, height: 4 },
@@ -740,19 +751,19 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  
+
   gradientBackground: {
     borderRadius: wp('6%'),
     overflow: 'hidden',
   },
-  
+
   pulseAnimation: {
     shadowColor: '#00C4B4',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
   },
-  
+
   // Loading Animation
   loadingContainer: {
     flex: 1,
@@ -760,7 +771,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F9FAFF',
   },
-  
+
   loadingText: {
     marginTop: 20,
     fontSize: wp('4%'),
@@ -768,7 +779,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'System',
   },
-  
+
   // Status Indicator
   statusIndicator: {
     height: 4,
@@ -793,18 +804,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#D1FAE5',
   },
-  
+
   pickupCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: hp('0%'),
   },
-  
- 
+
+
   pickupTitleContainer: {
     flex: 1,
   },
-  
+
   pickupTitle: {
     fontSize: wp('4.2%'),
     fontWeight: '700',
@@ -812,7 +823,7 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     letterSpacing: 0.3,
   },
-  
+
   pickupSubtitle: {
     fontSize: wp('3.2%'),
     color: '#10B981',
@@ -820,7 +831,7 @@ const styles = StyleSheet.create({
     marginTop: hp('0.3%'),
     fontFamily: 'System',
   },
-  
+
   pickupAddressContainer: {
     backgroundColor: '#F0FDF4',
     borderRadius: wp('4%'),
@@ -830,7 +841,7 @@ const styles = StyleSheet.create({
     borderColor: '#A7F3D0',
     marginTop: hp('1%'),
   },
-  
+
   pickupStoreName: {
     fontSize: wp('4%'),
     fontWeight: '700',
@@ -839,7 +850,7 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     letterSpacing: 0.2,
   },
-  
+
   pickupAddress: {
     fontSize: wp('3.5%'),
     color: '#059669',
@@ -864,7 +875,7 @@ const styles = StyleSheet.create({
   },
 
   dropCardHeader: {
-     flexDirection: 'row',
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: hp('1.5%'),
   },
@@ -919,14 +930,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 
-dropStoreName:{
-  fontSize: wp('4%'),
+  dropStoreName: {
+    fontSize: wp('4%'),
     fontWeight: '700',
     color: '#f85e5e',
     marginBottom: hp('0.8%'),
     fontFamily: 'System',
     letterSpacing: 0.2,
-},
+  },
   dropAddress: {
     fontSize: wp('4%'),
     fontWeight: '800',
