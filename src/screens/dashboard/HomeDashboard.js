@@ -15,11 +15,13 @@ import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
 const HomeDashboard = () => {
   const navigation = useNavigation();
-  const { isOnline, goOnline, goOffline, isLoading, isActive, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
+  const { isOnline, goOnline, goOffline, isLoading, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
 
   useEffect(() => {
-    fetchRiderStatus();
-  }, [isOnline]);
+  fetchRiderStatus();
+}, []);
+
+if (refreshing) return null;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -28,7 +30,7 @@ const HomeDashboard = () => {
 
         {/* ONLINE / OFFLINE TOGGLE */}
         <SwipeOnlineToggle
-          isOnline={isActive}
+          isOnline={isOnline}
           isLoading={refreshing}
           onSwipeOnline={goOnline}
           onSwipeOffline={goOffline}
@@ -39,13 +41,13 @@ const HomeDashboard = () => {
           <View style={styles.carouselWrapper}>
             <BannerCarousel data={banners} />
           </View>
-        )}
+        )}  
 
         <Text style={styles.sectionTitle}>Today's Progress</Text>
 
         <View style={styles.statsRow}>
           {todayStats.map(item => (
-            <StatsCard key={item.id} {...item} isActive={isActive} totalOnlineMinutes={totalOnlineMinutes} />
+            <StatsCard key={item.id} {...item} isOnline={isOnline} totalOnlineMinutes={totalOnlineMinutes} />
           ))}
         </View>
         <ActiveShiftBanner />
@@ -100,4 +102,5 @@ const styles = StyleSheet.create({
 });
 
 export default HomeDashboard;
+  
 
