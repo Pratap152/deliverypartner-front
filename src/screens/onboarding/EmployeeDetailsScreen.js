@@ -86,14 +86,21 @@ export default function EmployeeDetailsScreen({navigation}) {
                     placeholderTextColor='darkgrey'/>
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
+          <Text style={styles.field_name}>Referral Code (Optional)</Text>
+          <TextInput value={formData.referralCode} 
+                    onChangeText={t => handleChange('referralCode',t)} 
+                    style={styles.input} 
+                    placeholder='Enter Referral Code'
+                    placeholderTextColor='darkgrey'/>
+
            <Text style={styles.field_name}>Gender</Text>
-            <View style={{ flexDirection: 'row', gap: wp('12%'), marginBottom: hp('12') }}>
+            <View style={{ flexDirection: 'row', gap: wp('12%'), marginBottom: hp('5') }}>
               <RadioButton value="male"   label="Male"   selectedValue={formData.gender} onSelect={v => handleChange('gender', v)} />
               <RadioButton value="female" label="Female" selectedValue={formData.gender} onSelect={v => handleChange('gender', v)} />
             </View>
             {errors.gender && <Text style={styles.err}>{errors.gender}</Text>}
 
-          
+      
         </View>
         <PrimaryButton title="Next" 
                         onPress={handleSubmit} 
