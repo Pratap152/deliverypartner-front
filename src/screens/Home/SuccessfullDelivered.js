@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image
+  Image,
+  BackHandler
 } from "react-native";
 import {
   widthPercentageToDP as wp,
@@ -13,13 +14,37 @@ import {
 
 
 export default function SuccessfullDelivered({ route, navigation }) {
-  const { amount, codCollected, orderId } = route.params || {};
+  const { amount, codCollected, orderId, paymentMethod } = route.params || {};
   const roundedAmount = Math.round(amount || 0);
+
+  useEffect(() => {
+    // Disable Android hardware back button
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => true // Returning true means we handled the event and prevent default behavior
+    );
+
+    // Disable iOS swipe gesture (if using stack navigator)
+    navigation.setOptions({
+      gestureEnabled: false,
+    });
+
+    return () => backHandler.remove();
+  }, [navigation]);
+
   console.log('🎉 [SuccessfulDelivered] Received params:', {
     amount,
     codCollected,
-    orderId
+    orderId,
+    paymentMethod
   });
+
+  const getSuccessMessage = () => {
+    if (paymentMethod === 'ONLINE') {
+      return "money is collected using online payment";
+    }
+    return "money is collected using cash";
+  };
 
   return (
     <View style={styles.container}>
@@ -31,16 +56,19 @@ export default function SuccessfullDelivered({ route, navigation }) {
 
       <Text style={styles.successTitle}>Delivery Completed</Text>
       <Text style={styles.successSubtitle}>Successfully</Text>
+      <Text style={styles.paymentMethodText}>{getSuccessMessage()}</Text>
 
       <View style={styles.earningsCard}>
         <Text style={styles.earningsTitle}>Earnings Added</Text>
         <Text style={styles.amount}>₹{roundedAmount}</Text>
 
-        {codCollected > 0 && (
+        {(codCollected > 0 || paymentMethod === 'CASH' || paymentMethod === 'ONLINE') && (
           <>
             <View style={styles.divider} />
-            <Text style={[styles.earningsTitle, { marginTop: 10 }]}>Cash Collected</Text>
-            <Text style={styles.codAmount}>₹{codCollected}</Text>
+            <Text style={[styles.earningsTitle, { marginTop: 10 }]}>
+              {paymentMethod === 'ONLINE' ? 'Online Payment Received' : 'Cash Collected'}
+            </Text>
+            <Text style={styles.codAmount}>₹{codCollected || 0}</Text>
           </>
         )}
       </View>
@@ -83,6 +111,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#15A721",
   },
+  paymentMethodText: {
+    fontSize: wp("4%"),
+    color: "#4B5563",
+    marginTop: hp("1%"),
+    fontWeight: "500",
+    textAlign: 'center',
+  },
 
   earningsCard: {
     marginTop: hp("4%"),
@@ -101,7 +136,7 @@ const styles = StyleSheet.create({
   },
 
   amount: {
-    fontSize: wp("12%"),
+    fontSize: wp("10%"),
     fontWeight: "700",
     color: "#1E8E3E",
     marginBottom: hp("1%"),
@@ -124,7 +159,7 @@ const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
     bottom: hp("4%"),
-    width: wp("90%"),
+    width: wp("80%"),
     backgroundColor: "#10B7C4",
     paddingVertical: hp("2%"),
     borderRadius: wp("8%"),
