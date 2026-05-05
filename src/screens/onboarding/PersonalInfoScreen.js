@@ -20,6 +20,7 @@ import PrimaryButton from '../../components/common/PrimaryButton';
 
 
 
+
 export default function PersonalInfoScreen({ navigation }) {
   // FORM DATA
   const [formData, setFormData] = useState({
@@ -29,6 +30,7 @@ export default function PersonalInfoScreen({ navigation }) {
     secondaryPhone: '',
     email: '',
     gender: '',
+    referralCode:''
   });
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -115,6 +117,7 @@ export default function PersonalInfoScreen({ navigation }) {
       primaryPhone: formData.primaryPhone,
       secondaryPhone: formData.secondaryPhone,
       email: formData.email,
+      referralCode:formData.referralCode
     };
 
     console.log('submit', payload);
@@ -204,6 +207,7 @@ export default function PersonalInfoScreen({ navigation }) {
             style={styles.input}
             placeholder='Enter Your Mobile No.'
             placeholderTextColor='darkgrey'
+            maxLength={10}
           />
           {errors.primaryPhone && (
             <Text style={styles.err}>{errors.primaryPhone}</Text>
@@ -218,6 +222,7 @@ export default function PersonalInfoScreen({ navigation }) {
             style={styles.input}
             placeholder='Enter Your Alernative Mobile No.'
             placeholderTextColor='darkgrey'
+            maxLength={10}
           />
           {errors.secondaryPhone && (
             <Text style={styles.err}>{errors.secondaryPhone}</Text>
@@ -234,9 +239,16 @@ export default function PersonalInfoScreen({ navigation }) {
           />
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
+          <Text style={styles.field_name}>Referral Code (Optional)</Text>
+          <TextInput value={formData.referralCode} 
+                    onChangeText={t => handleChange('referralCode',t)} 
+                    style={styles.input} 
+                    placeholder='Enter Referral Code'
+                    placeholderTextColor='darkgrey'/>
+
           {/* GENDER */}
           <Text style={styles.field_name}>Gender</Text>
-          <View style={{ flexDirection: 'row', gap: wp('12%'),marginBottom:hp(18) }}>
+          <View style={{ flexDirection: 'row', gap: wp('12%'),marginBottom:hp(10) }}>
             <GenderRadio value="male" label="Male" />
             <GenderRadio value="female" label="Female" />
           </View>

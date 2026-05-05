@@ -54,6 +54,7 @@ export default function useEmployeeDetails(navigation) {
     gender: '',
     secondaryPhone: '',
     email: '',
+    referralCode:''
   });
 
   const [errors, setErrors]         = useState({});
@@ -107,6 +108,7 @@ export default function useEmployeeDetails(navigation) {
       gender:         formData.gender,
       secondaryPhone: formData.secondaryPhone,
       email:          formData.email,
+      referralCode:   formData.referralCode
     };
 
     setSubmitting(true);
