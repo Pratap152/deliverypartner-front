@@ -61,7 +61,7 @@ export const useOrderHistory = (filter) => {
           setOrders(parsed.orders || []);
           setSummary(parsed.summary);
         }
-      } catch {}
+      } catch { }
     };
 
     loadCache();
@@ -108,7 +108,10 @@ export const useOrderHistory = (filter) => {
         id: `${item.orderId}-${pageNo}-${i}`,
         orderId: item.orderId,
         restaurantName: item.items?.[0]?.itemName ?? 'Order',
-        earning: item.pricing?.totalAmount ?? 0,
+
+        // ✅ FIXED: use riderEarning
+        earning: item.pricing?.riderEarning ?? 0,
+
         distance: item.distanceTravelled ?? 0,
         rating: item.rating ?? 0,
         time: new Date(item.deliveredAt).toLocaleTimeString([], {
@@ -132,8 +135,8 @@ export const useOrderHistory = (filter) => {
           orders: unique,
           summary: {
             totalOrders: res.data.totalOrders,
-            totalEarnings: res.data.totalEarnings,
-            rating: res.data.avgRating,
+            totalEarnings: res.data.totalRiderEarnings,
+            rating: res.data.avgRating ?? 0,
             km: Math.round(res.data.totalDistance),
           },
         };
@@ -149,11 +152,10 @@ export const useOrderHistory = (filter) => {
 
       setSummary({
         totalOrders: res.data.totalOrders,
-        totalEarnings: res.data.totalEarnings,
-        rating: res.data.avgRating,
+        totalEarnings: res.data.totalRiderEarnings,
+        rating: res.data.avgRating ?? 0,
         km: Math.round(res.data.totalDistance),
       });
-
       setHasMore(mapped.length === PAGE_SIZE);
       setPage(pageNo);
 

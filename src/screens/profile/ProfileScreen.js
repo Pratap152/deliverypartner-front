@@ -29,6 +29,12 @@ export default function ProfileScreen({ navigation }) {
   const partnerId = profile?.partnerId;
   const isPartnerActive = profile?.isPartnerActive;
 
+  const [stats, setStats] = useState({
+    rating: 0,
+    deliveries: 0,
+    onTime: 0,
+  });
+
   const onLogoutPress = () => {
     authService.logout();
   };
@@ -59,9 +65,28 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const res = await apiClient.get('/api/rider/rating/weekly');
+
+      if (res?.data?.success) {
+        const data = res.data.data;
+
+        setStats({
+          rating: data.averageRating ?? 0,
+          deliveries: data.deliveredOrders ?? 0,
+          onTime: data.acceptanceRate ?? 0,
+        });
+      }
+    } catch (err) {
+      console.log('Stats API error:', err.message);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchProfile());
+      fetchStats();
     }, [dispatch]),
   );
 
@@ -75,6 +100,8 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const selfieUri = getSelfieUri(profile?.selfie);
+
+
 
   return (
     <View style={styles.root}>
@@ -136,21 +163,21 @@ export default function ProfileScreen({ navigation }) {
 
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>4.8</Text>
+                <Text style={styles.statValue}>{stats.rating}</Text>
                 <Text style={styles.statLabel}>Rating</Text>
               </View>
 
               <View style={styles.verticalDivider} />
 
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>847</Text>
+                <Text style={styles.statValue}>{stats.deliveries}</Text>
                 <Text style={styles.statLabel}>Deliveries</Text>
               </View>
 
               <View style={styles.verticalDivider} />
 
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>98%</Text>
+                <Text style={styles.statValue}>{stats.onTime}%</Text>
                 <Text style={styles.statLabel}>On-time</Text>
               </View>
             </View>
