@@ -12,7 +12,8 @@ import ProgressBar from './ProgressBar';
 import MultiLevelProgressBar from './MultiLevelProgressBar'; 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function IncentiveCard({ item }) {
+export default function IncentiveCard({ item, weeklyCompletedOrders, dailyCompletedOrders, peakCompletedOrders }) {
+  // console.log("ITEMMMM: ", item);
   const isPeak = item.type === 'peak';
   const isWeekly = item.type === 'weekly';
   const isDaily = item.type === 'daily';
@@ -116,7 +117,7 @@ const progressColor = GREEN_THEME.primary;
           <View style={{ marginTop: hp(1) }}>
             <MultiLevelProgressBar
               slabs={item.slabs}
-              completedOrders={completed}
+              completedOrders={peakCompletedOrders}
               height={hp(0.8)}
               fillColor={GREEN_THEME.primary}
             />
@@ -127,38 +128,19 @@ const progressColor = GREEN_THEME.primary;
         <>
           {item.type === 'daily' && (
             <View style={{ marginTop: hp(1) }}>
-
-              {/* Peak Slot Progress */}
-              <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
-                <Text style={styles.progressText}>
-                  Peak Slots
-                </Text>
-                <Text style={styles.progressText}>
-                  {item.peakCompleted}/{item.peakRequired}
-                </Text>
-            </View>
-
-              <ProgressBar
-                progress={
-                  (item.peakCompleted / item.peakRequired) * 100
-                }
-                progressColor={GREEN_THEME.primary}
-
-              />
-
               {/* Normal Slot Progress */}
               <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
                 <Text style={styles.progressText}>
-                  Normal Slots 
+                  Orders
                 </Text>
                 <Text style={styles.progressText}>
-                  {item.normalCompleted}/{item.normalRequired}
+                  {dailyCompletedOrders}/{item.minOrders}
                 </Text>
              </View>
 
               <ProgressBar
                 progress={
-                  (item.normalCompleted / item.normalRequired) * 100
+                  (dailyCompletedOrders / item.minOrders) * 100
                 }
                 progressColor="#34D399"
 
@@ -171,16 +153,16 @@ const progressColor = GREEN_THEME.primary;
           {/* Weekly or fallback single progress bar */}
           {!isDaily && (
             <>
-              { (item.requiredOrders > 0 || item.requiredDays > 0) && (
+              { (item.minOrders > 0) && (
                 <>
                   <View style={styles.progressRow}>
                     <Text style={styles.progressText}>
-                      {item.completedOrders ?? completed}/{item.requiredOrders ?? item.requiredDays ?? required} {isWeekly ? 'days' : 'orders'}
+                      {weeklyCompletedOrders}/{item.minOrders}
                     </Text>
                   </View>
 
                   <ProgressBar
-                    progress={Math.round(((Number(item.completedOrders ?? completed) || 0) / (Number(item.requiredOrders ?? required) || 1)) * 100)}
+                    progress={Math.round((weeklyCompletedOrders / item.minOrders) * 100)}
                     progressColor={progressColor}
                   />
                 </>
