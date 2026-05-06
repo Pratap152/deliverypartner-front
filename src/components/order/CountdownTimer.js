@@ -40,9 +40,9 @@ const CountdownTimer = ({ seconds, totalSeconds = 60 }) => {
     }, [seconds]);
 
     const getColor = () => {
-        if (seconds > 10) return '#00B26F'; // Green
-        if (seconds > 5) return '#FFA500'; // Orange
-        return '#FF4B4B'; // Red
+        if (seconds > 10) return '#00B26F';
+        if (seconds > 5) return '#FFA500';
+        return '#FF4B4B';
     };
 
     const progressWidth = progressAnim.interpolate({
@@ -53,7 +53,7 @@ const CountdownTimer = ({ seconds, totalSeconds = 60 }) => {
     return (
         <View style={styles.container}>
             <View style={styles.timerRow}>
-                <Text style={styles.label}>⏱️ Time Left</Text>
+                <Text style={styles.label}> Time Left</Text>
                 <Animated.Text
                     style={[
                         styles.timeText,

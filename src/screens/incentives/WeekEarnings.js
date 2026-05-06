@@ -13,10 +13,9 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-/* --- 7-DAY WEEKLY CHECKPOINT BAR COMPONENT --- */
-const WeeklyCheckpointBar = ({ eligibleDays , totalDaysRequired, totalOrders }) => {
-  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const progressPercent = Math.min((eligibleDays / totalDaysRequired) * 100, 100);
+const WeeklyCheckpointBar = ({ slabs, ordersCompleted }) => {
+  const minOrders = slabs[slabs.length - 1]?.minOrders;
+  const progressPercent = Math.min((ordersCompleted / minOrders) * 100, 100);
 
   return (
     <View style={styles.checkpointContainer}>
@@ -24,7 +23,7 @@ const WeeklyCheckpointBar = ({ eligibleDays , totalDaysRequired, totalOrders }) 
         <Text style={styles.checkpointTitle}>Weekly Progress</Text>
         <View style={styles.ordersBadge}>
           <Ionicons name="cube" size={14} color="#4F39F6" />
-          <Text style={styles.ordersText}>{totalOrders} orders</Text>
+          <Text style={styles.ordersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
 
@@ -42,10 +41,9 @@ const WeeklyCheckpointBar = ({ eligibleDays , totalDaysRequired, totalOrders }) 
         />
 
         {/* Day Checkpoint Markers */}
-        {daysOfWeek.map((day, index) => {
-          const position = ((index + 1) / totalDaysRequired) * 100;
-          const isCompleted = index < eligibleDays;
-          const dayNumber = index + 1;
+        {slabs.map((slab, index) => {
+          const position = (slab.minOrders / minOrders) * 100;
+          const isCompleted = ordersCompleted >= slab.minOrders;
 
           return (
             <View
@@ -73,27 +71,49 @@ const WeeklyCheckpointBar = ({ eligibleDays , totalDaysRequired, totalOrders }) 
                   isCompleted && styles.checkpointDayLabelActive,
                 ]}
               >
-                {day}
+                {slab.minOrders}
               </Text>
 
-              {/* Day Number Below */}
+              {/* Reward Label Below */}
               <Text
                 style={[
-                  styles.checkpointNumberLabel,
-                  isCompleted && styles.checkpointNumberLabelActive,
+                  styles.checkpointRewardLabel,
+                  isCompleted && styles.checkpointRewardLabelActive,
                 ]}
               >
-                D{dayNumber}
+                ₹{slab.rewardAmount}
               </Text>
             </View>
           );
         })}
       </View>
+    </View>
+  );
+};
 
-      {/* Current Progress Text */}
-      <Text style={styles.currentProgressText}>
-        {eligibleDays} of {totalDaysRequired} days completed
-      </Text>
+const FixedTargetType = ({ target, ordersCompleted }) => {
+  const progress = Math.min((ordersCompleted / target) * 100, 100);
+
+  return (
+    <View style={styles.checkpointContainer}>
+      <View style={styles.checkpointHeaderRow}>
+        <Text style={styles.checkpointTitle}>Weekly Progress</Text>
+        <View style={styles.ordersBadge}>
+          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Text style={styles.ordersText}>{ordersCompleted} orders</Text>
+        </View>
+      </View>
+      <View>
+        <Text style={styles.fixedTargetLabel}>
+          Minimum orders in a week - {target}
+        </Text>
+        <View style={styles.fixedTargetContainer}>
+          <View style={[styles.fixedTargetProgress, { width: `${progress}%` }]} />
+        </View>
+        <Text style={styles.fixedTargetPercent}>
+          {progress.toFixed(0)}%
+        </Text>
+      </View>
     </View>
   );
 };
@@ -101,23 +121,23 @@ const WeeklyCheckpointBar = ({ eligibleDays , totalDaysRequired, totalOrders }) 
 const WeekEarnings = ({ route, navigation }) => {
   const params = route.params || {};
   const data = params.data || params;
-  console.log("data from week Earnings",data);
+  console.log("data from week Earnings", data);
 
   /* ---------------- EXTRACT DATA ---------------- */
-  const title =  data.title;
-  const description = data.subtitle;
-  const progress = data.weekly_data.data[0].progress;
-  const slabsLength = data.weekly_data.data[0].slabs.length;
-  const maxRewardPerWeek = data.weekly_data.data[0].slabs[slabsLength-1].rewardAmount;
+  const title = data.title;
+  const maxRewardPerWeek = data.weekly_data.data[0].maxReward;
+  const ruleType = data.weekly_data.data[0].ruleType;
 
-  const totalDaysInWeek = data.weekly_data.data[0].totalDaysInWeek;
-  const minOrdersPerDay = data.weekly_data.data[0].minOrdersPerDay;
-  const allowPartialDays = data.weekly_data.data[0].allowPartialDays;
+  //Data for ruleType = "SLAB"
+  const slabs = data.weekly_data.data[0].slabs;
+  const ordersCompleted = data.weeklyIncentivesProgress.ordersCompleted;
 
-  const eligibleDays = progress.eligibleDays || 0;
-  const totalDaysRequired = data.weekly_data.data[0].totalDaysInWeek;
-  const totalOrders = progress.totalOrders;
-  const isEligible = progress.eligible;
+  //Data for ruleType = "FIXED_TARGET"
+  const target = data.weekly_data.data[0].target?.orders;
+
+  const totalDaysInWeek = 7;
+  const minOrdersPerDay = 4;
+  const allowPartialDays = true;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -132,27 +152,9 @@ const WeekEarnings = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
-          <View
-            style={[
-              styles.statusBadge,
-              !isEligible && styles.inactiveBadge,
-            ]}
-          >
-            <Text
-              style={[
-                styles.statusText,
-                !isEligible && styles.inactiveText,
-              ]}
-            >
-              {isEligible ? "ELIGIBLE" : "NOT ELIGIBLE"}
-            </Text>
-          </View>
         </View>
 
         <Text style={styles.heroTitle}>{title}</Text>
-        <Text style={styles.heroSubtitle}>
-          {description}
-        </Text>
 
         <View style={styles.rewardPill}>
           <Ionicons name="trophy" size={16} color="#FFD700" />
@@ -200,13 +202,23 @@ const WeekEarnings = ({ route, navigation }) => {
         </View>
 
         {/* 7-DAY WEEKLY CHECKPOINT PROGRESS BAR */}
-        <View style={styles.progressWrapper}>
-          <WeeklyCheckpointBar
-            eligibleDays={eligibleDays}
-            totalDaysRequired={totalDaysRequired}
-            totalOrders={totalOrders}
-          />
-        </View>
+        {ruleType === "SLAB" &&
+          <View style={styles.progressWrapper}>
+            <WeeklyCheckpointBar
+              slabs={slabs}
+              ordersCompleted={ordersCompleted}
+            />
+          </View>
+        }
+
+        {ruleType === "FIXED_TARGET" &&
+          <View style={styles.progressWrapper}>
+            <FixedTargetType
+              target={target}
+              ordersCompleted={ordersCompleted}
+            />
+          </View>
+        }
 
         {/* TOTAL ORDERS CARD */}
         <View style={styles.statsCard}>
@@ -219,10 +231,7 @@ const WeekEarnings = ({ route, navigation }) => {
             </LinearGradient>
             <View style={{ flex: 1, marginLeft: 16 }}>
               <Text style={styles.statLabel}>Total Orders This Week</Text>
-              <Text style={styles.statValue}>{totalOrders} orders</Text>
-              <Text style={styles.statHint}>
-                Average: {totalOrders > 0 && eligibleDays > 0 ? Math.round(totalOrders / eligibleDays) : 0} orders/day
-              </Text>
+              <Text style={styles.statValue}>{ordersCompleted} orders</Text>
             </View>
           </View>
         </View>
@@ -511,23 +520,38 @@ const styles = StyleSheet.create({
     color: "#4F39F6",
     fontSize: 11,
   },
-  checkpointNumberLabel: {
+  checkpointRewardLabel: {
     position: "absolute",
     top: 36,
     fontSize: 10,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#999",
   },
-  checkpointNumberLabelActive: {
+  checkpointRewardLabelActive: {
     color: "#00A63E",
-    fontSize: 11,
+    fontSize: 10,
   },
-  currentProgressText: {
+
+  //Styles for FIXED_TARGET
+  fixedTargetLabel: {
+    marginBottom: 5,
     fontSize: 14,
-    fontWeight: "600",
-    color: "#4F39F6",
-    textAlign: "center",
-    marginTop: 10,
+    fontWeight: '500'
+  },
+  fixedTargetContainer: {
+    height: 12,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+    overflow: 'hidden'
+  },
+  fixedTargetProgress: {
+    height: '100%',
+    backgroundColor: '#4CAF50'
+  },
+  fixedTargetPercent: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#555'
   },
 
   /* --- STATS CARD --- */

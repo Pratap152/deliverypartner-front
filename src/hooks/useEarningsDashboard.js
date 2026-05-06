@@ -191,9 +191,9 @@ export default function useEarningsDashboard() {
         incentives.push({
           id: 'peak-slot',
           type: 'peak',
-          title: peakRes.data[0].title,
-          subtitle: peakRes.data[0].description,
-          slabs: peakRes.data[0].slabs ?? [],
+          title: peakRes.data[0]?.name || "FRED",
+          // subtitle: peakRes.data[0].description,
+          // slabs: peakRes.data[0].slabs ?? [],
           accentColor: '#FFF7ED',
           peak_data: peakRes
         });
@@ -204,28 +204,20 @@ export default function useEarningsDashboard() {
         incentives.push({
           id: 'weekly-incentive',
           type: 'weekly',
-          title: weeklyRes.data[0].title,
-          subtitle: weeklyRes.data[0].description,
-          value: weeklyRes.data[0].progress.achievedReward,
-          completedOrders: weeklyRes.data[0].progress.totalOrders,
-          requiredOrders: weeklyRes.data[0].minCompletedOrders,
+          title: weeklyRes.data[0]?.name,
+          minOrders: weeklyRes.data[0]?.target?.orders || weeklyRes.data[0]?.slabs[0]?.minOrders,
           accentColor: '#EFF6FF',
           weekly_data: weeklyRes
         });
       }
 
     // DAILY INCENTIVE
-    if (dailyRes?.success) {
+    if (dailyRes?.data) {
       incentives.push({
         id: 'daily-incentive',
         type: 'daily',
-        title: dailyRes.data[0]?.title,
-        subtitle: dailyRes.data[0]?.description,
-        value: dailyRes.data[0]?.progress.achievedReward ?? 0,
-        peakCompleted: dailyRes.data[0]?.progress.completedPeakSlots ?? 0,
-        peakRequired: dailyRes.data[0]?.minPeakSlots ?? 0,
-        normalCompleted: dailyRes.data[0]?.progress.completedNormalSlots ?? 0,
-        normalRequired: dailyRes.data[0]?.minNormalSlots ?? 0,
+        title: dailyRes.data[0]?.name,
+        minOrders: dailyRes.data[0]?.target?.orders || dailyRes.data[0]?.slabs[0]?.minOrders,
         accentColor: '#F5F3FF',
         daily_data: dailyRes
       });

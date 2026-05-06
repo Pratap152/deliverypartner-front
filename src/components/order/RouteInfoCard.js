@@ -36,14 +36,12 @@ const RouteInfoCard = ({ vendorName, customerName, distanceKm, etaMinutes }) => 
             {/* Distance & Time */}
             <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                    <Text style={styles.statIcon}>📏</Text>
                     <Text style={styles.statText}>{distanceKm?.toFixed(1) || '0'} km</Text>
                 </View>
 
                 <View style={styles.divider} />
 
                 <View style={styles.statItem}>
-                    <Text style={styles.statIcon}>⏱️</Text>
                     <Text style={styles.statText}>{etaMinutes || '0'} min</Text>
                 </View>
             </View>

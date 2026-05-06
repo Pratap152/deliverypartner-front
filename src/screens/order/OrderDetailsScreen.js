@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackHandler } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
   widthPercentageToDP as wp,
@@ -330,7 +330,6 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               {/* Custom Deliver To Card */}
               <View style={styles.deliverToCard}>
 
-
                 <View style={styles.deliverHeader}>
                   <View style={styles.deliverIconContainer}>
                     <Text>👤</Text>
@@ -434,7 +433,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               </View>
             )}
           {/* Secondary Buttons (e.g., Customer Not Responding) */}
-          {/* {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
+          {!isPickupPhase && ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
             <View style={{ marginTop: 10, marginBottom: 30 }}>
               {ui.secondaryButtons.map((button, index) => (
                 // <TouchableOpacity
@@ -455,16 +454,16 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                   activeOpacity={0.85}
                   onPress={async () => {
                     if (button.action === 'rejectOrder') {
-  try {
-    setButtonLoading(true);
-    await orderService.rejectOrder(orderId);
-    navigation.goBack();
-  } catch (err) {
-    Alert.alert("Error", "Failed to reject order");
-  } finally {
-    setButtonLoading(false);
-  }
-}
+                          try {
+                            setButtonLoading(true);
+                            await orderService.rejectOrder(orderId);
+                            navigation.goBack();
+                          } catch (err) {
+                            Alert.alert("Error", "Failed to reject order");
+                          } finally {
+                            setButtonLoading(false);
+                          }
+                        }
 
                     if (button.action === 'openCancelModal') {
                       setShowCustomerModal(true);
@@ -473,7 +472,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                 >
                   <View style={styles.issueLeft}>
                     <View style={styles.issueIconCircle}>
-                      <MaterialCommunityIcons
+                      <Ionicons
                         name="alert-circle-outline"
                         size={22}
                         color="#F7931E"
@@ -481,23 +480,23 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                     </View>
 
                     <View>
-<Text style={styles.issueTitle}>{button.label}</Text>
+                      <Text style={styles.issueTitle}>{button.label}</Text>
                       <Text style={styles.issueSubtitle}>
                         Try calling or report issue
                       </Text>
                     </View>
                   </View>
 
-                  <MaterialCommunityIcons
-                    name="chevron-right"
+                  <Ionicons
+                    name="chevron-forward"
                     size={22}
-                    color="#999"
+                    color="#F7931E"
                   />
                 </TouchableOpacity>
 
               ))}
             </View>
-          )} */}
+          )}
 
         </View>
       </ScrollView>
@@ -590,7 +589,6 @@ const styles = StyleSheet.create({
   headerTextContainer: {
     flex: 1,
   },
-
   helpIconWrapper: {
     width: wp('13%'),
     height: wp('13%'),
@@ -1224,8 +1222,7 @@ const styles = StyleSheet.create({
 
   // Payment Section Styles
   paymentSection: {
-    marginTop: hp('3%'),
-    marginBottom: hp('5%'),
+    marginBottom: hp('2%'),
   },
   paymentSummaryCard: {
     backgroundColor: '#34A853', // Premium green as requested
@@ -1281,7 +1278,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   methodSection: {
-    marginTop: hp('3%'),
+    marginTop: hp('1%'),
   },
   methodTitle: {
     fontSize: wp('5%'),

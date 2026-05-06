@@ -1,194 +1,511 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
-  Image,
-  ScrollView
+  ScrollView,
+  FlatList,
+  Alert,
+  Share,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import ReferralBanner from '../Home/ReferralBanner';
 import Clipboard from "@react-native-clipboard/clipboard";
-import { Alert } from "react-native";
-import { Share } from "react-native";
 
+import ReferralBanner from "../Home/ReferralBanner";
+import apiClient from "../../services/ApiClient";
 
-import {
+export default function ReferEarn({ navigation }) {
+  const [data, setData] = useState(null);
+  const [tab, setTab] = useState("ALL");
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  widthPercentageToDP as wp,
+  useEffect(() => {
+    fetchReferrals();
+  }, []);
 
-  heightPercentageToDP as hp,
+  const fetchReferrals = async () => {
+    try {
+      setLoading(true);
 
-} from "react-native-responsive-screen";
-const { width } = Dimensions.get("window");
+      const res = await apiClient.get("/api/refer/rider/all/referrals");
 
-export default function ReferEarn({navigation}) {
-  const referralCode = "ABDIJIEOPJI1234";
+      if (res?.data?.success) {
+       const apiData = res.data?.data || res.data;
+  setData(apiData);
+      }
+    } catch (error) {
+      console.log(
+        "Referral API error:",
+        error?.response?.data || error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const copyToClipboard = () => {
-  Clipboard.setString(referralCode);
-  Alert.alert("Copied!", "Referral code copied to clipboard");
-};
-const shareReferralCode = async () => {
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchReferrals();
+    setRefreshing(false);
+  }, []);
+
+  // 🔹 Loader
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+      </View>
+    );
+  }
+
+  if (!data) return null;
+
+  const referralCode = data?.referrer?.partnerId || "";
+
+  const copyToClipboard = () => {
+    Clipboard.setString(referralCode);
+    Alert.alert("Copied!", "Referral code copied");
+  };
+
+  const shareReferralCode = async () => {
   try {
-    await Share.share({
-      message: `Join using my referral code: ${referralCode} and start earning! 🚀`,
+    const res = await apiClient.post("/api/refer/share", {
+      partnerId: referralCode,
     });
-  } catch (error) {
-    console.log("Share error:", error);
+
+    if (res?.data?.success) {
+      const shareData = res.data.data;
+
+      // use backend message
+      await Share.share({
+        message: shareData.shareMessage,
+        url: shareData.shareLink, // iOS uses this
+      });
+    } else {
+      throw new Error("Invalid response");
+    }
+
+  } catch (err) {
+    console.log("Share error:", err?.response?.data || err.message);
+
+    // fallback
+    await Share.share({
+      message: `Join using my referral code: ${referralCode}`,
+    });
   }
 };
-  return (
-      
-      <ScrollView contentContainerStyle={styles.container}>
+  // 🔹 Filter logic
+  const riders = data?.referredRiders || [];
+
+const filteredData = riders.filter((item) => {
+  if (tab === "PENDING") return item.targetStatus !== "TARGET_REACHED";
+  if (tab === "COMPLETED") return item.targetStatus === "TARGET_REACHED";
+  return true;
+});
+
+  // 🔹 Empty UI
+  const renderEmpty = () => (
+    <Text style={styles.emptyText}>
+      {tab === "PENDING"
+        ? "No pending referrals"
+        : tab === "COMPLETED"
+        ? "No completed referrals"
+        : "No referrals yet"}
+    </Text>
+  );
+
+  const renderItem = ({ item }) => {
+    const isCompleted = item.targetStatus === "TARGET_REACHED";
+
+    return (
+      <View style={styles.refItem}>
+        {/* Left */}
+        <View style={styles.leftRow}>
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={18} color="#fff" />
+          </View>
+
+          <View>
+            <Text style={styles.name}>{item.newRiderName}</Text>
+            <Text style={styles.date}>{item.referredAtIST}</Text>
+          </View>
+        </View>
+
+        {/* Right */}
+        <View style={{ alignItems: "flex-end" }}>
+          {isCompleted ? (
+            <Text style={styles.amount}>₹{item.rewardEarned}</Text>
+          ) : (
+            <Text style={styles.progress}>
+              {item.ordersCompleted}/{item.targetOrders}
+            </Text>
+          )}
+
+          <Text
+            style={[
+              styles.status,
+              { color: isCompleted ? "#16A34A" : "#F59E0B" },
+            ]}
+          >
+            {isCompleted ? "Completed" : "Pending"}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+ return (
+  <View style={{ flex: 1 }}>
+    <View style={styles.fixedTopBanner}>
       <ReferralBanner />
-    <View style={styles.container}>
-      {/* Refer & Earn Title */}
+    </View>
+    
+    {/* SCROLLABLE CONTENT */}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 100 }} 
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <ReferralBanner />
+
+      {/* Title */}
       <View style={styles.titleRow}>
         <View style={styles.line} />
         <Text style={styles.title}>Refer & Earn</Text>
         <View style={styles.line} />
       </View>
 
-      {/* Info Cards */}
+      {/* Cards */}
       <View style={styles.cardRow}>
         <View style={[styles.card, styles.greenCard]}>
-          <Ionicons name="people" size={28} color="#fff" />
-          <Text style={styles.cardValue}>5</Text>
-          <Text style={styles.cardLabel}>Joined people</Text>
+          <Ionicons name="people" size={22} color="#166534" />
+          <Text style={styles.cardValue1}>
+            {data.summary.totalRidersOnboarded}
+          </Text>
+          <Text style={styles.cardLabel1}>Joined people</Text>
         </View>
 
         <View style={[styles.card, styles.orangeCard]}>
-          <Ionicons name="wallet" size={28} color="#fff" />
-          <Text style={styles.cardValue}>₹5120</Text>
-          <Text style={styles.cardLabel}>Total Earnings</Text>
+          <Ionicons name="wallet" size={22} color="#9A3412" />
+          <Text style={styles.cardValue2}>
+            ₹{data.summary.totalEarnings}
+          </Text>
+          <Text style={styles.cardLabel2}>Total Earnings</Text>
         </View>
       </View>
 
       {/* Referral Code */}
       <View style={styles.codeBox}>
-        <Text style={styles.codeText}>ABDIJIEOPJI1234</Text>
+        <Text style={styles.codeText}>{referralCode}</Text>
 
         <View style={styles.iconRow}>
           <TouchableOpacity onPress={copyToClipboard}>
             <MaterialIcons name="content-copy" size={22} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={{ marginLeft: 12 }} onPress={shareReferralCode}>
+          <TouchableOpacity onPress={shareReferralCode}>
             <MaterialIcons name="share" size={22} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Refer Now Button */}
-      <TouchableOpacity style={styles.button} onPress={()=>{navigation.navigate('ReferFrd')}}>
+      {/* How it works */}
+      <View style={styles.howBox}>
+        <Text style={styles.howTitle}>How it works</Text>
+        <Text style={styles.howItem}>• Friend signs up using your code</Text>
+        <Text style={styles.howItem}>
+          • Completes <Text style={styles.howItem1}>{data.summary.targetOrdersPerRider}</Text> deliveries
+        </Text>
+        <Text style={styles.howItem}>
+          • Earn <Text style={styles.howItem1}>₹{data.summary.referralAmountPerRider}</Text> 
+        </Text>
+      </View>
+
+      {/* Tabs */}
+      <Text style={styles.sectionTitle}>My Referrals</Text>
+
+      <View style={styles.tabs}>
+        {["ALL", "PENDING", "COMPLETED"].map((t) => (
+          <TouchableOpacity
+            key={t}
+            onPress={() => setTab(t)}
+            style={[styles.tab, tab === t && styles.activeTab]}
+          >
+            <Text style={tab === t && { color: "#f3f0f0" }}>{t}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <FlatList
+        data={filteredData}
+        keyExtractor={(item) => item.newRiderId}
+        renderItem={renderItem}
+        ListEmptyComponent={renderEmpty}
+        scrollEnabled={false}
+      />
+    </ScrollView>
+
+    <View style={styles.fixedButtonContainer}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("ReferFrd")}
+      >
         <Text style={styles.buttonText}>Refer Now</Text>
       </TouchableOpacity>
     </View>
-    </ScrollView>
-  );
+
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: "#fff",
-  },
-
   container: {
     flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  fixedTopBanner: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  backgroundColor: "#F8FAFC",
+},
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: hp("2.5%"),
-    paddingHorizontal: wp("5%"),
+    marginVertical: 15,
+    paddingHorizontal: 16,
   },
-
-  title: {
-    marginHorizontal: wp("3%"),
-    fontSize: wp("5%"),
-    fontWeight: "600",
-  },
-
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: "#ccc",
+    backgroundColor: "#E2E8F0",
+  },
+  title: {
+    marginHorizontal: 10,
+    fontWeight: "700",
+    fontSize: 16,
+    color: "#1E293B",
   },
 
   cardRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: wp("5%"),
+    paddingHorizontal: 16,
+    marginTop: 5,
   },
-
   card: {
-    width: "47%",
-    borderRadius: wp("4%"),
-    padding: wp("4%"),
+    width: "48%",
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
-
   greenCard: {
-    backgroundColor: "#F54900",
-    borderRadius:wp("5%")
-  },
+    backgroundColor: "#DCFCE7",
 
+  },
   orangeCard: {
-    backgroundColor: "#F54900",
+    backgroundColor: "#FFE4D5",
   },
-
-  cardValue: {
-    color: "#fff",
-    fontSize: wp("6%"),
-    fontWeight: "bold",
-    marginTop: hp("1%"),
+  cardValue1: {
+    color: "#166534",
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 6,
   },
-
-  cardLabel: {
-    color: "#fff",
-    fontSize: wp("3.2%"),
-    marginTop: hp("0.5%"),
+  cardValue2: {
+    color: "#9A3412",
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 6,
+  },
+  cardLabel1: {
+    color: "#166534",
+    fontSize: 12,
+    marginTop: 4,
+  },
+   cardLabel2: {
+    color: "#9A3412",
+    fontSize: 12,
+    marginTop: 4,
   },
 
   codeBox: {
-    margin: wp("5%"),
-    padding: wp("4%"),
+    margin: 16,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: wp("3%"),
+    borderColor: "#E2E8F0",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
 
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
   codeText: {
-    fontSize: wp("4%"),
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 16,
     letterSpacing: 1,
+    color: "#0F172A",
   },
-
   iconRow: {
     flexDirection: "row",
+    gap: 16,
+  },
+  howBox: {
+    marginHorizontal: 16,
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  howTitle: {
+    fontWeight: "700",
+    marginBottom: 8,
+    color: "#0F172A",
+  },
+  howItem: {
+    marginVertical: 3,
+    color: "#475569",
+    fontSize: 15,
+    // fontWeight:700
+  },
+  howItem1: {
+     fontSize: 18,
+    fontWeight:800,
+  },
+  sectionTitle: {
+    marginTop: 16,
+    marginHorizontal: 16,
+    fontWeight: "700",
+    fontSize: 15,
+    color: "#0F172A",
+  },
+  tabs: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 16,
+    marginTop: 10,
+  },
+  tab: {
+    flex: 1,
+    marginHorizontal: 4,
+    paddingVertical: 8,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 20,
+    alignItems: "center",
+  },
+  activeTab: {
+   backgroundColor: '#19A7CE',
+  },
+
+  emptyText: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#94A3B8",
+  },
+
+  refItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 16,
+    marginTop: 10,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  leftRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 20,
+    backgroundColor: '#74c4da',
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  name: {
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  date: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+  },
+
+  amount: {
+    fontWeight: "700",
+    color: "#16A34A",
+  },
+  progress: {
+    fontWeight: "700",
+    color: "#F59E0B",
+  },
+  status: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#F8FAFC",
+    padding: 16,
+    borderTopWidth: 1,
+    borderColor: "#E2E8F0",
   },
 
   button: {
-    backgroundColor: "#2E8B57",
-    marginVertical:wp("40%"),
-    marginHorizontal: wp("10%"),
-    paddingVertical: hp("2%"),
-    borderRadius: wp("10%"),
+    backgroundColor: '#19A7CE',
+    padding: 16,
+    borderRadius: 30,
     alignItems: "center",
-    marginBottom: hp("3%"),
-  },
 
+    shadowColor: "#1E3A8A",
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
   buttonText: {
     color: "#fff",
-    fontSize: wp("4.2%"),
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 15,
   },
 });

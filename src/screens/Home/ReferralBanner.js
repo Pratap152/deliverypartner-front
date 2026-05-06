@@ -27,13 +27,18 @@ export default ReferralBanner;
 
 const styles = StyleSheet.create({
   bannerContainer: {
-    height: hp("32%"),
-    backgroundColor: '#0A8F4D',
-    borderBottomLeftRadius: wp("12%"),
-    borderBottomRightRadius: wp("12%"),
+    // borderWidth:1,
+    margin:15,
+    height: hp("28%"),
+    backgroundColor: '#b5dfeb',
+    borderRadius:28,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp("4%"),
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 4,
   },
 
   bannerTextContainer: {
@@ -41,19 +46,19 @@ const styles = StyleSheet.create({
   },
 
   bannerSmallText: {
-    color: '#E6F4EC',
-    fontSize: wp("5.5%"),
+    color: '#151313',
+    fontSize: wp("5%"),
   },
 
   bannerAmountText: {
-    color: '#E0C881',
-    fontSize: wp("12%"),
+    color: '#241f0f',
+    fontSize: wp("8%"),
     fontWeight: '700',
     marginVertical: hp("0.8%"),
   },
 
   moneyBagImage: {
-    width: wp("45%"),
+    width: wp("40%"),
     height: wp("45%"),
     marginBottom: hp("6%"),
   },

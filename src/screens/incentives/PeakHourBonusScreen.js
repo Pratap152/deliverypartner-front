@@ -99,65 +99,104 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
   console.log("data from peak hour bonus: ", data);
 
   /* ---------------- EXTRACT DATA ---------------- */
+  const ruleType = data.peak_data.data[0]?.slots[0].ruleType;
+  const dataSlots = data.peak_data.data;
   const title = data.title;
-  const slabs = data.slabs;
-  const payoutTiming = data.peak_data.data[0].payoutTiming;
-  const status = data.peak_data.data[0].status;
-
-  const [slot, setSlot] = useState(null);
-  const peakSlots = data.peak_data.data[0].peakSlots;
+  const slabs = data.peak_data.data[0].slots[0].slabs;
+  const rewardAmount = data.peak_data.data[0]?.slots[0].reward?.amount || 
+  data.peak_data.data[0]?.slots[0].slabs[0].rewardAmount;
 
   // Mock current orders completed - Replace with actual data from your state/API
-  const currentOrders = data.peak_data.data[0].progress.totalOrders;
+  const currentOrders = data.peakIncentivesProgress.slots[0].ordersCompleted;
 
-  const parseTimeToMinutes = (timeStr) => {
-    const [h, m] = timeStr.split(":").map(Number);
-    return h * 60 + m;
+  const formatTo12Hour = (time24) => {
+    let [hours, minutes] = time24.split(":");
+    hours = parseInt(hours, 10);
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    return `${hours}:${minutes} ${ampm}`;
   };
 
-  const getFirstValidSlot = (slots) => {
+  const peakSlots = dataSlots.flatMap(item =>
+    item.slots.map(slot =>
+      `${formatTo12Hour(slot.startTime)} - ${formatTo12Hour(slot.endTime)}`
+    )
+  );
+
+  // Convert "10:30 PM" → minutes (0–1439)
+  const parseTimeToMinutes = (timeStr) => {
+    const [time, modifier] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  };
+
+  // Normalize slot (handle cross-midnight)
+  const getSlotRange = (slot) => {
+    const [startStr, endStr] = slot.split(" - ");
+    const start = parseTimeToMinutes(startStr);
+    let end = parseTimeToMinutes(endStr);
+    // 👉 Cross-midnight case (end < start)
+    if (end < start) {
+      end += 1440; // push to next day
+    }
+    return { start, end };
+  };
+
+  // Sort slots by start time
+  const sortSlots = (slots) => {
+    return [...slots].sort((a, b) => {
+      return getSlotRange(a).start - getSlotRange(b).start;
+    });
+  };
+
+  // Main function
+  const getSlotStatus = (slots) => {
+    const sortedSlots = sortSlots(slots);
     const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-    const sorted = [...slots].sort(
-      (a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime)
-    );
-
-    for (let slot of sorted) {
-      const endMinutes = parseTimeToMinutes(slot.endTime);
-
-      // ✅ if current slot OR future slot
-      if (currentMinutes <= endMinutes) {
-        return slot;
+    let currentMinutes = now.getHours() * 60 + now.getMinutes();
+    // 👉 Also check "next-day shifted time" for cross-midnight
+    let extendedNow = currentMinutes + 1440;
+    for (let i = 0; i < sortedSlots.length; i++) {
+      const slot = sortedSlots[i];
+      const { start, end } = getSlotRange(slot);
+      // ✅ Current slot (normal or cross-midnight)
+      if (
+        (currentMinutes >= start && currentMinutes <= end) ||
+        (extendedNow >= start && extendedNow <= end)
+      ) {
+        return { type: "current", slot };
+      }
+      // ✅ Next slot (today)
+      if (currentMinutes < start) {
+        return { type: "next", slot };
+      }
+    }
+    // ✅ Check next-day slots (for late night cases)
+    for (let i = 0; i < sortedSlots.length; i++) {
+      const slot = sortedSlots[i];
+      const { start } = getSlotRange(slot);
+      if (extendedNow < start) {
+        return { type: "next", slot };
       }
     }
 
-    return null;
+    return { type: "none", message: "No peak slots" };
   };
 
-  const formatTo12Hour = (time24) => {
-    const [hours, minutes] = time24.split(":");
-    let h = parseInt(hours, 10);
+  const useSlotStatus = (slots) => {
+    const [status, setStatus] = useState(getSlotStatus(slots));
 
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12 || 12; // convert 0 -> 12
-
-    return `${h}:${minutes} ${ampm}`;
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setStatus(getSlotStatus(slots));
+      }, 60000); // every 1 min
+      return () => clearInterval(interval);
+    }, [slots]);
+    return status;
   };
-
-  useEffect(() => {
-    if (!peakSlots?.length) return;
-
-    const update = () => {
-      const result = getFirstValidSlot(peakSlots);
-      setSlot(result);
-    };
-
-    update();
-
-    const interval = setInterval(update, 60000);
-    return () => clearInterval(interval);
-  }, [peakSlots]);
+  const { type, slot: peakSlot, message } = useSlotStatus(peakSlots);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -172,21 +211,6 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
-          <View
-            style={[
-              styles.statusBadge,
-              status !== "ACTIVE" && styles.inactiveBadge,
-            ]}
-          >
-            <Text
-              style={[
-                styles.statusText,
-                status !== "ACTIVE" && styles.inactiveText,
-              ]}
-            >
-              {status}
-            </Text>
-          </View>
         </View>
 
         <Text style={styles.heroTitle}>{title}</Text>
@@ -198,10 +222,10 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
           <Ionicons name="flash" size={16} color="#FFD700" />
           <Text style={styles.rewardLabel}>Peak Hours:</Text>
           {
-            !slot
+            !type === "none"
               ? <Text style={styles.rewardValue}>No peak slots</Text>
               : <Text style={styles.rewardValue}>
-                {formatTo12Hour(slot.startTime)} - {formatTo12Hour(slot.endTime)}
+                {peakSlot}
               </Text>
           }
         </View>
@@ -223,25 +247,13 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
         </View>
 
         {/* PROGRESSIVE CHECKPOINT BAR */}
-        <View style={styles.progressWrapper}>
+        {ruleType === "SLAB" &&
+          <View style={styles.progressWrapper}>
           <ProgressiveCheckpointBar
             slabs={slabs}
             currentOrders={currentOrders}
           />
-        </View>
-
-        {/* PAYOUT INFO */}
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Ionicons name="time-outline" size={20} color="#4F39F6" />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.infoTitle}>Payout Timing</Text>
-              <Text style={styles.infoText}>
-                {payoutTiming}
-              </Text>
-            </View>
-          </View>
-        </View>
+        </View>}
 
         {/* HOW IT WORKS */}
         <View style={styles.howItWorksCard}>
