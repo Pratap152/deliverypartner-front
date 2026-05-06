@@ -59,9 +59,9 @@ const BannerCarousel = ({ data}) => {
       navigation.navigate('IncentiveDetails');
       break;
 
-    // case 'joining':
-    //   navigation.navigate('JoiningBonusScreen');
-    //   break;
+    case 'joining':
+      navigation.navigate('JoiningBonusScreen');
+      break;
 
     default:
       break;
