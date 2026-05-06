@@ -13,80 +13,107 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-/* --- PROGRESS COMPONENTS --- */
-const SlotProgressBar = ({ label, current, target, color1, color2, icon, iconBgStyle, iconColor }) => {
-  const progress = Math.min((current / target) * 100, 100);
-  const isCompleted = current >= target;
+const ProgressCheckpointBar = ({ slabs, ordersCompleted }) => {
+  const minOrders = slabs[slabs.length - 1]?.minOrders;
+  const progressPercent = Math.min((ordersCompleted / minOrders) * 100, 100);
 
   return (
-    <View style={styles.slotProgressContainer}>
-      <View style={styles.slotHeaderRow}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View style={[styles.miniIconBox, iconBgStyle]}>
-            <Ionicons name={icon} size={14} color={iconColor} />
-          </View>
-          <Text style={styles.slotLabel}>{label}</Text>
-        </View>
-        <Text style={styles.slotCount}>
-          {current} / {target}
-        </Text>
-      </View>
-
-      <View style={styles.barContainer}>
-        <View style={styles.track}>
-          <LinearGradient
-            colors={[color1, color2]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.barFill, { width: `${progress}%` }]}
-          />
-        </View>
-
-        {/* Lock / Tick Indicator - Now Inside/On Track End */}
-        <View style={[styles.statusIconWrapper, isCompleted && styles.statusIconCompleted]}>
-          <Ionicons
-            name={isCompleted ? "checkmark" : "lock-closed"}
-            size={10}
-            color={isCompleted ? "#FFF" : "#777"}
-          />
+    <View style={styles.progressCheckpointContainer}>
+      <View style={styles.progressCheckpointHeaderRow}>
+        <Text style={styles.progressCheckpointTitle}>Weekly Progress</Text>
+        <View style={styles.progressOrdersBadge}>
+          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
-    </View>
-  );
-};
 
-const OverallProgressBar = ({ percentage }) => {
-  const checkpoints = [20, 40, 60, 80, 100];
-  return (
-    <View style={styles.overallContainer}>
-      <Text style={styles.overallTitle}>Overall Completion</Text>
-      <View style={styles.overallTrackWrapper}>
-        <View style={styles.overallTrack} />
+      {/* Checkpoint Track */}
+      <View style={styles.progressCheckpointTrackWrapper}>
+        {/* Background Track */}
+        <View style={styles.progressCheckpointTrack} />
+
+        {/* Progress Fill */}
         <LinearGradient
           colors={["#4F39F6", "#3B28C7"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={[styles.overallFill, { width: `${percentage}%` }]}
+          style={[styles.progressCheckpointFill, { width: `${progressPercent}%` }]}
         />
-        {checkpoints.map((cp, index) => {
-          const isReached = percentage >= cp;
+
+        {/* Day Checkpoint Markers */}
+        {slabs.map((slab, index) => {
+          const position = (slab.minOrders / minOrders) * 100;
+          const isCompleted = ordersCompleted >= slab.minOrders;
+
           return (
             <View
               key={index}
-              style={[
-                styles.checkpoint,
-                { left: `${cp}%` },
-                isReached && styles.checkpointActive,
-              ]}
+              style={[styles.progressCheckpoint, { left: `${position}%` }]}
             >
-              <Text style={[styles.checkpointText, isReached && styles.checkpointTextActive]}>
-                {cp}%
+              {/* Checkpoint Icon */}
+              <View
+                style={[
+                  styles.progressCheckpointIcon,
+                  isCompleted && styles.progressCheckpointIconCompleted,
+                ]}
+              >
+                <Ionicons
+                  name={isCompleted ? "checkmark" : "lock-closed"}
+                  size={12}
+                  color={isCompleted ? "#FFF" : "#999"}
+                />
+              </View>
+
+              {/* Day Label Above */}
+              <Text
+                style={[
+                  styles.progressCheckpointDayLabel,
+                  isCompleted && styles.progressCheckpointDayLabelActive,
+                ]}
+              >
+                {slab.minOrders}
+              </Text>
+
+              {/* Reward Label Below */}
+              <Text
+                style={[
+                  styles.progressCheckpointRewardLabel,
+                  isCompleted && styles.progressCheckpointRewardLabelActive,
+                ]}
+              >
+                ₹{slab.rewardAmount}
               </Text>
             </View>
           );
         })}
       </View>
-      <Text style={styles.overallValue}>{Math.round(percentage)}%</Text>
+    </View>
+  );
+};
+
+const FixedTargetType = ({ target, ordersCompleted }) => {
+  const progress = Math.min((ordersCompleted / target) * 100, 100);
+
+  return (
+    <View style={styles.progressCheckpointContainer}>
+      <View style={styles.progressCheckpointHeaderRow}>
+        <Text style={styles.progressCheckpointTitle}>Weekly Progress</Text>
+        <View style={styles.progressOrdersBadge}>
+          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
+        </View>
+      </View>
+      <View>
+        <Text style={styles.fixedTargetLabel}>
+          Complete minimum of {target} Orders in a day
+        </Text>
+        <View style={styles.fixedTargetContainer}>
+          <View style={[styles.fixedTargetProgress, { width: `${progress}%` }]} />
+        </View>
+        <Text style={styles.fixedTargetPercent}>
+          {progress.toFixed(0)}%
+        </Text>
+      </View>
     </View>
   );
 };
@@ -96,28 +123,14 @@ const DailyGuarentee = ({ route, navigation }) => {
   const params = route.params;
   console.log("data in daily guarantee: ", params);
 
-  // Slot Rules Defaults
-  const minPeakSlots = params.peakRequired;
-  const minNormalSlots = params.normalRequired;
+  const ruleType = params.daily_data.data[0].ruleType;
+  const slabs = params.daily_data.data[0]?.slabs;
+  const ordersCompleted = params.dailyIncentivesProgress.ordersCompleted;
+  const rewardAmount = params.daily_data.data[0].maxPayoutPerDay;
+  const minOrders = params.daily_data.data[0].target?.orders || slabs[0].minOrders;
 
-  // New Progress Data Calculations
-  const peakCompleted = params.peakCompleted;
-  const normalCompleted = params.normalCompleted;
-
-  // Weighted Calculation: Peak = 40%, Normal = 60%
-  const peakProgressRaw = Math.min(peakCompleted / minPeakSlots, 1);
-  const normalProgressRaw = Math.min(normalCompleted / minNormalSlots, 1);
-  const overallPercentage = (peakProgressRaw * 40) + (normalProgressRaw * 60);
-
-  // Progress Data
-  const completedOrders = params.daily_data.data[0].progress.totalOrders;
-  // We can sum the targets for a rough "Total Goal" visual, or just use a fixed max if mapped
-  const totalTarget = minPeakSlots + minNormalSlots;
-  const progressPercent = Math.min((completedOrders / totalTarget) * 100, 100);
-
-  const status = params.daily_data.data[0].status;
-  const slabsLength = params.daily_data.data[0].slabs.length;
-  const rewardAmount = params.daily_data.data[0].slabs[slabsLength - 1].rewardAmount;
+  const target = params.daily_data.data[0].target?.orders;
+  
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -132,17 +145,9 @@ const DailyGuarentee = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
-          <View style={[styles.statusBadge, status !== "ACTIVE" && styles.inactiveBadge]}>
-            <Text style={[styles.statusText, status !== "ACTIVE" && styles.inactiveText]}>
-              {status}
-            </Text>
-          </View>
         </View>
 
-        <Text style={styles.heroTitle}>{params.title || "Daily Target Bonus"}</Text>
-        <Text style={styles.heroSubtitle}>
-          {params.description || "Complete targets to earn extra rewards"}
-        </Text>
+        <Text style={styles.heroTitle}>{params.title}</Text>
 
         <View style={styles.rewardPill}>
           <Text style={styles.rewardLabel}>Potential Earnings</Text>
@@ -153,35 +158,6 @@ const DailyGuarentee = ({ route, navigation }) => {
       <View style={styles.contentContainer}>
         <Text style={styles.sectionTitle}>Your Daily Mission</Text>
 
-        {/* --- ZONE 1: PEAK PERFORMANCE (Warm Schema) --- */}
-        <View style={[styles.ruleCard, styles.peakCard]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={[styles.iconBox, styles.peakIconBox]}>
-              <Ionicons name="flash" size={20} color="#FF6A00" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Peak Zone Targets</Text>
-              <Text style={styles.cardSubtitle}>High demand hours</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Rule Rows */}
-          <View style={styles.ruleRow}>
-            <Ionicons name="calendar-outline" size={18} color="#555" style={styles.ruleIcon} />
-            <Text style={styles.ruleText}>
-              Book & Complete <Text style={styles.boldPeak}>{minPeakSlots} Peak Slots</Text>
-            </Text>
-          </View>
-          <View style={styles.ruleRow}>
-            <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
-            <Text style={styles.ruleText}>
-              Deliver <Text style={styles.boldPeak}>{minPeakSlots}+ Orders</Text> in peak hours
-            </Text>
-          </View>
-        </View>
-
         {/* --- ZONE 2: NORMAL PERFORMANCE (Cool Schema) --- */}
         <View style={[styles.ruleCard, styles.normalCard]}>
           <View style={styles.cardHeaderRow}>
@@ -189,8 +165,8 @@ const DailyGuarentee = ({ route, navigation }) => {
               <Ionicons name="bicycle" size={20} color="#00A63E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Standard Zone Targets</Text>
-              <Text style={styles.cardSubtitle}>Regular hours</Text>
+              <Text style={styles.cardTitle}>Targets</Text>
+              {/* <Text style={styles.cardSubtitle}>Regular hours</Text> */}
             </View>
           </View>
 
@@ -198,57 +174,30 @@ const DailyGuarentee = ({ route, navigation }) => {
 
           {/* Rule Rows */}
           <View style={styles.ruleRow}>
-            <Ionicons name="calendar-outline" size={18} color="#555" style={styles.ruleIcon} />
-            <Text style={styles.ruleText}>
-              Book & Complete <Text style={styles.boldNormal}>{minNormalSlots} Normal Slots</Text>
-            </Text>
-          </View>
-          <View style={styles.ruleRow}>
             <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
             <Text style={styles.ruleText}>
-              Deliver <Text style={styles.boldNormal}>{minNormalSlots}+ Orders</Text> in normal hours
+              Deliver minimum of <Text style={styles.boldNormal}>{minOrders} Orders</Text> to achieve rewards
             </Text>
           </View>
         </View>
 
-        {/* --- ADVANCED PROGRESS SECTION --- */}
-        <View style={styles.newProgressWrapper}>
-          {/* 1. Peak Slot Progress */}
-          <View style={styles.innerProgressCard}>
-            <SlotProgressBar
-              label="Peak Slots"
-              icon="flash"
-              iconBgStyle={styles.peakIconBox}
-              iconColor="#FF6A00"
-              current={peakCompleted}
-              target={minPeakSlots}
-              color1="#FF9966"
-              color2="#FF5E62"
+        {ruleType === "SLAB" &&
+          <View style={[styles.progressWrapper]}>
+            <ProgressCheckpointBar
+              slabs={slabs}
+              ordersCompleted={ordersCompleted}
             />
-            <Text style={styles.contextText}>*Must also deliver {minPeakSlots}+ orders to unlock</Text>
           </View>
+        }
 
-          {/* 2. Normal Slot Progress */}
-          <View style={styles.innerProgressCard}>
-            <SlotProgressBar
-              label="Normal Slots"
-              icon="bicycle"
-              iconBgStyle={styles.normalIconBox}
-              iconColor="#00A63E"
-              current={normalCompleted}
-              target={minNormalSlots}
-              color1="#56ab2f"
-              color2="#a8e063"
+        {ruleType === "FIXED_TARGET" &&
+          <View style={styles.progressWrapper}>
+            <FixedTargetType
+              target={target}
+              ordersCompleted={ordersCompleted}
             />
-            <Text style={styles.contextText}>*Must also deliver {minNormalSlots}+ orders to unlock</Text>
           </View>
-
-          {/* 3. Overall Progress */}
-          <View style={styles.innerProgressCard}>
-            <OverallProgressBar percentage={overallPercentage} />
-          </View>
-        </View>
-
+        }
       </View>
     </ScrollView>
   );
@@ -273,26 +222,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: hp("2%"),
-  },
-  statusBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
-  },
-  inactiveBadge: {
-    backgroundColor: "rgba(0,0,0,0.2)",
-  },
-  statusText: {
-    color: "#AAFFAA", // Light green text for active
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
-  inactiveText: {
-    color: "#CCC",
   },
   heroTitle: {
     fontSize: wp("6.5%"),
@@ -338,6 +267,136 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
+  //Progress Bar
+  progressWrapper: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: hp("2%"),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  progressCheckpointContainer: {},
+  progressCheckpointHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  progressCheckpointTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+  },
+  progressOrdersBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E0E7FF",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  progressOrdersText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4F39F6",
+    marginLeft: 4,
+  },
+  progressCheckpointTrackWrapper: {
+    height: 60,
+    position: "relative",
+    marginTop: 20,
+    marginBottom: 30,
+    marginHorizontal: 10,
+  },
+  progressCheckpointTrack: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 22,
+    height: 8,
+    backgroundColor: "#EEF0F4",
+    borderRadius: 4,
+  },
+  progressCheckpointFill: {
+    position: "absolute",
+    left: 0,
+    top: 22,
+    height: 8,
+    borderRadius: 4,
+  },
+  progressCheckpoint: {
+    position: "absolute",
+    top: 0,
+    alignItems: "center",
+    marginLeft: -15,
+  },
+  progressCheckpointIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#E5E7EB",
+    borderWidth: 3,
+    borderColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+  },
+  progressCheckpointIconCompleted: {
+    backgroundColor: "#00A63E",
+  },
+  progressCheckpointDayLabel: {
+    position: "absolute",
+    top: -22,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#999",
+  },
+  progressCheckpointDayLabelActive: {
+    color: "#4F39F6",
+    fontSize: 11,
+  },
+  progressCheckpointRewardLabel: {
+    position: "absolute",
+    top: 36,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#999",
+  },
+  progressCheckpointRewardLabelActive: {
+    color: "#00A63E",
+    fontSize: 10,
+  },
+
+  //Styles for FIXED_TARGET
+  fixedTargetLabel: {
+    marginBottom: 5,
+    fontSize: 14,
+    fontWeight: '500'
+  },
+  fixedTargetContainer: {
+    height: 12,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+    overflow: 'hidden'
+  },
+  fixedTargetProgress: {
+    height: '100%',
+    backgroundColor: '#4CAF50'
+  },
+  fixedTargetPercent: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#555'
+  },
+
   /* Card Styles */
   ruleCard: {
     backgroundColor: "#FFF",
@@ -350,9 +409,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     borderLeftWidth: 4,
-  },
-  peakCard: {
-    borderLeftColor: "#FF6A00", // Orange Accent
   },
   normalCard: {
     borderLeftColor: "#00A63E", // Green Accent
@@ -407,102 +463,8 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  boldPeak: {
-    fontWeight: "700",
-    color: "#E65100",
-  },
   boldNormal: {
     fontWeight: "700",
     color: "#15803D",
   },
-
-  /* Progress Styles */
-  progressContainer: {
-    marginTop: hp("1%"),
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  progressValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#4F39F6',
-  },
-  track: {
-    height: 10,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 5,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  bar: {
-    height: '100%',
-    backgroundColor: '#4F39F6',
-    borderRadius: 5,
-  },
-  progressHint: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-
-  /* --- NEW PROGRESS STYLES --- */
-  newProgressWrapper: { marginBottom: hp("2%") },
-  innerProgressCard: {
-    backgroundColor: "#FFF", borderRadius: 16, padding: 16, marginBottom: 12,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2,
-  },
-  contextText: { fontSize: 11, color: "#999", marginTop: 8, fontStyle: 'italic', marginLeft: 24 },
-
-  slotProgressContainer: {},
-  slotHeaderRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, alignItems: 'center' },
-  slotLabel: { fontSize: 13, fontWeight: "700", color: "#333" },
-  slotCount: { fontSize: 13, fontWeight: "700", color: "#333" },
-
-  miniIconBox: {
-    width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 8,
-  },
-
-  barContainer: { height: 16, justifyContent: 'center', marginTop: 4 },
-  track: { height: 12, backgroundColor: "#EEF0F4", borderRadius: 6, width: '100%', overflow: 'hidden' },
-  barFill: { height: "100%", borderRadius: 6 },
-
-  statusIconWrapper: {
-    position: 'absolute', right: 0, width: 20, height: 20, borderRadius: 10,
-    backgroundColor: "#EEE", borderWidth: 2, borderColor: "#FFF", justifyContent: 'center', alignItems: 'center',
-    top: -2, // Center vertically relative to 16px container (bar is 12px)
-    elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1,
-  },
-  statusIconCompleted: { backgroundColor: "#00A63E", borderColor: "#FFF" },
-
-  overallContainer: { minHeight: 60 },
-  overallTitle: { fontSize: 15, fontWeight: "700", color: "#333", marginBottom: 24 },
-  overallTrackWrapper: { height: 16, marginBottom: 8, position: 'relative', marginTop: 10, marginHorizontal: 10 },
-  overallTrack: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "#EEF0F4", borderRadius: 8 },
-  overallFill: { height: "100%", borderRadius: 8 },
-  checkpoint: {
-    position: 'absolute', top: -4, width: 2, height: 24, backgroundColor: "#DDD", marginLeft: -3, zIndex: 1,
-  },
-  checkpointActive: { backgroundColor: "#00A63E" },
-  checkpointText: {
-    position: 'absolute', top: -20, left: -25, width: 40, fontSize: 10, fontWeight: '600', color: "#AAA", textAlign: 'center'
-  },
-  checkpointTextActive: { color: "#00A63E", fontWeight: '700' },
-  overallValue: { fontSize: 24, fontWeight: "800", color: "#4F39F6", textAlign: "right", marginTop: 4 },
 });
