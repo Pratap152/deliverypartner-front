@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackHandler } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
   widthPercentageToDP as wp,
