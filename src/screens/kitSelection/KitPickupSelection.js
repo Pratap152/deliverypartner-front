@@ -15,8 +15,9 @@ const KitPickupSelection = ({ navigation, route }) => {
 
   // Get data from navigation params
   const { deliveryMode, addressData, selectedZone, apiResponse } = route?.params || {};
-
-  const isFree = apiResponse?.data?.[0]?.isFree ?? true;
+  const isFree = deliveryMode === "online" 
+    ? (apiResponse?.data?.[0]?.isFree ?? true)
+    : false
   const responseMessage = apiResponse?.message;
   
   // Handle Submit button - navigate to bottom tab navigator (home)
@@ -47,11 +48,13 @@ const KitPickupSelection = ({ navigation, route }) => {
 
               <View style={{ flex: 1 }}>
                 <Text style={styles.name}>
-                  {displayData.name || displayData.storeName}
+                  {displayData.zone?.name || displayData.name || displayData.storeName}
                 </Text>
                 <Text style={styles.address}>
-                  {displayData.address || displayData.completeAddress}
-                  {displayData.pincode && `, ${displayData.pincode}`}
+                  {deliveryMode === "online"
+                    ? `${displayData.address}, ${displayData.pincode}`
+                    : `${displayData.addressLine1}${displayData.addressLine2 ? `, ${displayData.addressLine2}` : ''}, ${displayData.city}, ${displayData.state} - ${displayData.pincode}`
+                  }
                 </Text>
               </View>
             </View>
