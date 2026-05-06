@@ -19,16 +19,32 @@ import {
   getDailyIncentives,
   getWeeklyIncentives,
 } from "../../services/earnings/incentiveService";
+import useIncentives from "../../hooks/useIncentives";
 
 export default function IncentiveDetails({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [peakData, setPeakData] = useState(null);
   const [dailyData, setDailyData] = useState(null);
   const [weeklyData, setWeeklyData] = useState(null);
+  const { weeklyIncentivesProgress, dailyIncentivesProgress, peakIncentivesProgress, load, fetchWeeklyIncentivesProgress, fetchDailyIncentivesProgress, fetchPeakIncentivesProgress } = useIncentives();
 
   useEffect(() => {
     fetchAllIncentives();
+    fetchWeeklyIncentivesProgress();
+    fetchDailyIncentivesProgress();
+    fetchPeakIncentivesProgress();
   }, []);
+
+  const weeklyCompletedOrders = weeklyIncentivesProgress?.ordersCompleted;
+  const dailyCompletedOrders = dailyIncentivesProgress?.ordersCompleted;
+  const peakCompletedOrders = peakIncentivesProgress?.slots[0].ordersCompleted;
+
+  const weeklyMinimumOrders = weeklyData?.data[0].target?.orders || weeklyData?.data[0].slabs[0]?.minOrders;
+  const dailyMinimumOrders = dailyData?.data[0]?.target?.orders || dailyData?.data[0].slabs[0]?.minOrders;
+
+  const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned;
+  const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned;
+  const peakRewardEarned = peakIncentivesProgress?.slots[0].reward;
 
   /* ================= FETCH ALL INCENTIVES ================= */
   const fetchAllIncentives = async () => {
@@ -41,7 +57,7 @@ export default function IncentiveDetails({ navigation }) {
         peakRes = await getPeakHourIncentives();
         console.log('✅ PEAK Response:', JSON.stringify(peakRes, null, 2));
         if (peakRes?.data) {
-          setPeakData(peakRes.data);
+          setPeakData(peakRes);
         }
       } catch (e) {
         console.log('❌ PEAK Error:', e.response?.data || e.message);
@@ -68,7 +84,7 @@ export default function IncentiveDetails({ navigation }) {
         weeklyRes = await getWeeklyIncentives();
         console.log('✅ WEEKLY Response:', JSON.stringify(weeklyRes, null, 2));
         if (weeklyRes?.data) {
-          setWeeklyData(weeklyRes.data);
+          setWeeklyData(weeklyRes);
         }
       } catch (e) {
         console.log('❌ WEEKLY Error:', e.response?.data || e.message);
@@ -89,9 +105,8 @@ export default function IncentiveDetails({ navigation }) {
       return;
     }
     navigation.navigate("PeakHourBonusScreen", {
-      type: "peak",
       peak_data: peakData,
-      ...peakData,
+      peakIncentivesProgress
     });
   };
 
@@ -101,9 +116,8 @@ export default function IncentiveDetails({ navigation }) {
       return;
     }
     navigation.navigate("DailyGuarentee", {
-      type: "daily",
       daily_data: dailyData,
-      ...dailyData,
+      dailyIncentivesProgress
     });
   };
 
@@ -113,9 +127,8 @@ export default function IncentiveDetails({ navigation }) {
       return;
     }
     navigation.navigate("WeekEarnings", {
-      type: "weekly",
       weekly_data: weeklyData,
-      ...weeklyData,
+      weeklyIncentivesProgress
     });
   };
 
@@ -157,9 +170,8 @@ export default function IncentiveDetails({ navigation }) {
   // Calculate progress for each incentive
   const dailyProgress = dailyData
     ? Math.min(
-      ((dailyData.peakCompleted + dailyData.normalCompleted) /
-        ((dailyData.slotRules?.minPeakSlots || 0) +
-          (dailyData.slotRules?.minNormalSlots || 0) || 1)) *
+      (dailyCompletedOrders /
+        dailyMinimumOrders) *
       100,
       100
     )
@@ -172,10 +184,10 @@ export default function IncentiveDetails({ navigation }) {
     )
     : 0;
 
-  const weeklyProgress = weeklyData?.progress
+  const weeklyProgress = weeklyData
     ? Math.min(
-      (weeklyData.progress.eligibleDays /
-        weeklyData.progress.totalDaysRequired) *
+      (weeklyCompletedOrders /
+        weeklyMinimumOrders) *
       100,
       100
     )
@@ -219,7 +231,7 @@ export default function IncentiveDetails({ navigation }) {
             >
               <Text style={styles.todayTitle}>Today's Target</Text>
               <Text style={styles.todayAmount}>
-                ₹{dailyData.totalRewardAmount || 0}
+                ₹{dailyRewardEarned}
               </Text>
 
               {/* Progress Bar */}
@@ -232,9 +244,8 @@ export default function IncentiveDetails({ navigation }) {
               </View>
 
               <Text style={styles.todayText}>
-                {(dailyData.peakCompleted || 0) + (dailyData.normalCompleted || 0)} of{" "}
-                {(dailyData.slotRules?.minPeakSlots || 0) +
-                  (dailyData.slotRules?.minNormalSlots || 0)}{" "}
+                {dailyCompletedOrders} of{" "}
+                {dailyMinimumOrders}{" "}
                 orders completed
               </Text>
             </LinearGradient>
@@ -267,12 +278,12 @@ export default function IncentiveDetails({ navigation }) {
                   <Ionicons name="checkmark-done" size={20} color="#6366F1" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{dailyData.title}</Text>
-                  <Text style={styles.cardSubtitle}>
+                  <Text style={styles.cardTitle}>{dailyData.data[0].name}</Text>
+                  {/* <Text style={styles.cardSubtitle}>
                     {dailyData.eligible
                       ? "Target achieved"
                       : "Daily target in progress"}
-                  </Text>
+                  </Text> */}
                 </View>
               </View>
               <Text style={styles.cardReward}>
@@ -316,15 +327,15 @@ export default function IncentiveDetails({ navigation }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>
-                    {peakData.title || "Peak Hour Deliveries"}
+                    {peakData.data[0].name || ""}
                   </Text>
-                  <Text style={styles.cardSubtitle}>
+                  {/* <Text style={styles.cardSubtitle}>
                     Peak Slot: {peakData.slotRule || "N/A"}
-                  </Text>
+                  </Text> */}
                 </View>
               </View>
               <Text style={[styles.cardReward, { color: "#FF9500" }]}>
-                ₹{peakData.slabs?.[0]?.rewardAmount || 0}
+                ₹{peakRewardEarned}
               </Text>
             </View>
 
@@ -365,17 +376,17 @@ export default function IncentiveDetails({ navigation }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>
-                    {weeklyData.title || "Weekend Bonus"}
+                    {weeklyData.data[0].name || ""}
                   </Text>
-                  <Text style={styles.cardSubtitle}>
+                  {/* <Text style={styles.cardSubtitle}>
                     {weeklyData.progress?.eligibleDays || 0}/
                     {weeklyData.progress?.totalDaysRequired || 7} days
                     completed
-                  </Text>
+                  </Text> */}
                 </View>
               </View>
               <Text style={[styles.cardReward, { color: "#3B82F6" }]}>
-                ₹{weeklyData.maxRewardPerWeek || 0}
+                ₹{weeklyRewardEarned}
               </Text>
             </View>
 

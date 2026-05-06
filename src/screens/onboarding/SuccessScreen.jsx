@@ -28,5 +28,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.success,
     marginTop: 20,
+    textAlign:'center',
+    alignSelf:'center'
   },
 });
