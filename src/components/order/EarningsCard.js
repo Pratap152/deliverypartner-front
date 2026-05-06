@@ -12,7 +12,7 @@ const EarningsCard = ({ amount }) => {
     return (
         <View style={styles.container}>
             <View style={styles.content}>
-                <Text style={styles.label}>💰 You'll Earn</Text>
+                <Text style={styles.label}> You'll Earn</Text>
                 <Text style={styles.amount}>₹{amount?.toFixed(2) || '0.00'}</Text>
             </View>
         </View>
@@ -23,11 +23,11 @@ export default memo(EarningsCard);
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#009966',
+        backgroundColor: '#57c49f',
         borderRadius: wp('4%'),
-        paddingVertical: hp('2.5%'),
+        paddingVertical: hp('2%'),
         paddingHorizontal: wp('5%'),
-        marginBottom: hp('1.5%'),
+        marginBottom: hp('1.%'),
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
         opacity: 0.95,
     },
     amount: {
-        fontSize: wp('10%'),
+        fontSize: wp('8%'),
         color: '#FFFFFF',
         fontWeight: '800',
         letterSpacing: 1,
