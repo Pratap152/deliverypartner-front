@@ -35,6 +35,7 @@ import ReferFrd from '../screens/Home/ReferFrd';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
+import JoiningBonusScreen from '../screens/joiningBonus/JoiningBonusScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
@@ -64,6 +65,7 @@ const AppNavigator = () => {
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
+      <Stack.Screen name="JoiningBonusScreen" component={JoiningBonusScreen} />
       <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
