@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Alert, Text, TouchableOpacity, BackHandler } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
 import LiveMap from '../../components/map/LiveMap';
 import { orderService } from '../../services/order/OrderService';
@@ -8,6 +8,21 @@ import { getDistance } from 'geolib';
 const MapScreen = ({ route, navigation }) => {
 
   const { orderId, type, orderDetails: passedOrderDetails } = route.params;
+
+  useEffect(() => {
+    // Disable Android hardware back button
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => true // Prevent back navigation
+    );
+
+    // Disable iOS swipe gesture
+    navigation.setOptions({
+      gestureEnabled: false,
+    });
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const [orderDetails, setOrderDetails] = useState(passedOrderDetails || null);
   const [loading, setLoading] = useState(!passedOrderDetails);

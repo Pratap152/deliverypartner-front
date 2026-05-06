@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,22 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PremiumPressable from '../../components/common/PremiumPressable';
 import {formatMoney} from '../../utils/formatMoney';
 import {dashboardCache} from '../../hooks/useEarningsDashboard';
-
+import useIncentives from '../../hooks/useIncentives';
 
 
 export default function EarningsScreen({ navigation }) {
   const { data, loading, refreshing, onRefresh } = useEarningsDashboard();
+  const { weeklyIncentivesProgress, dailyIncentivesProgress, peakIncentivesProgress, load, fetchWeeklyIncentivesProgress, fetchDailyIncentivesProgress, fetchPeakIncentivesProgress } = useIncentives();
+
+  useEffect(() => {
+    fetchWeeklyIncentivesProgress();
+    fetchDailyIncentivesProgress();
+    fetchPeakIncentivesProgress();
+  }, []);
+
+  const weeklyCompletedOrders = weeklyIncentivesProgress?.ordersCompleted;
+  const dailyCompletedOrders = dailyIncentivesProgress?.ordersCompleted;
+  const peakCompletedOrders = peakIncentivesProgress?.slots[0].ordersCompleted;
 
   const {
     todayEarnings={},
@@ -205,15 +216,16 @@ export default function EarningsScreen({ navigation }) {
   // NAVIGATIONS TO INCENTIVE PAGES
   const handleItemPress = (item) => {
     if (item.type === 'peak') {
-      navigation.navigate('PeakHourBonusScreen', { ...item });
+      navigation.navigate('PeakHourBonusScreen', { ...item, peakIncentivesProgress });
       return;
     }
     if (item.type === 'weekly') {
-      navigation.navigate('WeekEarnings', { ...item });
+      navigation.navigate('WeekEarnings', { ...item, weeklyIncentivesProgress });
       return;
     }
     if (item.type === 'daily') {
-      navigation.navigate('DailyGuarentee', { ...item });
+      navigation.navigate('DailyGuarentee', { ...item, dailyIncentivesProgress });
+      return;
     }
   };
 
@@ -225,7 +237,12 @@ export default function EarningsScreen({ navigation }) {
       keyExtractor={(item, index) => `${item.title}-${index}`}
       renderItem={({ item }) => 
           <PremiumPressable onPress={() => handleItemPress(item)}>
-            <IncentiveCard item={item} />
+            <IncentiveCard
+              item={item}
+              weeklyCompletedOrders={weeklyCompletedOrders}
+              dailyCompletedOrders={dailyCompletedOrders}
+              peakCompletedOrders={peakCompletedOrders}
+            />
           </PremiumPressable>
         }
       ListHeaderComponent={HEADER}

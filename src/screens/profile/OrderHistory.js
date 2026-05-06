@@ -61,11 +61,11 @@ const OrderHistory = ({ navigation }) => {
     ({ item }) => (
       <View style={styles.orderCard}>
         <View style={styles.rowBetween}>
-          <Text style={styles.restaurant}>{item.restaurantName}</Text>
+          <Text style={styles.restaurant}>{item.orderId}</Text>
           <Text style={styles.earning}>₹{item.earning}</Text>
         </View>
 
-        <Text style={styles.orderId}>{item.orderId}</Text>
+        <Text style={styles.orderId}>{item.restaurantName}</Text>
 
         <Text style={styles.metaText}>
           {item.customerName} → {item.area}

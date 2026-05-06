@@ -45,27 +45,19 @@ const KitSelectionScreen = ({ navigation }) => {
 
   // Fetch pickup zones for offline mode
   const fetchZones = async () => {
-    setZonesLoading(true);
-    setZonesError(null);
-    try {
-      const response = await getKitAddress();
-      // Assuming the response contains zones array
-      // Adjust based on actual API response structure
-      if (response && Array.isArray(response)) {
-        setZones(response);
-      } else if (response && response.zones) {
-        setZones(response.zones);
-      } else {
-        setZones([]);
-      }
-    } catch (error) {
-      console.log("Error fetching zones:", error);
-      setZonesError(error.message || "Failed to fetch zones");
-      setZones([]);
-    } finally {
-      setZonesLoading(false);
-    }
-  };
+  setZonesLoading(true);
+  setZonesError(null);
+  try {
+    const response = await getKitAddress();
+    setZones(response || []); 
+  } catch (error) {
+    console.log("Error fetching zones:", error);
+    setZonesError(error.message || "Failed to fetch zones");
+    setZones([]);
+  } finally {
+    setZonesLoading(false);
+  }
+};
 
   const validate = () => {
     const newErrors = {};
@@ -120,7 +112,8 @@ const KitSelectionScreen = ({ navigation }) => {
       // Navigate with selected zone
       navigation.navigate("KitPickupSelection", { 
         selectedZone,
-        deliveryMode: "offline" 
+        deliveryMode: "offline" ,
+         apiResponse: null
       });
     }
   };
@@ -257,11 +250,11 @@ const KitSelectionScreen = ({ navigation }) => {
                 </View>
               ) : (
                 zones.map((zone, index) => {
-                  const isSelected = selectedZone?._id === zone._id; // Use _id from API
+                  const isSelected = selectedZone?.id === zone.id;
                   
                   return (
                     <TouchableOpacity
-                      key={zone._id || index}
+                      key={zone.id || index}
                       style={[
                         styles.zoneCard,
                         isSelected && styles.zoneCardSelected
@@ -281,13 +274,14 @@ const KitSelectionScreen = ({ navigation }) => {
                         </View>
 
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.zoneName}>
-                            {zone.storeName || `Store ${index + 1}`}
-                          </Text>
-                          <Text style={styles.zoneAddress}>
-                            {zone.completeAddress || "Address not available"}
-                            {zone.pincode ? `, ${zone.pincode}` : ""}
-                          </Text>
+                            <Text style={styles.zoneName}>
+                              {zone.zone?.name || zone.name}
+                            </Text>
+                            <Text style={styles.zoneAddress}>
+                              {zone.addressLine1} 
+                              {zone.addressLine2 ? `, ${zone.addressLine2}` : ''}
+                              {`, ${zone.city}, ${zone.state} - ${zone.pincode}`}
+                            </Text>
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -467,7 +461,6 @@ const styles = StyleSheet.create({
   },
   zoneName: {
     fontSize: 17,
-    fontWeight: "700",
     color: "#1E293B",
     marginBottom: 6,
     letterSpacing: 0.2,
@@ -477,6 +470,7 @@ const styles = StyleSheet.create({
     color: "#64748B",
     lineHeight: 20,
     letterSpacing: 0.1,
+    fontWeight:'700'
   },
   zoneDistance: {
     fontSize: 13,

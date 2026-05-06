@@ -30,7 +30,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   const [view, setView] = useState("ROOT");
 
   const [loading, setLoading] = useState(false);
-  const [skeleton, setSkeleton] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [isOffline, setIsOffline] = useState(false);
@@ -129,7 +129,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
   const bootstrap = async () => {
     Analytics.track("earnings_screen_open", { mode });
-    setSkeleton(true);
+    setInitialLoading(true)
 
     if (mode === "TODAY") await loadToday(true);
     else if (mode === "WEEK") await loadCurrentWeek(true);
@@ -139,7 +139,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
       await loadHistoryWeek(w, selectedYear, true);
     }
 
-    setSkeleton(false);
+    setInitialLoading(false);
   };
 
   // ------------------ LOADERS ------------------
@@ -470,7 +470,7 @@ const headerTitle = useMemo(() => {
   };
 
   const renderContent = () => {
-    if (skeleton) return <Skeleton />;
+if (initialLoading) return null;
 
     if (error) return <ErrorBox text={error} onRetry={() => {
       Analytics.track("earnings_retry", { mode, view });

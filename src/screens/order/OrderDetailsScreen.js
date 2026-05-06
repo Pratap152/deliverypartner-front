@@ -7,11 +7,13 @@ import {
   Text,
   Alert,
   ActivityIndicator,
-  Modal
+  Modal,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BackHandler } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
   widthPercentageToDP as wp,
@@ -43,8 +45,24 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const mapRef = useRef(null);
   const [deliveryResult, setDeliveryResult] = useState(null);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('CASH'); // 'CASH' or 'ONLINE'
 
   const ui = orderUIConfig[status] || {};
+
+  useEffect(() => {
+    // Disable Android hardware back button
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => true // Prevent back navigation
+    );
+
+    // Disable iOS swipe gesture
+    navigation.setOptions({
+      gestureEnabled: false,
+    });
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   useEffect(() => {
     if (route.params?.status) {
@@ -63,6 +81,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         const data = await orderService.getOrderDetails(orderId);
         console.log(`[OrderDetailsScreen] Fetched data:`, JSON.stringify(data));
         setOrderDetails(data);
+        console.log(`[OrderDetailsScreen] Payment Info:`, JSON.stringify(data.payment));
+        console.log(`[OrderDetailsScreen] Order Status:`, data.orderStatus);
         
         if (route.params?.status === 'EN_ROUTE_TO_DROP' && data.orderStatus === 'PICKED_UP') {
           setStatus('EN_ROUTE_TO_DROP');
@@ -177,10 +197,21 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
 
   const cod = res?.codCollected || 0;
 
-  navigation.replace('SuccessfullDelivered', {
-    amount: earning,
-    codCollected: cod,
-    orderId,
+  const isCOD = orderDetails?.payment?.method?.toUpperCase() === 'COD' || 
+                 orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' || 
+                 orderDetails?.payment?.mode?.toUpperCase() === 'COD';
+
+  navigation.reset({
+    index: 0,
+    routes: [{
+      name: 'SuccessfullDelivered',
+      params: {
+        amount: earning,
+        codCollected: cod,
+        orderId,
+        paymentMethod: isCOD ? paymentMethod : 'ONLINE',
+      }
+    }],
   });
 
   return;
@@ -299,7 +330,6 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
               {/* Custom Deliver To Card */}
               <View style={styles.deliverToCard}>
 
-
                 <View style={styles.deliverHeader}>
                   <View style={styles.deliverIconContainer}>
                     <Text>👤</Text>
@@ -317,9 +347,6 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
                   <Text style={styles.addressText}>{orderDetails.deliveryAddress.addressLine}</Text>
                 </View>
 
-
-
-
               </View>
             </>
 
@@ -336,8 +363,65 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
             pricing={orderDetails.pricing}
             items={orderDetails.items}
           />
+
+          {status === 'EN_ROUTE_TO_DROP' && (
+            orderDetails?.payment?.method?.toUpperCase() === 'COD' || 
+            orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' || 
+            orderDetails?.payment?.mode?.toUpperCase() === 'COD'
+          ) && (
+            <View style={styles.paymentSection}>
+              {/* Payment Method Selection */}
+              <View style={styles.methodSection}>
+                <Text style={styles.methodTitle}>Payment Method</Text>
+                <Text style={styles.methodSubtitle}>Please select a payment method to collect payment from the customer</Text>
+                
+                <TouchableOpacity 
+                  style={styles.radioOption} 
+                  onPress={() => setPaymentMethod('CASH')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.radioButton, paymentMethod === 'CASH' && styles.radioButtonSelected]}>
+                    {paymentMethod === 'CASH' && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioText}>Collect Cash</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.radioOption} 
+                  onPress={() => setPaymentMethod('ONLINE')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.radioButton, paymentMethod === 'ONLINE' && styles.radioButtonSelected]}>
+                    {paymentMethod === 'ONLINE' && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioText}>Online Payment</Text>
+                </TouchableOpacity>
+
+                {paymentMethod === 'ONLINE' && (
+                  <View style={styles.qrContainer}>
+                    <Image 
+                      source={require('../../assets/Qr.png')} 
+                      style={styles.qrImage}
+                      resizeMode="contain"
+                    />
+                    <View style={styles.qrAmountBox}>
+                       <Text style={styles.qrAmountLabel}>Amount to be paid</Text>
+                       <Text style={styles.qrAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
+                    </View>
+                  </View>
+                )}
+
+                {paymentMethod === 'CASH' && (
+                  <View style={styles.cashAmountBox}>
+                    <Text style={styles.cashAmountLabel}>Amount to be Collected</Text>
+                    <Text style={styles.cashAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
           {/* Secondary Buttons (e.g., Customer Not Responding) */}
-          {/* {ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
+          {!isPickupPhase && ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
             <View style={{ marginTop: 10, marginBottom: 30 }}>
               {ui.secondaryButtons.map((button, index) => (
                 // <TouchableOpacity
@@ -358,16 +442,16 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
                   activeOpacity={0.85}
                   onPress={async () => {
                     if (button.action === 'rejectOrder') {
-  try {
-    setButtonLoading(true);
-    await orderService.rejectOrder(orderId);
-    navigation.goBack();
-  } catch (err) {
-    Alert.alert("Error", "Failed to reject order");
-  } finally {
-    setButtonLoading(false);
-  }
-}
+                          try {
+                            setButtonLoading(true);
+                            await orderService.rejectOrder(orderId);
+                            navigation.goBack();
+                          } catch (err) {
+                            Alert.alert("Error", "Failed to reject order");
+                          } finally {
+                            setButtonLoading(false);
+                          }
+                        }
 
                     if (button.action === 'openCancelModal') {
                       setShowCustomerModal(true);
@@ -376,7 +460,7 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
                 >
                   <View style={styles.issueLeft}>
                     <View style={styles.issueIconCircle}>
-                      <MaterialCommunityIcons
+                      <Ionicons
                         name="alert-circle-outline"
                         size={22}
                         color="#F7931E"
@@ -384,23 +468,23 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
                     </View>
 
                     <View>
-<Text style={styles.issueTitle}>{button.label}</Text>
+                      <Text style={styles.issueTitle}>{button.label}</Text>
                       <Text style={styles.issueSubtitle}>
                         Try calling or report issue
                       </Text>
                     </View>
                   </View>
 
-                  <MaterialCommunityIcons
-                    name="chevron-right"
+                  <Ionicons
+                    name="chevron-forward"
                     size={22}
-                    color="#999"
+                    color="#F7931E"
                   />
                 </TouchableOpacity>
 
               ))}
             </View>
-          )} */}
+          )}
 
         </View>
       </ScrollView>
@@ -420,7 +504,15 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
                 <Text style={styles.actionButtonText}>Loading...</Text>
               </>
             ) : (
-              <Text style={styles.actionButtonText}>{ui.bottomButtons[0].label}</Text>
+              <Text style={styles.actionButtonText}>
+                {status === 'EN_ROUTE_TO_DROP' && (
+                  orderDetails?.payment?.method?.toUpperCase() === 'COD' || 
+                  orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' || 
+                  orderDetails?.payment?.mode?.toUpperCase() === 'COD'
+                )
+                  ? (paymentMethod === 'CASH' ? 'Collect Cash' : 'Confirm Online Payment')
+                  : ui.bottomButtons?.[0]?.label}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -1115,5 +1207,161 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'System',
     letterSpacing: 0.6,
+  },
+
+  // Payment Section Styles
+  paymentSection: {
+    marginBottom: hp('2%'),
+  },
+  paymentSummaryCard: {
+    backgroundColor: '#34A853', // Premium green as requested
+    borderRadius: wp('5%'),
+    padding: wp('5%'),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  paymentSummaryTitle: {
+    color: '#FFFFFF',
+    fontSize: wp('4.5%'),
+    fontWeight: '700',
+    marginBottom: hp('2%'),
+    opacity: 0.9,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: hp('1%'),
+  },
+  paymentLabel: {
+    color: '#FFFFFF',
+    fontSize: wp('3.8%'),
+    opacity: 0.8,
+  },
+  paymentValue: {
+    color: '#FFFFFF',
+    fontSize: wp('3.8%'),
+    fontWeight: '600',
+  },
+  paymentDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginVertical: hp('1.5%'),
+  },
+  paymentTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: hp('0.5%'),
+  },
+  paymentTotalLabel: {
+    color: '#FFFFFF',
+    fontSize: wp('4.2%'),
+    fontWeight: '700',
+  },
+  paymentTotalValue: {
+    color: '#FFFFFF',
+    fontSize: wp('6%'),
+    fontWeight: '800',
+  },
+  methodSection: {
+    marginTop: hp('1%'),
+  },
+  methodTitle: {
+    fontSize: wp('5%'),
+    fontWeight: '800',
+    color: '#2D3748',
+    marginBottom: hp('1%'),
+  },
+  methodSubtitle: {
+    fontSize: wp('3.5%'),
+    color: '#718096',
+    marginBottom: hp('2.5%'),
+    lineHeight: 20,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp('2%'),
+    paddingVertical: hp('0.5%'),
+  },
+  radioButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#4A5568',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp('3%'),
+  },
+  radioButtonSelected: {
+    borderColor: '#1e3a8a', // Dark blue
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#1e3a8a',
+  },
+  radioText: {
+    fontSize: wp('4.2%'),
+    fontWeight: '600',
+    color: '#2D3748',
+  },
+  qrContainer: {
+    alignItems: 'center',
+    marginTop: hp('2%'),
+    padding: wp('5%'),
+    backgroundColor: '#FFFFFF',
+    borderRadius: wp('4%'),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  qrImage: {
+    width: wp('60%'),
+    height: wp('60%'),
+    marginBottom: hp('2%'),
+  },
+  qrAmountBox: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: wp('4%'),
+    backgroundColor: '#F0F4FF',
+    borderRadius: wp('3%'),
+  },
+  qrAmountLabel: {
+    fontSize: wp('3.8%'),
+    color: '#4A5568',
+    fontWeight: '600',
+  },
+  qrAmountValue: {
+    fontSize: wp('4.5%'),
+    color: '#1e3a8a',
+    fontWeight: '800',
+  },
+  cashAmountBox: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: wp('4%'),
+    backgroundColor: '#F0F4FF',
+    borderRadius: wp('3%'),
+    marginTop: hp('1%'),
+  },
+  cashAmountLabel: {
+    fontSize: wp('3.8%'),
+    color: '#4A5568',
+    fontWeight: '600',
+  },
+  cashAmountValue: {
+    fontSize: wp('4.5%'),
+    color: '#1e3a8a',
+    fontWeight: '800',
   },
 });

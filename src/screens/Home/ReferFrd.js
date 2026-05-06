@@ -6,22 +6,24 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import Toast from 'react-native-toast-message';
+import { Alert } from 'react-native';
 import ReferralBanner from './ReferralBanner';
+import apiClient from "../../services/ApiClient";
 
-function ReferFrd(){
+function ReferFrd() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // 📞 Phone validation
+  /* PHONE VALIDATION  */
   const validatePhone = (value) => {
     if (!/^\d*$/.test(value)) {
       return 'Only numbers are allowed';
@@ -42,47 +44,89 @@ function ReferFrd(){
     return '';
   };
 
-  const handleConfirm = useCallback(() => {
-    if (!name || !phone || !city) {
-      // Alert.alert('Error', 'All fields are required');
-     Toast.show({
-  type: 'error',
-  text1: 'Error',
-  text2: 'All fields are required',
-});
+  /*  HANDLE SUBMIT */
+  const handleConfirm = useCallback(async () => {
+  if (loading) return;
 
-      return;
-    }
+  if (!name || !phone || !city) {
+    Alert.alert('Error', 'All fields are required');
+    return;
+  }
 
-    const error = validatePhone(phone);
-    if (error) {
-      setPhoneError(error);
-      return;
-    }
+  const error = validatePhone(phone);
+  if (error) {
+    setPhoneError(error);
+    return;
+  }
 
+  try {
+    setLoading(true);
     setPhoneError('');
-    Toast.show({
-      type: 'success',
-      text1: 'Success',
-      text2: 'Details added successfully',
-      position: 'top',
-    });
-    setName('');
-    setPhone('');
-    setCity('');
 
-    console.log({ name, phone, city });
-  }, [name, phone, city]);
+    const response = await apiClient.post('/api/refer/rider/refer', {
+      name,
+      phoneNumber: phone,
+      area: city,
+    });
+
+    const resData = response?.data;
+
+    if (resData?.success) {
+      //  POPUP ALERT (VISIBLE CONFIRMATION)
+      Alert.alert(
+        'Success ',
+        resData.message || 'Rider referred successfully',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setName('');
+              setPhone('');
+              setCity('');
+            },
+          },
+        ]
+      );
+
+    } else {
+      Alert.alert('Failed', resData?.message || 'Something went wrong');
+    }
+
+  } catch (err) {
+    console.log('API ERROR:', err?.response?.data || err);
+
+    Alert.alert(
+      'Error',
+      err?.response?.data?.message ||
+        'Failed to refer rider. Try again.'
+    );
+  } finally {
+    setLoading(false);
+  }
+}, [name, phone, city, loading]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ReferralBanner />
+  <View style={{ flex: 1 }}>
 
+    {/* 🔥 FIXED TOP BANNER */}
+    <View style={styles.fixedTopBanner}>
+      <ReferralBanner />
+    </View>
+
+    {/* SCROLLABLE CONTENT */}
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: hp("25%") } // 👈 adjust based on banner height
+      ]}
+    >
+
+      {/* Title */}
       <View style={styles.titleRow}>
-              <View style={styles.line} />
-              <Text style={styles.title}>Refer & Earn</Text>
-              <View style={styles.line} />
-            </View>
+        <View style={styles.line} />
+        <Text style={styles.title}>Refer & Earn</Text>
+        <View style={styles.line} />
+      </View>
 
       <Text style={styles.sectionSubtitle}>
         Enter the details below so we can get to know about your Refer
@@ -110,8 +154,9 @@ function ReferFrd(){
           ]}
           value={phone}
           onChangeText={(text) => {
-            setPhone(text);
-            setPhoneError(text.length ? validatePhone(text) : '');
+            const clean = text.replace(/[^0-9]/g, '');
+            setPhone(clean);
+            setPhoneError(clean.length ? validatePhone(clean) : '');
           }}
         />
 
@@ -128,26 +173,47 @@ function ReferFrd(){
           onChangeText={setCity}
         />
 
+        {/* Button */}
         <TouchableOpacity
-          style={styles.confirmButton}
+          style={[
+            styles.confirmButton,
+            loading ? { opacity: 0.6 } : null,
+          ]}
           onPress={handleConfirm}
-          activeOpacity={0.85}
+          disabled={loading}
         >
-          <Text style={styles.confirmButtonText}>Confirm</Text>
+          <Text style={styles.confirmButtonText}>
+            {loading ? 'Submitting...' : 'Confirm'}
+          </Text>
         </TouchableOpacity>
       </View>
+
     </ScrollView>
-  );
-};
+  </View>
+);
+}
 
 export default ReferFrd;
+
+
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     paddingBottom: hp("6%"),
   },
-
+fixedTopBanner: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  backgroundColor: "#fff",
+  shadowColor: "#000",
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  elevation: 5,
+},
   sectionSubtitle: {
     fontSize: wp("3.2%"),
     color: '#6F6F6F',
@@ -160,14 +226,14 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: hp("2.5%"),
+    marginVertical: hp("10%"),
     paddingHorizontal: wp("5%"),
   },
 
   title: {
     marginHorizontal: wp("2.5%"),
-    fontWeight: "600",
-    fontSize: wp("5%"),
+    fontWeight: "700",
+    fontSize: wp("4%"),
   },
 
   line: {
@@ -211,12 +277,12 @@ const styles = StyleSheet.create({
   },
 
   confirmButton: {
-    backgroundColor: '#0A8F4D',
+    backgroundColor: '#19A7CE',
     height: hp("6%"),
     borderRadius: hp("3%"),
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: hp("6%"),
+    marginTop: hp("5.5%"),
   },
 
   confirmButtonText: {
