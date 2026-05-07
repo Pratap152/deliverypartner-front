@@ -71,6 +71,7 @@ export default function useEmployeeDetails(navigation) {
   if (field === 'fullName') error = validateTextField(value, 'Full name', 3, 20);
   if (field === 'secondaryPhone') error = validateMobile(value);
   if (field === 'email') error = validateEmail(value);
+  if (field === 'referralCode') error = '';
 
   setErrors(prev => ({ ...prev, [field]: error }));
 };
@@ -115,10 +116,17 @@ export default function useEmployeeDetails(navigation) {
     try {
       await uploadEmployeeDetails(payload);
       navigation.replace('DocumentDetailsScreen');
-    } catch (err) {
+      } catch (err) {
+      const apiMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Something went wrong. Please try again.'; 
+
+      setErrors(prev => ({ ...prev, referralCode: apiMsg }));
+
       console.log('API ERROR:', err.response?.status, err.response?.data);
     } finally {
-      setSubmitting(false);
+      setSubmitting(false); 
     }
   };
 
