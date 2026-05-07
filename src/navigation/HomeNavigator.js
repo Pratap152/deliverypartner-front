@@ -1,7 +1,6 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
-import OrdersPopupScreen from '../screens/Home/OrdersPopupScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';

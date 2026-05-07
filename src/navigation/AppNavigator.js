@@ -38,7 +38,7 @@ import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
 import JoiningBonusScreen from '../screens/joiningBonus/JoiningBonusScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
-import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
+
 import LiveTracking from '../screens/Home/LiveTracking';
 import ChatSupportScreen from '../screens/order/ChatSupportScreen';
 // import MapScreen from '../screens/Home/MapScreen';
@@ -104,7 +104,7 @@ const AppNavigator = () => {
       <Stack.Screen name="IncentiveDetails" component={IncentiveDetails} options={{ headerShown: false, title: "Incentive Details" }} />
       <Stack.Screen name="MapScreen" component={MapScreen} />
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
-      <Stack.Screen name="OrderPopupScreen" component={OrderPopupScreen} />
+
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="LiveTracking" component={LiveTracking} />

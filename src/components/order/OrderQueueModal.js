@@ -3,38 +3,40 @@ import {
     Modal,
     View,
     StyleSheet,
-    ScrollView,
+    FlatList,
+    Text,
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import OrderQueueHeader from './OrderQueueHeader';
-import ExpandedOrderCard from './ExpandedOrderCard';
-import CompactOrderCard from './CompactOrderCard';
+import OrderCard from './OrderCard';
 
 /**
- * OrderQueueModal Component (Dependency Inversion Principle)
- * Main container for multi-order queue system
- * Depends on abstractions (props), not concrete implementations
+ * OrderQueueModal Component
+ * Handles multiple orders in a scrollable list matching reference UI.
  */
 const OrderQueueModal = ({
     visible,
     orderQueue = [],
-    expandedOrderId,
     loading,
     onAccept,
-    onReject,
-    onExpand,
     onClose,
 }) => {
     if (!visible || orderQueue.length === 0) return null;
 
-    // Find expanded order and other orders
-    const expandedOrder = orderQueue.find(o => o.id === expandedOrderId) || orderQueue[0];
-    const otherOrders = orderQueue.filter(o => o.id !== expandedOrder?.id);
-
-    if (!expandedOrder) {
-        console.error("❌ OrderQueueModal - No expanded order found!");
-        return null;
-    }
+    const renderItem = ({ item }) => {
+        const { data, countdown } = item;
+        return (
+            <OrderCard
+                distance={`${data.distanceKm || 0} kms`}
+                price={data.estimatedEarning || 0}
+                items={data.itemCount || 1}
+                pickup={data.vendorShopName || 'Store Location'}
+                drop={data.dropLocation?.address || data.dropAddress || 'Customer Location'}
+                timeLeft={countdown}
+                loading={loading}
+                onAccept={() => onAccept(data.orderId)}
+            />
+        );
+    };
 
     return (
         <Modal
@@ -45,46 +47,17 @@ const OrderQueueModal = ({
         >
             <View style={styles.overlay}>
                 <View style={styles.modalContainer}>
-                    {/* Header */}
-                    <OrderQueueHeader
-                        count={orderQueue.length}
-                        onClose={onClose}
-                    />
-
-                    {/* Scrollable Content */}
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={styles.scrollContent}
+                    <View style={styles.header}>
+                        <View style={styles.handle} />
+                    </View>
+                    
+                    <FlatList
+                        data={orderQueue}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={styles.listContent}
                         showsVerticalScrollIndicator={false}
-                        bounces={false}
-                    >
-                        {/* Expanded Order (Always at top) */}
-                        <ExpandedOrderCard
-                            order={expandedOrder}
-                            loading={loading}
-                            onAccept={() => onAccept(expandedOrder.id)}
-                            onReject={() => onReject(expandedOrder.id)}
-                        />
-
-                        {/* Other Orders (Compact Preview) */}
-                        {otherOrders.length > 0 && (
-                            <View style={styles.compactSection}>
-                                {otherOrders.map((order) => {
-                                    // Mark as "new" if received within last 3 seconds
-                                    const isNew = (Date.now() - order.receivedAt) < 3000;
-
-                                    return (
-                                        <CompactOrderCard
-                                            key={order.id}
-                                            order={order}
-                                            isNew={isNew}
-                                            onPress={() => onExpand(order.id)}
-                                        />
-                                    );
-                                })}
-                            </View>
-                        )}
-                    </ScrollView>
+                    />
                 </View>
             </View>
         </Modal>
@@ -96,34 +69,35 @@ export default memo(OrderQueueModal);
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'flex-end',
     },
     modalContainer: {
-        backgroundColor: '#F8F9FA',
-        borderTopLeftRadius: wp('6%'),
-        borderTopRightRadius: wp('6%'),
-        minHeight: hp('50%'),
-        maxHeight: hp('90%'),
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: -4,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 10,
+        // backgroundColor: '#f1f5f9', // Light gray background to make white cards pop
+        borderTopLeftRadius: wp('8%'),
+        borderTopRightRadius: wp('8%'),
+        maxHeight: hp('85%'),
+        paddingBottom: hp('4%'),
     },
-    scrollView: {
-        flexGrow: 1,
+    header: {
+        alignItems: 'center',
+        paddingVertical: hp('1.5%'),
     },
-    scrollContent: {
-        paddingHorizontal: wp('4%'),
-        paddingTop: hp('2%'),
-        paddingBottom: hp('3%'),
-        flexGrow: 1,
+    handle: {
+        width: wp('12%'),
+        height: 5,
+        backgroundColor: '#cbd5e1',
+        borderRadius: 3,
     },
-    compactSection: {
-        marginTop: hp('1%'),
+    listContent: {
+        paddingHorizontal: wp('5%'),
+        paddingBottom: hp('2%'),
+    },
+    title: {
+        fontSize: wp('4%'),
+        fontWeight: '700',
+        color: '#64748b',
+        marginBottom: hp('2%'),
+        textAlign: 'center',
     },
 });
