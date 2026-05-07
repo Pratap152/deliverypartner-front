@@ -20,7 +20,7 @@ const ProgressCheckpointBar = ({ slabs, ordersCompleted }) => {
   return (
     <View style={styles.progressCheckpointContainer}>
       <View style={styles.progressCheckpointHeaderRow}>
-        <Text style={styles.progressCheckpointTitle}>Weekly Progress</Text>
+        <Text style={styles.progressCheckpointTitle}>Daily Progress</Text>
         <View style={styles.progressOrdersBadge}>
           <Ionicons name="cube" size={14} color="#4F39F6" />
           <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
@@ -97,7 +97,7 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
   return (
     <View style={styles.progressCheckpointContainer}>
       <View style={styles.progressCheckpointHeaderRow}>
-        <Text style={styles.progressCheckpointTitle}>Weekly Progress</Text>
+        <Text style={styles.progressCheckpointTitle}>Daily Progress</Text>
         <View style={styles.progressOrdersBadge}>
           <Ionicons name="cube" size={14} color="#4F39F6" />
           <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
@@ -123,6 +123,8 @@ const DailyGuarentee = ({ route, navigation }) => {
   const params = route.params;
   console.log("data in daily guarantee: ", params);
 
+  const title = params.daily_data.data[0].name;
+
   const ruleType = params.daily_data.data[0].ruleType;
   const slabs = params.daily_data.data[0]?.slabs;
   const ordersCompleted = params.dailyIncentivesProgress.ordersCompleted;
@@ -147,7 +149,7 @@ const DailyGuarentee = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.heroTitle}>{params.title}</Text>
+        <Text style={styles.heroTitle}>{title}</Text>
 
         <View style={styles.rewardPill}>
           <Text style={styles.rewardLabel}>Potential Earnings</Text>

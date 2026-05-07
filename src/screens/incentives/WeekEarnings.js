@@ -124,7 +124,7 @@ const WeekEarnings = ({ route, navigation }) => {
   console.log("data from week Earnings", data);
 
   /* ---------------- EXTRACT DATA ---------------- */
-  const title = data.title;
+  const title = data.weekly_data.data[0].name;
   const maxRewardPerWeek = data.weekly_data.data[0].maxReward;
   const ruleType = data.weekly_data.data[0].ruleType;
 
