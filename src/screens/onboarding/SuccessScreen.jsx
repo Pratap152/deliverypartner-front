@@ -1,8 +1,22 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import { Image, StyleSheet, Text, View, BackHandler } from 'react-native';
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../utils/colors';
 
 const SuccessScreen = () => {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+  
   return (
     <View style={styles.container}>
       <Image
@@ -13,7 +27,6 @@ const SuccessScreen = () => {
     </View>
   );
 };
-
 export default SuccessScreen;
 
 const styles = StyleSheet.create({
@@ -28,5 +41,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.success,
     marginTop: 20,
+    textAlign:'center',
+    alignSelf:'center'
   },
 });

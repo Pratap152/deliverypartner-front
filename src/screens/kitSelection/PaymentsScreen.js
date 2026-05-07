@@ -77,8 +77,10 @@ export default function PaymentsScreen() {
       alert('Please select a payment method first');
       return;
     }
-    setPaymentType(type);
-    navigation.navigate('SuccessScreen', { paymentType: type });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'SuccessScreen', params: { paymentType: type } }],
+    });
   };
 
   const fetchOfflineStores = async () => {
@@ -328,7 +330,10 @@ export default function PaymentsScreen() {
               !selectedAddress && { backgroundColor: COLORS.border, borderColor: COLORS.border }
             ]}
             disabled={!selectedAddress}
-            onPress={() => navigation.navigate('MainTabs')}
+            onPress={() => navigation.reset({
+                          index: 0,
+                          routes: [{ name: 'MainTabs' }],
+                        })}
           >
             <Text style={styles.payTypeTextActive}>Continue</Text>
           </TouchableOpacity>

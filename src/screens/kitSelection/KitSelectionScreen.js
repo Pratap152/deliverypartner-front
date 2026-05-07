@@ -80,43 +80,42 @@ const KitSelectionScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     if (deliveryMode === "online") {
-      // validate and submit address
-      if (!validate()) return;
-      
+      if (!validate()) return; 
       try {
-        // API throws error on failure, returns data on success
         const result = await createKitAddress(name, address, pincode);
-        
-        // Navigate on success
-        navigation.navigate("KitPickupSelection", {
+        navigation.replace("KitPickupSelection", {
           deliveryMode: "online",
-          addressData: {
-            name,
-            address,
-            pincode
-          },
+          addressData: { name, address, pincode },
           apiResponse: result
         });
       } catch (error) {
-        // API failed - show error to user
-        console.log("Error saving address:", error);
         alert(error?.response?.data?.message || "Failed to save address. Please try again.");
       }
-    } else {
-      // ensure zone is selected
+
+      } else {
+
       if (!selectedZone) {
         alert("Please select a pickup zone");
         return;
       }
-      
-      // Navigate with selected zone
-      navigation.navigate("KitPickupSelection", { 
-        selectedZone,
-        deliveryMode: "offline" ,
-         apiResponse: null
-      });
+      try {
+        const result = await createKitAddress(
+          selectedZone.name,
+          selectedZone.addressLine1,
+          selectedZone.pincode,
+          "PICKUP",        //  different delivery mode
+          selectedZone.id          // pickupLocationId
+        );
+        navigation.replace("KitPickupSelection", { 
+          selectedZone,
+          deliveryMode: "offline",
+          apiResponse: result
+        });
+      } catch (error) {
+        alert(error?.response?.data?.message || "Failed. Please try again.");
+      }
     }
-  };
+    };
 
   // Determine button text and disabled state
   const getButtonConfig = () => {

@@ -101,7 +101,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
   /* ---------------- EXTRACT DATA ---------------- */
   const ruleType = data.peak_data.data[0]?.slots[0].ruleType;
   const dataSlots = data.peak_data.data;
-  const title = data.title;
+  const title = data.peak_data.data[0].name;
   const slabs = data.peak_data.data[0].slots[0].slabs;
   const rewardAmount = data.peak_data.data[0]?.slots[0].reward?.amount || 
   data.peak_data.data[0]?.slots[0].slabs[0].rewardAmount;

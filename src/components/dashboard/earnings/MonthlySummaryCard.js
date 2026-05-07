@@ -6,8 +6,6 @@ import SummaryItem from './SummaryItem';
 import { formatMoney } from '../../../utils/formatMoney';
 
 export default function MonthlySummaryCard({ summary, onPress }) {
-  
-
   return (
     <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.wrapper}>
       <LinearGradient colors={['#047D4D', '#23B484']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.card}>

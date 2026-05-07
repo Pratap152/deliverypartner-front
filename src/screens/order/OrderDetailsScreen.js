@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackHandler } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
   widthPercentageToDP as wp,
@@ -83,11 +84,11 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         setOrderDetails(data);
         console.log(`[OrderDetailsScreen] Payment Info:`, JSON.stringify(data.payment));
         console.log(`[OrderDetailsScreen] Order Status:`, data.orderStatus);
-        
+
         if (route.params?.status === 'EN_ROUTE_TO_DROP' && data.orderStatus === 'PICKED_UP') {
           setStatus('EN_ROUTE_TO_DROP');
         } else {
-          setStatus(data.orderStatus); 
+          setStatus(data.orderStatus);
         }
       } catch (err) {
         console.error(`[OrderDetailsScreen] Error fetching details:`, err);
@@ -112,8 +113,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         // Calculate Distance logic
         if (orderDetails) {
           let target = null;
-if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
-              target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
+          if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
+            target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
           } else { // All other statuses (ORDER_PICKED_UP, ON_WAY_TO_DROP, AT_DROP, etc.) target delivery
             target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
           }
@@ -174,7 +175,7 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
           orderId,
           status,
           orderDetails,
-            type: action.action, // useful for Map screen
+          type: action.action, // useful for Map screen
 
         });
         return;
@@ -188,34 +189,34 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
       }
 
       if (action.action === 'deliverOrder') {
-  res = await orderService.deliverOrder(orderId);
+        res = await orderService.deliverOrder(orderId);
 
-  const earning =
-    res?.earningCredited ||
-    orderDetails?.riderEarning?.totalEarning ||
-    0;
+        const earning =
+          res?.earningCredited ||
+          orderDetails?.riderEarning?.totalEarning ||
+          0;
 
-  const cod = res?.codCollected || 0;
+        const cod = res?.codCollected || 0;
 
-  const isCOD = orderDetails?.payment?.method?.toUpperCase() === 'COD' || 
-                 orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' || 
-                 orderDetails?.payment?.mode?.toUpperCase() === 'COD';
+        const isCOD = orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
+          orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
+          orderDetails?.payment?.mode?.toUpperCase() === 'COD';
 
-  navigation.reset({
-    index: 0,
-    routes: [{
-      name: 'SuccessfullDelivered',
-      params: {
-        amount: earning,
-        codCollected: cod,
-        orderId,
-        paymentMethod: isCOD ? paymentMethod : 'ONLINE',
+        navigation.reset({
+          index: 0,
+          routes: [{
+            name: 'SuccessfullDelivered',
+            params: {
+              amount: earning,
+              codCollected: cod,
+              orderId,
+              paymentMethod: isCOD ? paymentMethod : 'ONLINE',
+            }
+          }],
+        });
+
+        return;
       }
-    }],
-  });
-
-  return;
-}
 
       // 🔥 REFETCH ORDER (BEST PRACTICE)
       const updated = await orderService.getOrderDetails(orderId);
@@ -347,6 +348,18 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
                   <Text style={styles.addressText}>{orderDetails.deliveryAddress.addressLine}</Text>
                 </View>
 
+                {status === 'EN_ROUTE_TO_DROP' && (
+                  <TouchableOpacity
+                    style={styles.chatButton}
+                    onPress={() => navigation.navigate('ChatSupportScreen', { 
+                      orderId: orderDetails.orderId,
+                      customerName: orderDetails.deliveryAddress.name
+                    })}
+                  >
+                    <MaterialCommunityIcons name="chat-processing-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                    <Text style={styles.chatButtonText}>Chat with Customer</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </>
 
@@ -365,61 +378,61 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
           />
 
           {status === 'EN_ROUTE_TO_DROP' && (
-            orderDetails?.payment?.method?.toUpperCase() === 'COD' || 
-            orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' || 
+            orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
+            orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
             orderDetails?.payment?.mode?.toUpperCase() === 'COD'
           ) && (
-            <View style={styles.paymentSection}>
-              {/* Payment Method Selection */}
-              <View style={styles.methodSection}>
-                <Text style={styles.methodTitle}>Payment Method</Text>
-                <Text style={styles.methodSubtitle}>Please select a payment method to collect payment from the customer</Text>
-                
-                <TouchableOpacity 
-                  style={styles.radioOption} 
-                  onPress={() => setPaymentMethod('CASH')}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.radioButton, paymentMethod === 'CASH' && styles.radioButtonSelected]}>
-                    {paymentMethod === 'CASH' && <View style={styles.radioInner} />}
-                  </View>
-                  <Text style={styles.radioText}>Collect Cash</Text>
-                </TouchableOpacity>
+              <View style={styles.paymentSection}>
+                {/* Payment Method Selection */}
+                <View style={styles.methodSection}>
+                  <Text style={styles.methodTitle}>Payment Method</Text>
+                  <Text style={styles.methodSubtitle}>Please select a payment method to collect payment from the customer</Text>
 
-                <TouchableOpacity 
-                  style={styles.radioOption} 
-                  onPress={() => setPaymentMethod('ONLINE')}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.radioButton, paymentMethod === 'ONLINE' && styles.radioButtonSelected]}>
-                    {paymentMethod === 'ONLINE' && <View style={styles.radioInner} />}
-                  </View>
-                  <Text style={styles.radioText}>Online Payment</Text>
-                </TouchableOpacity>
-
-                {paymentMethod === 'ONLINE' && (
-                  <View style={styles.qrContainer}>
-                    <Image 
-                      source={require('../../assets/Qr.png')} 
-                      style={styles.qrImage}
-                      resizeMode="contain"
-                    />
-                    <View style={styles.qrAmountBox}>
-                       <Text style={styles.qrAmountLabel}>Amount to be paid</Text>
-                       <Text style={styles.qrAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setPaymentMethod('CASH')}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.radioButton, paymentMethod === 'CASH' && styles.radioButtonSelected]}>
+                      {paymentMethod === 'CASH' && <View style={styles.radioInner} />}
                     </View>
-                  </View>
-                )}
+                    <Text style={styles.radioText}>Collect Cash</Text>
+                  </TouchableOpacity>
 
-                {paymentMethod === 'CASH' && (
-                  <View style={styles.cashAmountBox}>
-                    <Text style={styles.cashAmountLabel}>Amount to be Collected</Text>
-                    <Text style={styles.cashAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
-                  </View>
-                )}
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setPaymentMethod('ONLINE')}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.radioButton, paymentMethod === 'ONLINE' && styles.radioButtonSelected]}>
+                      {paymentMethod === 'ONLINE' && <View style={styles.radioInner} />}
+                    </View>
+                    <Text style={styles.radioText}>Online Payment</Text>
+                  </TouchableOpacity>
+
+                  {paymentMethod === 'ONLINE' && (
+                    <View style={styles.qrContainer}>
+                      <Image
+                        source={require('../../assets/Qr.png')}
+                        style={styles.qrImage}
+                        resizeMode="contain"
+                      />
+                      <View style={styles.qrAmountBox}>
+                        <Text style={styles.qrAmountLabel}>Amount to be paid</Text>
+                        <Text style={styles.qrAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {paymentMethod === 'CASH' && (
+                    <View style={styles.cashAmountBox}>
+                      <Text style={styles.cashAmountLabel}>Amount to be Collected</Text>
+                      <Text style={styles.cashAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
+                    </View>
+                  )}
+                </View>
               </View>
-            </View>
-          )}
+            )}
           {/* Secondary Buttons (e.g., Customer Not Responding) */}
           {!isPickupPhase && ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
             <View style={{ marginTop: 10, marginBottom: 30 }}>
@@ -506,8 +519,8 @@ if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
             ) : (
               <Text style={styles.actionButtonText}>
                 {status === 'EN_ROUTE_TO_DROP' && (
-                  orderDetails?.payment?.method?.toUpperCase() === 'COD' || 
-                  orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' || 
+                  orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
+                  orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
                   orderDetails?.payment?.mode?.toUpperCase() === 'COD'
                 )
                   ? (paymentMethod === 'CASH' ? 'Collect Cash' : 'Confirm Online Payment')
@@ -577,7 +590,6 @@ const styles = StyleSheet.create({
   headerTextContainer: {
     flex: 1,
   },
-
   helpIconWrapper: {
     width: wp('13%'),
     height: wp('13%'),
@@ -1363,5 +1375,26 @@ const styles = StyleSheet.create({
     fontSize: wp('4.5%'),
     color: '#1e3a8a',
     fontWeight: '800',
+  },
+  chatButton: {
+    backgroundColor: '#3730A3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp('1.5%'),
+    borderRadius: wp('3%'),
+    marginTop: hp('2%'),
+    shadowColor: '#3730A3',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  chatButtonText: {
+    color: '#FFFFFF',
+    fontSize: wp('4%'),
+    fontWeight: '700',
+    fontFamily: 'System',
+    letterSpacing: 0.5,
   },
 });

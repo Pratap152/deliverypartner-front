@@ -92,6 +92,7 @@ export default function EmployeeDetailsScreen({navigation}) {
                     style={styles.input} 
                     placeholder='Enter Referral Code'
                     placeholderTextColor='darkgrey'/>
+          {errors.referralCode && <Text style={styles.err}>{errors.referralCode}</Text>}
 
            <Text style={styles.field_name}>Gender</Text>
             <View style={{ flexDirection: 'row', gap: wp('12%'), marginBottom: hp('5') }}>

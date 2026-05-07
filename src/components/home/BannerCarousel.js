@@ -48,7 +48,13 @@ const BannerCarousel = ({ data}) => {
       break;
 
     case 'kit':
-      navigation.navigate('KitSelectionScreen');
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'MainTabs' },
+          { name: 'KitSelectionScreen' },
+        ],
+      });
       break;
 
     case 'refer':
