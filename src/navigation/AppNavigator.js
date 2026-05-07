@@ -40,6 +40,7 @@ import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import OrderPopupScreen from '../screens/Home/OrdersPopupScreen';
 import LiveTracking from '../screens/Home/LiveTracking';
+import ChatSupportScreen from '../screens/order/ChatSupportScreen';
 // import MapScreen from '../screens/Home/MapScreen';
 import MapScreen from '../screens/order/MapScreen';
 import OrderHistory from '../screens/profile/OrderHistory';
@@ -107,6 +108,7 @@ const AppNavigator = () => {
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="LiveTracking" component={LiveTracking} />
+      <Stack.Screen name="ChatSupportScreen" component={ChatSupportScreen} />
       <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
       <Stack.Screen name="SlotsNavigator" component={SlotsNavigator} />
       <Stack.Screen name="EarningsNavigator" component={EarningsNavigator} />
