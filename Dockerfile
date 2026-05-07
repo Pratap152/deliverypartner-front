@@ -17,10 +17,13 @@ RUN apt-get update && apt-get install -y \
     awscli \
     && rm -rf /var/lib/apt/lists/*
 
+# Create Jenkins user
+RUN groupadd -g 1000 jenkins && \
+    useradd -m -u 1000 -g jenkins -s /bin/bash jenkins
+
 # Java setup
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
-RUN java -version
 
 # Android SDK
 ENV ANDROID_HOME=/opt/android-sdk
@@ -45,15 +48,22 @@ RUN sdkmanager \
     "platforms;android-33" \
     "build-tools;33.0.0" \
     "ndk;27.1.12297006" \
-    "cmake;3.22.1" \
-    "extras;android;m2repository" \
-    "extras;google;m2repository"
+    "cmake;3.22.1"
 
-# Gradle config
-ENV GRADLE_USER_HOME=/gradle
-RUN mkdir -p /gradle && chmod -R 777 /gradle
+# Gradle cache
+ENV GRADLE_USER_HOME=/home/jenkins/.gradle
 
-# Working directory
+RUN mkdir -p /home/jenkins/.gradle && \
+    chown -R jenkins:jenkins /home/jenkins && \
+    chown -R jenkins:jenkins $ANDROID_HOME
+
+# npm cache fix
+RUN mkdir -p /home/jenkins/.npm && \
+    chown -R jenkins:jenkins /home/jenkins/.npm
+
+# Switch to jenkins user
+USER jenkins
+
 WORKDIR /app
 
 CMD ["bash"]
