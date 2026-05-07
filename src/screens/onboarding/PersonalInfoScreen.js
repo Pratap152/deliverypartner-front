@@ -64,6 +64,7 @@ export default function PersonalInfoScreen({ navigation }) {
     if (field === 'primaryPhone') error = validateMobile(value);
     if (field === 'secondaryPhone') error = validateMobile(value);
     if (field === 'email') error = validateEmail(value);
+    if (field === 'referralCode') error = ''; 
 
     setErrors(prev => ({ ...prev, [field]: error }));
   };
@@ -129,16 +130,22 @@ export default function PersonalInfoScreen({ navigation }) {
       console.log('STATUS:', res.status);
       console.log('BODY:', res.data);
 
-      // Always go to Splash to re-evaluate onboarding stage
       navigation.replace('SplashScreen');
-    } catch (err) {
-      console.log('API ERROR:', err.response?.status, err.response?.data);
-    } finally {
-      setSubmitting(false);
-    }
+      } catch (err) {
+        const apiMsg =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          'Something went wrong. Please try again.';
+
+        setErrors(prev => ({ ...prev, referralCode: apiMsg }));
+
+        console.log('API ERROR:', err.response?.status, err.response?.data);
+      } finally {
+        setSubmitting(false); 
+      }
   };
 
-  /* ---------------- UI ---------------- */
+  /* UI  */
 
   const GenderRadio = ({ value, label }) => {
     const selected = formData.gender === value;
@@ -239,12 +246,14 @@ export default function PersonalInfoScreen({ navigation }) {
           />
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
+          {/* REFERRAL CODE */}
           <Text style={styles.field_name}>Referral Code (Optional)</Text>
           <TextInput value={formData.referralCode} 
                     onChangeText={t => handleChange('referralCode',t)} 
                     style={styles.input} 
                     placeholder='Enter Referral Code'
                     placeholderTextColor='darkgrey'/>
+          {errors.referralCode && <Text style={styles.err}>{errors.referralCode}</Text>}
 
           {/* GENDER */}
           <Text style={styles.field_name}>Gender</Text>
