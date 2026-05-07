@@ -12,8 +12,8 @@ const ReferEarnBanner = () => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground 
-        source={ReferEarn} 
+      <ImageBackground
+        source={ReferEarn}
         style={styles.backgroundImage}
         imageStyle={styles.imageStyle}
         resizeMode="cover"
@@ -26,10 +26,10 @@ const ReferEarnBanner = () => {
               Invite new delivery partners and earn exciting referral bonuses!
             </Text>
           </View>
-          
-          <TouchableOpacity 
-            style={styles.button}  
-            onPress={() => {navigation.navigate('ReferEarn')}}
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => { navigation.navigate('ReferEarn') }}
             activeOpacity={0.8}
           >
             <Text style={styles.buttonText}>Refer Now</Text>
@@ -46,8 +46,8 @@ const styles = StyleSheet.create({
     marginHorizontal: wp('2%'),
     marginVertical: hp('1.8%'),
     overflow: 'hidden',
-    height: hp('22%'), // Slightly taller for better proportions
-    minHeight: hp('18%'), // Minimum height
+    height: hp('22%'),
+    minHeight: hp('18%'),
     elevation: 0,
   },
   backgroundImage: {
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   textContent: {
     flex: 1,
-    justifyContent:'flex-start'
+    justifyContent: 'flex-start'
   },
   title: {
     fontSize: hp('2%'),
@@ -75,15 +75,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: hp('1%'),
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { 
-      width: 0, 
-      height: hp('0.15%') 
+    textShadowOffset: {
+      width: 0,
+      height: hp('0.15%')
     },
     textShadowRadius: wp('0.8%'),
     letterSpacing: wp('0.06%'),
     lineHeight: hp('3.2%'),
-    maxWidth: wp('70%'), // Limit width for better readability
-    textAlign:'right'
+    maxWidth: wp('70%'),
+    textAlign: 'right'
   },
   subtitle: {
     fontSize: hp('1.9%'),
@@ -91,9 +91,9 @@ const styles = StyleSheet.create({
     opacity: 0.95,
     lineHeight: hp('2.5%'),
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { 
-      width: 0, 
-      height: hp('0.1%') 
+    textShadowOffset: {
+      width: 0,
+      height: hp('0.1%')
     },
     textShadowRadius: wp('0.5%'),
     fontWeight: '400',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: wp('1.5%'),
     elevation: 5,
-    minWidth: wp('30%'), // Minimum button width
+    minWidth: wp('30%'),
   },
   buttonText: {
     color: '#FF5722',

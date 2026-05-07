@@ -37,9 +37,6 @@ const Header = () => {
   const [isLocationModal, setIsLocationModal] = useState(false);
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
-
-  /*  PROFILE STATE */
-  // const [profile, setProfile] = useState(null);
   const dispatch = useDispatch();
   const { data: profile } = useSelector(state => state.profile);
 
@@ -56,22 +53,7 @@ const Header = () => {
   };
   const selfieUri = getSelfieUri(profile?.selfie);
 
-  /* ---------------- FETCH PROFILE (SAME AS PROFILE SCREEN) ---------------- */
-  // const fetchProfile = async () => {
-  //   try {
-  //     const res = await apiClient.get('/api/profile/rider/profile');
-  //     setProfile(res.data?.data);
-  //   } catch (e) {
-  //     console.log('Header profile fetch error', e);
-  //   }
-  // };
 
-  /* AUTO REFRESH WHEN SCREEN FOCUSES */
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     fetchProfile();
-  //   }, [])
-  // );
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchProfile());

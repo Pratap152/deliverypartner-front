@@ -32,7 +32,7 @@ export default function SuccessfullDelivered({ route, navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
-  console.log('🎉 [SuccessfulDelivered] Received params:', {
+  console.log(' [SuccessfulDelivered] Received params:', {
     amount,
     codCollected,
     orderId,
