@@ -18,9 +18,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create Jenkins user
-RUN groupadd -g 1000 jenkins && \
-    useradd -m -u 1000 -g jenkins -s /bin/bash jenkins
-
+RUN groupadd -f jenkins && \
+    useradd -m -s /bin/bash -g jenkins jenkins || true
 # Java setup
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
