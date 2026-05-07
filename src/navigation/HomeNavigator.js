@@ -23,7 +23,6 @@ function HomeNavigator() {
         <>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
-                {/* <Stack.Screen name='OrdersPopupScreen' component={OrdersPopupScreen} /> */}
                 <Stack.Screen name='OrderDetailsScreen' component={OrderDetailsScreen} />
                 <Stack.Screen name='QRScannerScreen' component={QRScannerScreen} />
                 <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />
