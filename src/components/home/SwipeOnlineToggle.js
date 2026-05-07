@@ -73,7 +73,7 @@ const SwipeOnlineToggle = ({
             duration: 200,
             useNativeDriver: true,
           }).start(() => {
-            onSwipeOnline?.(); // ✅ ALWAYS CALL
+            onSwipeOnline?.(); 
           });
         } else {
           Animated.timing(translateX, {
@@ -81,7 +81,7 @@ const SwipeOnlineToggle = ({
             duration: 200,
             useNativeDriver: true,
           }).start(() => {
-            onSwipeOffline?.(); // ✅ ALWAYS CALL
+            onSwipeOffline?.(); 
           });
         }
       },

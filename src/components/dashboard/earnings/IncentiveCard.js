@@ -8,8 +8,8 @@ import {
   Platform,
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import ProgressBar from './ProgressBar'; 
-import MultiLevelProgressBar from './MultiLevelProgressBar'; 
+import ProgressBar from './ProgressBar';
+import MultiLevelProgressBar from './MultiLevelProgressBar';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function IncentiveCard({ item, weeklyCompletedOrders, dailyCompletedOrders, peakCompletedOrders }) {
@@ -23,13 +23,13 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
   const required = Number(item.requiredOrders ?? item.requiredDays ?? 0);
 
   const GREEN_THEME = {
-  primary: '#10B981',     // main fill
-  deep: '#065F46',        // text accent
-  soft: '#D1FAE5',        // light bg
-  border: '#A7F3D0',      // soft border
-};
+    primary: '#10B981',     // main fill
+    deep: '#065F46',        // text accent
+    soft: '#D1FAE5',        // light bg
+    border: '#A7F3D0',      // soft border
+  };
 
-const progressColor = GREEN_THEME.primary;
+  const progressColor = GREEN_THEME.primary;
 
   const metaIcons = {
     peak: { label: 'Peak', icon: require('../../../assets/peak.png') },
@@ -42,46 +42,46 @@ const progressColor = GREEN_THEME.primary;
 
   return (
     <View
-        style={[
-          styles.card,
-          {
-            backgroundColor:
-              item.type === 'peak'
-                ? '#ECFDF5'
-                : item.type === 'weekly'
+      style={[
+        styles.card,
+        {
+          backgroundColor:
+            item.type === 'peak'
+              ? '#ECFDF5'
+              : item.type === 'weekly'
                 ? '#F0FDF4'
                 : '#F6FFF9',
-            borderColor: GREEN_THEME.border,
-            borderWidth: 1,
-          },
-        ]}>
-        
+          borderColor: GREEN_THEME.border,
+          borderWidth: 1,
+        },
+      ]}>
+
       <View
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: wp(1.5),
-              backgroundColor: GREEN_THEME.primary,
-              borderTopLeftRadius: wp(4),
-              borderBottomLeftRadius: wp(4),
-            }}
-          />
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: wp(1.5),
+          backgroundColor: GREEN_THEME.primary,
+          borderTopLeftRadius: wp(4),
+          borderBottomLeftRadius: wp(4),
+        }}
+      />
 
       <View style={styles.topRow}>
         <View style={styles.left}>
-          
+
           <View
-              style={[
-                styles.labelChip,
-                {
-                  backgroundColor: GREEN_THEME.soft,
-                  borderWidth: 1,
-                  borderColor: GREEN_THEME.border,
-                },
-              ]}
-            >
+            style={[
+              styles.labelChip,
+              {
+                backgroundColor: GREEN_THEME.soft,
+                borderWidth: 1,
+                borderColor: GREEN_THEME.border,
+              },
+            ]}
+          >
 
             <Text style={[styles.chipText, { color: GREEN_THEME.deep }]}>{meta.label}</Text>
           </View>
@@ -121,7 +121,7 @@ const progressColor = GREEN_THEME.primary;
               height={hp(0.8)}
               fillColor={GREEN_THEME.primary}
             />
-          </View>   
+          </View>
         </>
       ) : (
         /* Weekly / Daily: single progress */
@@ -129,14 +129,14 @@ const progressColor = GREEN_THEME.primary;
           {item.type === 'daily' && (
             <View style={{ marginTop: hp(1) }}>
               {/* Normal Slot Progress */}
-              <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={styles.progressText}>
                   Orders
                 </Text>
                 <Text style={styles.progressText}>
                   {dailyCompletedOrders}/{item.minOrders}
                 </Text>
-             </View>
+              </View>
 
               <ProgressBar
                 progress={
@@ -153,7 +153,7 @@ const progressColor = GREEN_THEME.primary;
           {/* Weekly or fallback single progress bar */}
           {!isDaily && (
             <>
-              { (item.minOrders > 0) && (
+              {(item.minOrders > 0) && (
                 <>
                   <View style={styles.progressRow}>
                     <Text style={styles.progressText}>
@@ -175,8 +175,8 @@ const progressColor = GREEN_THEME.primary;
       {/* reward / CTA */}
       <View style={styles.bottomRow}>
         {item.type !== 'peak' && (
-            <Text style={styles.rewardValue}>{item.value}</Text>
-          )}
+          <Text style={styles.rewardValue}>{item.value}</Text>
+        )}
 
       </View>
     </View>
@@ -212,16 +212,16 @@ const styles = StyleSheet.create({
   slabReward: { fontSize: wp(3.4), fontWeight: '700', marginTop: hp(0.3) },
 
   progressRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(1) },
-  progressText: { fontSize: wp(3.5),fontWeight:'500' },
+  progressText: { fontSize: wp(3.5), fontWeight: '500' },
   progressMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(1) },
 
   smallMuted: { color: '#6B7280', fontSize: wp(3) },
   bottomRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: hp(1) },
   rewardLabel: { fontSize: wp(3.2), color: '#6B7280' },
   rewardValue: {
-  fontSize: wp(4.2),
-  fontWeight: '700',
-  color: '#065F46',
-}
+    fontSize: wp(4.2),
+    fontWeight: '700',
+    color: '#065F46',
+  }
 
 });

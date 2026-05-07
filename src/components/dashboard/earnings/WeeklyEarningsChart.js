@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, PanResponder, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Defs, LinearGradient, Stop,Text as TextSvg,Line } from 'react-native-svg';
+import Svg, { Path, Circle, Defs, LinearGradient, Stop, Text as TextSvg, Line } from 'react-native-svg';
 import * as d3 from 'd3-shape';
 import {
   widthPercentageToDP as wp,
@@ -8,24 +8,21 @@ import {
 } from 'react-native-responsive-screen';
 import { formatMoney } from '../../../utils/formatMoney';
 
-
 const PADDING = wp(4);
 
 const Y_AXIS_LABELS = 4;
 
-export default function WeeklyEarningsChart({ data,width,height }) {
+export default function WeeklyEarningsChart({ data, width, height }) {
   const CHART_HEIGHT = height;
   const CHART_WIDTH = width;
   const [activeIndex, setActiveIndex] = useState(null);
 
   const rawMaxValue = Math.max(...data.map(d => d.value), 0);
 
-const maxValue =
-  rawMaxValue === 0
-    ? 100
-    : Math.ceil(rawMaxValue / 100) * 100;
-
-
+  const maxValue =
+    rawMaxValue === 0
+      ? 100
+      : Math.ceil(rawMaxValue / 100) * 100;
 
   const points = useMemo(() => {
     return data.map((item, index) => {
@@ -33,7 +30,7 @@ const maxValue =
         PADDING +
         wp(6) + // pushes graph slightly right
         (index * (CHART_WIDTH - PADDING * 2 - wp(10))) /
-          (data.length - 1);
+        (data.length - 1);
 
 
       const y =
@@ -61,11 +58,11 @@ const maxValue =
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onPanResponderMove: (_, gesture) => {
-    const chartLeftOffset = (wp(100) - CHART_WIDTH) / 2;
-    const x = gesture.moveX - chartLeftOffset;
+      const chartLeftOffset = (wp(100) - CHART_WIDTH) / 2;
+      const x = gesture.moveX - chartLeftOffset;
       const index = Math.round(
         ((x - PADDING) / (CHART_WIDTH - PADDING * 2)) *
-          (data.length - 1)
+        (data.length - 1)
       );
       if (index >= 0 && index < data.length) {
         setActiveIndex(index);
@@ -91,7 +88,7 @@ const maxValue =
           const y =
             PADDING +
             (i * (CHART_HEIGHT - PADDING * 2)) /
-              (Y_AXIS_LABELS - 1);
+            (Y_AXIS_LABELS - 1);
 
           return (
             <Path
@@ -110,15 +107,15 @@ const maxValue =
 
         {/* Line */}
         <Path d={linePath} stroke="#22C55E" strokeWidth={3} fill="none" />
-        
+
         {activeIndex !== null && (
-        <Path
+          <Path
             d={`M ${PADDING} ${CHART_HEIGHT - PADDING}
             L ${CHART_WIDTH - PADDING} ${CHART_HEIGHT - PADDING}`}
             stroke="#D1D5DB"
             strokeWidth={1.5}
             opacity={0.3}
-        />
+          />
         )}
 
         {/* Vertical active day line */}
@@ -138,23 +135,23 @@ const maxValue =
 
         {/* Active dot */}
         {activeIndex !== null && (
-        <>
+          <>
             {/* Outer glow */}
             <Circle
-            cx={points[activeIndex].x}
-            cy={points[activeIndex].y}
-            r={10}
-            fill="#22C55E"
-            opacity={0.2}
+              cx={points[activeIndex].x}
+              cy={points[activeIndex].y}
+              r={10}
+              fill="#22C55E"
+              opacity={0.2}
             />
             {/* Inner dot */}
             <Circle
-            cx={points[activeIndex].x}
-            cy={points[activeIndex].y}
-            r={5}
-            fill="#22C55E"
+              cx={points[activeIndex].x}
+              cy={points[activeIndex].y}
+              r={5}
+              fill="#22C55E"
             />
-        </>
+          </>
         )}
 
 
@@ -226,7 +223,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 8,
     elevation: 4,
-    },
+  },
   tooltipText: {
     color: '#fff',
     fontSize: 12,

@@ -5,9 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import { formatMoney } from '../../utils/formatMoney';
 
+const StatRow = ({ label, value }) => {
 
-const StatRow = ({ label, value}) => {
-  
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -21,26 +20,26 @@ const StatRow = ({ label, value}) => {
 
 const WeeklyStatsCard = ({ earnings, orders, hours, onPress }) => {
   const navigation = useNavigation();
-  const {data} = useEarningsDashboard();
-  const {weeklyTotal = 0,weeklyOrders=0 }= data;
+  const { data } = useEarningsDashboard();
+  const { weeklyTotal = 0, weeklyOrders = 0 } = data;
   return (
-    <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })
-                                                            }>
+    <TouchableOpacity onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })
+    }>
       <View style={styles.container}>
         {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>This Week</Text>
-            <TouchableOpacity onPress={()=>navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })
-                                                                }>
-              <Text style={styles.link}>View Details</Text>
-            </TouchableOpacity>
-          </View>
-        
+        <View style={styles.header}>
+          <Text style={styles.title}>This Week</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })
+          }>
+            <Text style={styles.link}>View Details</Text>
+          </TouchableOpacity>
+        </View>
+
 
         {/* Stats */}
-        <StatRow label="Total Earnings" value={`₹${formatMoney(weeklyTotal)}`}  />
-        <StatRow label="Orders Delivered" value={weeklyOrders}  />
-        <StatRow label="Online Hours" value={hours}  />
+        <StatRow label="Total Earnings" value={`₹${formatMoney(weeklyTotal)}`} />
+        <StatRow label="Orders Delivered" value={weeklyOrders} />
+        <StatRow label="Online Hours" value={hours} />
       </View>
     </TouchableOpacity>
   );
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
     fontSize: wp('3.2%'),
     color: 'white',
     fontWeight: '600',
-    backgroundColor:'#16A34A',
+    backgroundColor: '#16A34A',
     paddingVertical: wp('1%'),
     paddingHorizontal: wp('3%'),
     borderRadius: wp('2%'),

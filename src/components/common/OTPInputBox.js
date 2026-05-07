@@ -25,8 +25,6 @@ const OTPInputBox = ({ otp, inputRefs, handleChange, handleKeyPress, length = 6 
   );
 };
 
-// ======================= RESPONSIVE STYLES =======================
-
 const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: "row",
