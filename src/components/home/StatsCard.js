@@ -10,6 +10,7 @@ import OrderHistory from '../../screens/profile/OrderHistory';
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import { formatMoney } from '../../utils/formatMoney';
 import EarningsHistoryScreen from '../../screens/earnings/EarningsHistoryScreen';
+import useTodayOrdersCount from '../../hooks/useTodayOrdersCount';
 import apiClient from '../../services/ApiClient';
 
 const StatItem = ({ icon, value, label, bgColor, screen }) => {
@@ -49,6 +50,7 @@ const StatsCard = ({ isActive, totalOnlineMinutes }) => {
   const { data } = useEarningsDashboard();
   const { todayEarnings = {} } = data;
   const [minutes, setMinutes] = useState(0);
+  const todayOrdersCount = useTodayOrdersCount();
 
   // Increment only if online
   useEffect(() => {
@@ -88,7 +90,7 @@ const StatsCard = ({ isActive, totalOnlineMinutes }) => {
         />
         <StatItem
           icon="cart-outline"
-          value={todayEarnings.orders ?? 0}
+         value={todayOrdersCount}
           label="Orders"
           bgColor="#FF6FAE" // pink
           screen={OrderHistory}
