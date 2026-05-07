@@ -11,7 +11,7 @@ export function useKitAddress() {
   const pincode = useSelector((state) => state.profile.data?.location?.pincode?.trim());
 
   // POST – create kit address 
-  const createKitAddress = async (name, address, pincode) => {
+  const createKitAddress = async (name, address, pincode, deliveryMode="HOME_DELIVERY", pickupLocationId = null) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -19,10 +19,11 @@ export function useKitAddress() {
       const response = await apiClient.post(
         "/api/kit/rider/joining-kit",
         {
-          deliveryMode: "HOME_DELIVERY",
+          deliveryMode,
           name,
           completeAddress: address,
           pincode,
+          ...(pickupLocationId && { pickupLocationId }),
         },
         { headers: { "x-client": "mobile" } }
       );
@@ -37,7 +38,6 @@ export function useKitAddress() {
       setLoading(false);
     }
   };
-
   // GET – fetch zone points by pincode
   const getKitAddress = async () => {
     setLoading(true);

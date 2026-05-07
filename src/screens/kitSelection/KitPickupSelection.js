@@ -15,15 +15,18 @@ const KitPickupSelection = ({ navigation, route }) => {
 
   // Get data from navigation params
   const { deliveryMode, addressData, selectedZone, apiResponse } = route?.params || {};
-  const isFree = deliveryMode === "online" 
-    ? (apiResponse?.data?.[0]?.isFree ?? true)
-    : false
+  const isFree = deliveryMode === "online"
+    ? (apiResponse?.isEntireKitFree ?? true) 
+    : false;
   const responseMessage = apiResponse?.message;
   
-  // Handle Submit button - navigate to bottom tab navigator (home)
   const handleSubmit = () => {
-    navigation.replace("MainTabs"); // Navigate to BottomTabNavigator (registered as "MainTabs")
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'SuccessScreen' }],
+    });
   };
+
 
   // Determine display data based on mode
   const displayData = deliveryMode === "online" ? addressData : selectedZone;
@@ -125,7 +128,10 @@ const KitPickupSelection = ({ navigation, route }) => {
       ) : (
         <TouchableOpacity
           style={[styles.payBtn, !displayData && styles.submitBtnDisabled]}
-          onPress={() => navigation.navigate("PaymentsScreen", { apiResponse })}
+          onPress={() => navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'PaymentsScreen', params: { apiResponse } }],
+                  })}
           disabled={!displayData}
         >
           <Text style={styles.submitText}>Proceed to Payment</Text>
