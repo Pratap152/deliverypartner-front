@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     swipeable: {
-        backgroundColor: '#D8FBFF', 
+        backgroundColor: '#D8FBFF',
         width: BUTTON_WIDTH,
         height: BUTTON_HEIGHT,
         borderRadius: BUTTON_HEIGHT / 2,

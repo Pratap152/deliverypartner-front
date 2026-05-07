@@ -55,43 +55,43 @@ export default function IncentiveDetails({ navigation }) {
       let peakRes = null;
       try {
         peakRes = await getPeakHourIncentives();
-        console.log('✅ PEAK Response:', JSON.stringify(peakRes, null, 2));
+        console.log('PEAK Response:', JSON.stringify(peakRes, null, 2));
         if (peakRes?.data) {
           setPeakData(peakRes);
         }
       } catch (e) {
-        console.log('❌ PEAK Error:', e.response?.data || e.message);
+        console.log('PEAK Error:', e.response?.data || e.message);
       }
 
       // DAILY
       let dailyRes = null;
       try {
         dailyRes = await getDailyIncentives();
-        console.log('✅ DAILY Response:', JSON.stringify(dailyRes, null, 2));
+        console.log('DAILY Response:', JSON.stringify(dailyRes, null, 2));
         // Daily API returns data directly, not nested in .data
         if (dailyRes?.success) {
           setDailyData(dailyRes);
         } else {
-          console.log('⚠️ DAILY: No success flag');
+          console.log('DAILY: No success flag');
         }
       } catch (e) {
-        console.log('❌ DAILY Error:', e.response?.data || e.message);
+        console.log('DAILY Error:', e.response?.data || e.message);
       }
 
       // WEEKLY
       let weeklyRes = null;
       try {
         weeklyRes = await getWeeklyIncentives();
-        console.log('✅ WEEKLY Response:', JSON.stringify(weeklyRes, null, 2));
+        console.log('WEEKLY Response:', JSON.stringify(weeklyRes, null, 2));
         if (weeklyRes?.data) {
           setWeeklyData(weeklyRes);
         }
       } catch (e) {
-        console.log('❌ WEEKLY Error:', e.response?.data || e.message);
+        console.log('WEEKLY Error:', e.response?.data || e.message);
       }
 
     } catch (error) {
-      console.log("❌ GENERAL ERROR:", error);
+      console.log("GENERAL ERROR:", error);
       Alert.alert("Error", "Failed to load incentives");
     } finally {
       setLoading(false);

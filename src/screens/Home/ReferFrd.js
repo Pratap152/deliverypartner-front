@@ -108,7 +108,6 @@ function ReferFrd() {
   return (
   <View style={{ flex: 1 }}>
 
-    {/* 🔥 FIXED TOP BANNER */}
     <View style={styles.fixedTopBanner}>
       <ReferralBanner />
     </View>
@@ -117,7 +116,7 @@ function ReferFrd() {
     <ScrollView
       contentContainerStyle={[
         styles.container,
-        { paddingTop: hp("25%") } // 👈 adjust based on banner height
+        { paddingTop: hp("25%") } 
       ]}
     >
 

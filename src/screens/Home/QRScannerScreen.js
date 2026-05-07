@@ -40,7 +40,6 @@ const QRScannerScreen = ({ navigation, route }) => {
 
             console.log('📱 API response:', res);
 
-            // 🔥 Always fetch latest order (single source of truth)
             const updated = await orderService.getOrderDetails(orderId);
 
             navigation.replace('OrderDetailsScreen', {
@@ -49,7 +48,7 @@ const QRScannerScreen = ({ navigation, route }) => {
             });
 
         } catch (error) {
-            console.error("❌ QR scan failed:", error);
+            console.error(" QR scan failed:", error);
         }
     };
 

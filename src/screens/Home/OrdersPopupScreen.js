@@ -125,7 +125,7 @@ const OrdersPopupScreen = () => {
         pickup="Kirana Store, Kondapur"
         drop="ABC Hostel, Hafeezpet"
         timeLeft={timeLeft}
-        onAccept={handleAccept} // ✅
+        onAccept={handleAccept} 
       />
     </View>
   );
