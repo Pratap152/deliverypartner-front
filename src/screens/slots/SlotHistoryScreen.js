@@ -294,14 +294,11 @@ export default function SlotHistoryScreen({navigation}){
                     <View key={slot._id ?? `${slot.startTime}-${slot.endTime}`} style={styles.slot_card}>
                       <View style={{flex:1}}>
                         <Text style={styles.slot_time}>{slot.startTime} — {slot.endTime}</Text>
-                        <Text style={[styles.slot_status, { color: statusStyle.text }]}>
-                          {String(slot.status ?? '').toUpperCase()}
-                        </Text>
                       </View>
 
                       <View style={[styles.statusPill, { backgroundColor: statusStyle.bg }]}>
                         <Text style={[styles.statusPillText, { color: statusStyle.text }]}>
-                          {String(slot.status ?? '').replace(/^\w/, c => c.toUpperCase())}
+                          {String(slot.derivedStatus ?? '').replace(/^\w/, c => c.toUpperCase())}
                         </Text>
                       </View>
                     </View>
