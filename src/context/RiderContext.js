@@ -590,23 +590,11 @@ status: "ASSIGNED",
       {children}
  
       <OrderQueueModal
-
         visible={orderQueue.length > 0}
-
         orderQueue={orderQueue}
-
-        expandedOrderId={expandedOrderId}
-
         loading={loading}
-
         onAccept={acceptOrder}
-
-        onReject={rejectOrder}
-
-        onExpand={expandOrder}
-
         onClose={() => setOrderQueue([])}
-
       />
 </RiderContext.Provider>
 
