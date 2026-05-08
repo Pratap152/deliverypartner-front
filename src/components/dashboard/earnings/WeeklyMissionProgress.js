@@ -1,0 +1,447 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+} from 'react-native';
+
+const WeeklyMissionProgressBar = ({
+  missionsData,
+  progressData,
+}) => {
+  const mission = missionsData;
+  const progress = progressData;
+
+  if (!mission || !progress) {
+    return null;
+  }
+
+  const completedDays =
+    progress.overallProgress
+      ?.completedDays || 0;
+
+  const totalDays =
+    progress.overallProgress
+      ?.totalDays || 0;
+
+  const progressPercentage =
+    totalDays > 0
+      ? (completedDays / totalDays) * 100
+      : 0;
+
+return (
+  <View style={styles.card}>
+    {/* Progress Text */}
+    <Text style={styles.progressText}>
+      {completedDays}/{totalDays}{' '}
+      Days Completed
+    </Text>
+
+    {/* Progress Bar */}
+    <View style={styles.progressBar}>
+      <View
+        style={[
+          styles.progressFill,
+          {
+            width: `${progressPercentage}%`,
+          },
+        ]}
+      />
+    </View>
+
+    {/* Stepper */}
+    <View style={styles.stepperContainer}>
+      {mission.tasks.map(
+        (missionTask, index) => {
+          const progressTask =
+            progress.tasks.find(
+              item =>
+                item.dayNumber ===
+                missionTask.dayNumber
+            );
+
+          const status =
+            progressTask?.progress
+              ?.status;
+
+          const isCompleted =
+            progressTask?.progress
+              ?.isCompleted;
+
+          const isRunning =
+            status === 'RUNNING';
+
+          return (
+            <View
+              key={
+                missionTask.dayNumber
+              }
+              style={
+                styles.stepWrapper
+              }
+            >
+              {/* Circle */}
+              <View
+                style={[
+                  styles.circle,
+
+                  isCompleted &&
+                    styles.completedCircle,
+
+                  isRunning &&
+                    styles.runningCircle,
+                ]}
+              >
+                <Text
+                  style={
+                    styles.circleText
+                  }
+                >
+                  {isCompleted
+                    ? '✓'
+                    : missionTask.dayNumber}
+                </Text>
+              </View>
+
+              {/* Line */}
+              {index !==
+                mission.tasks.length -
+                  1 && (
+                <View
+                  style={[
+                    styles.line,
+
+                    isCompleted &&
+                      styles.completedLine,
+                  ]}
+                />
+              )}
+            </View>
+          );
+        }
+      )}
+    </View>
+
+    {/* Conditions */}
+    <View style={styles.conditionsContainer}>
+      {mission.tasks.map(
+        missionTask => {
+          const progressTask =
+            progress.tasks.find(
+              item =>
+                item.dayNumber ===
+                missionTask.dayNumber
+            );
+
+          if (
+            progressTask?.progress
+              ?.status !== 'RUNNING'
+          ) {
+            return null;
+          }
+
+          return (
+            <View
+              key={
+                missionTask.dayNumber
+              }
+            >
+              <Text
+                style={
+                  styles.conditionTitle
+                }
+              >
+                Current Mission
+              </Text>
+
+              {/* SLAB */}
+              {missionTask.taskRuleType ===
+                'SLAB' &&
+                missionTask.slabs.map(
+                  (slab, index) => (
+                    <Text
+                      key={index}
+                      style={
+                        styles.conditionText
+                      }
+                    >
+                      •{' '}
+                      {slab.minOrders}
+                      -
+                      {
+                        slab.maxOrders
+                      }{' '}
+                      Orders → ₹
+                      {
+                        slab.rewardAmount
+                      }
+                    </Text>
+                  )
+                )}
+
+              {/* PER ORDER */}
+              {missionTask.taskRuleType ===
+                'PER_ORDER' && (
+                <>
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • ₹
+                    {
+                      missionTask.rewardPerOrder
+                    }{' '}
+                    per order
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Max Orders:{' '}
+                    {
+                      missionTask.maxOrders
+                    }
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Completed:{' '}
+                    {
+                      progressTask
+                        .progress
+                        .completedOrders
+                    }
+                  </Text>
+                </>
+              )}
+
+              {/* FIXED TARGET */}
+              {missionTask.taskRuleType ===
+                'FIXED_TARGET' && (
+                <>
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Target Orders:{' '}
+                    {
+                      missionTask.target
+                        .orders
+                    }
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Reward: ₹
+                    {
+                      missionTask.reward
+                        .amount
+                    }
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Completed:{' '}
+                    {
+                      progressTask
+                        .progress
+                        .completedOrders
+                    }
+                  </Text>
+                </>
+              )}
+
+              {/* HYBRID */}
+              {missionTask.taskRuleType ===
+                'HYBRID' && (
+                <>
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Orders:{' '}
+                    {
+                      missionTask
+                        .conditions
+                        .minOrders
+                    }
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Acceptance:{' '}
+                    {
+                      missionTask
+                        .conditions
+                        .minAcceptanceRate
+                    }
+                    %
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.conditionText
+                    }
+                  >
+                    • Earnings: ₹
+                    {
+                      missionTask
+                        .conditions
+                        .minEarnings
+                    }
+                  </Text>
+                </>
+              )}
+            </View>
+          );
+        }
+      )}
+    </View>
+  </View>
+);
+};
+
+const styles = StyleSheet.create({
+card: {
+  backgroundColor: '#FFFFFF',
+  marginBottom: 20,
+  padding: 18,
+  borderRadius: 20,
+
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.08,
+  shadowRadius: 5,
+
+  elevation: 2,
+},
+
+progressText: {
+  fontSize: 15,
+  fontWeight: '700',
+  color: '#111827',
+  marginBottom: 12,
+},
+
+progressBar: {
+  height: 10,
+  backgroundColor: '#E5E7EB',
+  borderRadius: 999,
+  overflow: 'hidden',
+},
+
+progressFill: {
+  height: '100%',
+  backgroundColor: '#22C55E',
+  borderRadius: 999,
+},
+
+stepperContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 26,
+},
+
+stepWrapper: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+circle: {
+  width: 25,
+  height: 25,
+  borderRadius: 15,
+  backgroundColor: '#D1D5DB',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+completedCircle: {
+  backgroundColor: '#22C55E',
+},
+
+runningCircle: {
+  backgroundColor: '#2563EB',
+},
+
+circleText: {
+  color: '#FFFFFF',
+  fontSize: 11,
+  fontWeight: '700',
+},
+
+line: {
+  width: 18,
+  height: 3,
+  backgroundColor: '#D1D5DB',
+  marginHorizontal: 2,
+  borderRadius: 10,
+},
+
+completedLine: {
+  backgroundColor: '#22C55E',
+},
+
+conditionsContainer: {
+  marginTop: 24,
+  backgroundColor: '#F9FAFB',
+  borderRadius: 16,
+  padding: 16,
+},
+
+conditionTitle: {
+  fontSize: 16,
+  fontWeight: '700',
+  color: '#111827',
+  marginBottom: 14,
+},
+
+conditionCard: {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 14,
+  padding: 14,
+  marginBottom: 10,
+  borderWidth: 1,
+  borderColor: '#F3F4F6',
+},
+
+conditionRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginBottom: 8,
+},
+
+conditionLabel: {
+  fontSize: 14,
+  color: '#6B7280',
+},
+
+conditionValue: {
+  fontSize: 14,
+  fontWeight: '700',
+  color: '#111827',
+},
+});
+
+export default WeeklyMissionProgressBar;
