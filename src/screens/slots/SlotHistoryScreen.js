@@ -8,24 +8,19 @@ import {
 import React, {useState, useEffect, useCallback} from 'react';
  
 import {useSlotHistory} from '../../hooks/useSlotHistory';
-import {COLORS} from '../../utils/SlotHistoryColors';
-import { GRADIENTS } from '../../utils/SlotHistoryColors';
+import { COLORS,GRADIENTS } from '../../utils/SlotHistoryColors';
 import LinearGradient from 'react-native-linear-gradient';
-
 
 
  
 export default function SlotHistoryScreen({navigation}){
    
-    const [expandedDates, setExpandedDates] = useState([]);// allows multiple open days
+    const [expandedDates, setExpandedDates] = useState([]);
     const [isWeekSheetOpen, setIsWeekSheetOpen] = useState(false);
 
-    
-
-    // at top of SlotHistoryScreen (inside component but before useState that depends on currentWeek)
     const getCurrentWeek = () => {
     const today = new Date();
-    // find Monday of week 1 via Jan 4 trick (ISO)
+   
     const jan4 = new Date(today.getFullYear(), 0, 4);
     const week1Monday = new Date(jan4);
     week1Monday.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
@@ -37,28 +32,23 @@ export default function SlotHistoryScreen({navigation}){
 
     const currentWeek = getCurrentWeek();
 
-    // init selectedWeek with currentWeek (safe because currentWeek computed synchronously)
+    // init selectedWeek with currentWeek
     const [selectedWeek, setSelectedWeek] = useState(currentWeek);
 
     const {
-    summary,
-    days,
-    loading,
-    refreshing,
-    onRefresh,
-    availableWeeks,
-    preloadPastWeeks
-    } = useSlotHistory(selectedWeek);
+      summary,
+      days,
+      loading,
+      refreshing,
+      onRefresh,
+      availableWeeks,
+      preloadPastWeeks
+      } = useSlotHistory(selectedWeek);
 
-
-    
     useEffect(() => {
-    // preload a few past weeks quietly on mount
-    preloadPastWeeks(6); 
-    
-    }, []);
+      preloadPastWeeks(6);  
+      }, []);
 
-   
     //  Week helpers (date range & formatting)
     const getWeekRange = (days) => {
         if (!days || days.length === 0) return '';
@@ -101,55 +91,46 @@ export default function SlotHistoryScreen({navigation}){
 
 
 
-    // Header shown above the slot list (week selector + summary)
+    // Header shown above the slot list (week selector and summary)
     const ListHeader = () =>{
        return(
         <View>
-            <LinearGradient
+          <LinearGradient
               colors={['#EEF2FF', '#F5F3FF']}
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
               style={styles.weekRangeGradientCard}
             >
-              <View style={styles.week_selector}>
-                
-                <View style={{flex:1}}>
-                  <Text style={styles.week_text}>
-                    {getWeekRange(days)}
-                  </Text>
-                </View>
+              <View style={styles.weekSelectorTopRow}>
+                <Text style={styles.weekSelectorLabel}>
+                  {`Week ${selectedWeek}`}
+                </Text>
 
                 {selectedWeek === currentWeek && (
                   <View style={styles.thisWeekPremium}>
-                    <Text style={styles.thisWeekPremiumText}>
-                      This Week
-                    </Text>
+                    <Text style={styles.thisWeekPremiumText}>This Week</Text>
                   </View>
                 )}
+
+                <View style={{ flex: 1 }} />
 
                 <TouchableOpacity
                   style={styles.changeWeekPremium}
                   onPress={() => setIsWeekSheetOpen(true)}
                 >
-                  <Text style={styles.changeWeekText}>
-                    Change
-                  </Text>
-
-                  <Ionicons
-                    name='chevron-forward-outline'
-                    size={18}
-                    color="#4F46E5"
-                  />
+                  <Text style={styles.changeWeekText}>Change</Text>
+                  <Ionicons name='chevron-forward-outline' size={18} color="#4F46E5" />
                 </TouchableOpacity>
-
               </View>
-            </LinearGradient>
 
-                
+              <Text style={styles.week_text}>
+                {getWeekRange(days) || getWeekRangeByWeekNumber(selectedWeek)}
+              </Text>
+          </LinearGradient>
  
-                {/* SUMMARY */}
-                <View style={styles.summary_container}>
-                    <LinearGradient
+          {/* SUMMARY */}
+          <View style={styles.summary_container}>
+              <LinearGradient
                       colors={GRADIENTS.booked}
                       start={{ x: 0, y: 1 }}
                       end={{ x: 1, y: 0 }}
@@ -157,12 +138,11 @@ export default function SlotHistoryScreen({navigation}){
                     >
                       <Text style={styles.summaryGradientLabel}>Booked</Text>
                       <Text style={styles.summaryGradientValue}>
-                        {summary?.booked ?? 0}
+                        {summary?.totalSlots ?? 0}
                       </Text>
-                  </LinearGradient>
+              </LinearGradient>
 
-
-                    <LinearGradient
+              <LinearGradient
                         colors={GRADIENTS.missed}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
@@ -172,12 +152,10 @@ export default function SlotHistoryScreen({navigation}){
                         <Text style={styles.summaryGradientValue}>
                           {summary?.noShow ?? 0}
                         </Text>
-                    </LinearGradient>
-
-
-                </View>
-                <View style={[styles.summary_container,{marginBottom:hp(2)}]}>
-                    <LinearGradient
+                </LinearGradient>
+            </View>
+            <View style={[styles.summary_container,{marginBottom:hp(2)}]}>
+                <LinearGradient
                         colors={GRADIENTS.cancelled}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
@@ -187,10 +165,9 @@ export default function SlotHistoryScreen({navigation}){
                         <Text style={styles.summaryGradientValue}>
                           {summary?.cancelled ?? 0}
                         </Text>
-                    </LinearGradient>
+                </LinearGradient>
 
-
-                    <LinearGradient
+                <LinearGradient
                       colors={GRADIENTS.completed}
                       start={{ x: 0, y: 1 }}
                       end={{ x: 1, y: 0 }}
@@ -200,54 +177,28 @@ export default function SlotHistoryScreen({navigation}){
                       <Text style={styles.summaryGradientValue}>
                         {summary?.completed ?? 0}
                       </Text>
-                  </LinearGradient>
-
-
-                </View>
+                </LinearGradient>
             </View>
+         </View>
         );
     };
    
     const getStatusStyle = (status = '') => {
-  switch (status) {
-    case 'completed':
-      return {
-        bg: COLORS.completedBg,
-        text: COLORS.completedText,
-      };
-
-    case 'missed':
-      return {
-        bg: COLORS.missedBg,
-        text: COLORS.missedText,
-      };
-
-    case 'cancelled':
-      return {
-        bg: COLORS.cancelledBg,
-        text: COLORS.cancelledText,
-      };
-
-    case 'booked':
-      return {
-        bg: COLORS.bookedBg,
-        text: COLORS.bookedText,
-      };
-
-    case 'ongoing':
-      return {
-        bg: COLORS.ongoingBg,
-        text: COLORS.ongoingText,
-      };
-
-    default:
-      return {
-        bg: COLORS.neutralBg,
-        text: COLORS.textSecondary,
-      };
-  }
-};
-
+      switch (status) {
+        case 'completed':
+          return { bg: '#DCFCE7', text: '#0F9D58' };
+        case 'missed':
+          return { bg:'#FFEDD5', text: '#C2410C' };
+        case 'cancelled':
+          return { bg: '#FFF1F2', text: '#DC2626' };
+        case 'booked':
+          return { bg: '#FEF9C3', text: '#A16207', };
+        case 'ongoing':
+          return { bg: '#FFF7ED', text: '#EA580C' };
+        default:
+          return { bg: '#F3F4F6', text: '#6B7280' };
+      }
+    };
 
     const renderDay = useCallback(({ item: day }) => {
       const isOpen = expandedDates.includes(day.date);
@@ -255,32 +206,38 @@ export default function SlotHistoryScreen({navigation}){
 
       return (
         <View style={styles.dayContainer}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            hitSlop={{top:8,bottom:8,left:8,right:8}}
-            style={styles.dayHeader}
-            onPress={() =>
-              setExpandedDates(prev => (
-                prev.includes(day.date) ? prev.filter(d => d !== day.date) : [...prev, day.date]
-              ))
-            }
-            accessibilityRole="button"
-            accessibilityLabel={`Toggle ${day.date} slots`}
-          >
-            <View>
-              <Text style={styles.day_row_text}>{formatDate(day.date)}</Text>
-              <Text style={styles.day_subtext}>{slotCount} {slotCount === 1 ? 'slot' : 'slots'}</Text>
-            </View>
+          <LinearGradient
+              colors={['#F8FAFC', '#EFF6FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.dayHeader}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              hitSlop={{top:8,bottom:8,left:8,right:8}}
+              style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flex: 1 }}
+              onPress={() =>
+                setExpandedDates(prev => (
+                  prev.includes(day.date) ? prev.filter(d => d !== day.date) : [...prev, day.date]
+                ))
+              }
+              accessibilityRole="button"
+              accessibilityLabel={`Toggle ${day.date} slots`}
+            >
+              <View>
+                <Text style={styles.day_row_text}>{formatDate(day.date)}</Text>
+                <Text style={styles.day_subtext}>{slotCount} {slotCount === 1 ? 'slot' : 'slots'}</Text>
+              </View>
 
-            <View style={styles.dayHeaderRight}>
-              <Text style={styles.dayWeekBadge}>{/* optional small badge */}</Text>
-              <Ionicons
-                name={isOpen ? 'chevron-up-outline' : 'chevron-down-outline'}
-                size={20}
-                color={COLORS.textSecondary}
-              />
-            </View>
-          </TouchableOpacity>
+              <View style={styles.dayHeaderRight}>
+                <Text>{/* optional small badge */}</Text>
+                <Ionicons
+                  name={isOpen ? 'chevron-up-outline' : 'chevron-down-outline'}
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
+              </View>
+            </TouchableOpacity>
+          </LinearGradient>
 
           {isOpen && (
             <View style={styles.slotsContainer}>
@@ -288,7 +245,7 @@ export default function SlotHistoryScreen({navigation}){
                 <Text style={styles.empty_text}>No slots for this day.</Text>
               ) : (
                 day.slots.map(slot => {
-                  const status = slot.status?.toLowerCase();
+                  const status = slot.derivedStatus?.toLowerCase();
                   const statusStyle = getStatusStyle(status);
                   return (
                     <View key={slot._id ?? `${slot.startTime}-${slot.endTime}`} style={styles.slot_card}>
@@ -310,6 +267,30 @@ export default function SlotHistoryScreen({navigation}){
         </View>
       );
     }, [expandedDates, setExpandedDates]);
+
+    const EmptyState = () => (
+      <View style={styles.emptyStateContainer}>
+        <View style={styles.emptyIconWrapper}>
+          <Ionicons name="calendar-outline" size={48} color="#C7C7CC" />
+        </View>
+        <Text style={styles.emptyTitle}>No slot history this week</Text>
+        <Text style={styles.emptySubtext}>
+          You have no slot history for {getWeekRange(days) || getWeekRangeByWeekNumber(selectedWeek)}
+        </Text>
+        {selectedWeek !== currentWeek && (
+          <TouchableOpacity
+            style={styles.emptyWeekBtn}
+            onPress={() => {
+              setSelectedWeek(currentWeek);
+              setIsWeekSheetOpen(false);
+            }}
+          >
+            <Ionicons name="arrow-back-outline" size={16} color="#4F46E5" />
+            <Text style={styles.emptyWeekBtnText}>Go back to this week</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
 
       
  
@@ -336,11 +317,9 @@ export default function SlotHistoryScreen({navigation}){
               <View style={{ width: 40 }} />
             </LinearGradient>
 
-
                 {/* Spacer to balance back button */}
                 <View style={{ width: 40 }} />
              
-               
                 {/* DAYS LIST */}
                 <FlatList
                     data={days}
@@ -360,387 +339,126 @@ export default function SlotHistoryScreen({navigation}){
                     ListHeaderComponent={
                         <>
                             {loading && (
-                            <View style={{ marginVertical: hp(2), alignItems: 'center' }}>
-                                <ActivityIndicator size="large" color='black' />
-                            </View>
-                            )}
-                            <ListHeader />
+                              <View style={{ marginVertical: hp(2), alignItems: 'center' }}>
+                                  <ActivityIndicator size="large" color="#1E293B" />
+                              </View>
+                              )}
+                              <ListHeader />
                         </>
                         }
+                  ListEmptyComponent={ !loading ? <EmptyState /> : null }
                  />
  
                 {isWeekSheetOpen && (
-                    <View style={styles.sheet_overlay}>
-                        <View style={styles.sheet_container}>
-                            <Text style={styles.sheet_title}>Select Week</Text>                             
-                            <ScrollView
-                                style={{ maxHeight: hp(50) }}
-                                showsVerticalScrollIndicator={false}
-                                >
-                                {(availableWeeks ?? []).map(week => (
-                                    <TouchableOpacity
-                                        key={`week-${week}`}
-                                        style={styles.week_item}
-                                        onPress={() => {
-                                            setSelectedWeek(week);
-                                            setIsWeekSheetOpen(false);
-                                        }}
-                                        >
-                                        <Text
-                                            style={{
-                                            fontWeight: week === selectedWeek ? '700' : '400',
-                                            fontSize: wp(4),
-                                            }}
-                                        >
-                                            {getWeekRangeByWeekNumber(week)}
-                                        </Text>
+                  <View style={styles.sheet_overlay}>
 
-                                        {week === currentWeek && (
-                                            <Text style={styles.this_week}>This Week</Text>
-                                        )}
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
+                    {/* Tap outside to close */}
+                    <TouchableOpacity
+                      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                      activeOpacity={1}
+                      onPress={() => setIsWeekSheetOpen(false)}
+                    />
 
- 
-                            <TouchableOpacity
-                                style={styles.sheet_cancel}
-                                onPress={() => setIsWeekSheetOpen(false)}>
-                                <Text style={{fontSize:wp(4),fontWeight:'500'}}>Cancel</Text>
-                            </TouchableOpacity>
+                    <View style={styles.sheet_container}>
+                      <Text style={styles.sheet_title}>Select Week</Text>
+                      <ScrollView
+                        style={{ maxHeight: hp(50) }}
+                        showsVerticalScrollIndicator={false}
+                      >
+                        {(availableWeeks ?? []).map(week => (
+                          <TouchableOpacity
+                            key={`week-${week}`}
+                            style={[
+                              styles.week_item,
+                              week === selectedWeek && styles.week_item_selected,
+                            ]}
+                            onPress={() => {
+                              setSelectedWeek(week);
+                              setIsWeekSheetOpen(false);
+                            }}
+                          >
+                            <View style={{ flex: 1 }}>
+                              <Text style={{
+                                fontWeight: week === selectedWeek ? '700' : '400',
+                                fontSize: wp(4),
+                                color: week === selectedWeek ? '#4F46E5' : undefined,
+                              }}>
+                                {getWeekRangeByWeekNumber(week)}
+                              </Text>
+                            </View>
 
-                        </View>
+                            {week === currentWeek && (
+                              <Text style={styles.this_week}>This Week</Text>
+                            )}
+
+                            {week === selectedWeek && (
+                              <Ionicons name="checkmark-outline" size={18} color="#4F46E5" />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+
+                      <TouchableOpacity
+                        style={styles.sheet_back}
+                        onPress={() => setIsWeekSheetOpen(false)}
+                      >
+                        <Text style={styles.sheet_back_text}>Back</Text>
+                      </TouchableOpacity>
                     </View>
-                    )}  
+
+                  </View>
+                )}
         </SafeAreaView>
     );
 }
  
- 
- 
-const styles = StyleSheet.create({
-    header:{
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'space-between',
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(2),
-        backgroundColor: COLORS.card,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
+ const styles = StyleSheet.create({
+  backBtn:              { width: 40, alignItems: 'flex-start' },
 
-    backBtn:{
-    width: 40,
-    alignItems:'flex-start'
-    },
+  headerGradient:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: wp(4), paddingVertical: hp(2.2), borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  headerTitleGradient:  { flex: 1, textAlign: 'center', fontSize: wp(6), fontWeight: '600', color: '#FFF', letterSpacing: 0.5 },
 
-    headerTitle:{
-        flex: 1,
-        textAlign:'center',
-        fontSize: wp(5.8),
-        fontWeight:'600',
-        color: COLORS.textPrimary,
-        letterSpacing: 0.3
-    },
-    backBtn:{
-        width: 40,
-        alignItems:'flex-start'
-    },
-    headerGradient: {
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'space-between',
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(2.2),
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        },
+  weekRangeGradientCard:{ marginTop: hp(2), marginBottom: hp(1), padding: wp(4.5), width: wp('95%'), borderRadius: 22, alignSelf: 'center', borderWidth: 1, borderColor: '#EEF2FF', shadowColor: '#4F46E5', shadowOpacity: 0.08, shadowRadius: 18, elevation: 6 },
+  weekSelectorTopRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: hp(0.8), gap: wp(2) },
+  weekSelectorLabel:    { fontSize: wp(3.2), fontWeight: '600', color: '#6B7280', letterSpacing: 0.4 },
+  week_text:            { fontSize: wp(5), fontWeight: '800', color: '#111827' },
+  thisWeekPremium:      { backgroundColor: '#dae3ff', paddingHorizontal: wp(3.2), paddingVertical: hp(0.8), borderRadius: wp(5) },
+  thisWeekPremiumText:  { color: '#4F46E5', fontSize: wp(3.2), fontWeight: '800', letterSpacing: 0.5 },
+  changeWeekPremium:    { flexDirection: 'row', alignItems: 'center', gap: wp(1) },
+  changeWeekText:       { color: '#4F46E5', fontSize: wp(4), fontWeight: '700' },
 
-    headerTitleGradient:{
-        flex:1,
-        textAlign:'center',
-        fontSize: wp(6),
-        fontWeight:'600',
-        color:'#FFF',
-        letterSpacing:0.5
-    },
-    weekRangeGradientCard:{
-        marginTop: hp(2),
-        marginBottom: hp(1),
-        padding: wp(4.5),
-        width: wp('95%'),
-        borderRadius: 22,
-        alignSelf:'center',
+  summary_container:    { flexDirection: 'row' },
+  summaryGradient:      { flex: 1, paddingVertical: hp(2.4), paddingHorizontal: wp(4), borderRadius: 22, margin: wp(2), shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 18, elevation: 8 },
+  summaryGradientLabel: { color: '#FFFFFFCC', fontSize: wp(3.6), fontWeight: '600' },
+  summaryGradientValue: { color: '#FFF', fontSize: wp(7), fontWeight: '900', marginTop: hp(0.5) },
 
-        borderWidth:1,
-        borderColor:'#EEF2FF',
+  dayContainer:         { marginHorizontal: wp(3) },
+  dayHeader:            { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: hp(1.2), paddingHorizontal: wp(3), backgroundColor: COLORS.card, borderRadius: 12, marginTop: hp(1.4), shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
+  dayHeaderRight:       { flexDirection: 'row', alignItems: 'center', gap: wp(2) },
+  day_row_text:         { fontSize: wp(4.2), fontWeight: '700', color: COLORS.textPrimary },
+  day_subtext:          { fontSize: wp(3.4), color: COLORS.textSecondary, marginTop: hp(0.3) },
 
-        shadowColor:'#4F46E5',
-        shadowOpacity:0.08,
-        shadowRadius:18,
-        elevation:6
-        },
-    weekRangeLabel:{
-        fontSize: wp(3.2),
-        color:'#6B7280',
-        fontWeight:'600',
-        marginBottom: hp(0.3)
-        },
+  slotsContainer:       { paddingHorizontal: wp(3), paddingTop: hp(1), paddingBottom: hp(1.6) },
+  slot_card:            { backgroundColor: COLORS.card, padding: wp(3.5), marginVertical: hp(0.6), borderRadius: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
+  slot_time:            { fontSize: wp(4), fontWeight: '700', color: COLORS.textPrimary },
+  statusPill:           { paddingVertical: hp(0.5), paddingHorizontal: wp(3), borderRadius: 999, alignSelf: 'center', justifyContent: 'center' },
+  statusPillText:       { fontSize: wp(3), fontWeight: '700' },
+  empty_text:           { marginTop: hp(1), marginLeft: wp(3), color: '#777' },
 
-    week_selector_container:{
-        backgroundColor: COLORS.card,
-        marginTop: hp(2),
-        marginBottom:hp(1),
-        padding: wp(4),
-        width: wp('95%'),
-        borderRadius: 16,
-        alignSelf:'center',
+  sheet_overlay:        { position: 'absolute', bottom: 0, left: 0, right: 0, top: 0, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet_container:      { backgroundColor: COLORS.card, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: wp(6) },
+  sheet_title:          { fontSize: wp(5.2), fontWeight: '700', color: COLORS.textPrimary, marginBottom: hp(2) },
+  week_item:            { flexDirection: 'row', gap: wp(2), paddingVertical: hp(1.8), paddingHorizontal: wp(3) },
+  week_item_selected:   { backgroundColor: '#EEF2FF', borderRadius: 12, borderWidth: 1.5, borderColor: '#4F46E5' },
+  this_week:            { color: '#4F46E5', fontSize: wp(3.2), fontWeight: '700', backgroundColor: '#dae3ff', paddingHorizontal: wp(2.5), paddingVertical: hp(0.4), borderRadius: 999, overflow: 'hidden' },
+  sheet_back:           { marginTop: hp(2), alignItems: 'center', paddingVertical: hp(1.6), borderRadius: 14, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB' },
+  sheet_back_text:      { fontSize: wp(4), fontWeight: '600', color: '#374151', letterSpacing: 0.2 },
 
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 4,
-    },
-    week_selector:{
-        flexDirection:'row', 
-    },
-    week_text:{
-        fontSize: wp(5),
-        fontWeight:'800',
-        color:'#111827'
-        },
-    thisWeekPremium:{
-    backgroundColor:'#dae3ff',
-    paddingHorizontal: wp(3.2),
-    paddingVertical: hp(0.8),
-    borderRadius: wp(5),
-    marginRight: wp(10)
-    },
-
-    thisWeekPremiumText:{
-    color:'#4F46E5',
-    fontSize: wp(3.2),
-    fontWeight:'800',
-    letterSpacing: 0.5
-    },
-    changeWeekPremium:{
-    flexDirection:'row',
-    alignItems:'center',
-    gap: wp(1)
-    },
-
-    changeWeekText:{
-    color:'#4F46E5',
-    fontSize: wp(4),
-    fontWeight:'700'
-    },
-
-
-    
-    this_week_placeholder:{
-      width:wp(25),  
-    },
-    date:{
-        marginLeft:wp(5),
-    },
-    change_week:{
-        flexDirection:'row',
-        alignItems:'center',
-        marginLeft:wp(13),
-        marginBottom:hp(1)
-       
-    },
-    summary_container:{
-        flexDirection:'row',
-    },
-    summary:{
-        flex:1,
-        paddingVertical: hp(2.2),
-        paddingHorizontal: wp(4),
-        borderRadius: 20,
-        margin: wp(2),
-
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 20,
-        elevation: 6,
-},
-
-    summary_text:{
-        fontSize: wp(4),
-        fontWeight:'600',
-       
-    },
-    summary_count:{
-        fontSize: wp(6.5),
-        fontWeight:'900',
-        marginTop: hp(0.5)
-        },
-    day_row:{
-        marginLeft:wp(3),
-        marginTop:hp(3),
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'space-between'
-    },
-    day_row_text:{
-        fontSize:wp(4),
-       
-    },
-    day_icon:{
-        marginRight:wp(6)
-    },
-   slot_card: {
-    backgroundColor: COLORS.card,
-    padding: wp(3.5),
-    marginVertical: hp(0.6),
-    borderRadius: 12,
-    flexDirection:'row',
-    justifyContent:'space-between',
-    alignItems:'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    },
-
-    slot_time: {
-    fontSize: wp(4),
-    fontWeight: '700',
-    color: COLORS.textPrimary
-    },
-
-    slot_status: {
-    fontSize: wp(3.2),
-    fontWeight: '700'
-    },
- 
-    empty_text: {
-        marginTop: hp(1),
-        marginLeft: wp(3),
-        color: '#777',
-    },
-    sheet_overlay: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        top: 0,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'flex-end',
-    },
- 
-    sheet_container: {
-        backgroundColor: COLORS.card,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
-        padding: wp(6),
-    },
- 
-    sheet_title: {
-        fontSize: wp(5.2),
-        fontWeight:'700',
-        color: COLORS.textPrimary,
-        marginBottom: hp(2),
-    },
- 
-    week_item: {
-        paddingVertical: hp(1.5),
-        flexDirection:'row',
-        gap:wp(2),
-        paddingVertical: hp(1.8),
-        paddingHorizontal: wp(3),
-        
-       
-    },
- 
-    sheet_cancel: {
-        marginTop: hp(2),
-        alignItems: 'center',
-       
-    },
-    dayContainer: {
-  marginHorizontal: wp(3),
-},
-
-dayHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingVertical: hp(1.2),
-  paddingHorizontal: wp(3),
-  backgroundColor: COLORS.card,
-  borderRadius: 12,
-  marginTop: hp(1.4),
-  shadowColor: '#000',
-  shadowOpacity: 0.03,
-  shadowRadius: 8,
-  elevation: 2,
-},
-
-day_row_text: {
-  fontSize: wp(4.2),
-  fontWeight: '700',
-  color: COLORS.textPrimary,
-},
-day_subtext: {
-  fontSize: wp(3.4),
-  color: COLORS.textSecondary,
-  marginTop: hp(0.3),
-},
-
-dayHeaderRight: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: wp(2),
-},
-
-slotsContainer: {
-  paddingHorizontal: wp(3),
-  paddingTop: hp(1),
-  paddingBottom: hp(1.6),
-},
-
-statusPill: {
-  paddingVertical: hp(0.5),
-  paddingHorizontal: wp(3),
-  borderRadius: 999,
-  alignSelf: 'center',
-  justifyContent: 'center',
-},
-
-statusPillText: {
-  fontSize: wp(3),
-  fontWeight: '700',
-},
-summaryGradient:{
-  flex:1,
-  paddingVertical: hp(2.4),
-  paddingHorizontal: wp(4),
-  borderRadius: 22,
-  margin: wp(2),
-  shadowColor:'#000',
-  shadowOpacity:0.15,
-  shadowRadius:18,
-  elevation:8
-},
-
-summaryGradientLabel:{
-  color:'#FFFFFFCC',
-  fontSize: wp(3.6),
-  fontWeight:'600'
-},
-
-summaryGradientValue:{
-  color:'#FFF',
-  fontSize: wp(7),
-  fontWeight:'900',
-  marginTop: hp(0.5)
-}
-
- 
- 
- 
+  emptyStateContainer:  { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: hp(6), paddingHorizontal: wp(8) },
+  emptyIconWrapper:     { width: wp(20), height: wp(20), borderRadius: wp(10), backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: hp(2) },
+  emptyTitle:           { fontSize: wp(5), fontWeight: '700', color: '#111827', marginBottom: hp(0.8) },
+  emptySubtext:         { fontSize: wp(3.8), color: '#6B7280', textAlign: 'center', lineHeight: hp(2.8) },
+  emptyWeekBtn:         { flexDirection: 'row', alignItems: 'center', gap: wp(1.5), marginTop: hp(2.5), paddingVertical: hp(1.2), paddingHorizontal: wp(5), borderRadius: 999, borderWidth: 1.5, borderColor: '#4F46E5' },
+  emptyWeekBtnText:     { color: '#4F46E5', fontSize: wp(3.8), fontWeight: '700' },
+  dayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: hp(1.2), paddingHorizontal: wp(3), borderRadius: 12, marginTop: hp(1.4), shadowColor: '#4F46E5', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
 });
- 

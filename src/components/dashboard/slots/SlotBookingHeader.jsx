@@ -7,13 +7,6 @@ import {
 import { TABS } from '../../../utils/constants/slotConstants';
 
 
-/**
- * SlotBookingHeader Component
- * Displays the header with title, support icon, and week tabs
- * 
- * @param {string} activeTab - Currently active tab (TABS.CURRENT or TABS.NEXT)
- * @param {function} onTabChange - Handler when tab is changed
- */
 export default function SlotBookingHeader({ activeTab, onTabChange }) {
     return (
         <View style={styles.header}>
@@ -71,8 +64,8 @@ export default function SlotBookingHeader({ activeTab, onTabChange }) {
 const styles = StyleSheet.create({
     header: {
         backgroundColor: '#4C4CFF',
-        paddingTop: 20,
-        paddingBottom: 20,
+        paddingTop: hp(3),
+        paddingBottom: hp(2),
         paddingHorizontal: 16,
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,

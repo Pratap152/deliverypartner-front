@@ -19,7 +19,6 @@ import SlotHistory from '../../components/common/SlotHistory';
 
 
 export default function SlotBookingScreen() {
-  // Slot data and operations
   const {
     weeks,
     slots,
@@ -51,25 +50,24 @@ export default function SlotBookingScreen() {
   const [successVisible, setSuccessVisible] = useState(false);
   const [activeSlot, setActiveSlot] = useState(null);
 
-  // Getting city and zone from profileSlice
   const cityId = useSelector((state) => state.profile.data?.location?.city?.trim());
-const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
+  const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
   
   // Load weeks and slots in parallel on mount
   useEffect(() => {
     loadWeeks({ cityId, pincodeId });
-loadSlots({ date: today, filter, cityId, pincodeId });
+    loadSlots({ date: today, filter, cityId, pincodeId });
   }, []);
-
 
   const isInitialMount = useRef(true);
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
-      return; // skip on mount since we already loaded todays slots
+      return; // skip on mount because we already loaded todays slots
     }
     if (selectedWeek) {
-loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
+      loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    
+    }
   }, [selectedWeek, filter]);
 
   // Handlers
@@ -86,7 +84,8 @@ loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
       // Load next week (current + 1)
       const currentWeekNum = getWeekNumber();
       const nextWeekNum = currentWeekNum + 1;
-loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });    }
+      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });    
+    }
   };
 
   const handleWeekSelect = (date) => {
@@ -120,7 +119,8 @@ loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });    }
       clearSelection();
       // Refresh slots
       if (selectedWeek) {
-loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      }
+        loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      
+      }
     }
   };
 
@@ -130,13 +130,15 @@ loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      }
       setCancelModalVisible(false);
       // Refresh slots
       if (selectedWeek) {
-loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      }
+        loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      
+      }
     }
   };
 
   const handleRefresh = () => {
     if (selectedWeek) {
-loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
+      loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    
+    }
   };
 
 
@@ -200,6 +202,6 @@ loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F8F9FA'
   },
 });

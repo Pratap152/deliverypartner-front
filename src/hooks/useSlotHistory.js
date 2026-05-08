@@ -6,22 +6,22 @@ export function useSlotHistory(initialWeek) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // guard to avoid duplicate fetches for same week
+  // to avoid duplicate fetches for same week
   const fetchingRef = useRef({}); 
 
   const currentWeekRef = useRef(initialWeek);
   useEffect(() => { currentWeekRef.current = initialWeek; }, [initialWeek]);
 
-  // fetch single week (idempotent w/ fetchingRef)
+  // fetch single week 
   const fetchWeek = async (weekNumber, { isRefresh = false } = {}) => {
     if (!weekNumber) return;
-    if (fetchingRef.current[weekNumber]) return; // already fetching
+    if (fetchingRef.current[weekNumber]) return;
 
     try {
       fetchingRef.current[weekNumber] = true;
       isRefresh ? setRefreshing(true) : setLoading(true);
 
-      const res = await fetchSlotHistory(weekNumber); // your service
+      const res = await fetchSlotHistory(weekNumber);
       setCache(prev => ({
         ...prev,
         [weekNumber]: {
@@ -41,12 +41,11 @@ export function useSlotHistory(initialWeek) {
   // fetch the requested initialWeek whenever it changes
   useEffect(() => {
     if (initialWeek) fetchWeek(initialWeek);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialWeek]);
 
   const onRefresh = () => fetchWeek(currentWeekRef.current, { isRefresh: true });
 
-  // preload past weeks — fetch them in parallel but skip already cached or fetching
+  // preload past weeks
   const preloadPastWeeks = async (count = 6) => {
     const start = currentWeekRef.current - 1;
     if (start <= 0) return;
@@ -60,7 +59,7 @@ export function useSlotHistory(initialWeek) {
 
     if (weeksToFetch.length === 0) return;
 
-    // start all fetches in parallel (non-blocking) and wait for them to settle
+    // start all fetches in parallel and wait for them to settle
     await Promise.allSettled(weeksToFetch.map(w => fetchWeek(w)));
   };
 
@@ -76,8 +75,8 @@ export function useSlotHistory(initialWeek) {
     loading,
     refreshing,
     onRefresh,
-    fetchWeek,         // still useful if you want to fetch a specific week from UI
-    preloadPastWeeks,  // call once or on user action
+    fetchWeek,         
+    preloadPastWeeks,
     availableWeeks,
   };
 }
