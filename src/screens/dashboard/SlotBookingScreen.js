@@ -18,7 +18,7 @@ import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
 import SlotHistory from '../../components/common/SlotHistory';
 
 
-export default function SlotBookingScreen() {
+export default function SlotBookingScreen({navigation}) {
   const {
     weeks,
     slots,
@@ -145,7 +145,7 @@ export default function SlotBookingScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <SlotBookingHeader activeTab={activeTab} onTabChange={handleTabChange} />
+      <SlotBookingHeader activeTab={activeTab} onTabChange={handleTabChange} navigation={navigation} />
 
       {/* Main Content */}
       {activeTab === TABS.UPCOMING ? (

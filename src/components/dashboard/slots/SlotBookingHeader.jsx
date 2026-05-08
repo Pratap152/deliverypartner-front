@@ -7,13 +7,14 @@ import {
 import { TABS } from '../../../utils/constants/slotConstants';
 
 
-export default function SlotBookingHeader({ activeTab, onTabChange }) {
+export default function SlotBookingHeader({ activeTab, onTabChange, navigation}) {
     return (
         <View style={styles.header}>
             {/* Header Top Row */}
             <View style={styles.headerTop}>
                 <Text style={styles.headerTitle}>My Slots</Text>
-                <TouchableOpacity>
+                <TouchableOpacity
+                    onPress={()=>navigation.navigate('HelpCenterList')}>
                 <Image
                     source={require('../../../assets/chat.png')}
                     style={styles.chat_icon}
