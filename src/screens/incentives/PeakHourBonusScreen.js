@@ -98,6 +98,16 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
   const data = route.params;
   console.log("data from peak hour bonus: ", data);
 
+  if (data.emptyData || data.peakIncentivesProgress?.emptyData) {
+    return (
+      <View>
+        <Text>
+          Please come again later
+        </Text>
+      </View>
+    )
+  }
+
   /* ---------------- EXTRACT DATA ---------------- */
   const ruleType = data.peak_data.data[0]?.slots[0].ruleType;
   const dataSlots = data.peak_data.data;

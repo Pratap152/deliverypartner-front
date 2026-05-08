@@ -12,7 +12,12 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getWeeklyIncentivesProgress();
+      if(res.data[0]) {
       setWeeklyIncentivesProgress(res.data[0]);
+      }
+      else {
+        setWeeklyIncentivesProgress({emptyData: true})
+      }
     } finally {
       setLoad(false);
     }
@@ -22,7 +27,11 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getDailyIncentivesProgress();
+      if(res) {
       setDailyIncentivesProgress(res);
+      } else {
+        setDailyIncentivesProgress({emptyData: true})
+      }
     } finally {
       setLoad(false);
     }
@@ -32,7 +41,11 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getPeakIncentivesProgress();
-      setPeakIncentivesProgress(res);
+      if(res.data[0]) {
+      setPeakIncentivesProgress(res.data[0]);
+      } else {
+        setPeakIncentivesProgress({emptyData: true})
+      }
     } finally {
       setLoad(false);
     }
