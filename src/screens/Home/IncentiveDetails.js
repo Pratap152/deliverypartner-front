@@ -35,16 +35,21 @@ export default function IncentiveDetails({ navigation }) {
     fetchPeakIncentivesProgress();
   }, []);
 
-  const weeklyCompletedOrders = weeklyIncentivesProgress?.ordersCompleted;
+  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
   const dailyCompletedOrders = dailyIncentivesProgress?.ordersCompleted;
-  const peakCompletedOrders = peakIncentivesProgress?.slots[0].ordersCompleted;
+  const peakCompletedOrders = 1||peakIncentivesProgress?.slots[0].ordersCompleted;
 
-  const weeklyMinimumOrders = weeklyData?.data[0].target?.orders || weeklyData?.data[0].slabs[0]?.minOrders;
+  const weeklyMinimumOrders = weeklyData?.data[0].ruleType === "HYBRID" ?
+          weeklyData?.data[0]?.conditions?.minOrders :
+          weeklyData?.data[0]?.ruleType === "FIXED_TARGET" ?
+            weeklyData?.data[0]?.target?.orders :
+            weeklyData?.data[0]?.ruleType === "SLAB" ?
+              weeklyData?.data[0]?.slabs[0]?.minOrders : 0;
   const dailyMinimumOrders = dailyData?.data[0]?.target?.orders || dailyData?.data[0].slabs[0]?.minOrders;
 
   const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned;
   const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned;
-  const peakRewardEarned = peakIncentivesProgress?.slots[0].reward;
+  const peakRewardEarned = 40||peakIncentivesProgress?.slots[0]?.reward;
 
   /* ================= FETCH ALL INCENTIVES ================= */
   const fetchAllIncentives = async () => {
@@ -97,6 +102,14 @@ export default function IncentiveDetails({ navigation }) {
       setLoading(false);
     }
   };
+
+  if(!peakData?.data[0] || !dailyData?.data[0] || !weeklyData?.data[0]){
+    return(
+      <View>
+        <Text>Please come again later.</Text>
+      </View>
+    )
+  }
 
   /* ================= NAVIGATION HANDLERS ================= */
   const navigateToPeakHour = () => {
