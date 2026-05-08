@@ -5,6 +5,7 @@ import {
     StyleSheet,
     FlatList,
     Text,
+    TouchableOpacity,
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import OrderCard from './OrderCard';
@@ -20,7 +21,7 @@ const OrderQueueModal = ({
     onAccept,
     onClose,
 }) => {
-    if (!visible || orderQueue.length === 0) return null;
+    if (!visible) return null;
 
     const renderItem = ({ item }) => {
         const { data, countdown } = item;
@@ -51,13 +52,23 @@ const OrderQueueModal = ({
                         <View style={styles.handle} />
                     </View>
                     
-                    <FlatList
-                        data={orderQueue}
-                        renderItem={renderItem}
-                        keyExtractor={(item) => item.id}
-                        contentContainerStyle={styles.listContent}
-                        showsVerticalScrollIndicator={false}
-                    />
+                    {orderQueue.length > 0 ? (
+                        <FlatList
+                            data={orderQueue}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.listContent}
+                            showsVerticalScrollIndicator={false}
+                        />
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyTitle}>No Orders Available</Text>
+                            <Text style={styles.emptySubtitle}>We'll notify you when a new order arrives.</Text>
+                            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                                <Text style={styles.closeButtonText}>Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
             </View>
         </Modal>
@@ -92,6 +103,37 @@ const styles = StyleSheet.create({
     listContent: {
         paddingHorizontal: wp('5%'),
         paddingBottom: hp('2%'),
+    },
+    emptyContainer: {
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: wp('5%'),
+        borderRadius: wp('5%'),
+        padding: wp('8%'),
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyTitle: {
+        fontSize: wp('5%'),
+        fontWeight: '800',
+        color: '#1e293b',
+        marginBottom: hp('1%'),
+    },
+    emptySubtitle: {
+        fontSize: wp('3.8%'),
+        color: '#64748b',
+        textAlign: 'center',
+        marginBottom: hp('3%'),
+    },
+    closeButton: {
+        backgroundColor: '#f1f5f9',
+        paddingVertical: hp('1.5%'),
+        paddingHorizontal: wp('10%'),
+        borderRadius: wp('8%'),
+    },
+    closeButtonText: {
+        color: '#475569',
+        fontWeight: '700',
+        fontSize: wp('4%'),
     },
     title: {
         fontSize: wp('4%'),

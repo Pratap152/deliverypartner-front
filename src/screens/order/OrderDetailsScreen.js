@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackHandler } from 'react-native';
 import Geolocation from "@react-native-community/geolocation";
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
   widthPercentageToDP as wp,
@@ -25,9 +24,8 @@ import OrderHeader from '../../components/order/OrderHeader';
 import OrderAddressCard from '../../components/order/OrderAddressCard';
 import OrderItemsCard from '../../components/order/OrderItemsCard';
 import OrderEarningsCard from '../../components/order/OrderEarningsCard';
-// SwipeButton removed - using normal button now
-// import LiveMap from '../../components/map/LiveMap';
-// import { getDistance } from '../../utils/mapUtils';
+import OrderSkeleton from '../../components/order/OrderSkeleton';
+import EmptyState from '../../components/order/EmptyState';
 import { orderService } from '../../services/order/OrderService';
 import CustomerNotResponding from '../Home/CustomerNotResponding';
 
@@ -79,11 +77,15 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       try {
         console.log(`[OrderDetailsScreen] Fetching details for ${orderId}`);
         setLoading(true);
+        setError(null);
         const data = await orderService.getOrderDetails(orderId);
-        console.log(`[OrderDetailsScreen] Fetched data:`, JSON.stringify(data));
+        
+        if (!data) {
+          setError('Order information not found');
+          return;
+        }
+
         setOrderDetails(data);
-        console.log(`[OrderDetailsScreen] Payment Info:`, JSON.stringify(data.payment));
-        console.log(`[OrderDetailsScreen] Order Status:`, data.orderStatus);
 
         if (route.params?.status === 'EN_ROUTE_TO_DROP' && data.orderStatus === 'PICKED_UP') {
           setStatus('EN_ROUTE_TO_DROP');
@@ -92,7 +94,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         }
       } catch (err) {
         console.error(`[OrderDetailsScreen] Error fetching details:`, err);
-        setError('Failed to load order details');
+        setError('Failed to load order details. Please check your connection.');
       } finally {
         setLoading(false);
       }
@@ -251,21 +253,21 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#00C4B4" />
-          <Text style={styles.centerText}>Loading order details...</Text>
-        </View>
+        <OrderSkeleton />
       </SafeAreaView>
     );
   }
 
   if (error || !orderDetails) {
-    console.log("[OrderDetailsScreen] Render failure:", { error, orderDetailsIsNull: !orderDetails });
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={styles.centerText}>{error || "No order details found"}</Text>
-        </View>
+        <EmptyState 
+          title="Order Not Found"
+          message={error || "We couldn't retrieve the details for this order."}
+          icon="alert-circle-outline"
+          onRetry={() => navigation.goBack()}
+          buttonText="Go Back"
+        />
       </SafeAreaView>
     );
   }
@@ -292,83 +294,60 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
           {isPickupPhase ? (
             <>
-              <View style={styles.pickupCard}>
-                <View style={styles.pickupCardHeader}>
-
-                  <View style={styles.pickupTitleContainer}>
-                    <Text style={styles.pickupTitle}> 🏪 PICKUP LOCATION</Text>
-                  </View>
-
-                </View>
-
-                <View style={styles.pickupAddressContainer}>
-                  <Text style={styles.pickupStoreName}>{orderDetails.pickupAddress.name}</Text>
-                  <Text style={styles.pickupAddress}>{orderDetails.pickupAddress.addressLine}</Text>
-                </View>
-
-              </View>
-
-              {/* Custom Drop Location Card */}
-              <View style={styles.dropCard}>
-                <View style={styles.dropCardHeader}>
-
-                  <View style={styles.dropTitleContainer}>
-                    <Text style={styles.dropTitle}> 🏪 DROP LOCATION</Text>
-                  </View>
-
-                </View>
-
-                <View style={styles.dropAddressContainer}>
-                  <Text style={styles.dropStoreName}>{orderDetails.deliveryAddress.name}</Text>
-                  <Text style={styles.dropAddress}>{orderDetails.deliveryAddress.addressLine}</Text>
-                </View>
-
-              </View>
+              <OrderAddressCard 
+                title="Pickup Location"
+                name={orderDetails.pickupAddress?.name}
+                address={orderDetails.pickupAddress?.addressLine}
+                iconType="store"
+                theme="green"
+              />
+              <OrderAddressCard 
+                title="Drop Location"
+                name={orderDetails.deliveryAddress?.name}
+                address={orderDetails.deliveryAddress?.addressLine}
+                iconType="marker"
+                theme="red"
+              />
             </>
           ) : (
-            <>
-
-              {/* Custom Deliver To Card */}
-              <View style={styles.deliverToCard}>
-
-                <View style={styles.deliverHeader}>
-                  <View style={styles.deliverIconContainer}>
-                    <Text>👤</Text>
-                  </View>
-                  <View style={styles.deliverTitleContainer}>
-                    <Text style={styles.deliverTitle}>DELIVER TO</Text>
-                    <Text style={styles.deliverSubtitle}>Final Destination</Text>
-                  </View>
+            <View style={styles.deliverToCard}>
+              <View style={styles.deliverHeader}>
+                <View style={styles.deliverIconContainer}>
+                   <Ionicons name="person-outline" size={wp('6%')} color="#4F46E5" />
                 </View>
-
-
-                {/* Address Card */}
-                <View style={styles.addressCard}>
-                  <Text style={styles.customerName}>{orderDetails.deliveryAddress.name}</Text>
-                  <Text style={styles.addressText}>{orderDetails.deliveryAddress.addressLine}</Text>
+                <View style={styles.deliverTitleContainer}>
+                  <Text style={styles.deliverTitle}>DELIVER TO</Text>
+                  <Text style={styles.deliverSubtitle}>Final Destination</Text>
                 </View>
-
-                {status === 'EN_ROUTE_TO_DROP' && (
-                  <TouchableOpacity
-                    style={styles.chatButton}
-                    onPress={() => navigation.navigate('ChatSupportScreen', { 
-                      orderId: orderDetails.orderId,
-                      customerName: orderDetails.deliveryAddress.name
-                    })}
-                  >
-                    <MaterialCommunityIcons name="chat-processing-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                    <Text style={styles.chatButtonText}>Chat with Customer</Text>
-                  </TouchableOpacity>
-                )}
               </View>
-            </>
 
+              <OrderAddressCard 
+                title="Delivery Address"
+                name={orderDetails.deliveryAddress?.name}
+                address={orderDetails.deliveryAddress?.addressLine}
+                iconType="user"
+                theme="blue"
+              />
+
+              {status === 'EN_ROUTE_TO_DROP' && (
+                <TouchableOpacity
+                  style={styles.chatButton}
+                  onPress={() => navigation.navigate('ChatSupportScreen', { 
+                    orderId: orderDetails.orderId,
+                    customerName: orderDetails.deliveryAddress?.name
+                  })}
+                >
+                  <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                  <Text style={styles.chatButtonText}>Chat with Customer</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
 
           <OrderItemsCard
-            items={orderDetails.items.map(item => ({
-              name: item.itemName,
-              qty: item.quantity,
+            items={(orderDetails.items || []).map(item => ({
+              name: item.itemName || item.name,
+              qty: item.quantity || item.qty,
             }))}
           />
 
@@ -564,7 +543,7 @@ export default OrderDetailsScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F9FAFF', // Softer blue tint background
+    backgroundColor: '#F9FAFF',
   },
   centerText: {
     textAlign: 'center',
@@ -776,11 +755,6 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 24,
     elevation: 12,
-    shadowColor: '#2D3748',
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    transform: [{ scale: 0.95 }],
   },
   modalCard: {
     backgroundColor: '#FFFFFF',
@@ -800,12 +774,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFEDD5',
     marginTop: hp('1.5%'),
-    marginBottom: hp('2%'),
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
   },
 
   issueLeft: {
@@ -830,16 +798,12 @@ const styles = StyleSheet.create({
     fontSize: wp('4%'),
     fontWeight: '700',
     color: '#92400E',
-    fontFamily: 'System',
-    letterSpacing: 0.3,
   },
 
   issueSubtitle: {
     marginTop: hp('0.5%'),
     fontSize: wp('3.4%'),
     color: '#D97706',
-    fontFamily: 'System',
-    letterSpacing: 0.2,
   },
 
   // New Animation Styles
@@ -1043,20 +1007,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   dropAddress: {
-    fontSize: wp('4%'),
-    fontWeight: '800',
-    color: '#EF4444',
-    fontFamily: 'System',
-    letterSpacing: -0.2,
-  },
-
-  dropAddress: {
     fontSize: wp('3.6%'),
     color: '#EF4444',
     lineHeight: hp('2.6%'),
     fontFamily: 'System',
     marginTop: hp('0%'),
-    paddingLeft: wp('0%'), // Align with customer name
+    paddingLeft: wp('0%'),
   },
 
 
@@ -1080,18 +1036,18 @@ const styles = StyleSheet.create({
   deliverHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp('2%'),
+    marginBottom: hp('1.5%'),
   },
 
   deliverIconContainer: {
-    width: wp('14%'),
-    height: wp('14%'),
-    borderRadius: wp('7%'),
+    width: wp('12%'),
+    height: wp('12%'),
+    borderRadius: wp('6%'),
     backgroundColor: 'rgba(99, 102, 241, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp('4%'),
-    borderWidth: 2.5,
+    borderWidth: 2,
     borderColor: 'rgba(99, 102, 241, 0.25)',
   },
 
@@ -1210,8 +1166,6 @@ const styles = StyleSheet.create({
   actionButtonDisabled: {
     backgroundColor: '#94A3B8',
     opacity: 0.7,
-    shadowOpacity: 0.15,
-    elevation: 4,
   },
   actionButtonText: {
     fontSize: wp('4.2%'),
