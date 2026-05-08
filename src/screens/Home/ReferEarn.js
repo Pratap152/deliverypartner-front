@@ -70,6 +70,7 @@ export default function ReferEarn({ navigation }) {
   if (!data) return null;
 
   const referralCode = data?.referrer?.partnerId || "";
+  const ruleType = data?.program?.ruleType || "";
 
   const copyToClipboard = () => {
     Clipboard.setString(referralCode);
@@ -112,6 +113,56 @@ const filteredData = riders.filter((item) => {
   return true;
 });
 
+
+const getProgramContent = () => {
+  switch (ruleType) {
+    case "FIXED_TARGET":
+      return {
+        title: "Fixed Target Referral",
+        task: `Complete ${riders?.[0]?.targetOrders || 0} deliveries`,
+        reward: "Earn reward after target completion",
+      };
+
+    case "SLAB":
+      return {
+        title: "Slab Based Referral",
+        task: `Complete ${riders?.[0]?.targetOrders || 0} delivery`,
+        reward: "Earn slab-wise rewards",
+      };
+
+    case "PER_ORDER":
+      return {
+        title: "Per Order Referral",
+        task: "Earn for every completed order",
+        reward: "Per order reward applied",
+      };
+
+    case "HYBRID":
+      return {
+        title: "Hybrid Referral",
+        task: `Complete ${riders?.[0]?.targetOrders || 0} deliveries + per order earnings`,
+        reward: "Hybrid rewards enabled",
+      };
+
+    case "TASK":
+      return {
+        title: "Task Based Referral",
+        task: "Complete referral tasks",
+        reward: "Task reward applied",
+      };
+
+    default:
+      return {
+        title: "Refer & Earn",
+        task: "Complete deliveries",
+        reward: "Earn rewards",
+      };
+  }
+};
+
+
+const programContent = getProgramContent();
+
   // 🔹 Empty UI
   const renderEmpty = () => (
     <Text style={styles.emptyText}>
@@ -125,7 +176,7 @@ const filteredData = riders.filter((item) => {
 
   const renderItem = ({ item }) => {
     const isCompleted = item.targetStatus === "TARGET_REACHED";
-
+    const isPerOrder = ruleType === "PER_ORDER";
     return (
       <View style={styles.refItem}>
         {/* Left */}
@@ -135,20 +186,28 @@ const filteredData = riders.filter((item) => {
           </View>
 
           <View>
-            <Text style={styles.name}>{item.newRiderName}</Text>
+           <Text style={styles.name}>
+  {item.newRiderName || "New Rider"}
+</Text>
             <Text style={styles.date}>{item.referredAtIST}</Text>
           </View>
         </View>
 
         {/* Right */}
         <View style={{ alignItems: "flex-end" }}>
-          {isCompleted ? (
-            <Text style={styles.amount}>₹{item.rewardEarned}</Text>
-          ) : (
-            <Text style={styles.progress}>
-              {item.ordersCompleted}/{item.targetOrders}
-            </Text>
-          )}
+          {isPerOrder ? (
+  <Text style={styles.amount}>
+    ₹{item.rewardEarned}
+  </Text>
+) : isCompleted ? (
+  <Text style={styles.amount}>
+    ₹{item.rewardEarned}
+  </Text>
+) : (
+  <Text style={styles.progress}>
+    {item.ordersCompleted}/{item.targetOrders}
+  </Text>
+)}
 
           <Text
             style={[
@@ -172,12 +231,14 @@ const filteredData = riders.filter((item) => {
     {/* SCROLLABLE CONTENT */}
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: 100 }} 
+      contentContainerStyle={{
+  paddingTop: hp("32%"),
+  paddingBottom: 100,
+}} 
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <ReferralBanner />
 
       {/* Title */}
       <View style={styles.titleRow}>
@@ -222,16 +283,22 @@ const filteredData = riders.filter((item) => {
 
       {/* How it works */}
       <View style={styles.howBox}>
-        <Text style={styles.howTitle}>How it works</Text>
-        <Text style={styles.howItem}>• Friend signs up using your code</Text>
-        <Text style={styles.howItem}>
-          • Completes <Text style={styles.howItem1}>{data.summary.targetOrdersPerRider}</Text> deliveries
-        </Text>
-        <Text style={styles.howItem}>
-          • Earn <Text style={styles.howItem1}>₹{data.summary.referralAmountPerRider}</Text> 
-        </Text>
-      </View>
+  <Text style={styles.howTitle}>
+    {programContent.title}
+  </Text>
 
+  <Text style={styles.howItem}>
+    • Friend signs up using your referral code
+  </Text>
+
+  <Text style={styles.howItem}>
+    • {programContent.task}
+  </Text>
+
+  <Text style={styles.howItem}>
+    • {programContent.reward}
+  </Text>
+</View>
       {/* Tabs */}
       <Text style={styles.sectionTitle}>My Referrals</Text>
 
@@ -487,7 +554,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: "#F8FAFC",
-    padding: 16,
+    padding: 10,
     borderTopWidth: 1,
     borderColor: "#E2E8F0",
   },
