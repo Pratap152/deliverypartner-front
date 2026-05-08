@@ -113,6 +113,7 @@ const filteredData = riders.filter((item) => {
   return true;
 });
 
+
 const getProgramContent = () => {
   switch (ruleType) {
     case "FIXED_TARGET":
