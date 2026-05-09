@@ -187,13 +187,20 @@ const WeekEarnings = ({ route, navigation }) => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Weekly Requirements</Text>
-              <Text style={styles.cardSubtitle}>Complete these to earn bonus</Text>
             </View>
           </View>
 
           <View style={styles.divider} />
 
           {/* Rule Rows */}
+          {ruleType === "TASK" && (
+            <View style={styles.ruleRow}>
+              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                Complete your tasks to earn rewards
+              </Text>
+            </View>
+          )}
           {minOrders !== 0 && (
             <View style={styles.ruleRow}>
               <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
@@ -222,16 +229,7 @@ const WeekEarnings = ({ route, navigation }) => {
           </View>
         }
 
-        {ruleType === "FIXED_TARGET" &&
-          <View style={styles.progressWrapper}>
-            <FixedTargetType
-              target={minOrders}
-              ordersCompleted={ordersCompleted}
-            />
-          </View>
-        }
-
-        {ruleType === "HYBRID" &&
+        {(ruleType === "FIXED_TARGET" || ruleType === "HYBRID") &&
           <View style={styles.progressWrapper}>
             <FixedTargetType
               target={minOrders}
@@ -248,20 +246,22 @@ const WeekEarnings = ({ route, navigation }) => {
         }
 
         {/* TOTAL ORDERS CARD */}
-        <View style={styles.statsCard}>
-          <View style={styles.statRow}>
-            <LinearGradient
-              colors={["#4F39F6", "#3B28C7"]}
-              style={styles.statIconBox}
-            >
-              <Ionicons name="cube" size={24} color="#FFF" />
-            </LinearGradient>
-            <View style={{ flex: 1, marginLeft: 16 }}>
-              <Text style={styles.statLabel}>Total Orders This Week</Text>
-              <Text style={styles.statValue}>{ordersCompleted} orders</Text>
+        {ruleType !== "TASK" &&
+          <View style={styles.statsCard}>
+            <View style={styles.statRow}>
+              <LinearGradient
+                colors={["#4F39F6", "#3B28C7"]}
+                style={styles.statIconBox}
+              >
+                <Ionicons name="cube" size={24} color="#FFF" />
+              </LinearGradient>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                <Text style={styles.statLabel}>Total Orders This Week</Text>
+                <Text style={styles.statValue}>{ordersCompleted} orders</Text>
+              </View>
             </View>
           </View>
-        </View>
+        }
 
         {/* PAYOUT INFO */}
         <View style={styles.infoCard}>

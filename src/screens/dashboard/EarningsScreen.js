@@ -36,11 +36,11 @@ export default function EarningsScreen({ navigation }) {
     fetchPeakIncentivesProgress();
   }, []);
 
-  console.log("WEEKLY PROGRESS: ", weeklyIncentivesProgress);
+  // console.log("WEEKLY PROGRESS: ", weeklyIncentivesProgress);
 
   const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
-  const dailyCompletedOrders = dailyIncentivesProgress?.ordersCompleted;
-  const peakCompletedOrders = 1|| peakIncentivesProgress?.slots[0].ordersCompleted;
+  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
+  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
 
   const {
     todayEarnings={},

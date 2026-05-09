@@ -175,16 +175,35 @@ const DailyGuarentee = ({ route, navigation }) => {
 
         {/* --- ZONE 2: NORMAL PERFORMANCE (Cool Schema) --- */}
         <View style={[styles.ruleCard, styles.normalCard]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={[styles.iconBox, styles.normalIconBox]}>
-              <Ionicons name="bicycle" size={20} color="#00A63E" />
+          {!perOrderAmount &&
+            <View style={styles.cardHeaderRow}>
+              <View style={[styles.iconBox, styles.normalIconBox]}>
+                <Ionicons name="bicycle" size={20} color="#00A63E" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>Targets</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Targets</Text>
-            </View>
-          </View>
+          }
 
-          <View style={styles.divider} />
+          {perOrderAmount &&
+            <View style={styles.cardHeaderRow}>
+              <View style={[styles.iconBox, styles.normalIconBox]}>
+                <Ionicons name="bicycle" size={20} color="#00A63E" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>Orders Delivered</Text>
+              </View>
+              <View style={styles.progressOrdersBadge}>
+                <Ionicons name="cube" size={14} color="#4F39F6" />
+                <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
+              </View>
+            </View>
+          }
+
+          {!perOrderAmount &&
+            <View style={styles.divider} />
+          }
 
           {/* Rule Rows */}
           {minOrders !== 0 && (
@@ -192,15 +211,6 @@ const DailyGuarentee = ({ route, navigation }) => {
               <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
               <Text style={styles.ruleText}>
                 Deliver minimum of <Text style={styles.boldNormal}>{minOrders} Orders</Text> to achieve rewards
-              </Text>
-            </View>
-          )}
-
-          {perOrderAmount && (
-            <View style={styles.ruleRow}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
-              <Text style={styles.ruleText}>
-                You will get <Text style={styles.boldNormal}>{perOrderAmount} rupees</Text> for each order
               </Text>
             </View>
           )}
@@ -241,6 +251,18 @@ const DailyGuarentee = ({ route, navigation }) => {
             />
           </View>
         }
+
+        {perOrderAmount && (
+          <View style={[styles.ruleCard, styles.normalCard]}>
+            <View style={{ flexDirection: 'row' }}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                You will get <Text style={styles.boldNormal}>{perOrderAmount} rupees</Text> for each order you deliver
+              </Text>
+            </View>
+          </View>
+        )}
+
       </View>
     </ScrollView>
   );

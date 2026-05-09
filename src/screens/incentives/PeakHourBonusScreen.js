@@ -94,6 +94,33 @@ const ProgressiveCheckpointBar = ({ slabs, currentOrders }) => {
   );
 };
 
+const FixedTargetType = ({ target, ordersCompleted }) => {
+  const progress = Math.min((ordersCompleted / target) * 100, 100);
+
+  return (
+    <View style={styles.checkpointContainer}>
+      <View style={styles.peakCheckpointHeaderRow}>
+        <Text style={styles.peakCheckpointTitle}>Peak Slot Progress</Text>
+        <View style={styles.ordersBadge}>
+          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Text style={styles.ordersText}>{ordersCompleted} orders</Text>
+        </View>
+      </View>
+      <View>
+        <Text style={styles.fixedTargetLabel}>
+          Minimum orders - {target}
+        </Text>
+        <View style={styles.fixedTargetContainer}>
+          <View style={[styles.fixedTargetProgress, { width: `${progress}%` }]} />
+        </View>
+        <Text style={styles.fixedTargetPercent}>
+          {progress.toFixed(0)}%
+        </Text>
+      </View>
+    </View>
+  );
+};
+
 const PeakHourBonusScreen = ({ route, navigation }) => {
   const data = route.params;
   console.log("data from peak hour bonus: ", data);
@@ -109,15 +136,18 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
   }
 
   /* ---------------- EXTRACT DATA ---------------- */
-  const ruleType = data.peak_data.data[0]?.slots[0].ruleType;
-  const dataSlots = data.peak_data.data;
-  const title = data.peak_data.data[0].name;
-  const slabs = data.peak_data.data[0].slots[0].slabs;
-  const rewardAmount = data.peak_data.data[0]?.slots[0].reward?.amount || 
-  data.peak_data.data[0]?.slots[0].slabs[0].rewardAmount;
+  const ruleType = data.peak_data.data[0]?.ruleType;
+  const title = data.peak_data.data[0]?.name;
+  const slabs = data.peak_data.data[0]?.slots[0]?.slabs;
+  const peakSlotStart = data.peak_data.data[0]?.slots[0].startTime;
+  const peakSlotEnd = data.peak_data.data[0]?.slots[0].endTime;
+  const rewardAmount = data.peak_data.data[0]?.slots[0].reward?.amount;
 
   // Mock current orders completed - Replace with actual data from your state/API
-  const currentOrders = data.peakIncentivesProgress.slots[0].ordersCompleted;
+  const isPeakProgressEmpty = data.peakIncentivesProgress?.emptyData ? true : false;
+  const currentOrders = isPeakProgressEmpty === false ? data.peakIncentivesProgress?.ordersCompleted : 0;
+
+  const minOrders = data.minOrders;
 
   const formatTo12Hour = (time24) => {
     let [hours, minutes] = time24.split(":");
@@ -127,86 +157,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
     return `${hours}:${minutes} ${ampm}`;
   };
 
-  const peakSlots = dataSlots.flatMap(item =>
-    item.slots.map(slot =>
-      `${formatTo12Hour(slot.startTime)} - ${formatTo12Hour(slot.endTime)}`
-    )
-  );
-
-  // Convert "10:30 PM" → minutes (0–1439)
-  const parseTimeToMinutes = (timeStr) => {
-    const [time, modifier] = timeStr.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
-    return hours * 60 + minutes;
-  };
-
-  // Normalize slot (handle cross-midnight)
-  const getSlotRange = (slot) => {
-    const [startStr, endStr] = slot.split(" - ");
-    const start = parseTimeToMinutes(startStr);
-    let end = parseTimeToMinutes(endStr);
-    // 👉 Cross-midnight case (end < start)
-    if (end < start) {
-      end += 1440; // push to next day
-    }
-    return { start, end };
-  };
-
-  // Sort slots by start time
-  const sortSlots = (slots) => {
-    return [...slots].sort((a, b) => {
-      return getSlotRange(a).start - getSlotRange(b).start;
-    });
-  };
-
-  // Main function
-  const getSlotStatus = (slots) => {
-    const sortedSlots = sortSlots(slots);
-    const now = new Date();
-    let currentMinutes = now.getHours() * 60 + now.getMinutes();
-    // 👉 Also check "next-day shifted time" for cross-midnight
-    let extendedNow = currentMinutes + 1440;
-    for (let i = 0; i < sortedSlots.length; i++) {
-      const slot = sortedSlots[i];
-      const { start, end } = getSlotRange(slot);
-      // ✅ Current slot (normal or cross-midnight)
-      if (
-        (currentMinutes >= start && currentMinutes <= end) ||
-        (extendedNow >= start && extendedNow <= end)
-      ) {
-        return { type: "current", slot };
-      }
-      // ✅ Next slot (today)
-      if (currentMinutes < start) {
-        return { type: "next", slot };
-      }
-    }
-    // ✅ Check next-day slots (for late night cases)
-    for (let i = 0; i < sortedSlots.length; i++) {
-      const slot = sortedSlots[i];
-      const { start } = getSlotRange(slot);
-      if (extendedNow < start) {
-        return { type: "next", slot };
-      }
-    }
-
-    return { type: "none", message: "No peak slots" };
-  };
-
-  const useSlotStatus = (slots) => {
-    const [status, setStatus] = useState(getSlotStatus(slots));
-
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setStatus(getSlotStatus(slots));
-      }, 60000); // every 1 min
-      return () => clearInterval(interval);
-    }, [slots]);
-    return status;
-  };
-  const { type, slot: peakSlot, message } = useSlotStatus(peakSlots);
+  const peakSlotTime = `${formatTo12Hour(peakSlotStart)} - ${formatTo12Hour(peakSlotEnd)}`;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -232,10 +183,10 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
           <Ionicons name="flash" size={16} color="#FFD700" />
           <Text style={styles.rewardLabel}>Peak Hours:</Text>
           {
-            !type === "none"
+            !peakSlotTime
               ? <Text style={styles.rewardValue}>No peak slots</Text>
               : <Text style={styles.rewardValue}>
-                {peakSlot}
+                {peakSlotTime}
               </Text>
           }
         </View>
@@ -259,11 +210,55 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
         {/* PROGRESSIVE CHECKPOINT BAR */}
         {ruleType === "SLAB" &&
           <View style={styles.progressWrapper}>
-          <ProgressiveCheckpointBar
-            slabs={slabs}
-            currentOrders={currentOrders}
-          />
-        </View>}
+            <ProgressiveCheckpointBar
+              slabs={slabs}
+              currentOrders={currentOrders}
+            />
+          </View>}
+
+        {(ruleType === "FIXED_TARGET" || ruleType === "HYBRID") &&
+          <View style={styles.progressWrapper}>
+            <FixedTargetType
+              target={minOrders}
+              ordersCompleted={currentOrders}
+            />
+          </View>
+        }
+
+        {(ruleType === "FIXED_TARGET" || ruleType === "HYBRID") &&
+          <View style={styles.card}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="cash-outline" size={20} color="#00A63E" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Reward Amount</Text>
+              <Text style={styles.cardSubText}>
+                {rewardAmount} rupees
+              </Text>
+            </View>
+          </View>
+        }
+
+        {(ruleType === "PER_ORDER") &&
+          <View style={styles.card}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="cash-outline" size={20} color="#00A63E" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Reward Amount</Text>
+              <Text style={styles.cardSubText}>
+                You will earn an amount of <Text style={{
+                  fontSize: 14,
+                  fontWeight: "800",
+                  color: "#1F2937",
+                  marginBottom: 2,
+                }}>{rewardAmount} rupees</Text> per each order you deliver
+              </Text>
+            </View>
+          </View>
+        }
 
         {/* HOW IT WORKS */}
         <View style={styles.howItWorksCard}>
@@ -414,6 +409,53 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#6B7280",
     lineHeight: 18,
+  },
+
+  //Styles for FIXED_TARGET'
+  peakCheckpointHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  peakCheckpointTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+  },
+  ordersBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E0E7FF",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  ordersText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4F39F6",
+    marginLeft: 4,
+  },
+  fixedTargetLabel: {
+    marginBottom: 5,
+    fontSize: 14,
+    fontWeight: '500'
+  },
+  fixedTargetContainer: {
+    height: 12,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+    overflow: 'hidden'
+  },
+  fixedTargetProgress: {
+    height: '100%',
+    backgroundColor: '#4CAF50'
+  },
+  fixedTargetPercent: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#555'
   },
 
   /* --- PROGRESSIVE CHECKPOINT BAR STYLES --- */
