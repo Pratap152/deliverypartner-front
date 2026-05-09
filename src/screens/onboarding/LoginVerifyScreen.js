@@ -114,7 +114,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
         refreshToken,
       );
 
-      // ✅ Let SplashScreen decide next route
+      //  Let SplashScreen decide next route
       navigation.replace('SplashScreen');
     } catch (err) {
       setError('Something went wrong. Try again.');
