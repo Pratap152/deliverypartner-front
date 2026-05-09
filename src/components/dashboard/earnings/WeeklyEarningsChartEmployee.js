@@ -10,19 +10,19 @@ import { formatMoney } from '../../../utils/formatMoney';
 
 const PADDING = wp(4);
 
-const Y_AXIS_LABELS = 4;
+const Y_AXIS_LABELS = 5;
 
-export default function WeeklyEarningsChart({ riderType, data, width, height }) {
+export default function WeeklyEarningsChartEmployee({ riderType, data, width, height }) {
   const CHART_HEIGHT = height;
   const CHART_WIDTH = width;
   const [activeIndex, setActiveIndex] = useState(null);
 
-  const rawMaxValue = Math.max(...data.map(d => d.value), 0);
+  const rawMaxValue = Math.max(...data.map(d => d.orders), 0);
 
-  const maxValue =
-    rawMaxValue === 0
-      ? 100
-      : Math.ceil(rawMaxValue / 100) * 100;
+const maxValue =
+  rawMaxValue <= 20
+    ? 20
+    : Math.ceil(rawMaxValue / 5) * 5;
 
   const points = useMemo(() => {
     return data.map((item, index) => {
@@ -36,7 +36,7 @@ export default function WeeklyEarningsChart({ riderType, data, width, height }) 
       const y =
         CHART_HEIGHT -
         PADDING -
-        (item.value / maxValue) * (CHART_HEIGHT - PADDING * 2);
+        (item.orders / maxValue) * (CHART_HEIGHT - PADDING * 2);
 
       return { ...item, x, y };
     });
@@ -170,7 +170,7 @@ export default function WeeklyEarningsChart({ riderType, data, width, height }) 
               y={y + 4}
               fontSize={wp(3.5)}
             >
-              ₹{value}
+              {value}
             </TextSvg>
           );
         })}

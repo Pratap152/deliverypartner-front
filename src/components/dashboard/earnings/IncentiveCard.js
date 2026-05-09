@@ -13,7 +13,7 @@ import MultiLevelProgressBar from './MultiLevelProgressBar';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function IncentiveCard({ item, weeklyCompletedOrders, dailyCompletedOrders, peakCompletedOrders }) {
-  console.log("ITEMMMM: ", item);
+  // console.log("ITEMMMM: ", item);
   const isPeak = item.type === 'peak';
   const isWeekly = item.type === 'weekly';
   const isDaily = item.type === 'daily';
