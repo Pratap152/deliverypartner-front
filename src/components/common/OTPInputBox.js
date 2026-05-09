@@ -17,8 +17,9 @@ const OTPInputBox = ({ otp, inputRefs, handleChange, handleKeyPress, length = 6 
           onChangeText={(text) => handleChange(text, index)}
           onKeyPress={(e) => handleKeyPress(e, index)}
           keyboardType="number-pad"
-          maxLength={index === 0 ? length : 1}
+          maxLength={index === 0 ? 6 : 1}
           style={[styles.otpBox, digit && styles.otpBoxFilled]}
+          
         />
       ))}
     </View>
