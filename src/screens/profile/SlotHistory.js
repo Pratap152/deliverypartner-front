@@ -24,6 +24,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PAGE_SIZE = 10;
 const getCacheKey = filter => `SLOT_HISTORY_CACHE_${filter}`;
@@ -318,7 +319,7 @@ const SlotHistory = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -434,7 +435,7 @@ const SlotHistory = ({ navigation }) => {
           <ActivityIndicator size="large" />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

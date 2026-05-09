@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -113,7 +114,7 @@ const BankAC = ({ navigation }) => {
       : '#FF3B30';
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <Ionicons
@@ -132,7 +133,7 @@ const BankAC = ({ navigation }) => {
         )}
       </View>
 
-      <View>
+      <ScrollView>
         <View style={styles.infoContainer}>
           <TouchableOpacity onPress={toggleTooltip} style={styles.infoRow}>
             <Icon name="info-outline" size={22} color="#1976D2" />
@@ -147,7 +148,7 @@ const BankAC = ({ navigation }) => {
             </Animated.View>
           )}
         </View>
-      </View>
+     
 
       <View style={styles.detailsContainer}>
         <View style={styles.accountHeader}>
@@ -220,7 +221,8 @@ const BankAC = ({ navigation }) => {
           </View>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -230,17 +232,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
   header: {
-    height: rh(8),
     flexDirection: 'row',
     alignItems: 'center',
+    padding: rw(4),
+    backgroundColor: '#FFF',
     justifyContent: 'space-between',
-    paddingHorizontal: rw(4),
   },
 
   headerTitle: {
     fontSize: rf(2.3),
     fontWeight: '600',
-    marginRight: rf(20),
   },
 
   infoContainer: {

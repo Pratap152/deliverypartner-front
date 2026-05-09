@@ -18,6 +18,7 @@ import {
 
 import { useOrderHistory } from '../../hooks/useOrderHistory';
 import EmptyState from '../../components/order/EmptyState';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -113,7 +114,7 @@ const OrderHistory = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -206,7 +207,7 @@ const OrderHistory = ({ navigation }) => {
           <ActivityIndicator size="large" />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

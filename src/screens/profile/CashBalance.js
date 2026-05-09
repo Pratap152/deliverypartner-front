@@ -15,6 +15,7 @@ import {
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 let CACHE = null;
 
@@ -65,7 +66,7 @@ export default function CashBalanceScreen({ navigation }) {
     }
   };
 
-  // ✅ Optimized processing
+  // Optimized processing
   const processed = useMemo(() => {
     if (!data?.cashOrderHistory) return [];
 
@@ -108,7 +109,7 @@ export default function CashBalanceScreen({ navigation }) {
   const hasOrders = data.cashOrderHistory.length > 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -277,7 +278,7 @@ export default function CashBalanceScreen({ navigation }) {
 
         <View style={{ height: rh(4) }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
