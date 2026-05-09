@@ -21,6 +21,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 /*  HELPERS  */
 const formatTitle = key =>
@@ -147,7 +148,7 @@ const DocumentsScreen = ({ navigation }) => {
         error?.response?.data?.message || 'Something went wrong',
       );
     } finally {
-      setUploadingKey(null); // ✅ stop loader
+      setUploadingKey(null); // stop loader
     }
   };
 
@@ -186,7 +187,7 @@ const DocumentsScreen = ({ navigation }) => {
 
   /*  RENDER  */
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -347,7 +348,7 @@ const DocumentsScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
