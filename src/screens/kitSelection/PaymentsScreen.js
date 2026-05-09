@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  useWindowDimensions
+  useWindowDimensions,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/common/Header';
@@ -16,11 +17,9 @@ import Header from '../../components/common/Header';
 import phonePayImage from '../../assets/phone-pay-logo.png';
 import googlePayImage from '../../assets/google-pay-logo.png';
 import paytmImage from '../../assets/paytm-logo.jpg';
-import razorPayImage from '../../assets/razor-pay-logo.jpg';
 import upiImage from '../../assets/upi-logo.png';
 
 import apiClient from '../../services/ApiClient';
-
 import { COLORS } from '../../utils/colors';
 import { TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -29,42 +28,31 @@ const PAYMENT_METHODS = [
   { id: 'phonepe', label: 'PhonePe', image: phonePayImage },
   { id: 'gpay', label: 'Google Pay', image: googlePayImage },
   { id: 'paytm', label: 'Paytm', image: paytmImage },
-  // { id: 'razorpay', label: 'Razorpay', image: razorPayImage },
   { id: 'upi', label: 'UPI', image: upiImage },
 ];
 
-const OFFLINE_ADDRESSES = [
-  {
-    id: 'addr1',
-    title:
-      '1st Floor, Street, No.7, PB House, HUDA Techno Enclave, Madhapur, Hyderabad, Telangana 500081',
-  },
-  {
-    id: 'addr2',
-    title:
-      'Plot no 200, PR Nagar, Karmika Nagar, Moti Nagar, Hyderabad, Telangana 500114',
-  },
-  {
-    id: 'addr3',
-    title:
-      '7-1-45/1/15, 1st Floor, Reddy Complex, Bukkampet Road, Ameerpet post, Begumpet, Hyderabad, Telangana 500038',
-  },
-];
-
-export default function PaymentsScreen() {
+export default function PaymentsScreen({ route }) {
   const [tab, setTab] = useState('Online');
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState();
-
   const [isLoading, setIsLoading] = useState(false);
   const [offlineAddress, setOfflineAddress] = useState([]);
   const [error, setError] = useState('');
-  const [paymentType, setPaymentType] = useState('');
-  
+
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
-
   const navigation = useNavigation();
+
+  const { apiResponse, deliveryMode } = route?.params || {};
+
+  const payableRequest = useMemo(() => {
+    const items = apiResponse?.data || [];
+    return (
+      items.find(item => item.status === 'PAYMENT_PENDING') ||
+      items[0] ||
+      null
+    );
+  }, [apiResponse]);
 
   useEffect(() => {
     if (tab === 'Offline') {
@@ -72,36 +60,125 @@ export default function PaymentsScreen() {
     }
   }, [tab]);
 
-  const handlePaymentType = (type) => {
-    if (!selectedPayment) {
-      alert('Please select a payment method first');
-      return;
-    }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'SuccessScreen', params: { paymentType: type } }],
-    });
-  };
-
   const fetchOfflineStores = async () => {
     try {
       setIsLoading(true);
-      const reponse = await apiClient.get('/api/admin/get-offline-stores');
-      console.log(reponse.data);
+      const response = await apiClient.get('/api/admin/get-offline-stores');
 
-      if (!reponse.data.success) {
-        console.log('Error while fetching offline stores');
+      if (!response.data.success) {
         setError('Unable to fetch stores. Please try again.');
         return;
       }
-      setOfflineAddress(reponse.data?.data);
-    } catch (error) {
-      console.log(error);
+
+      setOfflineAddress(response.data?.data || []);
+    } catch (err) {
       setError('Something went wrong. Please try again');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const getPaymentMode = () => {
+    if (tab === 'Offline') return 'OFFLINE';
+    return 'ONLINE';
+  };
+
+  const getPaymentMethodType = (type) => {
+    if (type === 'emi') return 'EMI';
+    return 'FULL';
+  };
+
+  
+
+
+ const handlePaymentType = async (type) => {
+  if (!selectedPayment && tab === 'Online') {
+    Alert.alert('Select payment method', 'Please select a payment method first');
+    return;
+  }
+
+  if (!payableRequest?.id) {
+    Alert.alert('Payment error', 'No payable joining kit request found');
+    return;
+  }
+
+  if (tab === 'Offline' && !selectedAddress) {
+    Alert.alert('Select address', 'Please select an offline store');
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+
+    const requestIds = payableRequest.id;
+
+    const paymentSelectionPayload = {
+      paymentMode: getPaymentMode(),
+      paymentType: getPaymentMethodType(type),
+      ...(type === 'emi' ? { emiMonths: 3 } : {}),
+    };
+
+
+    const postResponse = await apiClient.post(
+      `/api/kit/payment/${requestIds}`,
+      paymentSelectionPayload
+    );
+
+
+    if (!postResponse?.data?.success) {
+      Alert.alert(
+        'Payment error',
+        postResponse?.data?.message || 'Failed to select payment'
+      );
+      return;
+    }
+
+    const assetRequestId = postResponse?.data?.data?.[0]?.assetRequestId;
+
+    if (!assetRequestId) {
+      Alert.alert('Payment error', 'assetRequestId not received from POST response');
+      return;
+    }
+
+    const patchResponse = await apiClient.patch(
+      `/api/kit/payments/complete/${assetRequestId}`
+    );
+
+
+    if (!patchResponse?.data?.success) {
+      Alert.alert(
+        'Payment error',
+        patchResponse?.data?.message || 'Failed to complete payment'
+      );
+      return;
+    }
+
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'SuccessScreen',
+          params: {
+            apiResponse: patchResponse.data,
+            deliveryMode,
+          },
+        },
+      ],
+    });
+  } catch (err) {
+    console.log('AXIOS ERROR URL =>', err?.config?.url);
+    console.log('AXIOS ERROR STATUS =>', err?.response?.status);
+    console.log('AXIOS ERROR DATA =>', JSON.stringify(err?.response?.data, null, 2));
+
+    Alert.alert(
+      'Payment failed',
+      err?.response?.data?.message || err?.message || 'Something went wrong'
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const renderPaymentItem = ({ item }) => {
     const selected = selectedPayment === item.id;
@@ -119,6 +196,7 @@ export default function PaymentsScreen() {
             Other options
           </Text>
         )}
+
         <TouchableOpacity
           activeOpacity={0.8}
           style={[
@@ -137,7 +215,7 @@ export default function PaymentsScreen() {
           >
             <View
               style={{
-                width: item.id === 'razorpay' ? 270 : 150,
+                width: 150,
                 height: 50,
                 overflow: 'hidden',
               }}
@@ -148,7 +226,6 @@ export default function PaymentsScreen() {
                   width: '100%',
                   height: '100%',
                   resizeMode: 'cover',
-                  marginLeft: item.id === 'razorpay' ? -50 : 0,
                 }}
               />
             </View>
@@ -175,7 +252,7 @@ export default function PaymentsScreen() {
                   borderColor: COLORS.border,
                 }}
                 placeholder="Enter UPI ID here"
-                placeholderTextColor='darkgrey'
+                placeholderTextColor="darkgrey"
               />
 
               <TouchableOpacity
@@ -231,7 +308,6 @@ export default function PaymentsScreen() {
       <View style={styles.container}>
         <Header text={'Payment Options'} />
 
-        {/* Segment control */}
         <View style={styles.segmentRow}>
           <TouchableOpacity
             style={[
@@ -239,6 +315,7 @@ export default function PaymentsScreen() {
               tab === 'Online' && styles.segmentActive,
             ]}
             onPress={() => setTab('Online')}
+            disabled={isLoading}
           >
             <Text
               style={[
@@ -256,6 +333,7 @@ export default function PaymentsScreen() {
               tab === 'Offline' && styles.segmentActive,
             ]}
             onPress={() => setTab('Offline')}
+            disabled={isLoading}
           >
             <Text
               style={[
@@ -268,7 +346,6 @@ export default function PaymentsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Content */}
         <View style={styles.content}>
           {tab === 'Online' ? (
             <FlatList
@@ -276,64 +353,76 @@ export default function PaymentsScreen() {
               keyExtractor={i => i.id}
               renderItem={renderPaymentItem}
             />
-            ) : (
-              <>
-                {isLoading ? (
-                  <View
-                    style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                   <ActivityIndicator size={'large'} color={COLORS.primary} />
-                </View>
-              ) : (
-                <FlatList
-                  data={offlineAddress}
-                  keyExtractor={item => item._id}
-                  renderItem={renderAddressItem}
-                />
-              )}
-            </>
+          ) : isLoading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <ActivityIndicator size={'large'} color={COLORS.primary} />
+            </View>
+          ) : (
+            <FlatList
+              data={offlineAddress}
+              keyExtractor={item => item._id}
+              renderItem={renderAddressItem}
+            />
           )}
         </View>
 
-        {/* Pay in Full / EMI - only show for Online tab */}
+        {isLoading ? (
+          <ActivityIndicator
+            size="small"
+            color={COLORS.primary}
+            style={{ marginBottom: 12 }}
+          />
+        ) : null}
+
         {tab === 'Online' && (
           <View style={styles.payTypeRow}>
             <TouchableOpacity
-              style={styles.payTypeBtnActive}
+              style={[
+                styles.payTypeBtnActive,
+                (!selectedPayment || isLoading) && {
+                  backgroundColor: COLORS.border,
+                  borderColor: COLORS.border,
+                },
+              ]}
               onPress={() => handlePaymentType('full')}
+              disabled={!selectedPayment || isLoading}
             >
-              <Text style={styles.payTypeTextActive}>
-                Full Payment
-              </Text>
+              <Text style={styles.payTypeTextActive}>Full Payment</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.payTypeBtnActive}
+              style={[
+                styles.payTypeBtnActive,
+                (!selectedPayment || isLoading) && {
+                  backgroundColor: COLORS.border,
+                  borderColor: COLORS.border,
+                },
+              ]}
               onPress={() => handlePaymentType('emi')}
+              disabled={!selectedPayment || isLoading}
             >
-              <Text style={styles.payTypeTextActive}>
-                Pay EMI
-              </Text>
+              <Text style={styles.payTypeTextActive}>Pay EMI</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Continue button - only for Offline tab */}
         {tab === 'Offline' && (
           <TouchableOpacity
             style={[
               styles.payTypeBtnActive,
-              !selectedAddress && { backgroundColor: COLORS.border, borderColor: COLORS.border }
+              (!selectedAddress || isLoading) && {
+                backgroundColor: COLORS.border,
+                borderColor: COLORS.border,
+              },
             ]}
-            disabled={!selectedAddress}
-            onPress={() => navigation.reset({
-                          index: 0,
-                          routes: [{ name: 'MainTabs' }],
-                        })}
+            disabled={!selectedAddress || isLoading}
+            onPress={() => handlePaymentType('full')}
           >
             <Text style={styles.payTypeTextActive}>Continue</Text>
           </TouchableOpacity>
@@ -466,3 +555,4 @@ const getStyles = (width, height) => StyleSheet.create({
   },
   
 });
+
