@@ -71,6 +71,9 @@ return (
           const isRunning =
             status === 'RUNNING';
 
+          const isPending =
+            status === "PENDING";
+
           return (
             <View
               key={
@@ -90,6 +93,9 @@ return (
 
                   isRunning &&
                     styles.runningCircle,
+
+                  isPending &&
+                    styles.pendingCircle,
                 ]}
               >
                 <Text
@@ -97,8 +103,10 @@ return (
                     styles.circleText
                   }
                 >
-                  {isCompleted
+                  {status === "COMPLETED"
                     ? '✓'
+                    : status === "PENDING" ? 
+                    "X"
                     : missionTask.dayNumber}
                 </Text>
               </View>
@@ -383,6 +391,10 @@ completedCircle: {
 
 runningCircle: {
   backgroundColor: '#2563EB',
+},
+
+pendingCircle: {
+  backgroundColor: '#EF4444',
 },
 
 circleText: {
