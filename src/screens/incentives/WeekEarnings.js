@@ -13,6 +13,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+import WeeklyMissionProgress from '../../components/dashboard/earnings/WeeklyMissionProgress';
+
 const WeeklyCheckpointBar = ({ slabs, ordersCompleted }) => {
   const minOrders = slabs[slabs.length - 1]?.minOrders;
   const progressPercent = Math.min((ordersCompleted / minOrders) * 100, 100);
@@ -120,20 +122,33 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
 
 const WeekEarnings = ({ route, navigation }) => {
   const params = route.params || {};
-  const data = params.data || params;
+  const data = params?.data || params;
   console.log("data from week Earnings", data);
 
+  if (data.emptyData || data.weeklyIncentivesProgress?.emptyData) {
+    return (
+      <View>
+        <Text>
+          Please come again later
+        </Text>
+      </View>
+    )
+  }
+
   /* ---------------- EXTRACT DATA ---------------- */
-  const title = data.weekly_data.data[0].name;
-  const maxRewardPerWeek = data.weekly_data.data[0].maxReward;
-  const ruleType = data.weekly_data.data[0].ruleType;
+  const title = data?.weekly_data.data[0].name;
+  const maxRewardPerWeek = data?.weekly_data.data[0].maxReward;
+  const ruleType = data?.weekly_data.data[0].ruleType;
 
   //Data for ruleType = "SLAB"
-  const slabs = data.weekly_data.data[0].slabs;
-  const ordersCompleted = data.weeklyIncentivesProgress.ordersCompleted;
+  const slabs = data?.weekly_data.data[0].slabs;
+  const ordersCompleted = data?.weeklyIncentivesProgress.ordersCompleted;
 
   //Data for ruleType = "FIXED_TARGET"
-  const target = data.weekly_data.data[0].target?.orders;
+  const minOrders = data?.minOrders;
+
+  //Data for ruleType = "HYBRID"
+  const minEarnings = data?.weekly_data.data[0].conditions?.minEarnings;
 
   const totalDaysInWeek = 7;
   const minOrdersPerDay = 4;
@@ -172,30 +187,33 @@ const WeekEarnings = ({ route, navigation }) => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Weekly Requirements</Text>
-              <Text style={styles.cardSubtitle}>Complete these to earn bonus</Text>
             </View>
           </View>
 
           <View style={styles.divider} />
 
           {/* Rule Rows */}
-          <View style={styles.ruleRow}>
-            <Ionicons name="time-outline" size={18} color="#555" style={styles.ruleIcon} />
-            <Text style={styles.ruleText}>
-              Work for <Text style={styles.boldPurple}>{totalDaysInWeek} days</Text> in the week
-            </Text>
-          </View>
-          <View style={styles.ruleRow}>
-            <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
-            <Text style={styles.ruleText}>
-              Deliver <Text style={styles.boldPurple}>{minOrdersPerDay}+ orders</Text> per day
-            </Text>
-          </View>
-          {allowPartialDays && (
+          {ruleType === "TASK" && (
             <View style={styles.ruleRow}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#00A63E" style={styles.ruleIcon} />
+              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
               <Text style={styles.ruleText}>
-                <Text style={{ color: "#00A63E", fontWeight: "700" }}>Partial days allowed</Text> - earn proportional rewards
+                Complete your tasks to earn rewards
+              </Text>
+            </View>
+          )}
+          {minOrders !== 0 && (
+            <View style={styles.ruleRow}>
+              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                Deliver <Text style={styles.boldPurple}>{minOrders}+ orders</Text> in a week
+              </Text>
+            </View>
+          )}
+          {minEarnings && (
+            <View style={styles.ruleRow}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                Should have minimum earnings of <Text style={styles.boldPurple}>{minEarnings}</Text> rupees
               </Text>
             </View>
           )}
@@ -211,30 +229,39 @@ const WeekEarnings = ({ route, navigation }) => {
           </View>
         }
 
-        {ruleType === "FIXED_TARGET" &&
+        {(ruleType === "FIXED_TARGET" || ruleType === "HYBRID") &&
           <View style={styles.progressWrapper}>
             <FixedTargetType
-              target={target}
+              target={minOrders}
               ordersCompleted={ordersCompleted}
             />
           </View>
         }
 
+        {ruleType === "TASK" &&
+          <WeeklyMissionProgress
+            missionsData={data.weekly_data.data[0]}
+            progressData={data.weeklyIncentivesProgress}
+          />
+        }
+
         {/* TOTAL ORDERS CARD */}
-        <View style={styles.statsCard}>
-          <View style={styles.statRow}>
-            <LinearGradient
-              colors={["#4F39F6", "#3B28C7"]}
-              style={styles.statIconBox}
-            >
-              <Ionicons name="cube" size={24} color="#FFF" />
-            </LinearGradient>
-            <View style={{ flex: 1, marginLeft: 16 }}>
-              <Text style={styles.statLabel}>Total Orders This Week</Text>
-              <Text style={styles.statValue}>{ordersCompleted} orders</Text>
+        {ruleType !== "TASK" &&
+          <View style={styles.statsCard}>
+            <View style={styles.statRow}>
+              <LinearGradient
+                colors={["#4F39F6", "#3B28C7"]}
+                style={styles.statIconBox}
+              >
+                <Ionicons name="cube" size={24} color="#FFF" />
+              </LinearGradient>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                <Text style={styles.statLabel}>Total Orders This Week</Text>
+                <Text style={styles.statValue}>{ordersCompleted} orders</Text>
+              </View>
             </View>
           </View>
-        </View>
+        }
 
         {/* PAYOUT INFO */}
         <View style={styles.infoCard}>

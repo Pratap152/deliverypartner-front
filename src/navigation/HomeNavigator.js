@@ -1,7 +1,6 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
-import OrdersPopupScreen from '../screens/Home/OrdersPopupScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
@@ -24,7 +23,6 @@ function HomeNavigator() {
         <>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
-                {/* <Stack.Screen name='OrdersPopupScreen' component={OrdersPopupScreen} /> */}
                 <Stack.Screen name='OrderDetailsScreen' component={OrderDetailsScreen} />
                 <Stack.Screen name='QRScannerScreen' component={QRScannerScreen} />
                 <Stack.Screen name='SuccessfullDelivered' component={SuccessfullDelivered} />

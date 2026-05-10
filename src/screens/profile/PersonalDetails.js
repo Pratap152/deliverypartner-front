@@ -22,6 +22,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile, updateProfile } from '../../redux/slices/profileSlice';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PersonalDetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -135,7 +136,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const selfieUri = getSelfieUri(form.selfie);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -319,7 +320,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
           )}
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -1,3 +1,12 @@
+import { useState } from "react";
+import {
+  loadSlotsApi,
+  loadWeeksApi,
+  bookSlotApi,
+  cancelSlotApi,
+} from "../services/slots/slots.service";
+
+
 export function formatWeeks(apiWeeks = []) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -9,19 +18,11 @@ export function formatWeeks(apiWeeks = []) {
       return itemDate >= today;
     })
     .map((item) => ({
-      date: item.date,                 // "2025-12-01"
-      label: item.dayName,             // "Mon", "Tue"
-      day: new Date(item.date).getDate().toString(), // "1", "2"
+      date: item.date,                 // 2025-12-01
+      label: item.dayName,             // Mon, Tue
+      day: new Date(item.date).getDate().toString(), // 1, 2
     }));
 }
-
-import { useState } from "react";
-import {
-  loadSlotsApi,
-  loadWeeksApi,
-  bookSlotApi,
-  cancelSlotApi,
-} from "../services/slots/slots.service";
 
 export function useSlots() {
   const [weeks, setWeeks] = useState([]);      
@@ -31,7 +32,7 @@ export function useSlots() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  // Load weeks (days)
+  // Load week
   const loadWeeks = async (payload) => {
     console.log("loadWeeks hook entered...payload", payload);
     try {
@@ -65,7 +66,7 @@ export function useSlots() {
       console.log("loadSlotsApi exited....", slotsRes?.data);
 
       if (slotsRes.data?.success) {
-        const slotDate = slotsRes.data.date; // ex: "2026-02-01"
+        const slotDate = slotsRes.data.date; // 2026-02-01
         let filteredSlots = slotsRes.data.data;
 
         // Only filter by time if the slot date is today
@@ -86,18 +87,16 @@ export function useSlots() {
             const currentMinutes = currentTime.getMinutes();
 
             filteredSlots = filteredSlots.filter((slot) => {
-              // Parse endTime (format: "HH:MM" or "HH:mm")
+              // Parse endTime (format: HH:MM or HH:mm)
               const endTime = slot.endTime;
               if (!endTime) return true; // Keep slot if no endTime
-
-              // Handle "24:00" as midnight (next day)
+              // Handle 24:00 as midnight (next day)
               let [endHours, endMinutes] = endTime.split(":").map(Number);
               if (endHours === 24) {
                 endHours = 23;
                 endMinutes = 59;
               }
-
-              // Compare: keep slot if endTime is in the future
+              // keep slot if endTime is in the future
               if (endHours > currentHours) {
                 return true;
               } else if (endHours === currentHours && endMinutes > currentMinutes) {
@@ -107,7 +106,6 @@ export function useSlots() {
             });
           }
         }
-
         setSlots(filteredSlots);
       }
     } catch (err) {

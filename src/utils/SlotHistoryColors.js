@@ -24,7 +24,7 @@ export const COLORS = {
 };
 
 export const GRADIENTS = {
-  headerc: ['#4F46E5', '#7C3AED'],     // Indigo → Violet
+  headerc: ['#4338CA', '#1E3A8A'],    
   completed: ['#22C55E', '#16A34A'],  // Green gradient
   missed: ['#3B82F6', '#3964c0'],     // Blue gradient
   cancelled: ['#F43F5E', '#b8314e'],  // Rose gradient

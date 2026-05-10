@@ -1,60 +1,115 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
   Image,
-  Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import apiClient from '../../services/ApiClient';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
+import useIncentives from '../../hooks/useIncentives';
+import useEarningsDashboard from '../../hooks/useEarningsDashboard';
+
+const REWARD_SECTIONS = [
+  {
+    key: 'peak',
+    title: 'Peak Hour Incentives',
+    description: 'Earn extra bonuses during busy hours',
+    icon: 'flash-outline',
+    iconColor: '#00B2C9',
+    iconBg: '#E6F9FB',
+    badge: 'Active Now',
+    badgeColor: '#00B2C9',
+    badgeBg: '#E6F9FB',
+  },
+  {
+    key: 'daily',
+    title: 'Daily Incentive',
+    description: 'Complete daily order targets & earn bonuses',
+    icon: 'calendar-outline',
+    iconColor: '#12B76A',
+    iconBg: '#ECFDF3',
+    badge: 'Today',
+    badgeColor: '#12B76A',
+    badgeBg: '#ECFDF3',
+  },
+  {
+    key: 'weekly',
+    title: 'Weekly Incentive',
+    description: 'Hit weekly targets to unlock bigger rewards',
+    icon: 'trophy-outline',
+    iconColor: '#F79009',
+    iconBg: '#FFFAEB',
+    badge: 'This Week',
+    badgeColor: '#F79009',
+    badgeBg: '#FFFAEB',
+  },
+  {
+    key: 'refer',
+    title: 'Refer & Earn',
+    description: 'Invite friends and earn rewards for every signup',
+    icon: 'people-outline',
+    iconColor: '#7B61FF',
+    iconBg: '#F4F0FF',
+    badge: 'Unlimited',
+    badgeColor: '#7B61FF',
+    badgeBg: '#F4F0FF',
+  },
+];
 
 const RewardsScreen = ({ navigation }) => {
-  const [loading, setLoading] = useState(true);
-  const [peakHours, setPeakHours] = useState([]);
-  const [daily, setDaily] = useState(null);
-  const [weekly, setWeekly] = useState(null);
+  const {
+    dailyIncentivesProgress,
+    weeklyIncentivesProgress,
+    peakIncentivesProgress,
+    fetchDailyIncentivesProgress,
+    fetchWeeklyIncentivesProgress,
+    fetchPeakIncentivesProgress,
+  } = useIncentives();
+
+  const { data } = useEarningsDashboard();
+  const incentives = data?.incentives || [];
+  
 
   useEffect(() => {
-    fetchRewards();
+    fetchDailyIncentivesProgress();
+    fetchWeeklyIncentivesProgress();
+    fetchPeakIncentivesProgress();
   }, []);
 
-  const fetchRewards = async () => {
-    try {
-      const [peakRes, dailyRes, weeklyRes] = await Promise.all([
-        apiClient.get(`/api/home/peakhours-incentives`),
-        apiClient.get(`/api/home/incentives/daily-earning`),
-        apiClient.get(`/api/home/incentives/weekly-earning`),
-      ]);
+  const handlePress = (item) => {
+    if (item.key === 'peak') {
+      const peakItem = incentives.find(i => i.type === 'peak');
+      navigation.navigate('PeakHourBonusScreen', { ...peakItem, peakIncentivesProgress });
+      return;
+    }
 
-      setPeakHours(peakRes.data?.incentives || []);
-      setDaily(dailyRes.data?.data || null);
-      setWeekly(weeklyRes.data?.data || null);
-    } catch (e) {
-      console.log('Rewards error', e?.response || e);
-    } finally {
-      setLoading(false);
+    if (item.key === 'daily') {
+      const dailyItem = incentives.find(i => i.type === 'daily');
+      navigation.navigate('DailyGuarentee', { ...dailyItem, dailyIncentivesProgress });
+      return;
+    }
+
+    if (item.key === 'weekly') {
+      const weeklyItem = incentives.find(i => i.type === 'weekly');
+      navigation.navigate('WeekEarnings', { ...weeklyItem, weeklyIncentivesProgress });
+      return;
+    }
+
+    if (item.key === 'refer') {
+      navigation.navigate('ReferEarn');
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#00B2C9" />
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -64,7 +119,7 @@ const RewardsScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>Rewards</Text>
 
         <TouchableOpacity
-          onPress={() => Alert.alert('Help', 'Contact support for assistance')}
+          onPress={() => navigation.navigate('HelpCenterList')}
         >
           <Image
             source={require('../../assets/profile/HelpcenterIcon.png')}
@@ -74,148 +129,47 @@ const RewardsScreen = ({ navigation }) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* PEAK HOURS */}
-        {peakHours.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Peak Hours Incentives</Text>
-            {peakHours.map((item, index) => {
-              const progress = 0;
-              const percent = (progress / item.condition.minOrders) * 100;
+        <View style={{ height: rh(1.5) }} />
 
-              return (
-                <View key={`peak-${index}`} style={styles.card}>
-                  <View style={styles.iconBox}>
-                    <Ionicons
-                      name="flash-outline"
-                      size={rf(2.8)}
-                      color="#00B2C9"
-                    />
-                  </View>
-
-                  <View style={styles.content}>
-                    <View style={styles.rowBetween}>
-                      <Text style={styles.title}>{item.title}</Text>
-                      <Text style={styles.points}>₹{item.rewardValue}</Text>
-                    </View>
-
-                    <Text style={styles.description}>{item.description}</Text>
-                    <Text style={styles.meta}>
-                      {item.condition.startTime} – {item.condition.endTime}
-                    </Text>
-                    <Text style={styles.meta}>
-                      Min Orders: {item.condition.minOrders}
-                    </Text>
-                    <Text style={styles.meta}>
-                      Max Reward: ₹{item.maxRewardPerRider}
-                    </Text>
-
-                    <Text style={styles.progressText}>
-                      Progress {progress}/{item.condition.minOrders}
-                    </Text>
-
-                    <View style={styles.progressBar}>
-                      <View
-                        style={[styles.progressFill, { width: `${percent}%` }]}
-                      />
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </>
-        )}
-
-        {/* DAILY INCENTIVE */}
-        {daily && (
-          <>
-            <Text style={styles.sectionTitle}>Daily Incentive</Text>
-            <View style={styles.card}>
-              <View style={styles.iconBox}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={rf(2.8)}
-                  color="#12B76A"
-                />
-              </View>
-
-              <View style={styles.content}>
-                <View style={styles.rowBetween}>
-                  <Text style={styles.title}>{daily.title}</Text>
-                  <Text style={styles.points}>₹{daily.maxRewardPerRider}</Text>
-                </View>
-
-                <Text style={styles.meta}>Date: {daily.date}</Text>
-
-                <Text style={styles.progressText}>
-                  Progress {daily.completedOrders}/{daily.requiredOrders}
-                </Text>
-
-                <View style={styles.progressBar}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${
-                          (daily.completedOrders / daily.requiredOrders) * 100
-                        }%`,
-                        backgroundColor: '#12B76A',
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
+        {/* REWARD CARDS */}
+        {REWARD_SECTIONS.map((item) => (
+          <TouchableOpacity
+            key={item.key}
+            style={styles.card}
+            activeOpacity={0.7}
+            onPress={() => handlePress(item)}
+          >
+            {/* Icon */}
+            <View style={[styles.iconBox, { backgroundColor: item.iconBg }]}>
+              <Ionicons name={item.icon} size={rf(2.8)} color={item.iconColor} />
             </View>
-          </>
-        )}
 
-        {/* WEEKLY INCENTIVE */}
-        {weekly && (
-          <>
-            <Text style={styles.sectionTitle}>Weekly Incentive</Text>
-            <View style={styles.card}>
-              <View style={styles.iconBox}>
-                <Ionicons
-                  name="trophy-outline"
-                  size={rf(2.8)}
-                  color="#F79009"
-                />
-              </View>
-
-              <View style={styles.content}>
-                <View style={styles.rowBetween}>
-                  <Text style={styles.title}>{weekly.title}</Text>
-                  <Text style={styles.points}>₹{weekly.maxRewardPerRider}</Text>
-                </View>
-
-                <Text style={styles.meta}>
-                  {weekly.weekStart} – {weekly.weekEnd}
-                </Text>
-
-                <Text style={styles.progressText}>
-                  Progress {weekly.completedOrders}/{weekly.requiredOrders}
-                </Text>
-
-                <View style={styles.progressBar}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${
-                          (weekly.completedOrders / weekly.requiredOrders) * 100
-                        }%`,
-                        backgroundColor: '#F79009',
-                      },
-                    ]}
-                  />
+            {/* Content */}
+            <View style={styles.content}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.title}>{item.title}</Text>
+                <View style={[styles.badge, { backgroundColor: item.badgeBg }]}>
+                  <Text style={[styles.badgeText, { color: item.badgeColor }]}>
+                    {item.badge}
+                  </Text>
                 </View>
               </View>
+              <Text style={styles.description}>{item.description}</Text>
             </View>
-          </>
-        )}
+
+            {/* Arrow */}
+            <Ionicons
+              name="chevron-forward"
+              size={rf(2.2)}
+              color="#98A2B3"
+              style={styles.arrow}
+            />
+          </TouchableOpacity>
+        ))}
 
         <View style={{ height: rh(4) }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -225,12 +179,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F7F9FC',
-  },
-
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   header: {
@@ -255,34 +203,101 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
-  sectionTitle: {
-    fontSize: rf(2.5),
-    fontWeight: '700',
+  // Banner
+  banner: {
+    backgroundColor: '#FFFFFF',
     marginHorizontal: rw(4),
     marginTop: rh(2),
-    marginBottom: rh(1),
+    borderRadius: rw(4),
+    padding: rw(5),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 2,
+  },
+
+  bannerLabel: {
+    fontSize: rf(1.7),
+    color: '#667085',
+    marginBottom: rh(0.4),
+  },
+
+  bannerAmount: {
+    fontSize: rf(3.8),
+    fontWeight: '700',
     color: '#101828',
   },
 
+  bannerSub: {
+    fontSize: rf(1.6),
+    color: '#98A2B3',
+    marginTop: rh(0.5),
+    maxWidth: rw(55),
+  },
+
+  // Tabs
+  tabsContainer: {
+    paddingHorizontal: rw(4),
+    paddingVertical: rh(1.8),
+    gap: rw(2),
+    flexDirection: 'row',
+  },
+
+  tab: {
+    paddingHorizontal: rw(4),
+    paddingVertical: rh(0.8),
+    borderRadius: rw(5),
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    backgroundColor: '#FFFFFF',
+  },
+
+  tabActive: {
+    backgroundColor: '#101828',
+    borderColor: '#101828',
+  },
+
+  tabText: {
+    fontSize: rf(1.7),
+    fontWeight: '500',
+    color: '#667085',
+  },
+
+  tabTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // Section label
+  sectionLabel: {
+    fontSize: rf(1.5),
+    fontWeight: '600',
+    color: '#98A2B3',
+    letterSpacing: 0.8,
+    marginHorizontal: rw(4),
+    marginBottom: rh(1),
+  },
+
+  // Card
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: rw(4),
     flexDirection: 'row',
-    padding: rw(5),
+    alignItems: 'center',
+    paddingHorizontal: rw(4),
+    paddingVertical: rh(2),
     marginHorizontal: rw(4),
-    marginBottom: rh(2.2),
+    marginBottom: rh(1.5),
     elevation: 2,
-    minHeight: rh(12),
   },
 
   iconBox: {
-    width: rw(14),
-    height: rw(14),
+    width: rw(13),
+    height: rw(13),
     borderRadius: rw(3.5),
-    backgroundColor: '#EEF4FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: rw(3.2),
+    flexShrink: 0,
   },
 
   content: {
@@ -293,49 +308,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: rh(0.5),
   },
 
   title: {
-    fontSize: rf(2.1),
+    fontSize: rf(2),
     fontWeight: '600',
     color: '#101828',
-  },
-
-  points: {
-    fontSize: rf(2),
-    fontWeight: '700',
-    color: '#00B2C9',
+    flex: 1,
+    marginRight: rw(2),
   },
 
   description: {
-    fontSize: rf(1.8),
+    fontSize: rf(1.7),
     color: '#667085',
-    marginTop: rh(0.7),
   },
 
-  meta: {
-    fontSize: rf(1.7),
-    color: '#475467',
-    marginTop: rh(0.5),
+  badge: {
+    paddingHorizontal: rw(2.5),
+    paddingVertical: rh(0.4),
+    borderRadius: rw(3),
+    flexShrink: 0,
   },
 
-  progressText: {
-    marginTop: rh(1.2),
-    fontSize: rf(1.7),
-    fontWeight: '500',
-    color: '#344054',
+  badgeText: {
+    fontSize: rf(1.5),
+    fontWeight: '600',
   },
 
-  progressBar: {
-    height: rh(1.2),
-    backgroundColor: '#E4E7EC',
-    borderRadius: rw(2.5),
-    marginTop: rh(0.7),
-    overflow: 'hidden',
-  },
-
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#00B2C9',
+  arrow: {
+    marginLeft: rw(2),
   },
 });

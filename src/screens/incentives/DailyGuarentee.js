@@ -123,16 +123,29 @@ const DailyGuarentee = ({ route, navigation }) => {
   const params = route.params;
   console.log("data in daily guarantee: ", params);
 
+  if (params.emptyData || params.dailyIncentivesProgress.emptyData) {
+    return (
+      <View>
+        <Text>
+          Please come again later
+        </Text>
+      </View>
+    )
+  }
+
   const title = params.daily_data.data[0].name;
 
   const ruleType = params.daily_data.data[0].ruleType;
   const slabs = params.daily_data.data[0]?.slabs;
   const ordersCompleted = params.dailyIncentivesProgress.ordersCompleted;
   const rewardAmount = params.daily_data.data[0].maxPayoutPerDay;
-  const minOrders = params.daily_data.data[0].target?.orders || slabs[0].minOrders;
+  const minOrders = params.minOrders;
 
-  const target = params.daily_data.data[0].target?.orders;
-  
+  const target = params.minOrders;
+
+  const minEarnings = params.daily_data.data[0]?.conditions?.minEarnings;
+
+  const perOrderAmount = params.daily_data.data[0]?.reward?.perOrderAmount
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -162,25 +175,54 @@ const DailyGuarentee = ({ route, navigation }) => {
 
         {/* --- ZONE 2: NORMAL PERFORMANCE (Cool Schema) --- */}
         <View style={[styles.ruleCard, styles.normalCard]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={[styles.iconBox, styles.normalIconBox]}>
-              <Ionicons name="bicycle" size={20} color="#00A63E" />
+          {!perOrderAmount &&
+            <View style={styles.cardHeaderRow}>
+              <View style={[styles.iconBox, styles.normalIconBox]}>
+                <Ionicons name="bicycle" size={20} color="#00A63E" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>Targets</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Targets</Text>
-              {/* <Text style={styles.cardSubtitle}>Regular hours</Text> */}
-            </View>
-          </View>
+          }
 
-          <View style={styles.divider} />
+          {perOrderAmount &&
+            <View style={styles.cardHeaderRow}>
+              <View style={[styles.iconBox, styles.normalIconBox]}>
+                <Ionicons name="bicycle" size={20} color="#00A63E" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>Orders Delivered</Text>
+              </View>
+              <View style={styles.progressOrdersBadge}>
+                <Ionicons name="cube" size={14} color="#4F39F6" />
+                <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
+              </View>
+            </View>
+          }
+
+          {!perOrderAmount &&
+            <View style={styles.divider} />
+          }
 
           {/* Rule Rows */}
-          <View style={styles.ruleRow}>
-            <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
-            <Text style={styles.ruleText}>
-              Deliver minimum of <Text style={styles.boldNormal}>{minOrders} Orders</Text> to achieve rewards
-            </Text>
-          </View>
+          {minOrders !== 0 && (
+            <View style={styles.ruleRow}>
+              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                Deliver minimum of <Text style={styles.boldNormal}>{minOrders} Orders</Text> to achieve rewards
+              </Text>
+            </View>
+          )}
+
+          {minEarnings && (
+            <View style={styles.ruleRow}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                Should have minimum earnings of <Text style={styles.boldNormal}>{minEarnings}</Text> rupees
+              </Text>
+            </View>
+          )}
         </View>
 
         {ruleType === "SLAB" &&
@@ -200,6 +242,27 @@ const DailyGuarentee = ({ route, navigation }) => {
             />
           </View>
         }
+
+        {ruleType === "HYBRID" &&
+          <View style={styles.progressWrapper}>
+            <FixedTargetType
+              target={target}
+              ordersCompleted={ordersCompleted}
+            />
+          </View>
+        }
+
+        {perOrderAmount && (
+          <View style={[styles.ruleCard, styles.normalCard]}>
+            <View style={{ flexDirection: 'row' }}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>
+                You will get <Text style={styles.boldNormal}>{perOrderAmount} rupees</Text> for each order you deliver
+              </Text>
+            </View>
+          </View>
+        )}
+
       </View>
     </ScrollView>
   );

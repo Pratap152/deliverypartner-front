@@ -17,6 +17,7 @@ import {
 
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
+import WeeklyEarningsChartEmployee from '../../components/dashboard/earnings/WeeklyEarningsChartEmployee';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -36,18 +37,23 @@ export default function EarningsScreen({ navigation }) {
     fetchPeakIncentivesProgress();
   }, []);
 
-  const weeklyCompletedOrders = weeklyIncentivesProgress?.ordersCompleted;
-  const dailyCompletedOrders = dailyIncentivesProgress?.ordersCompleted;
-  const peakCompletedOrders = peakIncentivesProgress?.slots[0].ordersCompleted;
+  // console.log("WEEKLY PROGRESS: ", weeklyIncentivesProgress);
+
+  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
+  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
+  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
 
   const {
     todayEarnings={},
     earningsSummary = {},
     weeklyBarChart = [],
+    riderType= "",
     weeklyTotal = 0,
     wallet = {},
     incentives = [],
   } = data;
+
+  console.log("WEEKLY BAR CHART: ", weeklyBarChart, riderType);
 
   const month = earningsSummary.month || {};
   
@@ -143,10 +149,21 @@ export default function EarningsScreen({ navigation }) {
             <Text style={styles.cardValue}>₹{formatMoney(weeklyTotal)}</Text>
           </View>
         
-          <WeeklyEarningsChart
+          {riderType === "INDIVIDUAL_EMPLOYEE" &&
+            <WeeklyEarningsChart
+            riderType={riderType}
             data={weeklyBarChart}
             width={CARD_WIDTH - CARD_PADDING * 2}
-            height={hp(30)} />   
+            height={hp(30)} />
+          }
+
+          {riderType === "COMPANY_EMPLOYEE" &&
+            <WeeklyEarningsChartEmployee
+            riderType={riderType}
+            data={weeklyBarChart}
+            width={CARD_WIDTH - CARD_PADDING * 2}
+            height={hp(30)} />
+          }
         </PremiumPressable>
       </View>
 

@@ -17,6 +17,8 @@ import {
 } from 'react-native-responsive-dimensions';
 
 import { useOrderHistory } from '../../hooks/useOrderHistory';
+import EmptyState from '../../components/order/EmptyState';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -102,13 +104,17 @@ const OrderHistory = ({ navigation }) => {
 
   /*  EMPTY STATE  */
   const EmptyComponent = () => (
-    <View style={styles.empty}>
-      <Text>No Orders Found</Text>
-    </View>
+    <EmptyState 
+      icon="receipt-outline"
+      title="No Orders Yet"
+      message="Your delivery history will appear here once you complete your first order."
+      onRetry={onRefresh}
+      buttonText="Refresh"
+    />
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -201,7 +207,7 @@ const OrderHistory = ({ navigation }) => {
           <ActivityIndicator size="large" />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

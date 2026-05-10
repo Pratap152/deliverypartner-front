@@ -12,11 +12,16 @@ import {
  */
 const OrderEarningsCard = ({ pricing, items }) => {
   console.log('[OrderEarningsCard] Received pricing:', JSON.stringify(pricing));
-  console.log('[OrderEarningsCard] Received items:', JSON.stringify(items));
 
-  if (!pricing) {
-    console.log('[OrderEarningsCard] No pricing data');
-    return null;
+  if (!pricing || Object.keys(pricing).length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.header}>Bill Details</Text>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Pricing information unavailable</Text>
+        </View>
+      </View>
+    );
   }
 
   // Extract values with fallbacks
@@ -79,10 +84,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#D1FAE5',
   },
-  content: {
-    gap: hp('1%'),
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp('2%'),
   },
-
+  emptyText: {
+    fontSize: wp('3.8%'),
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#D1FAE5',
+    marginVertical: hp('1%'),
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

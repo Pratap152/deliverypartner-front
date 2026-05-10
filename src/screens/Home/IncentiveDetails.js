@@ -35,17 +35,41 @@ export default function IncentiveDetails({ navigation }) {
     fetchPeakIncentivesProgress();
   }, []);
 
-  const weeklyCompletedOrders = weeklyIncentivesProgress?.ordersCompleted;
-  const dailyCompletedOrders = dailyIncentivesProgress?.ordersCompleted;
-  const peakCompletedOrders = peakIncentivesProgress?.slots[0].ordersCompleted;
+  const isPeakEmpty = peakData?.data?.[0] ? false : true;
+  const isDailyEmpty = dailyData?.data?.[0] ? false : true;
+  const isWeeklyEmpty = weeklyData?.data?.[0] ? false : true;
 
-  const weeklyMinimumOrders = weeklyData?.data[0].target?.orders || weeklyData?.data[0].slabs[0]?.minOrders;
-  const dailyMinimumOrders = dailyData?.data[0]?.target?.orders || dailyData?.data[0].slabs[0]?.minOrders;
+  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
+  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
+  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
+
+  const weeklyMinimumOrders = weeklyData?.data?.[0].ruleType === "HYBRID" ?
+          weeklyData?.data[0]?.conditions?.minOrders :
+          weeklyData?.data?.[0].ruleType === "FIXED_TARGET" ?
+            weeklyData?.data[0]?.target?.orders :
+            weeklyData?.data?.[0].ruleType === "SLAB" ?
+              weeklyData?.data[0]?.slabs[0]?.minOrders : 0;
+  const dailyMinimumOrders = dailyData?.data?.[0].ruleType === "HYBRID" ?
+          dailyData?.data[0]?.conditions?.minOrders :
+          dailyData?.data?.[0].ruleType === "FIXED_TARGET" ?
+            dailyData?.data[0]?.target?.orders :
+            dailyData?.data?.[0].ruleType === "SLAB" ?
+              dailyData?.data[0]?.slabs[0]?.minOrders : 0;
+
+  const peakMinimumOrders = peakData?.data?.[0].ruleType === "HYBRID" ?
+          peakData?.data[0]?.slots[0]?.conditions?.minOrders :
+          peakData?.data?.[0].ruleType === "FIXED_TARGET" ?
+            peakData?.data[0]?.slots[0]?.target?.orders :
+            peakData?.data?.[0].ruleType === "SLAB" ?
+              peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
 
   const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned;
   const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned;
-  const peakRewardEarned = peakIncentivesProgress?.slots[0].reward;
+  const peakRewardEarned = 40||peakIncentivesProgress?.slots[0]?.reward;
 
+  
+
+  console.log("peak: ", peakIncentivesProgress);
   /* ================= FETCH ALL INCENTIVES ================= */
   const fetchAllIncentives = async () => {
     try {
@@ -56,8 +80,10 @@ export default function IncentiveDetails({ navigation }) {
       try {
         peakRes = await getPeakHourIncentives();
         console.log('PEAK Response:', JSON.stringify(peakRes, null, 2));
-        if (peakRes?.data) {
+        if (peakRes?.data[0]) {
           setPeakData(peakRes);
+        } else {
+          setPeakData({emptyData: true});
         }
       } catch (e) {
         console.log('PEAK Error:', e.response?.data || e.message);
@@ -71,8 +97,8 @@ export default function IncentiveDetails({ navigation }) {
         // Daily API returns data directly, not nested in .data
         if (dailyRes?.success) {
           setDailyData(dailyRes);
-        } else {
-          console.log('DAILY: No success flag');
+        }  else {
+          setDailyData({emptyData: true});
         }
       } catch (e) {
         console.log('DAILY Error:', e.response?.data || e.message);
@@ -85,6 +111,8 @@ export default function IncentiveDetails({ navigation }) {
         console.log('WEEKLY Response:', JSON.stringify(weeklyRes, null, 2));
         if (weeklyRes?.data) {
           setWeeklyData(weeklyRes);
+        } else {
+          setWeeklyData({emptyData: true});
         }
       } catch (e) {
         console.log('WEEKLY Error:', e.response?.data || e.message);
@@ -98,6 +126,14 @@ export default function IncentiveDetails({ navigation }) {
     }
   };
 
+  // if(!peakData?.data[0] || !dailyData?.data[0] || !weeklyData?.data[0]){
+  //   return(
+  //     <View>
+  //       <Text>Please come again later.</Text>
+  //     </View>
+  //   )
+  // }
+
   /* ================= NAVIGATION HANDLERS ================= */
   const navigateToPeakHour = () => {
     if (!peakData) {
@@ -106,7 +142,8 @@ export default function IncentiveDetails({ navigation }) {
     }
     navigation.navigate("PeakHourBonusScreen", {
       peak_data: peakData,
-      peakIncentivesProgress
+      peakIncentivesProgress,
+      minOrders: peakMinimumOrders
     });
   };
 
@@ -117,7 +154,8 @@ export default function IncentiveDetails({ navigation }) {
     }
     navigation.navigate("DailyGuarentee", {
       daily_data: dailyData,
-      dailyIncentivesProgress
+      dailyIncentivesProgress,
+      minOrders: dailyMinimumOrders
     });
   };
 
@@ -128,7 +166,8 @@ export default function IncentiveDetails({ navigation }) {
     }
     navigation.navigate("WeekEarnings", {
       weekly_data: weeklyData,
-      weeklyIncentivesProgress
+      weeklyIncentivesProgress,
+      minOrders: weeklyMinimumOrders
     });
   };
 
@@ -168,30 +207,27 @@ export default function IncentiveDetails({ navigation }) {
   }
 
   // Calculate progress for each incentive
-  const dailyProgress = dailyData
-    ? Math.min(
+  const dailyProgress = Math.min(
       (dailyCompletedOrders /
         dailyMinimumOrders) *
       100,
       100
     )
-    : 0;
+    || 0;
 
-  const peakProgress = peakData?.completedOrders
-    ? Math.min(
-      (peakData.completedOrders / (peakData.slabs?.[0]?.orders || 1)) * 100,
+  const peakProgress = Math.min(
+      (peakCompletedOrders / peakMinimumOrders) * 100,
       100
     )
-    : 0;
+    || 0;
 
-  const weeklyProgress = weeklyData
-    ? Math.min(
+  const weeklyProgress = Math.min(
       (weeklyCompletedOrders /
         weeklyMinimumOrders) *
       100,
       100
     )
-    : 0;
+    || 0;
 
   return (
     <View style={styles.container}>
@@ -217,7 +253,7 @@ export default function IncentiveDetails({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         {/* TODAY'S TARGET - DAILY INCENTIVE */}
-        {dailyData ? (
+        {isDailyEmpty === false ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToDaily}
@@ -264,7 +300,7 @@ export default function IncentiveDetails({ navigation }) {
         </View>
 
         {/* DAILY INCENTIVE CARD */}
-        {dailyData ? (
+        {isDailyEmpty === false ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToDaily}
@@ -278,7 +314,7 @@ export default function IncentiveDetails({ navigation }) {
                   <Ionicons name="checkmark-done" size={20} color="#6366F1" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{dailyData.data[0].name}</Text>
+                  <Text style={styles.cardTitle}>{dailyData.data[0]?.name}</Text>
                   {/* <Text style={styles.cardSubtitle}>
                     {dailyData.eligible
                       ? "Target achieved"
@@ -287,7 +323,7 @@ export default function IncentiveDetails({ navigation }) {
                 </View>
               </View>
               <Text style={styles.cardReward}>
-                ₹{dailyData.totalRewardAmount || 0}
+                ₹{dailyRewardEarned}
               </Text>
             </View>
 
@@ -312,7 +348,7 @@ export default function IncentiveDetails({ navigation }) {
         )}
 
         {/* PEAK HOUR INCENTIVE CARD */}
-        {peakData ? (
+        {isPeakEmpty === false ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToPeakHour}
@@ -327,7 +363,7 @@ export default function IncentiveDetails({ navigation }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>
-                    {peakData.data[0].name || ""}
+                    {peakData.data[0]?.name}
                   </Text>
                   {/* <Text style={styles.cardSubtitle}>
                     Peak Slot: {peakData.slotRule || "N/A"}
@@ -349,8 +385,8 @@ export default function IncentiveDetails({ navigation }) {
             </View>
 
             <Text style={styles.progressText}>
-              {peakData.completedOrders || 0} /{" "}
-              {peakData.slabs?.[0]?.orders || 0} completed
+              {peakCompletedOrders} /{" "}
+              {peakMinimumOrders} completed
             </Text>
           </TouchableOpacity>
         ) : (
@@ -361,7 +397,7 @@ export default function IncentiveDetails({ navigation }) {
         )}
 
         {/* WEEKLY BONUS CARD */}
-        {weeklyData ? (
+        {isWeeklyEmpty === false ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToWeekly}
@@ -411,7 +447,7 @@ export default function IncentiveDetails({ navigation }) {
         )}
 
         {/* All Empty State */}
-        {!dailyData && !peakData && !weeklyData && (
+        {isDailyEmpty === true && isPeakEmpty === true && isWeeklyEmpty === true && (
           <View style={styles.emptyStateContainer}>
             <Ionicons name="gift-outline" size={60} color="#CCC" />
             <Text style={styles.emptyStateTitle}>
