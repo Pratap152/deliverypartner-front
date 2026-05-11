@@ -25,6 +25,7 @@ export default function useEarningsDashboard() {
     dashboardCache || {
       todayEarnings: {},
       earningsSummary: {},
+      riderType: "",
       weeklyBarChart: [],
       weeklyTotal: 0,
       weeklyOrders: 0,
@@ -70,6 +71,7 @@ export default function useEarningsDashboard() {
           setData(prev => {
             const updated = {
               ...prev,
+              riderType: res?.riderType,
               weeklyBarChart: weekly.chart,
               weeklyTotal: weekly.total,
               weeklyOrders: weekly.total_orders,
@@ -157,11 +159,20 @@ export default function useEarningsDashboard() {
         total_orders: 0
       };
     }
-    const chart = res.week.map(item => ({
+    let chart =[];
+    if(res?.riderType === "INDIVIDUAL_EMPLOYEE") {
+    chart = res.week.map(item => ({
       label: item.day,
       value: item.amount,
       orders: item.orders,
     }));
+    } else {
+    chart = res.week.map(item => ({
+      label: item.day,
+      value: 0,
+      orders: item.orders,
+    }));
+    }
     const total = chart.reduce((sum, d) => sum + (d.value || 0), 0);
     const total_orders = chart.reduce((sum_ord, d) => sum_ord + (d.orders || 0), 0);
     return {
@@ -192,8 +203,12 @@ export default function useEarningsDashboard() {
         id: 'peak-slot',
         type: 'peak',
         title: peakRes.data[0]?.name || "FRED",
-        // subtitle: peakRes.data[0].description,
-        // slabs: peakRes.data[0].slabs ?? [],
+        minOrders: peakRes?.data[0].ruleType === "HYBRID" ?
+          peakRes.data[0]?.slots[0]?.conditions?.minOrders :
+          peakRes.data[0]?.ruleType === "FIXED_TARGET" ?
+            peakRes.data[0]?.slots[0]?.target?.orders :
+            peakRes.data[0]?.ruleType === "SLAB" ?
+              peakRes.data[0]?.slots[0]?.slabs[0]?.minOrders : 0,
         accentColor: '#FFF7ED',
         peak_data: peakRes
       })

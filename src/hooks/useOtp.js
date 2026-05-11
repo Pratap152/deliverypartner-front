@@ -26,58 +26,41 @@ export const useOtp = (length = 6) => {
     }
   };
 
-  // ======== INPUT CHANGE HANDLER ========
-  const handleChange = (value, index) => {
+ const handleChange = (text, index) => {
+  // Remove non-numeric characters
+  const cleanedText = text.replace(/[^0-9]/g, '');
 
-    if (
-    index > 0 &&
-    !otp[index - 1] &&
-    value.length === 1 // allow paste/autofill
-  ) {
-    inputRefs.current[index - 1]?.focus();
-    return;
-  }
-    // Only allow numbers
-    if (!/^\d*$/.test(value)) return;
+  //  Handle full OTP paste
+  if (cleanedText.length > 1) {
+    const otpArray = cleanedText.slice(0, 6).split('');
 
-    // -------- HANDLE PASTE (multi character) --------
-    if (value.length > 1) {
-      const chars = value.split("");
-
-      const newOtp = [...otp];
-      let cursorPos = index;
-
-      chars.forEach((char) => {
-        if (cursorPos < length) {
-          newOtp[cursorPos] = char;
-          cursorPos++;
-        }
-      });
-
-      setOtp(newOtp);
-
-      // Move focus to last pasted digit
-      const next = Math.min(cursorPos, length - 1);
-      inputRefs.current[next]?.focus();
-      return;
-    }
-
-    // -------- NORMAL SINGLE DIGIT INPUT --------
     const newOtp = [...otp];
-    newOtp[index] = value;
+
+    otpArray.forEach((digit, idx) => {
+      newOtp[idx] = digit;
+    });
+
     setOtp(newOtp);
 
-    // Auto move to next
-    if (value && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+    // Focus last filled input
+    const lastIndex = otpArray.length - 1;
+    if (inputRefs.current[lastIndex]) {
+      inputRefs.current[lastIndex].focus();
     }
 
-    // Auto move backward if input cleared
-    if (!value && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
+    return;
+  }
 
+  // Normal single digit entry
+  const newOtp = [...otp];
+  newOtp[index] = cleanedText;
+  setOtp(newOtp);
+
+  // Move to next input
+  if (cleanedText && index < otp.length - 1) {
+    inputRefs.current[index + 1]?.focus();
+  }
+};
   // ======== BACKSPACE HANDLER ========
   const handleKeyPress = (e, index) => {
     const key = e.nativeEvent.key;

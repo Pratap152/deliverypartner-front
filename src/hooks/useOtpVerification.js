@@ -13,17 +13,45 @@ const useOtpVerification = otpLength => {
   }, []);
 
   const handleChange = (value, index) => {
-    if (isNaN(+value)) return;
-    setError('');
+  // Remove non-numeric characters
+  const cleanedValue = value.replace(/[^0-9]/g, '');
 
-    const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
+  setError('');
+
+  // ===== HANDLE FULL OTP PASTE =====
+  if (cleanedValue.length > 1) {
+    const pastedOtp = cleanedValue.slice(0, otpLength).split('');
+
+    const newOtp = Array(otpLength).fill('');
+
+    pastedOtp.forEach((digit, idx) => {
+      newOtp[idx] = digit;
+    });
+
     setOtp(newOtp);
 
-    if (value && index < otpLength - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
+    // Focus last input
+    const focusIndex =
+      pastedOtp.length >= otpLength
+        ? otpLength - 1
+        : pastedOtp.length;
+
+    inputRefs.current[focusIndex]?.focus();
+
+    return;
+  }
+
+  // ===== NORMAL SINGLE DIGIT =====
+  const newOtp = [...otp];
+  newOtp[index] = cleanedValue;
+
+  setOtp(newOtp);
+
+  // Move to next input
+  if (cleanedValue && index < otpLength - 1) {
+    inputRefs.current[index + 1]?.focus();
+  }
+};
 
   const handleKeyPress = (e, index) => {
     if (e.nativeEvent.key === 'Backspace') {
