@@ -181,33 +181,41 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     }
   };
 
+
   const loadDay = async (date, reset = true, force = false) => {
+    const nextPage = reset ? 1 : page;
+
     if (reset) {
       setPage(1);
       setLedgerItems([]);
       setHasMore(true);
+    } else if (!hasMore) {
+      return;
     }
 
-    if (!hasMore && !reset) return;
-
     setLoading(true);
-    const key = `day_${date}_${reset ? 1 : page}`;
+
+    const key = `day_${date}_${nextPage}`;
     const data = await safeApiCached(
       key,
-      () => EarningsNewAPI.getDailyByDate(date, reset ? 1 : page),
+      () => EarningsNewAPI.getDailyByDate(date, nextPage),
       force
     );
     setLoading(false);
 
     if (data) {
       const items = data.items || [];
+
       setDayData(data);
-      setLedgerItems((prev) => (reset ? items : [...prev, ...items]));
-
-      if (items.length < 20) setHasMore(false);
-      else setPage((p) => p + 1);
-
+      setLedgerItems(prev => (reset ? items : [...prev, ...items]));
+      setHasMore(items.length >= 20);
+      setPage(nextPage + 1);
       setView("DAY");
+
+      if (reset) {
+        setSelectedDay(date);
+      }
+
       prefetchNextDay(date);
     }
   };
@@ -311,24 +319,24 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     }
 
     const today = new Date();
-const isFuture = start > today;
+    const isFuture = start > today;
 
-weeks.push({
-  week,
-  startDate: start.toISOString().split("T")[0],
-  endDate: end.toISOString().split("T")[0],
-  startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-  endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-  isFuture,
-});
+    weeks.push({
+      week,
+      startDate: start.toISOString().split("T")[0],
+      endDate: end.toISOString().split("T")[0],
+      startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      isFuture,
+    });
 
 
-    current.setDate(current.getDate() + 7);
-    week++;
-  }
+        current.setDate(current.getDate() + 7);
+        week++;
+      }
 
-  return weeks;
-}
+      return weeks;
+    }
 
 function getBackendWeekNumber(date) {
   const d = new Date(date);
@@ -419,14 +427,16 @@ const headerTitle = useMemo(() => {
     );
   };
 
+
   const renderDay = () => (
     <FlatList
       data={ledgerItems}
+      extraData={{ dayData, selectedDay, hasMore, page }}
       keyExtractor={(item, idx) => (item.orderId || idx) + "_" + idx}
       refreshing={refreshing}
       onRefresh={onRefresh}
       ListHeaderComponent={
-        <TotalCard title="Total Earnings" amount={formatMoney(dayData?.totalEarnings )|| 0} />
+        <TotalCard title="Total Earnings" amount={formatMoney(dayData?.totalEarnings) || 0} />
       }
       ListEmptyComponent={<EmptyState />}
       onEndReached={() => loadDay(selectedDay, false)}
