@@ -73,6 +73,10 @@ const maxValue =
     },
   });
 
+  const formatOrderLabel = count => {
+  return `${count} ${count === 1 ? 'order' : 'orders'}`;
+};
+
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
@@ -204,7 +208,7 @@ const maxValue =
           ]}
         >
           <Text style={styles.tooltipText}>
-            ₹{formatMoney(points[activeIndex].value)}
+              {formatOrderLabel(points[activeIndex].orders ?? 0)}
           </Text>
         </View>
       )}

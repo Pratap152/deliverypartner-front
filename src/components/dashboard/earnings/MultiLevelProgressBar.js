@@ -14,6 +14,8 @@ export default function MultiLevelProgressBar({
     return null;
   }
 
+  console.log("ESWA", slabs);
+
   // normalize slabs: ensure ascending and numeric
   const normalized = slabs
     .map(s => ({ orders: Number(s.orders ?? s?.orders ?? 0), rewardAmount: Number(s.rewardAmount ?? s?.rewardAmount ?? 0) }))

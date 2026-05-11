@@ -131,7 +131,9 @@ export default function useEarningsDashboard() {
     const items = res?.items ?? [];
     return {
       date: res?.date ?? "",
+      baseEarnings:res?.baseEarnings ?? 0,
       totalEarnings: res?.totalEarnings ?? 0,
+      incentives:res?.incentives ?? 0,
       orders: items.length,
       items,
     };
