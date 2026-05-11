@@ -123,7 +123,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
         </>
       )}
 
-          {(isDaily &&
+          {(isDaily && !item.emptyData &&
             (item.daily_data?.data[0].ruleType !== "TASK" && item.daily_data?.data[0].ruleType !== "PER_ORDER")
           ) &&
             (
@@ -150,7 +150,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
             )}
 
           {/* Weekly or fallback single progress bar */}
-          {isWeekly && (
+          {isWeekly && !item.emptyData && (
             <>
               {(item.minOrders > 0) && (
                 <>
