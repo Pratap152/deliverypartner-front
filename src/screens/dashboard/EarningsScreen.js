@@ -50,16 +50,21 @@ export default function EarningsScreen({ navigation }) {
     weeklyBarChart = [],
     riderType = "",
     weeklyTotal = 0,
+    weeklyOrders=0,
     wallet = {},
     incentives = [],
   } = data;
 
-  console.log("WEEKLY BAR CHART: ", weeklyBarChart, riderType);
+  // console.log("WEEKLY BAR CHART: ", weeklyBarChart, riderType);
 
   const month = earningsSummary.month || {};
 
   const CARD_WIDTH = wp(95);
   const CARD_PADDING = wp(4);
+
+  const formatOrderLabel = count => {
+  return `${count} ${count === 1 ? 'order' : 'orders'}`;
+};
 
 
   /* HEADER */
@@ -115,7 +120,7 @@ export default function EarningsScreen({ navigation }) {
           <View style={styles.dailyStatsRow}>
             <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>
-                ₹{formatMoney(todayEarnings.totalEarnings ?? 0)}
+                ₹{formatMoney(todayEarnings.baseEarnings ?? 0)}
               </Text>
               <Text style={styles.statLabel}>Base Earnings</Text>
             </View>
@@ -145,11 +150,13 @@ export default function EarningsScreen({ navigation }) {
       <View style={[styles.card, { width: CARD_WIDTH, padding: CARD_PADDING }]}>
         <PremiumPressable onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })} >
           <View style={styles.cardHeader}>
-
             <Text style={styles.cardTitle}>This Week</Text>
-            <Text style={styles.cardValue}>₹{formatMoney(weeklyTotal)}</Text>
+            <Text style={styles.cardValue}>
+              {riderType === 'COMPANY_EMPLOYEE'
+                ? formatOrderLabel(weeklyOrders ?? 0)
+                : `₹${formatMoney(weeklyTotal ?? 0)}`}
+            </Text>
           </View>
-
           {riderType === "INDIVIDUAL_EMPLOYEE" &&
             <WeeklyEarningsChart
               riderType={riderType}
