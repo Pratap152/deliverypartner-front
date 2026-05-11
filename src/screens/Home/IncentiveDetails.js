@@ -69,9 +69,9 @@ export default function IncentiveDetails({ navigation }) {
                 peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
                 : 0;
 
-  const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned;
-  const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned;
-  const peakRewardEarned = 40||peakIncentivesProgress?.slots[0]?.reward;
+  const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned || 0;
+  const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned || 0;
+  const peakRewardEarned = peakIncentivesProgress?.rewardAmount || 0;
 
   
 

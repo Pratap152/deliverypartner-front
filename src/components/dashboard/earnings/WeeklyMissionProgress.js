@@ -429,6 +429,20 @@ conditionTitle: {
   marginBottom: 14,
 },
 
+conditionText: {
+  fontSize: 14,
+  color: '#374151',
+  lineHeight: 22,
+  fontWeight: '500',
+  marginBottom: 8,
+  backgroundColor: '#FFFFFF',
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: '#CCC',
+},
+
 conditionCard: {
   backgroundColor: '#FFFFFF',
   borderRadius: 14,
