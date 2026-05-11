@@ -43,25 +43,31 @@ export default function IncentiveDetails({ navigation }) {
   const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
   const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
 
-  const weeklyMinimumOrders = weeklyData?.data?.[0].ruleType === "HYBRID" ?
-          weeklyData?.data[0]?.conditions?.minOrders :
-          weeklyData?.data?.[0].ruleType === "FIXED_TARGET" ?
-            weeklyData?.data[0]?.target?.orders :
-            weeklyData?.data?.[0].ruleType === "SLAB" ?
-              weeklyData?.data[0]?.slabs[0]?.minOrders : 0;
-  const dailyMinimumOrders = dailyData?.data?.[0].ruleType === "HYBRID" ?
-          dailyData?.data[0]?.conditions?.minOrders :
-          dailyData?.data?.[0].ruleType === "FIXED_TARGET" ?
-            dailyData?.data[0]?.target?.orders :
-            dailyData?.data?.[0].ruleType === "SLAB" ?
-              dailyData?.data[0]?.slabs[0]?.minOrders : 0;
+  const weeklyMinimumOrders = !isWeeklyEmpty ? 
+          weeklyData?.data[0]?.ruleType === "HYBRID" ?
+            weeklyData?.data[0]?.conditions?.minOrders :
+            weeklyData?.data[0]?.ruleType === "FIXED_TARGET" ?
+              weeklyData?.data[0]?.target?.orders :
+              weeklyData?.data[0]?.ruleType === "SLAB" ?
+                weeklyData?.data[0]?.slabs[0]?.minOrders : 0
+                : 0;
+  const dailyMinimumOrders = !isDailyEmpty ?
+          dailyData?.data[0]?.ruleType === "HYBRID" ?
+            dailyData?.data[0]?.conditions?.minOrders :
+            dailyData?.data[0]?.ruleType === "FIXED_TARGET" ?
+              dailyData?.data[0]?.target?.orders :
+              dailyData?.data[0]?.ruleType === "SLAB" ?
+                dailyData?.data[0]?.slabs[0]?.minOrders : 0
+                : 0;
 
-  const peakMinimumOrders = peakData?.data?.[0].ruleType === "HYBRID" ?
-          peakData?.data[0]?.slots[0]?.conditions?.minOrders :
-          peakData?.data?.[0].ruleType === "FIXED_TARGET" ?
-            peakData?.data[0]?.slots[0]?.target?.orders :
-            peakData?.data?.[0].ruleType === "SLAB" ?
-              peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
+  const peakMinimumOrders = !isPeakEmpty ?
+          peakData?.data?.[0].ruleType === "HYBRID" ?
+            peakData?.data[0]?.slots[0]?.conditions?.minOrders :
+            peakData?.data[0]?.ruleType === "FIXED_TARGET" ?
+              peakData?.data[0]?.slots[0]?.target?.orders :
+              peakData?.data[0]?.ruleType === "SLAB" ?
+                peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
+                : 0;
 
   const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned;
   const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned;
@@ -125,14 +131,6 @@ export default function IncentiveDetails({ navigation }) {
       setLoading(false);
     }
   };
-
-  // if(!peakData?.data[0] || !dailyData?.data[0] || !weeklyData?.data[0]){
-  //   return(
-  //     <View>
-  //       <Text>Please come again later.</Text>
-  //     </View>
-  //   )
-  // }
 
   /* ================= NAVIGATION HANDLERS ================= */
   const navigateToPeakHour = () => {
@@ -253,7 +251,7 @@ export default function IncentiveDetails({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         {/* TODAY'S TARGET - DAILY INCENTIVE */}
-        {isDailyEmpty === false ? (
+        {!isDailyEmpty ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToDaily}
