@@ -1,41 +1,42 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, Text, TouchableOpacity, BackHandler } from 'react-native';
-import Geolocation from "@react-native-community/geolocation";
-import LiveMap from '../../components/map/LiveMap';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { View, StyleSheet, PermissionsAndroid, Platform, Image, Text, TouchableOpacity, ActivityIndicator, Alert, BackHandler } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
+import Geolocation from '@react-native-community/geolocation';
 import { orderService } from '../../services/order/OrderService';
 import { getDistance } from 'geolib';
 
-const MapScreen = ({ route, navigation }) => {
+// Using the API Key provided in your snippet or fallback to env
+const GOOGLE_MAPS_API_KEY = "AIzaSyAt59NjjnVtI5PfvhkQKFDLeBFfCTW-mxg";
+const DISTANCE_THRESHOLD = 30; // meters for rerouting
 
+const MapScreen = ({ route, navigation }) => {
   const { orderId, type, orderDetails: passedOrderDetails } = route.params;
 
+  // --- STATE ---
+  const [orderDetails, setOrderDetails] = useState(passedOrderDetails || null);
+  const [loading, setLoading] = useState(!passedOrderDetails);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [currentHeading, setCurrentHeading] = useState(0);
+  const [distanceToTarget, setDistanceToTarget] = useState(null);
+  const [buttonLoading, setButtonLoading] = useState(false);
+  const [lastRouteOrigin, setLastRouteOrigin] = useState(null);
+
+  // --- REFS ---
+  const watchId = useRef(null);
+  const mapRef = useRef(null);
+  const lastRouteOriginRef = useRef(null);
+
+  // --- PREVENT BACK NAVIGATION ---
   useEffect(() => {
-    // Disable Android hardware back button
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => true // Prevent back navigation
-    );
-
-    // Disable iOS swipe gesture
-    navigation.setOptions({
-      gestureEnabled: false,
-    });
-
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
+    navigation.setOptions({ gestureEnabled: false });
     return () => backHandler.remove();
   }, [navigation]);
 
-  const [orderDetails, setOrderDetails] = useState(passedOrderDetails || null);
-  const [loading, setLoading] = useState(!passedOrderDetails);
-  const [riderLocation, setRiderLocation] = useState(null);
-  const [distanceToTarget, setDistanceToTarget] = useState(null);
-  const [buttonLoading, setButtonLoading] = useState(false);
-
-  const mapRef = useRef(null);
-
-  /* ---------------- FETCH ORDER ---------------- */
+  // --- FETCH ORDER DETAILS ---
   useEffect(() => {
     if (passedOrderDetails) return;
-
     const fetchOrder = async () => {
       try {
         const data = await orderService.getOrderDetails(orderId);
@@ -47,86 +48,144 @@ const MapScreen = ({ route, navigation }) => {
         setLoading(false);
       }
     };
-
     fetchOrder();
   }, [orderId]);
 
-  /* ---------------- TARGET ---------------- */
-const isPickup =
-  type === 'pickupOrder' ||
-  type === 'navigateToPickup';
-  
+  // --- CALCULATE TARGET ---
+  const isPickup = type === 'pickupOrder' || type === 'navigateToPickup';
   const targetLocation = useMemo(() => {
     if (!orderDetails) return null;
+    const addr = isPickup ? orderDetails.pickupAddress : orderDetails.deliveryAddress;
+    
+    // Ensure coordinates are numbers
+    const lat = parseFloat(addr?.lat);
+    const lng = parseFloat(addr?.lng);
 
-    return isPickup
-      ? {
-          latitude: orderDetails.pickupAddress.lat,
-          longitude: orderDetails.pickupAddress.lng,
-        }
-      : {
-          latitude: orderDetails.deliveryAddress.lat,
-          longitude: orderDetails.deliveryAddress.lng,
-        };
+    if (isNaN(lat) || isNaN(lng)) {
+      console.warn('[MapScreen] Invalid target coordinates:', addr);
+      return null;
+    }
+
+    return { latitude: lat, longitude: lng };
   }, [orderDetails, isPickup]);
 
-  /* ---------------- LOCATION TRACKING ---------------- */
-  useEffect(() => {
-    const watchId = Geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setRiderLocation({ latitude, longitude });
+  // --- PERMISSIONS & TRACKING ---
+  const requestLocationPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'This app needs access to your location for navigation.',
+            buttonPositive: 'OK',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
 
-        if (targetLocation) {
-          const dist = getDistance({ latitude, longitude }, targetLocation);
-          setDistanceToTarget(dist);
+  const getInitialPosition = async () => {
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) return;
+
+    Geolocation.getCurrentPosition(
+      position => {
+        const initialLoc = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        console.log('[MapScreen] Initial Position:', initialLoc);
+        setCurrentLocation(initialLoc);
+        setLastRouteOrigin(initialLoc);
+        lastRouteOriginRef.current = initialLoc;
+        
+        if (targetLocation && mapRef.current) {
+          mapRef.current.fitToCoordinates([initialLoc, targetLocation], {
+            edgePadding: { top: 100, right: 100, bottom: 300, left: 100 },
+            animated: true,
+          });
         }
       },
-      (error) => console.log(error),
-      { enableHighAccuracy: true, distanceFilter: 10 }
+      error => console.log('[MapScreen] Initial Location Error:', error),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
+  };
 
-    return () => Geolocation.clearWatch(watchId);
+  const startLocationWatch = async () => {
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) return;
+
+    watchId.current = Geolocation.watchPosition(
+      position => {
+        const newLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        const heading = position.coords.heading || 0;
+
+        setCurrentLocation(newLocation);
+        setCurrentHeading(heading);
+
+        if (targetLocation) {
+          const dist = getDistance(newLocation, targetLocation);
+          setDistanceToTarget(dist);
+        }
+
+        if (mapRef.current) {
+          mapRef.current.animateCamera({
+            center: newLocation,
+            zoom: 17,
+            pitch: 45,
+            heading: heading,
+          }, { duration: 1000 });
+        }
+
+        const routeOrigin = lastRouteOriginRef.current;
+        if (routeOrigin) {
+          const distanceMoved = getDistance(routeOrigin, newLocation);
+          if (distanceMoved >= DISTANCE_THRESHOLD) {
+            setLastRouteOrigin(newLocation);
+            lastRouteOriginRef.current = newLocation;
+          }
+        }
+      },
+      error => console.log('[MapScreen] Watch Error:', error),
+      { enableHighAccuracy: true, distanceFilter: 5, interval: 2000 }
+    );
+  };
+
+  useEffect(() => {
+    getInitialPosition();
+    startLocationWatch();
+    return () => {
+      if (watchId.current !== null) Geolocation.clearWatch(watchId.current);
+    };
   }, [targetLocation]);
 
-  /* ---------------- ACTION ---------------- */
+  // --- ACTION HANDLER ---
   const handleArrival = async () => {
     try {
       setButtonLoading(true);
-
-      const MAX_DISTANCE = 150000; // testing
-      if (distanceToTarget && distanceToTarget > MAX_DISTANCE) {
-        Alert.alert("Too Far", `You are ${(distanceToTarget).toFixed(0)}m away`);
-        return;
-      }
-
-      if (type === 'pickupOrder' || type === 'navigateToPickup') {
-        const res = await orderService.pickupOrder(orderId);
-        console.log("Map API response (pickup):", res);
+      if (isPickup) {
+        await orderService.pickupOrder(orderId);
         navigation.replace('OrderDetailsScreen', { orderId });
-      } 
-      else if (type === 'deliverOrder' || type === 'navigateToDrop') {
-        console.log("Arrived at drop location. Navigating back with UI state.");
-        navigation.replace('OrderDetailsScreen', {
-          orderId,
-          status: 'EN_ROUTE_TO_DROP',   // ✅ FORCE correct UI state
-        });
-      } 
-      else {
-        console.log("Invalid type received:", type);
-        Alert.alert("Error", "Invalid action type");
-        return;
+      } else {
+        navigation.replace('OrderDetailsScreen', { orderId, status: 'EN_ROUTE_TO_DROP' });
       }
-
     } catch (err) {
-      console.error(err);
       Alert.alert("Error", "Failed to update status");
     } finally {
       setButtonLoading(false);
     }
   };
 
-  /* ---------------- UI ---------------- */
+  // --- UI RENDER ---
   if (loading || !orderDetails) {
     return (
       <View style={styles.center}>
@@ -135,42 +194,92 @@ const isPickup =
     );
   }
 
-  const targetName = isPickup
-    ? orderDetails.vendorShopName
-    : orderDetails.deliveryAddress.name;
-
-  const targetAddress = isPickup
-    ? orderDetails.pickupAddress.addressLine
-    : orderDetails.deliveryAddress.addressLine;
+  const targetName = isPickup ? orderDetails.vendorShopName : orderDetails.deliveryAddress.name;
+  const targetAddress = isPickup ? orderDetails.pickupAddress.addressLine : orderDetails.deliveryAddress.addressLine;
 
   return (
     <View style={styles.container}>
+      <MapView
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={{
+          latitude: currentLocation?.latitude || 17.3850,
+          longitude: currentLocation?.longitude || 78.4866,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }}
+        showsUserLocation={true}
+        followsUserLocation={false}
+      >
+        {/* TARGET MARKER (Pickup/Drop) */}
+        {targetLocation && (
+          <Marker 
+            coordinate={targetLocation} 
+            title={isPickup ? "Pickup Location" : "Drop Location"}
+            zIndex={2}
+          >
+            <View style={styles.targetMarkerContainer}>
+              <Text style={{ fontSize: 32 }}>{isPickup ? '🏪' : '🏠'}</Text>
+            </View>
+          </Marker>
+        )}
 
-      <View style={styles.mapContainer}>
-        <LiveMap
-          ref={mapRef}
-          riderPosition={riderLocation}
-          pickup={isPickup ? targetLocation : null}
-          drop={!isPickup ? targetLocation : null}
-        />
+        {/* RIDER MARKER (Real-time Animated) */}
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            anchor={{ x: 0.5, y: 0.5 }}
+            rotation={currentHeading}
+            flat={true}
+            zIndex={3}
+          >
+            <Image
+              source={require('../../assets/Bike.png')}
+              style={{ width: 60, height: 60 }}
+              resizeMode="contain"
+            />
+          </Marker>
+        )}
 
-        <View style={styles.topOverlay}>
-          <Text style={styles.distanceBadge}>
-            {distanceToTarget ? `${(distanceToTarget / 1000).toFixed(2)} km` : "..."}
-          </Text>
-        </View>
+        {/* DYNAMIC ROUTE POLYLINE */}
+        {currentLocation && targetLocation && (
+          <MapViewDirections
+            origin={lastRouteOrigin || currentLocation}
+            destination={targetLocation}
+            apikey={GOOGLE_MAPS_API_KEY}
+            strokeWidth={5}
+            strokeColor="#1E90FF"
+            optimizeWaypoints={true}
+            onError={(errorMessage) => {
+              console.log('[MapScreen] Directions Error:', errorMessage);
+            }}
+            onReady={(result) => {
+              console.log('[MapScreen] Route ready. Duration:', result.duration, 'Distance:', result.distance);
+            }}
+          />
+        )}
+      </MapView>
+
+      {/* TOP OVERLAY - DISTANCE BADGE */}
+      <View style={styles.topOverlay}>
+        <Text style={styles.distanceBadge}>
+          {distanceToTarget ? `${(distanceToTarget / 1000).toFixed(2)} km away` : "Calculating..."}
+        </Text>
       </View>
 
-      {/* BOTTOM CARD */}
+
+      {/* BOTTOM ACTION CARD */}
       <View style={styles.bottomCard}>
         <View style={styles.dragHandle} />
-
+        
         <View style={styles.locationRow}>
-          <Text style={{ fontSize: 20 }}>{isPickup ? '🏪' : '🏠'}</Text>
-
+          <View style={styles.iconCircle}>
+             <Text style={{ fontSize: 24 }}>{isPickup ? '🏪' : '🏠'}</Text>
+          </View>
           <View style={{ marginLeft: 12, flex: 1 }}>
             <Text style={styles.locationTitle}>{targetName}</Text>
-            <Text style={styles.locationAddress}>{targetAddress}</Text>
+            <Text style={styles.locationAddress} numberOfLines={2}>{targetAddress}</Text>
           </View>
         </View>
 
@@ -180,32 +289,32 @@ const isPickup =
           disabled={buttonLoading}
         >
           {buttonLoading ? (
-            <>
-              <ActivityIndicator color="#fff" />
-              <Text style={styles.actionButtonText}>Loading...</Text>
-            </>
+            <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.actionButtonText}>
               {isPickup ? 'Arrived at Restaurant' : 'Arrived at Drop Location'}
             </Text>
           )}
         </TouchableOpacity>
-
       </View>
     </View>
   );
 };
 
 export default MapScreen;
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  mapContainer: {
+  map: {
     flex: 1,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   topOverlay: {
     position: 'absolute',
@@ -215,14 +324,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
-    elevation: 5,
+    elevation: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
   distanceBadge: {
     fontWeight: 'bold',
-    color: '#333'
+    color: '#333',
+    fontSize: 14,
   },
   bottomCard: {
     position: 'absolute',
@@ -230,46 +341,47 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     padding: 20,
-    paddingBottom: 30,
-    elevation: 20,
+    paddingBottom: 40,
+    elevation: 25,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: '#ccc',
+    backgroundColor: '#E2E8F0',
     borderRadius: 2.5,
     alignSelf: 'center',
-    marginBottom: 20
+    marginBottom: 20,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10
+    marginBottom: 25,
   },
   iconCircle: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   locationTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4
+    color: '#1E293B',
+    marginBottom: 4,
   },
   locationAddress: {
     fontSize: 14,
-    color: '#777'
+    color: '#64748B',
+    lineHeight: 20,
   },
   actionButton: {
     backgroundColor: '#00C4B4',
@@ -277,18 +389,15 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
     shadowColor: '#00C4B4',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
-    elevation: 6,
+    elevation: 8,
   },
   actionButtonDisabled: {
-    backgroundColor: '#94A3B8',
-    opacity: 0.7,
-    shadowOpacity: 0.15,
-    elevation: 3,
+    backgroundColor: '#CBD5E1',
+    shadowOpacity: 0.1,
   },
   actionButtonText: {
     fontSize: 16,
@@ -296,5 +405,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.5,
   },
+  targetMarkerContainer: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    padding: 8,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#00C4B4',
+  }
 });
- 
