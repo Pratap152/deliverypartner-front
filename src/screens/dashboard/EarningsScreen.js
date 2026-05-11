@@ -21,9 +21,10 @@ import WeeklyEarningsChartEmployee from '../../components/dashboard/earnings/Wee
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PremiumPressable from '../../components/common/PremiumPressable';
-import {formatMoney} from '../../utils/formatMoney';
-import {dashboardCache} from '../../hooks/useEarningsDashboard';
+import { formatMoney } from '../../utils/formatMoney';
+import { dashboardCache } from '../../hooks/useEarningsDashboard';
 import useIncentives from '../../hooks/useIncentives';
 
 
@@ -44,10 +45,10 @@ export default function EarningsScreen({ navigation }) {
   const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
 
   const {
-    todayEarnings={},
+    todayEarnings = {},
     earningsSummary = {},
     weeklyBarChart = [],
-    riderType= "",
+    riderType = "",
     weeklyTotal = 0,
     wallet = {},
     incentives = [],
@@ -56,7 +57,7 @@ export default function EarningsScreen({ navigation }) {
   console.log("WEEKLY BAR CHART: ", weeklyBarChart, riderType);
 
   const month = earningsSummary.month || {};
-  
+
   const CARD_WIDTH = wp(95);
   const CARD_PADDING = wp(4);
 
@@ -66,36 +67,36 @@ export default function EarningsScreen({ navigation }) {
     <View style={{ backgroundColor: '#F4F6F8' }}>
       {/* GRADIENT */}
       <LinearGradient
-       colors={['#065F46', '#10B981', '#34D399']}
+        colors={['#065F46', '#10B981', '#34D399']}
         start={{ x: 0, y: 1 }}
         end={{ x: 1, y: 0 }}>
-          <View style={styles.topBar}>
-            <TouchableOpacity
-                            onPress={() => navigation.goBack()}>
-                            <Ionicons name='chevron-back-outline' size={24} color="#FFF" />
-                          </TouchableOpacity>
-            <Text style={styles.title}>Earnings</Text>
-
-            <View style={styles.topBarIcons}>
-              <TouchableOpacity
-                style={styles.iconBtn}
-                onPress={() =>
-                  navigation.navigate('EarningsHistoryScreen', { mode: 'HISTORY' })}>
-                <MaterialIcons name="history" size={22} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconBtn}
-                                onPress={()=>navigation.navigate('HelpCenterList')}>
-                <Image
-                  source={require('../../assets/chat.png')}
-                  style={styles.chatIcon}/>
-              </TouchableOpacity>
-            </View>
-          </View>
-              
+        <View style={styles.topBar}>
           <TouchableOpacity
-            style={styles.dailyCard}
-            onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'TODAY' })}
-            activeOpacity={0.7}>
+            onPress={() => navigation.goBack()}>
+            <Ionicons name='chevron-back-outline' size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Earnings</Text>
+
+          <View style={styles.topBarIcons}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() =>
+                navigation.navigate('EarningsHistoryScreen', { mode: 'HISTORY' })}>
+              <MaterialIcons name="history" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn}
+              onPress={() => navigation.navigate('HelpCenterList')}>
+              <Image
+                source={require('../../assets/chat.png')}
+                style={styles.chatIcon} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.dailyCard}
+          onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'TODAY' })}
+          activeOpacity={0.7}>
           <View style={styles.dailyTopRow}>
             <View>
               <Text style={styles.dailyLabel}>Today's Earnings</Text>
@@ -110,7 +111,7 @@ export default function EarningsScreen({ navigation }) {
           </View>
 
           <View style={styles.dailyDivider} />
-          
+
           <View style={styles.dailyStatsRow}>
             <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>
@@ -141,28 +142,28 @@ export default function EarningsScreen({ navigation }) {
       </LinearGradient>
 
       {/* WEEKLY CARD */}
-      <View style={[styles.card,{width:CARD_WIDTH, padding: CARD_PADDING}]}>
-        <PremiumPressable onPress={()=>navigation.navigate('EarningsHistoryScreen',{mode:'WEEK'})} >
+      <View style={[styles.card, { width: CARD_WIDTH, padding: CARD_PADDING }]}>
+        <PremiumPressable onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })} >
           <View style={styles.cardHeader}>
-            
+
             <Text style={styles.cardTitle}>This Week</Text>
             <Text style={styles.cardValue}>₹{formatMoney(weeklyTotal)}</Text>
           </View>
-        
+
           {riderType === "INDIVIDUAL_EMPLOYEE" &&
             <WeeklyEarningsChart
-            riderType={riderType}
-            data={weeklyBarChart}
-            width={CARD_WIDTH - CARD_PADDING * 2}
-            height={hp(30)} />
+              riderType={riderType}
+              data={weeklyBarChart}
+              width={CARD_WIDTH - CARD_PADDING * 2}
+              height={hp(30)} />
           }
 
           {riderType === "COMPANY_EMPLOYEE" &&
             <WeeklyEarningsChartEmployee
-            riderType={riderType}
-            data={weeklyBarChart}
-            width={CARD_WIDTH - CARD_PADDING * 2}
-            height={hp(30)} />
+              riderType={riderType}
+              data={weeklyBarChart}
+              width={CARD_WIDTH - CARD_PADDING * 2}
+              height={hp(30)} />
           }
         </PremiumPressable>
       </View>
@@ -248,26 +249,50 @@ export default function EarningsScreen({ navigation }) {
 
   // UI
   return (
-  <View style={{flex:1}}>
-    <FlatList
-      data={incentives}
-      keyExtractor={(item, index) => `${item.title}-${index}`}
-      renderItem={({ item }) => 
-          <PremiumPressable onPress={() => handleItemPress(item)}>
-            <IncentiveCard
-              item={item}
-              weeklyCompletedOrders={weeklyCompletedOrders}
-              dailyCompletedOrders={dailyCompletedOrders}
-              peakCompletedOrders={peakCompletedOrders}
-            />
-          </PremiumPressable>
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={incentives}
+        keyExtractor={(item, index) => `${item.title}-${index}`}
+        renderItem={({ item }) =>
+          <View>
+            {!item.emptyData ?
+              <PremiumPressable onPress={() => handleItemPress(item)}>
+                <IncentiveCard
+                  item={item}
+                  weeklyCompletedOrders={weeklyCompletedOrders}
+                  dailyCompletedOrders={dailyCompletedOrders}
+                  peakCompletedOrders={peakCompletedOrders}
+                />
+              </PremiumPressable>
+              :
+              <View style={styles.emptyCard}>
+
+                {item.type === "daily" &&
+                  <Text style={styles.emptyTitle}>
+                  Daily Incentives Not Available
+                </Text>}
+                {item.type === "peak" &&
+                  <Text style={styles.emptyTitle}>
+                  Peak Incentives Not Available
+                </Text>}
+                {item.type === "weekly" &&
+                  <Text style={styles.emptyTitle}>
+                  Weekly Incentives Not Available
+                </Text>}
+
+                <Text style={styles.emptySubtitle}>
+                  Complete more orders to unlock exciting incentives.
+                </Text>
+              </View>
+            }
+          </View>
         }
-      ListHeaderComponent={HEADER}
-      ListFooterComponent={FOOTER}
-      refreshing={refreshing} 
-      onRefresh={onRefresh}
-      showsVerticalScrollIndicator={false}
-      removeClippedSubviews={false}/>
+        ListHeaderComponent={HEADER}
+        ListFooterComponent={FOOTER}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={false} />
 
       {/* LOADER */}
       {loading && dashboardCache && (
@@ -275,9 +300,9 @@ export default function EarningsScreen({ navigation }) {
           <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       )}
-  
+
     </View>
-    
+
   );
 }
 
@@ -300,7 +325,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: wp(6),
     fontWeight: '500',
-    paddingRight:wp(35)
+    paddingRight: wp(35)
   },
   chat_icon: {
     width: wp(6),
@@ -320,7 +345,7 @@ const styles = StyleSheet.create({
   iconBtn: {
     backgroundColor: 'rgba(255,255,255,0.15)',
     paddingVertical: hp(1),
-    paddingHorizontal:wp(2),
+    paddingHorizontal: wp(2),
     borderRadius: wp(3),
     marginLeft: wp(3),
   },
@@ -334,7 +359,7 @@ const styles = StyleSheet.create({
     width: wp(92),
     alignSelf: 'center',
     marginTop: hp(1),
-    marginBottom:hp(2),
+    marginBottom: hp(2),
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: wp(4),
     padding: wp(5),
@@ -342,56 +367,56 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.25)',
   },
 
-dailyTopRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-},
+  dailyTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 
-dailyLabel: {
-  color: 'rgba(255,255,255,0.85)',
-  fontSize: wp(4),
-},
+  dailyLabel: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: wp(4),
+  },
 
-dailyTotal: {
-  color: '#FFFFFF',
-  fontSize: wp(5),
-  fontWeight: '700',
-  marginTop: hp(0.5),
-},
+  dailyTotal: {
+    color: '#FFFFFF',
+    fontSize: wp(5),
+    fontWeight: '700',
+    marginTop: hp(0.5),
+  },
 
-dailyIconWrap: {
-  backgroundColor: 'rgba(255,255,255,0.15)',
-  padding: wp(3),
-  borderRadius: wp(3),
-},
+  dailyIconWrap: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: wp(3),
+    borderRadius: wp(3),
+  },
 
-dailyDivider: {
-  height: 1,
-  backgroundColor: 'rgba(255,255,255,0.2)',
-  marginVertical: hp(2),
-},
+  dailyDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginVertical: hp(2),
+  },
 
-dailyStatsRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-},
+  dailyStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
 
-dailyStatItem: {
-  alignItems: 'center',
-},
+  dailyStatItem: {
+    alignItems: 'center',
+  },
 
-statValue: {
-  color: '#FFFFFF',
-  fontSize: wp(4.2),
-  fontWeight: '600',
-},
+  statValue: {
+    color: '#FFFFFF',
+    fontSize: wp(4.2),
+    fontWeight: '600',
+  },
 
-statLabel: {
-  color: 'rgba(255,255,255,0.7)',
-  fontSize: wp(3.3),
-  marginTop: 2,
-},
+  statLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: wp(3.3),
+    marginTop: 2,
+  },
 
   card: {
     backgroundColor: '#fff',
@@ -417,6 +442,56 @@ statLabel: {
     fontSize: wp(5),
     fontWeight: '600',
   },
+
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: wp(2),
+    paddingVertical: 32,
+    paddingHorizontal: wp(4),
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+
+    marginHorizontal: 16,
+    marginBottom: wp(3),
+
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+  },
+
+  emptyIconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 10,
+  },
+
   walletCard: {
     width: wp(95),
     alignSelf: 'center',
@@ -428,92 +503,92 @@ statLabel: {
     shadowOpacity: 0.15,
     shadowRadius: 18,
     elevation: 8,
-},
+  },
 
-walletTop: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-},
+  walletTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 
-walletLabel: {
-  color: '#FFFFFF',
-  fontSize: wp(5),
+  walletLabel: {
+    color: '#FFFFFF',
+    fontSize: wp(5),
 
-},
+  },
 
-walletBalance: {
-  color: '#FFFFFF',
-  fontSize: wp(5),
-  fontWeight: '700',
-  marginTop: hp(0.5),
-},
+  walletBalance: {
+    color: '#FFFFFF',
+    fontSize: wp(5),
+    fontWeight: '700',
+    marginTop: hp(0.5),
+  },
 
-walletIconWrap: {
-  backgroundColor: 'rgba(255,255,255,0.18)',
-  padding: wp(3),
-  borderRadius: wp(3),
-},
+  walletIconWrap: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    padding: wp(3),
+    borderRadius: wp(3),
+  },
 
-walletActions: {
-  flexDirection: 'row',
-  marginTop: hp(2),
-  justifyContent: 'space-between',
-},
+  walletActions: {
+    flexDirection: 'row',
+    marginTop: hp(2),
+    justifyContent: 'space-between',
+  },
 
-walletBtn: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#FFFFFF',
-  paddingHorizontal: wp(4),
-  paddingVertical: hp(1),
-  borderRadius: wp(3),
-},
+  walletBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: wp(3),
+  },
 
-walletBtnText: {
-  marginLeft: wp(2),
-  fontWeight: '600',
-  color: '#6366F1',
-},
+  walletBtnText: {
+    marginLeft: wp(2),
+    fontWeight: '600',
+    color: '#6366F1',
+  },
 
-walletBtnOutline: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.5)',
-  paddingHorizontal: wp(4),
-  paddingVertical: hp(1),
-  borderRadius: wp(3),
-},
+  walletBtnOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: wp(3),
+  },
 
-walletBtnTextOutline: {
-  marginLeft: wp(2),
-  color: '#fff',
-  fontWeight: '600',
-},
+  walletBtnTextOutline: {
+    marginLeft: wp(2),
+    color: '#fff',
+    fontWeight: '600',
+  },
 
-walletDivider: {
-  height: 1,
-  backgroundColor: 'rgba(255,255,255,0.25)',
-  marginVertical: hp(2),
-},
+  walletDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    marginVertical: hp(2),
+  },
 
-walletStats: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-},
+  walletStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
 
-walletStatLabel: {
-  color: '#FFFFFF',
-  fontSize: wp(4),
-},
+  walletStatLabel: {
+    color: '#FFFFFF',
+    fontSize: wp(4),
+  },
 
-walletStatValue: {
-  color: '#FFFFFF',
-  fontSize: wp(4.8),
-  fontWeight: '700',
-  marginTop: hp(0.3),
-},
+  walletStatValue: {
+    color: '#FFFFFF',
+    fontSize: wp(4.8),
+    fontWeight: '700',
+    marginTop: hp(0.3),
+  },
 
 
   incentiveTitle: {
@@ -530,7 +605,7 @@ walletStatValue: {
     left: 0,
     right: 0,
     justifyContent: 'flex-start',
-    alignItems:'center',
-    backgroundColor: 'rgba(0,0,0,0.25)', 
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
   }
 });
