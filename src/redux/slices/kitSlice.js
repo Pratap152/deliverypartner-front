@@ -1,25 +1,30 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const initialState = {
+  kitCompleted: false,
+  riderId: null,
+  apiResponse: null,
+  deliveryMode: null,
+};
+
 const kitSlice = createSlice({
   name: 'kit',
-  initialState: {
-    isCompleted: false,
-    apiResponse: null,
-    deliveryMode: null,
-  },
+  initialState,
   reducers: {
     setKitCompleted: (state, action) => {
-      state.isCompleted = true;
-      state.apiResponse = action.payload.apiResponse;
-      state.deliveryMode = action.payload.deliveryMode;
+      state.kitCompleted = action.payload?.kitCompleted ?? true;
+      state.riderId = action.payload?.riderId ?? null;
+      state.apiResponse = action.payload?.apiResponse ?? null;
+      state.deliveryMode = action.payload?.deliveryMode ?? null;
     },
-    resetKit: (state) => {
-      state.isCompleted = false;
+    clearKitCompleted: state => {
+      state.kitCompleted = false;
+      state.riderId = null;
       state.apiResponse = null;
       state.deliveryMode = null;
     },
   },
 });
 
-export const { setKitCompleted, resetKit } = kitSlice.actions;
+export const { setKitCompleted, clearKitCompleted } = kitSlice.actions;
 export default kitSlice.reducer;

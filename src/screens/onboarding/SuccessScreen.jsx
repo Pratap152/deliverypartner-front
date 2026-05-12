@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../utils/colors';
+import { setKitCompleted } from '../../redux/slices/kitSlice';
 
 const formatEnum = value => {
   if (!value) return '';
@@ -21,14 +23,11 @@ const formatEnum = value => {
 const SuccessScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
 
-  const {
-    apiResponse,
-    deliveryMode,
-    paymentType,
-  } = route?.params || {};
+  const { apiResponse, deliveryMode, paymentType } = route?.params || {};
 
-  const items = apiResponse?.data || [];
+  const items = Array.isArray(apiResponse?.data) ? apiResponse.data : [];
   const firstItem = items[0];
   const payment = firstItem?.Payment;
 
@@ -41,6 +40,22 @@ const SuccessScreen = () => {
       : null);
 
   const isPaidFlow = !!paymentType || !!payment;
+
+  useEffect(() => {
+    const riderId =
+      apiResponse?.data?.[0]?.riderId ??
+      apiResponse?.data?.riderId ??
+      firstItem?.riderId ??
+      null;
+
+    dispatch(
+      setKitCompleted({
+        apiResponse: apiResponse || null,
+        deliveryMode: resolvedDeliveryMode || null,
+        riderId,
+      })
+    );
+  }, [apiResponse, resolvedDeliveryMode, firstItem, dispatch]);
 
   const handleGoHome = () => {
     navigation.reset({

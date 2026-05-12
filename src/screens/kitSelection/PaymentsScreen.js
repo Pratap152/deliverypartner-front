@@ -48,8 +48,10 @@ export default function PaymentsScreen({ route }) {
 
   const { createKitAddress } = useKitAddress();
   const { deliveryMode, addressData, selectedZone } = route?.params || {};
+  const { apiResponse} = route?.params || {};
 
   const handlePaymentType = async type => {
+
     if (!selectedPayment) {
       Alert.alert('Select payment method', 'Please select a payment method first');
       return;
@@ -130,38 +132,42 @@ export default function PaymentsScreen({ route }) {
         return;
       }
 
-      //dispatch AFTER patchResponse is defined
-      dispatch(setKitCompleted({
-        apiResponse: patchResponse.data,
-        deliveryMode,
-      }));
-      console.log('DISPATCHED KIT DATA =>', JSON.stringify({
-  apiResponse: patchResponse.data,
-  deliveryMode,
-}, null, 2));
+      const riderId =
+        patchResponse?.data?.data?.[0]?.riderId ??
+        apiResponse?.data?.[0]?.riderId ??
+        null;
 
-      // single navigation reset
+      dispatch(
+        setKitCompleted({
+          kitCompleted: true,
+          riderId,
+          apiResponse: patchResponse.data,
+          deliveryMode,
+        })
+      );
+
       navigation.reset({
         index: 0,
-        routes: [{
-          name: 'SuccessScreen',
-          params: {
-            apiResponse: patchResponse.data,
-            deliveryMode,
-            paymentType: type,
+        routes: [
+          {
+            name: 'SuccessScreen',
+            params: {
+              apiResponse: patchResponse.data,
+              deliveryMode,
+            },
           },
-        }],
+        ],
       });
-
-    } catch (err) {
-      Alert.alert(
-        'Payment failed',
-        err?.response?.data?.message || err?.message || 'Something went wrong'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            
+          } catch (err) {
+            Alert.alert(
+              'Payment failed',
+              err?.response?.data?.message || err?.message || 'Something went wrong'
+            );
+          } finally {
+            setIsLoading(false);
+          }
+        };
 
   const renderPaymentItem = ({ item }) => {
     const selected = selectedPayment === item.id;
