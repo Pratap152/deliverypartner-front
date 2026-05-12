@@ -18,15 +18,12 @@ import { EarningsCache } from "../../utils/earningsCache";
 import { Analytics } from "../../utils/analytics";
 import SelectModal from "../../components/dashboard/earnings/SelectModal";
 
-/**
- * MODES: TODAY | WEEK | HISTORY
- * VIEWS: ROOT | DAY | ORDER
- */
+
 
 export default function EarningsHistoryScreen({ navigation, route }) {
   const mode = route?.params?.mode || "TODAY";
 
-  // ------------------ STATE (STABLE ORDER, DO NOT CHANGE) ------------------
+  // STATE 
   const [view, setView] = useState("ROOT");
 
   const [loading, setLoading] = useState(false);
@@ -56,8 +53,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
   const currentWeekNumber = useMemo(() => getBackendWeekNumber(new Date()), []);
 
-  // ------------------ CONSTANTS ------------------
-
+  // CONSTANTS
   const years = useMemo(() => {
     const now = new Date().getFullYear();
     return [now, now - 1, now - 2];
@@ -68,10 +64,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   [selectedYear]
 );
 
-
-
-  // ------------------ NETWORK ------------------
-
+  // NETWORK 
   useEffect(() => {
     const unsub = NetInfo.addEventListener((state) => {
       setIsOffline(!state.isConnected);
@@ -79,8 +72,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     return () => unsub();
   }, []);
 
-  // ------------------ SAFE API WITH CACHE ------------------
-
+  // SAFE API WITH CACHE 
   const safeApiCached = useCallback(
     async (key, fn, force = false) => {
       setError(null);
@@ -114,15 +106,13 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
         const cached = await EarningsCache.get(key);
         if (cached) return cached;
-
         return null;
       }
     },
     [isOffline]
   );
 
-  // ------------------ BOOTSTRAP ------------------
-
+  // BOOTSTRAP 
   useEffect(() => {
     bootstrap();
   }, []);
@@ -138,12 +128,10 @@ export default function EarningsHistoryScreen({ navigation, route }) {
       setSelectedWeek(w);
       await loadHistoryWeek(w, selectedYear, true);
     }
-
     setInitialLoading(false);
   };
 
-  // ------------------ LOADERS ------------------
-
+  // LOADERS 
   const loadToday = async (force = false) => {
     setLoading(true);
     const data = await safeApiCached("today", () => EarningsNewAPI.getToday(), force);
@@ -181,18 +169,17 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     }
   };
 
-
   const loadDay = async (date, reset = true, force = false) => {
     const nextPage = reset ? 1 : page;
 
     if (reset) {
+      setSelectedDay(date);
       setPage(1);
       setLedgerItems([]);
       setHasMore(true);
     } else if (!hasMore) {
       return;
     }
-
     setLoading(true);
 
     const key = `day_${date}_${nextPage}`;
@@ -205,7 +192,6 @@ export default function EarningsHistoryScreen({ navigation, route }) {
 
     if (data) {
       const items = data.items || [];
-
       setDayData(data);
       setLedgerItems(prev => (reset ? items : [...prev, ...items]));
       setHasMore(items.length >= 20);
@@ -215,7 +201,6 @@ export default function EarningsHistoryScreen({ navigation, route }) {
       if (reset) {
         setSelectedDay(date);
       }
-
       prefetchNextDay(date);
     }
   };
@@ -234,8 +219,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     }
   };
 
-  // ------------------ PREFETCH ------------------
-
+  // PREFETCH 
   const prefetchNextWeek = async (week, year) => {
     const nextWeek = week + 1;
     if (nextWeek > 53) return;
@@ -258,8 +242,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     safeApiCached(key, () => EarningsNewAPI.getDailyByDate(next, 1));
   };
 
-  // ------------------ REFRESH ------------------
-
+  //REFRESH 
   const onRefresh = async () => {
     Analytics.track("earnings_refresh", { mode, view });
     setRefreshing(true);
@@ -271,25 +254,20 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     setRefreshing(false);
   };
 
-  // ------------------ BACK ------------------
-
- 
+  // BACK 
   const onBack = () => {
     if (view === "ORDER") {
       setView("DAY");
       return;
     }
-
     if (view === "DAY") {
       if (cameFromToday) {
         navigation.goBack();
         return;
       }
-
       setView("ROOT");
       return;
     }
-
     navigation.goBack();
   };
 
@@ -300,7 +278,7 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   const jan1 = new Date(year, 0, 1);
 
   // Find Monday of the week that contains Jan 1
-  const day = jan1.getDay(); // 0=Sun,1=Mon,...
+  const day = jan1.getDay(); // 0=Sun,1=Mon,etc
   const diffToMonday = day === 0 ? -6 : 1 - day;
   const firstWeekStart = new Date(jan1);
   firstWeekStart.setDate(jan1.getDate() + diffToMonday);
@@ -322,21 +300,18 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     const isFuture = start > today;
 
     weeks.push({
-      week,
-      startDate: start.toISOString().split("T")[0],
-      endDate: end.toISOString().split("T")[0],
-      startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      isFuture,
-    });
-
-
-        current.setDate(current.getDate() + 7);
-        week++;
-      }
-
-      return weeks;
+        week,
+        startDate: start.toISOString().split("T")[0],
+        endDate: end.toISOString().split("T")[0],
+        startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        isFuture,
+      });
+      current.setDate(current.getDate() + 7);
+      week++;
     }
+    return weeks;
+  }
 
 function getBackendWeekNumber(date) {
   const d = new Date(date);
@@ -358,27 +333,24 @@ function getBackendWeekNumber(date) {
 }
 
 
+  // HEADER
+  const headerTitle = useMemo(() => {
+    if (view === "ORDER") return "Delivery";
+    if (mode === "TODAY" && view === "DAY") {
+      return "Today's Earnings";
+    }
+
+    if (view === "DAY") return "Daily Earnings";
+
+    if (mode === "WEEK") return "Weekly Earnings";
+
+    if (mode === "HISTORY") return "Earnings History";
+
+    return "Earnings";
+  }, [mode, view]);
 
 
-  // ------------------ HEADER ------------------
-const headerTitle = useMemo(() => {
-  if (view === "ORDER") return "Delivery";
-  if (mode === "TODAY" && view === "DAY") {
-    return "Today's Earnings";
-  }
-
-  if (view === "DAY") return "Daily Earnings";
-
-  if (mode === "WEEK") return "Weekly Earnings";
-
-  if (mode === "HISTORY") return "Earnings History";
-
-  return "Earnings";
-}, [mode, view]);
-
-
-  // ------------------ UI RENDERERS ------------------
-
+  // UI RENDERERS 
   const renderHistorySelectors = () => (
     <View style={styles.selectorRow}>
       <Dropdown label={`Year: ${selectedYear}`} onPress={() => {
@@ -398,7 +370,6 @@ const headerTitle = useMemo(() => {
 
   const renderWeekRoot = () => {
     if (!weekData) return <EmptyState />;
-
     return (
       <FlatList
         data={weekData.days || []}
@@ -418,8 +389,7 @@ const headerTitle = useMemo(() => {
             right={`₹${formatMoney(item.amount) || 0}`}
             onPress={() => {
               Analytics.track("earnings_select_day", { date: item.date });
-              setSelectedDay(item.date);
-              loadDay(item.date, true);
+              loadDay(item.date, true, true);
             }}
           />
         )}
@@ -431,7 +401,7 @@ const headerTitle = useMemo(() => {
   const renderDay = () => (
     <FlatList
       data={ledgerItems}
-      extraData={{ dayData, selectedDay, hasMore, page }}
+      extraData={{ dayData, selectedDay, hasMore, page, loading}}
       keyExtractor={(item, idx) => (item.orderId || idx) + "_" + idx}
       refreshing={refreshing}
       onRefresh={onRefresh}
@@ -461,7 +431,6 @@ const headerTitle = useMemo(() => {
     if (!orderData) return <EmptyState />;
 
     const b = orderData.breakup || {};
-
     return (
       <View style={{ padding: 16 }}>
         <TotalCard title="Total Earnings" amount={formatMoney(orderData.totalEarnings) || 0} />
@@ -480,20 +449,19 @@ const headerTitle = useMemo(() => {
   };
 
   const renderContent = () => {
-if (initialLoading) return null;
+    if (initialLoading) return null;
 
-    if (error) return <ErrorBox text={error} onRetry={() => {
-      Analytics.track("earnings_retry", { mode, view });
-      bootstrap();
-    }} />;
+        if (error) return <ErrorBox text={error} onRetry={() => {
+          Analytics.track("earnings_retry", { mode, view });
+          bootstrap();
+        }} />;
 
-    if (view === "ORDER") return renderOrder();
-    if (view === "DAY") return renderDay();
-    return renderWeekRoot();
-  };
+        if (view === "ORDER") return renderOrder();
+        if (view === "DAY") return renderDay();
+        return renderWeekRoot();
+      };
 
-  // ------------------ UI ------------------
-
+  // UI 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -522,28 +490,26 @@ if (initialLoading) return null;
 
       {/* Week Modal */}
       <SelectModal
-  visible={weekModal}
-  title="Select Week"
-  data={weeks}
-  keyExtractor={(item) => String(item.week)}
-  labelExtractor={(item) =>
-    `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
-  }
-  selectedValue={selectedWeek}
-  isItemDisabled={(item) => item.isFuture}
-  isItemHighlighted={(item) => item.week === currentWeekNumber}
-  onClose={() => setWeekModal(false)}
-  onSelect={(item) => {
-    Analytics.track("earnings_select_week", {
-      week: item.week,
-      year: selectedYear,
-    });
-    setSelectedWeek(item.week);
-    loadHistoryWeek(item.week, selectedYear, true);
-  }}
-/>
-
-
+        visible={weekModal}
+        title="Select Week"
+        data={weeks}
+        keyExtractor={(item) => String(item.week)}
+        labelExtractor={(item) =>
+          `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
+        }
+        selectedValue={selectedWeek}
+        isItemDisabled={(item) => item.isFuture}
+        isItemHighlighted={(item) => item.week === currentWeekNumber}
+        onClose={() => setWeekModal(false)}
+        onSelect={(item) => {
+          Analytics.track("earnings_select_week", {
+            week: item.week,
+            year: selectedYear,
+          });
+          setSelectedWeek(item.week);
+          loadHistoryWeek(item.week, selectedYear, true);
+        }}
+      />
 
       {/* Calendar */}
       <DateTimePickerModal
@@ -562,8 +528,7 @@ if (initialLoading) return null;
   );
 }
 
-// ------------------ SMALL UI ------------------
-
+// SMALL UI 
 function Dropdown({ label, onPress }) {
   return (
     <TouchableOpacity style={styles.dropdown} onPress={onPress}>
@@ -633,8 +598,7 @@ function ErrorBox({ text, onRetry }) {
   );
 }
 
-// ------------------ UTILS ------------------
-
+// UTILS 
 function getWeekNumber(d) {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = date.getUTCDay() || 7;
@@ -643,11 +607,10 @@ function getWeekNumber(d) {
   return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
 }
 
-// ------------------ STYLES ------------------
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F7F8FA" },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -656,7 +619,6 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 8 },
   headerTitle: { fontSize: 18, fontWeight: "700", marginLeft: 8 },
-
   card: {
     margin: 16,
     padding: 20,
@@ -718,3 +680,5 @@ const styles = StyleSheet.create({
   },
   errorText: { color: "#C00" },
 });
+
+

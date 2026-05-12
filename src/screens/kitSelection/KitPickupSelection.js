@@ -8,10 +8,14 @@ import {
   useWindowDimensions,
 } from "react-native";
 import KitHeader from "../../components/kit/KitHeader";
+import { useDispatch } from 'react-redux';
+import { setKitCompleted } from '../../redux/slices/kitSlice';
 
 
 const KitPickupSelection = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
+
+  const dispatch = useDispatch();
 
   // Get data from navigation params
   const { deliveryMode, addressData, selectedZone, apiResponse } = route?.params || {};
@@ -21,11 +25,17 @@ const KitPickupSelection = ({ navigation, route }) => {
   const responseMessage = apiResponse?.message;
   
   const handleSubmit = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'SuccessScreen' }],
-    });
-  };
+  dispatch(setKitCompleted({
+    apiResponse,
+    deliveryMode,
+  }));
+  
+  navigation.reset({
+    index: 0,
+    routes: [{ name: 'SuccessScreen', params: { apiResponse, deliveryMode } }],
+  });
+};
+
 
 
   // Determine display data based on mode
