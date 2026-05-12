@@ -48,12 +48,9 @@ export default function PaymentsScreen({ route }) {
 
   const { createKitAddress } = useKitAddress();
   const { deliveryMode, addressData, selectedZone } = route?.params || {};
+  const { apiResponse} = route?.params || {};
 
   const handlePaymentType = async type => {
-    console.log('STEP 1 => handlePaymentType called with', type);
-  console.log('STEP 2 => selectedPayment', selectedPayment);
-  console.log('STEP 3 => deliveryMode', deliveryMode);
-  console.log('STEP 4 => apiResponse from route', JSON.stringify(apiResponse, null, 2));
 
     if (!selectedPayment) {
       Alert.alert('Select payment method', 'Please select a payment method first');
@@ -128,49 +125,49 @@ export default function PaymentsScreen({ route }) {
       );
 
       if (!patchResponse?.data?.success) {
-  Alert.alert(
-    'Payment error',
-    patchResponse?.data?.message || 'Failed to complete payment'
-  );
-  return;
-}
+        Alert.alert(
+          'Payment error',
+          patchResponse?.data?.message || 'Failed to complete payment'
+        );
+        return;
+      }
 
-const riderId =
-  patchResponse?.data?.data?.[0]?.riderId ??
-  apiResponse?.data?.[0]?.riderId ??
-  null;
+      const riderId =
+        patchResponse?.data?.data?.[0]?.riderId ??
+        apiResponse?.data?.[0]?.riderId ??
+        null;
 
-dispatch(
-  setKitCompleted({
-    kitCompleted: true,
-    riderId,
-    apiResponse: patchResponse.data,
-    deliveryMode,
-  })
-);
-
-navigation.reset({
-  index: 0,
-  routes: [
-    {
-      name: 'SuccessScreen',
-      params: {
-        apiResponse: patchResponse.data,
-        deliveryMode,
-      },
-    },
-  ],
-});
-      
-    } catch (err) {
-      Alert.alert(
-        'Payment failed',
-        err?.response?.data?.message || err?.message || 'Something went wrong'
+      dispatch(
+        setKitCompleted({
+          kitCompleted: true,
+          riderId,
+          apiResponse: patchResponse.data,
+          deliveryMode,
+        })
       );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'SuccessScreen',
+            params: {
+              apiResponse: patchResponse.data,
+              deliveryMode,
+            },
+          },
+        ],
+      });
+            
+          } catch (err) {
+            Alert.alert(
+              'Payment failed',
+              err?.response?.data?.message || err?.message || 'Something went wrong'
+            );
+          } finally {
+            setIsLoading(false);
+          }
+        };
 
   const renderPaymentItem = ({ item }) => {
     const selected = selectedPayment === item.id;
