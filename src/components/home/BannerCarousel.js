@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import {
   View,
@@ -6,29 +5,32 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
-  Pressable
+  Pressable,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_WIDTH = wp('90%');
 
-const BannerCarousel = ({ data}) => {
-    const navigation = useNavigation();
+const BannerCarousel = ({ data }) => {
+  const navigation = useNavigation();
   const flatListRef = useRef(null);
   const currentIndex = useRef(0);
+
+  const kitCompleted = useSelector(state => state.kit?.isCompleted ?? false);
+  const kitApiResponse = useSelector(state => state.kit?.apiResponse ?? null);
+  const kitDeliveryMode = useSelector(state => state.kit?.deliveryMode ?? null);
 
   useEffect(() => {
     if (!data || data.length <= 1) return;
 
     const interval = setInterval(() => {
-      currentIndex.current =
-        (currentIndex.current + 1) % data.length;
-
+      currentIndex.current = (currentIndex.current + 1) % data.length;
       flatListRef.current?.scrollToIndex({
         index: currentIndex.current,
         animated: true,
@@ -40,53 +42,58 @@ const BannerCarousel = ({ data}) => {
 
   if (!data || data.length === 0) return null;
 
- const renderItem = ({ item }) => {
-  const handlePress = () => {
-  switch (item.id) {
-    case 'bank':
-      navigation.navigate('AddBankDetails');
-      break;
+  const handleKitPress = () => {
+    console.log('kitCompleted =>', kitCompleted);
+    console.log('kitApiResponse =>', JSON.stringify(kitApiResponse, null, 2));
+    console.log('kitDeliveryMode =>', kitDeliveryMode);
 
-    case 'kit':
-      navigation.reset({
-        index: 1,
-        routes: [
-          { name: 'MainTabs' },
-          { name: 'KitSelectionScreen' },
-        ],
+    if (kitCompleted && kitApiResponse) {
+      navigation.navigate('SuccessScreen', {
+        apiResponse: kitApiResponse,
+        deliveryMode: kitDeliveryMode,
       });
-      break;
+      return;
+    }
 
-    case 'refer':
-      navigation.navigate('ReferEarn');
-      break;
+    navigation.navigate('KitSelectionScreen');
+  };
 
-    case 'incentives':
-      navigation.navigate('IncentiveDetails');
-      break;
+  const renderItem = ({ item }) => {
+    const handlePress = () => {
+      switch (item.id) {
+        case 'bank':
+          navigation.navigate('AddBankDetails');
+          break;
+        case 'kit':
+          handleKitPress();
+          break;
+        case 'refer':
+          navigation.navigate('ReferEarn');
+          break;
+        case 'incentives':
+          navigation.navigate('IncentiveDetails');
+          break;
+        case 'joining':
+          navigation.navigate('JoiningBonusScreen');
+          break;
+        default:
+          break;
+      }
+    };
 
-    case 'joining':
-      navigation.navigate('JoiningBonusScreen');
-      break;
+    return (
+      <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
+        <View>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.subtitle}>{item.subtitle}</Text>
+        </View>
 
-    default:
-      break;
-  }
-};
-
-  return (
-    <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
-      <View>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
+        <Pressable onPress={handlePress} style={styles.cta}>
+          <Text style={styles.ctaText}>{item.cta}</Text>
+        </Pressable>
       </View>
-
-      <Pressable onPress={handlePress} style={styles.cta}>
-        <Text style={styles.ctaText}>{item.cta}</Text>
-      </Pressable>
-    </View>
-  );
-};
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -143,5 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(BannerCarousel);
-
+export default BannerCarousel;
