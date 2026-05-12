@@ -9,17 +9,33 @@ import StatsCard from "../../components/home/StatsCard";
 import ActiveShiftBanner from "../../components/home/ActiveShiftBanner";
 import PeakHoursBanner from "../../components/home/PeakHoursBanner";
 import WeeklyStatsCard from "../../components/home/WeeklyStatsCard";
-import { banners, todayStats } from "../../components/home/data/home.mock";
+import {
+  getHomeBanners,
+  todayStats,
+} from "../../components/home/data/home.mock";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
 const HomeDashboard = () => {
   const navigation = useNavigation();
   const { isOnline, goOnline, goOffline, isLoading, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
+const [banners, setBanners] = useState([]);
 
   useEffect(() => {
-  fetchRiderStatus();
+  loadHomeData();
 }, []);
+
+const loadHomeData = async () => {
+  try {
+    await fetchRiderStatus();
+
+    const bannerData = await getHomeBanners();
+
+    setBanners(bannerData);
+  } catch (error) {
+    console.log('HOME DATA ERROR:', error);
+  }
+};
 
 if (refreshing) return null;
 
