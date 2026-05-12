@@ -1,20 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Dimensions,
   Pressable,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_WIDTH = wp('90%');
 
 const BannerCarousel = ({ data }) => {
@@ -22,65 +20,60 @@ const BannerCarousel = ({ data }) => {
   const flatListRef = useRef(null);
   const currentIndex = useRef(0);
 
-  const kitCompleted = useSelector(state => state.kit?.isCompleted ?? false);
-  const kitApiResponse = useSelector(state => state.kit?.apiResponse ?? null);
-  const kitDeliveryMode = useSelector(state => state.kit?.deliveryMode ?? null);
-
-  useEffect(() => {
-    if (!data || data.length <= 1) return;
-
-    const interval = setInterval(() => {
-      currentIndex.current = (currentIndex.current + 1) % data.length;
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex.current,
-        animated: true,
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [data]);
-
-  if (!data || data.length === 0) return null;
+  const kitCompleted = useSelector(state => state.kit?.kitCompleted ?? false);
+  const apiResponse = useSelector(state => state.kit?.apiResponse ?? null);
+  const deliveryMode = useSelector(state => state.kit?.deliveryMode ?? null);
 
   const handleKitPress = () => {
-    console.log('kitCompleted =>', kitCompleted);
-    console.log('kitApiResponse =>', JSON.stringify(kitApiResponse, null, 2));
-    console.log('kitDeliveryMode =>', kitDeliveryMode);
+    const firstItem = apiResponse?.data?.[0];
+    const paymentStatus = firstItem?.Payment?.status ?? null;
+    const kitStatus = firstItem?.status ?? null;
 
-    if (kitCompleted && kitApiResponse) {
+    const isPaid =
+      kitCompleted ||
+      paymentStatus === 'COMPLETED' ||
+      paymentStatus === 'SUCCESS' ||
+      kitStatus === 'PAYMENT_COMPLETED';
+
+    if (isPaid && apiResponse) {
       navigation.navigate('SuccessScreen', {
-        apiResponse: kitApiResponse,
-        deliveryMode: kitDeliveryMode,
+        apiResponse,
+        deliveryMode,
       });
       return;
     }
 
     navigation.navigate('KitSelectionScreen');
+
+    console.log('kitCompleted =>', kitCompleted);
+    console.log('apiResponse =>', apiResponse);
+    console.log('paymentStatus =>', paymentStatus);
+    console.log('kitStatus =>', kitStatus);
+  };
+
+  const handlePress = item => {
+    switch (item.id) {
+      case 'bank':
+        navigation.navigate('AddBankDetails');
+        break;
+      case 'kit':
+        handleKitPress();
+        break;
+      case 'refer':
+        navigation.navigate('ReferEarn');
+        break;
+      case 'incentives':
+        navigation.navigate('IncentiveDetails');
+        break;
+      case 'joining':
+        navigation.navigate('JoiningBonusScreen');
+        break;
+      default:
+        break;
+    }
   };
 
   const renderItem = ({ item }) => {
-    const handlePress = () => {
-      switch (item.id) {
-        case 'bank':
-          navigation.navigate('AddBankDetails');
-          break;
-        case 'kit':
-          handleKitPress();
-          break;
-        case 'refer':
-          navigation.navigate('ReferEarn');
-          break;
-        case 'incentives':
-          navigation.navigate('IncentiveDetails');
-          break;
-        case 'joining':
-          navigation.navigate('JoiningBonusScreen');
-          break;
-        default:
-          break;
-      }
-    };
-
     return (
       <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
         <View>
@@ -88,7 +81,7 @@ const BannerCarousel = ({ data }) => {
           <Text style={styles.subtitle}>{item.subtitle}</Text>
         </View>
 
-        <Pressable onPress={handlePress} style={styles.cta}>
+        <Pressable onPress={() => handlePress(item)} style={styles.cta}>
           <Text style={styles.ctaText}>{item.cta}</Text>
         </Pressable>
       </View>
@@ -132,10 +125,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: wp('4.5%'),
     fontWeight: '700',
+    color: '#000',
   },
   subtitle: {
     fontSize: wp('3.5%'),
     marginTop: hp('0.5%'),
+    color: '#000',
   },
   cta: {
     alignSelf: 'flex-start',
@@ -147,6 +142,7 @@ const styles = StyleSheet.create({
   ctaText: {
     color: '#fff',
     fontSize: wp('3.2%'),
+    fontWeight: '600',
   },
 });
 

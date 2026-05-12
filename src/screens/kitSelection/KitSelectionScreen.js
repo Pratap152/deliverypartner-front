@@ -79,29 +79,28 @@ const KitSelectionScreen = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-  if (deliveryMode === "online") {
-    if (!validate()) return;
+    if (deliveryMode === "online") {
+      if (!validate()) return;
+      navigation.replace("KitPickupSelection", {
+        deliveryMode: "online",
+        addressData: {
+          name,
+          address,
+          pincode,
+        },
+      });
+    } else {
+      if (!selectedZone) {
+        alert("Please select a pickup zone");
+        return;
+      }
 
-    navigation.replace("PaymentsScreen", {
-      deliveryMode: "online",
-      addressData: {
-        name,
-        address,
-        pincode,
-      },
-    });
-  } else {
-    if (!selectedZone) {
-      alert("Please select a pickup zone");
-      return;
+      navigation.replace("KitPickupSelection", {
+        deliveryMode: "offline",
+        selectedZone,
+      });
     }
-
-    navigation.replace("PaymentsScreen", {
-      deliveryMode: "offline",
-      selectedZone,
-    });
-  }
-};
+  };
   // Determine button text and disabled state
   const getButtonConfig = () => {
     if (deliveryMode === "online") {
