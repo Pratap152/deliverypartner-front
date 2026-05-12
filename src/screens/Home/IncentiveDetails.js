@@ -226,7 +226,8 @@ export default function IncentiveDetails({ navigation }) {
       100,
       100
     )
-    : Math.min(
+    :
+    Math.min(
       (weeklyCompletedOrders /
         weeklyMinimumOrders) *
       100,
