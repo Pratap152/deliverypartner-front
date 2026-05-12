@@ -50,6 +50,11 @@ export default function PaymentsScreen({ route }) {
   const { deliveryMode, addressData, selectedZone } = route?.params || {};
 
   const handlePaymentType = async type => {
+    console.log('STEP 1 => handlePaymentType called with', type);
+  console.log('STEP 2 => selectedPayment', selectedPayment);
+  console.log('STEP 3 => deliveryMode', deliveryMode);
+  console.log('STEP 4 => apiResponse from route', JSON.stringify(apiResponse, null, 2));
+
     if (!selectedPayment) {
       Alert.alert('Select payment method', 'Please select a payment method first');
       return;
@@ -123,36 +128,40 @@ export default function PaymentsScreen({ route }) {
       );
 
       if (!patchResponse?.data?.success) {
-        Alert.alert(
-          'Payment error',
-          patchResponse?.data?.message || 'Failed to complete payment'
-        );
-        return;
-      }
+  Alert.alert(
+    'Payment error',
+    patchResponse?.data?.message || 'Failed to complete payment'
+  );
+  return;
+}
 
-      //dispatch AFTER patchResponse is defined
-      dispatch(setKitCompleted({
+const riderId =
+  patchResponse?.data?.data?.[0]?.riderId ??
+  apiResponse?.data?.[0]?.riderId ??
+  null;
+
+dispatch(
+  setKitCompleted({
+    kitCompleted: true,
+    riderId,
+    apiResponse: patchResponse.data,
+    deliveryMode,
+  })
+);
+
+navigation.reset({
+  index: 0,
+  routes: [
+    {
+      name: 'SuccessScreen',
+      params: {
         apiResponse: patchResponse.data,
         deliveryMode,
-      }));
-      console.log('DISPATCHED KIT DATA =>', JSON.stringify({
-  apiResponse: patchResponse.data,
-  deliveryMode,
-}, null, 2));
-
-      // single navigation reset
-      navigation.reset({
-        index: 0,
-        routes: [{
-          name: 'SuccessScreen',
-          params: {
-            apiResponse: patchResponse.data,
-            deliveryMode,
-            paymentType: type,
-          },
-        }],
-      });
-
+      },
+    },
+  ],
+});
+      
     } catch (err) {
       Alert.alert(
         'Payment failed',
