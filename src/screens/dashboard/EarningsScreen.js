@@ -44,6 +44,19 @@ export default function EarningsScreen({ navigation }) {
   const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
   const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
 
+  const completedDays =
+    weeklyIncentivesProgress?.overallProgress
+      ?.completedDays || 0;
+
+  const totalDays =
+    weeklyIncentivesProgress?.overallProgress
+      ?.totalDays || 0;
+
+  const weeklyProgressPercentage =
+    totalDays > 0
+      ? (completedDays / totalDays) * 100
+      : 0;
+
   const {
     todayEarnings = {},
     earningsSummary = {},
@@ -269,6 +282,7 @@ export default function EarningsScreen({ navigation }) {
                   weeklyCompletedOrders={weeklyCompletedOrders}
                   dailyCompletedOrders={dailyCompletedOrders}
                   peakCompletedOrders={peakCompletedOrders}
+                  weeklyProgressPercentage={weeklyProgressPercentage}
                 />
               </PremiumPressable>
               :
