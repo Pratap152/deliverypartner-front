@@ -4,6 +4,7 @@ import vehicleReducer from './slices/vehicleSlice';
 import addressReducer from './slices/addressSlice';
 import notificationsReducer from './slices/notificationSlice';
 import profileReducer from './slices/profileSlice';
+import kitReducer from './slices/kitSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,5 +12,6 @@ export const store = configureStore({
     vehicle: vehicleReducer,
     notifications: notificationsReducer,
     profile: profileReducer,
+    kit: kitReducer,
   },
 });

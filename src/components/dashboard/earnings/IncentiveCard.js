@@ -104,7 +104,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
 
               <ProgressBar
                 progress={
-                  (dailyCompletedOrders / item.minOrders) * 100
+                  (peakCompletedOrders / item.minOrders) * 100
                 }
                 progressColor="#34D399"
 
