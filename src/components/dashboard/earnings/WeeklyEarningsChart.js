@@ -12,7 +12,7 @@ const PADDING = wp(4);
 
 const Y_AXIS_LABELS = 4;
 
-export default function WeeklyEarningsChart({ riderType, data, width, height }) {
+export default function WeeklyEarningsChart({ data, width, height }) {
   const CHART_HEIGHT = height;
   const CHART_WIDTH = width;
   const [activeIndex, setActiveIndex] = useState(null);
