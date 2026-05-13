@@ -24,8 +24,8 @@ import { COLORS } from '../../utils/colors';
 
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
 
-import { useDispatch } from 'react-redux';
-import { setKitCompleted } from '../../redux/slices/kitSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
 import { BackHandler } from 'react-native';
 
 
@@ -38,28 +38,6 @@ const PAYMENT_METHODS = [
 ];
 
 export default function PaymentsScreen({ route }) {
-  const goToHomeTab = () => {
-  navigation.reset({
-    index: 0,
-    routes: [
-      {
-        name: 'MainTabs',
-        params: {
-          screen: 'Home',
-        },
-      },
-    ],
-  });
-};
-
-useEffect(() => {
-  const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-    goToHomeTab();
-    return true;
-  });
-
-  return () => subscription.remove();
-}, [navigation]);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [upiId, setUpiId] = useState('');
@@ -72,6 +50,45 @@ useEffect(() => {
   const { createKitAddress } = useKitAddress();
   const { deliveryMode, addressData, selectedZone } = route?.params || {};
   const { apiResponse} = route?.params || {};
+
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  const goToHomeTab = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Home',
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      goToHomeTab();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [navigation]);
+    
+
+  useEffect(() => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'PaymentsScreen',
+      apiResponse,
+      deliveryMode,
+      addressData,
+      selectedZone,
+    }));
+  }, [dispatch, currentRiderId, apiResponse, deliveryMode, addressData, selectedZone]);
 
   const handlePaymentType = async type => {
 
@@ -106,6 +123,8 @@ useEffect(() => {
         );
       }
 
+
+
       const items = kitResponse?.data || [];
       const payableRequest =
         items.find(item => item.status === 'PAYMENT_PENDING') ||
@@ -123,6 +142,7 @@ useEffect(() => {
         ...(type === 'emi' && selectedPayment !== 'cod' ? { emiMonths: 3 } : {}),
       };
 
+      
       const postResponse = await apiClient.post(
         `/api/kit/payment/${payableRequest.id}`,
         paymentSelectionPayload
@@ -148,26 +168,27 @@ useEffect(() => {
       );
 
       if (!patchResponse?.data?.success) {
-  Alert.alert(
-    'Payment error',
-    patchResponse?.data?.message || 'Failed to complete payment'
-  );
-  return;
-}
+        Alert.alert(
+          'Payment error',
+          patchResponse?.data?.message || 'Failed to complete payment'
+        );
+        return;
+      }
 
       const riderId =
         patchResponse?.data?.data?.[0]?.riderId ??
         apiResponse?.data?.[0]?.riderId ??
         null;
 
-      dispatch(
-        setKitCompleted({
-          kitCompleted: true,
-          riderId,
-          apiResponse: patchResponse.data,
-          deliveryMode,
-        })
-      );
+      dispatch(setKitCompleted({
+        riderId: currentRiderId || riderId,
+        kitCompleted: true,
+        apiResponse: patchResponse.data,
+        deliveryMode,
+        currentStep: 'SuccessScreen',
+        addressData,
+        selectedZone,
+      }));
 
       navigation.replace('SuccessScreen', {
             apiResponse: patchResponse.data,

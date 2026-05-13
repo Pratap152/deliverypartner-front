@@ -20,25 +20,26 @@ const BannerCarousel = ({ data }) => {
   const flatListRef = useRef(null);
   const currentIndex = useRef(0);
 
-  const kitCompleted = useSelector(state => state.kit?.kitCompleted ?? false);
-  const apiResponse = useSelector(state => state.kit?.apiResponse ?? null);
-  const deliveryMode = useSelector(state => state.kit?.deliveryMode ?? null);
-  const savedRiderId = useSelector(state => state.kit?.riderId ?? null);
-
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  const riderKitData = useSelector(state =>
+    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
+  );
+
+  const kitCompleted = riderKitData?.kitCompleted ?? false;
+  const apiResponse = riderKitData?.apiResponse ?? null;
+  const deliveryMode = riderKitData?.deliveryMode ?? null;
+
+  const addressData = riderKitData?.addressData ?? null;
+  const selectedZone = riderKitData?.selectedZone ?? null;
+  const currentStep = riderKitData?.currentStep ?? null;
 
   const handleKitPress = () => {
     const firstItem = apiResponse?.data?.[0];
     const paymentStatus = firstItem?.Payment?.status ?? null;
     const kitStatus = firstItem?.status ?? null;
 
-    const isSameRider =
-      !!savedRiderId &&
-      !!currentRiderId &&
-      savedRiderId === currentRiderId;
-
     const isPaid =
-      isSameRider &&
       kitCompleted &&
       (
         paymentStatus === 'SUCCESS' ||
@@ -47,10 +48,30 @@ const BannerCarousel = ({ data }) => {
         kitStatus === 'PAYMENT_COMPLETED'
       );
 
-    if (isPaid && apiResponse) {
+    if (isPaid || currentStep === 'SuccessScreen') {
       navigation.navigate('SuccessScreen', {
         apiResponse,
         deliveryMode,
+      });
+      return;
+    }
+
+    if (currentStep === 'PaymentsScreen') {
+      navigation.navigate('PaymentsScreen', {
+        apiResponse,
+        deliveryMode,
+        addressData,
+        selectedZone,
+      });
+      return;
+    }
+
+    if (currentStep === 'KitPickupSelection') {
+      navigation.navigate('KitPickupSelection', {
+        apiResponse,
+        deliveryMode,
+        addressData,
+        selectedZone,
       });
       return;
     }

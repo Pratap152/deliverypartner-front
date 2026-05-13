@@ -15,29 +15,10 @@ import KitHeader from "../../components/kit/KitHeader";
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
 import { BackHandler } from 'react-native';
 
+import { useDispatch, useSelector } from 'react-redux';
+import { setKitFlowStep } from '../../redux/slices/kitSlice';
+
 const KitSelectionScreen = ({ navigation }) => {
-  const goToHomeTab = () => {
-  navigation.reset({
-    index: 0,
-    routes: [
-      {
-        name: 'MainTabs',
-        params: {
-          screen: 'Home',
-        },
-      },
-    ],
-  });
-};
-
-useEffect(() => {
-  const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-    goToHomeTab();
-    return true;
-  });
-
-  return () => subscription.remove();
-}, [navigation]);
   const { width } = useWindowDimensions();
   
   // Delivery mode state
@@ -57,6 +38,64 @@ useEffect(() => {
   
   const { createKitAddress, getKitAddress, loading } = useKitAddress();
 
+  const goToHomeTab = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Home',
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      goToHomeTab();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [navigation]);
+
+  const riderKitData = useSelector(state =>
+    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
+  );
+
+  useEffect(() => {
+    if (!riderKitData) return;
+
+    if (riderKitData?.deliveryMode) {
+      setDeliveryMode(riderKitData.deliveryMode);
+    }
+
+    if (riderKitData?.addressData) {
+      setName(riderKitData.addressData.name ?? "");
+      setAddress(riderKitData.addressData.address ?? "");
+      setPincode(riderKitData.addressData.pincode ?? "");
+    }
+
+    if (riderKitData?.selectedZone) {
+      setSelectedZone(riderKitData.selectedZone);
+    }
+  }, [riderKitData]);
+
+  const dispatch = useDispatch();
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  useEffect(() => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitSelectionScreen',
+      deliveryMode,
+    }));
+  }, [dispatch, currentRiderId, deliveryMode]);
+
   // Fetch zones when switching to offline mode
   useEffect(() => {
     if (deliveryMode === "offline") {
@@ -68,19 +107,19 @@ useEffect(() => {
 
   // Fetch pickup zones for offline mode
   const fetchZones = async () => {
-  setZonesLoading(true);
-  setZonesError(null);
-  try {
-    const response = await getKitAddress();
-    setZones(response || []); 
-  } catch (error) {
-    console.log("Error fetching zones:", error);
-    setZonesError(error.message || "Failed to fetch zones");
-    setZones([]);
-  } finally {
-    setZonesLoading(false);
-  }
-};
+    setZonesLoading(true);
+    setZonesError(null);
+    try {
+      const response = await getKitAddress();
+      setZones(response || []); 
+    } catch (error) {
+      console.log("Error fetching zones:", error);
+      setZonesError(error.message || "Failed to fetch zones");
+      setZones([]);
+    } finally {
+      setZonesLoading(false);
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -102,28 +141,47 @@ useEffect(() => {
   };
 
   const handleSave = async () => {
-    if (deliveryMode === "online") {
-      if (!validate()) return;
-      navigation.replace("KitPickupSelection", {
-        deliveryMode: "online",
-        addressData: {
-          name,
-          address,
-          pincode,
-        },
-      });
-    } else {
-      if (!selectedZone) {
-        alert("Please select a pickup zone");
-        return;
-      }
+  if (deliveryMode === "online") {
+    if (!validate()) return;
 
-      navigation.replace("KitPickupSelection", {
-        deliveryMode: "offline",
-        selectedZone,
-      });
+    const payload = {
+      name,
+      address,
+      pincode,
+    };
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitPickupSelection',
+      deliveryMode: 'online',
+      addressData: payload,
+      selectedZone: null,
+    }));
+
+    navigation.replace("KitPickupSelection", {
+      deliveryMode: "online",
+      addressData: payload,
+    });
+  } else {
+    if (!selectedZone) {
+      alert("Please select a pickup zone");
+      return;
     }
-  };
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitPickupSelection',
+      deliveryMode: 'offline',
+      addressData: null,
+      selectedZone,
+    }));
+
+    navigation.replace("KitPickupSelection", {
+      deliveryMode: "offline",
+      selectedZone,
+    });
+  }
+};
   // Determine button text and disabled state
   const getButtonConfig = () => {
     if (deliveryMode === "online") {
