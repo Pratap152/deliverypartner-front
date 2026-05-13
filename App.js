@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { Provider } from 'react-redux';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 import AppNavigator from './src/navigation/AppNavigator';
-import { store } from './src/redux/store';
 import { AuthProvider } from './src/hooks/useAuth';
 import { navigationRef, navigate } from './src/navigation/RootNavigation';
 
@@ -14,11 +12,16 @@ import { authService } from './src/services/AuthService';
 import FCMService from './src/services/fcmService';
 import apiClient, { updateFcmToken } from './src/services/ApiClient';
 
+import { Provider } from 'react-redux';
+import { store, persistor } from './src/redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+
 import { useDispatch } from 'react-redux';
 import NotificationService from './src/services/NotificationService';
 import { addNotification } from './src/redux/slices/notificationSlice';
 import { GPSProvider } from './src/context/GPSContext';
 import { RiderProvider } from './src/context/RiderContext';
+
 
 const AppContent = () => {
 
@@ -34,7 +37,7 @@ const AppContent = () => {
   }, []);
 
   useEffect(() => {
-    NotificationService.init(); // 🔥 ADD (safe)
+    NotificationService.init(); // ADD (safe)
     initFCM();
   }, []);
 
@@ -198,7 +201,9 @@ const App = () => {
   return (
     <GPSProvider>
       <Provider store={store}>
-        <AppContent />
+        <PersistGate loading={null} persistor={persistor}>
+          <AppContent />
+        </PersistGate>
       </Provider>
     </GPSProvider>
   );
