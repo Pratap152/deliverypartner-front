@@ -1,92 +1,92 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Dimensions,
-  Pressable
+  Pressable,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_WIDTH = wp('90%');
 
-const BannerCarousel = ({ data}) => {
-    const navigation = useNavigation();
+const BannerCarousel = ({ data }) => {
+  const navigation = useNavigation();
   const flatListRef = useRef(null);
   const currentIndex = useRef(0);
 
-  useEffect(() => {
-    if (!data || data.length <= 1) return;
+  const kitCompleted = useSelector(state => state.kit?.kitCompleted ?? false);
+  const apiResponse = useSelector(state => state.kit?.apiResponse ?? null);
+  const deliveryMode = useSelector(state => state.kit?.deliveryMode ?? null);
 
-    const interval = setInterval(() => {
-      currentIndex.current =
-        (currentIndex.current + 1) % data.length;
+  const handleKitPress = () => {
+    const firstItem = apiResponse?.data?.[0];
+    const paymentStatus = firstItem?.Payment?.status ?? null;
+    const kitStatus = firstItem?.status ?? null;
 
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex.current,
-        animated: true,
+    const isPaid =
+      kitCompleted ||
+      paymentStatus === 'COMPLETED' ||
+      paymentStatus === 'SUCCESS' ||
+      kitStatus === 'PAYMENT_COMPLETED';
+
+    if (isPaid && apiResponse) {
+      navigation.navigate('SuccessScreen', {
+        apiResponse,
+        deliveryMode,
       });
-    }, 3000);
+      return;
+    }
 
-    return () => clearInterval(interval);
-  }, [data]);
+    navigation.navigate('KitSelectionScreen');
 
-  if (!data || data.length === 0) return null;
+    console.log('kitCompleted =>', kitCompleted);
+    console.log('apiResponse =>', apiResponse);
+    console.log('paymentStatus =>', paymentStatus);
+    console.log('kitStatus =>', kitStatus);
+  };
 
- const renderItem = ({ item }) => {
-  const handlePress = () => {
-  switch (item.id) {
-    case 'bank':
-      navigation.navigate('AddBankDetails');
-      break;
+  const handlePress = item => {
+    switch (item.id) {
+      case 'bank':
+        navigation.navigate('AddBankDetails');
+        break;
+      case 'kit':
+        handleKitPress();
+        break;
+      case 'refer':
+        navigation.navigate('ReferEarn');
+        break;
+      case 'incentives':
+        navigation.navigate('IncentiveDetails');
+        break;
+      case 'joining':
+        navigation.navigate('JoiningBonusScreen');
+        break;
+      default:
+        break;
+    }
+  };
 
-    case 'kit':
-      navigation.reset({
-        index: 1,
-        routes: [
-          { name: 'MainTabs' },
-          { name: 'KitSelectionScreen' },
-        ],
-      });
-      break;
+  const renderItem = ({ item }) => {
+    return (
+      <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
+        <View>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.subtitle}>{item.subtitle}</Text>
+        </View>
 
-    case 'refer':
-      navigation.navigate('ReferEarn');
-      break;
-
-    case 'incentives':
-      navigation.navigate('IncentiveDetails');
-      break;
-
-    case 'joining':
-      navigation.navigate('JoiningBonusScreen');
-      break;
-
-    default:
-      break;
-  }
-};
-
-  return (
-    <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
-      <View>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
+        <Pressable onPress={() => handlePress(item)} style={styles.cta}>
+          <Text style={styles.ctaText}>{item.cta}</Text>
+        </Pressable>
       </View>
-
-      <Pressable onPress={handlePress} style={styles.cta}>
-        <Text style={styles.ctaText}>{item.cta}</Text>
-      </Pressable>
-    </View>
-  );
-};
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -125,10 +125,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: wp('4.5%'),
     fontWeight: '700',
+    color: '#000',
   },
   subtitle: {
     fontSize: wp('3.5%'),
     marginTop: hp('0.5%'),
+    color: '#000',
   },
   cta: {
     alignSelf: 'flex-start',
@@ -140,8 +142,8 @@ const styles = StyleSheet.create({
   ctaText: {
     color: '#fff',
     fontSize: wp('3.2%'),
+    fontWeight: '600',
   },
 });
 
-export default React.memo(BannerCarousel);
-
+export default BannerCarousel;

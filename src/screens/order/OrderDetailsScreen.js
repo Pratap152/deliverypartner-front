@@ -19,6 +19,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import { getDistance } from 'geolib';
 
 import OrderHeader from '../../components/order/OrderHeader';
 import OrderAddressCard from '../../components/order/OrderAddressCard';

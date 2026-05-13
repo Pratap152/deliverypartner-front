@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import KitHeader from "../../components/kit/KitHeader";
-import { useKitAddress } from "../../hooks/useCreateKitAddress";
+import { useKitAddress } from '../../hooks/useCreateKitAddress';
 
 const KitSelectionScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
@@ -80,43 +80,27 @@ const KitSelectionScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     if (deliveryMode === "online") {
-      if (!validate()) return; 
-      try {
-        const result = await createKitAddress(name, address, pincode);
-        navigation.replace("KitPickupSelection", {
-          deliveryMode: "online",
-          addressData: { name, address, pincode },
-          apiResponse: result
-        });
-      } catch (error) {
-        alert(error?.response?.data?.message || "Failed to save address. Please try again.");
-      }
-
-      } else {
-
+      if (!validate()) return;
+      navigation.replace("KitPickupSelection", {
+        deliveryMode: "online",
+        addressData: {
+          name,
+          address,
+          pincode,
+        },
+      });
+    } else {
       if (!selectedZone) {
         alert("Please select a pickup zone");
         return;
       }
-      try {
-        const result = await createKitAddress(
-          selectedZone.name,
-          selectedZone.addressLine1,
-          selectedZone.pincode,
-          "PICKUP",        //  different delivery mode
-          selectedZone.id          // pickupLocationId
-        );
-        navigation.replace("KitPickupSelection", { 
-          selectedZone,
-          deliveryMode: "offline",
-          apiResponse: result
-        });
-      } catch (error) {
-        alert(error?.response?.data?.message || "Failed. Please try again.");
-      }
-    }
-    };
 
+      navigation.replace("KitPickupSelection", {
+        deliveryMode: "offline",
+        selectedZone,
+      });
+    }
+  };
   // Determine button text and disabled state
   const getButtonConfig = () => {
     if (deliveryMode === "online") {

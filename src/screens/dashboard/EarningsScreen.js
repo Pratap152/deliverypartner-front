@@ -21,7 +21,6 @@ import WeeklyEarningsChartEmployee from '../../components/dashboard/earnings/Wee
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PremiumPressable from '../../components/common/PremiumPressable';
 import { formatMoney } from '../../utils/formatMoney';
 import { dashboardCache } from '../../hooks/useEarningsDashboard';
@@ -43,6 +42,19 @@ export default function EarningsScreen({ navigation }) {
   const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
   const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
   const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
+
+  const completedDays =
+    weeklyIncentivesProgress?.overallProgress
+      ?.completedDays || 0;
+
+  const totalDays =
+    weeklyIncentivesProgress?.overallProgress
+      ?.totalDays || 0;
+
+  const weeklyProgressPercentage =
+    totalDays > 0
+      ? (completedDays / totalDays) * 100
+      : 0;
 
   const {
     todayEarnings = {},
@@ -159,7 +171,6 @@ export default function EarningsScreen({ navigation }) {
           </View>
           {riderType === "INDIVIDUAL_EMPLOYEE" &&
             <WeeklyEarningsChart
-              riderType={riderType}
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={hp(30)} />
@@ -167,7 +178,6 @@ export default function EarningsScreen({ navigation }) {
 
           {riderType === "COMPANY_EMPLOYEE" &&
             <WeeklyEarningsChartEmployee
-              riderType={riderType}
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={hp(30)} />
@@ -269,6 +279,7 @@ export default function EarningsScreen({ navigation }) {
                   weeklyCompletedOrders={weeklyCompletedOrders}
                   dailyCompletedOrders={dailyCompletedOrders}
                   peakCompletedOrders={peakCompletedOrders}
+                  weeklyProgressPercentage={weeklyProgressPercentage}
                 />
               </PremiumPressable>
               :
