@@ -41,21 +41,23 @@ const SuccessScreen = () => {
 
   const isPaidFlow = !!paymentType || !!payment;
 
-  useEffect(() => {
-    const riderId =
-      apiResponse?.data?.[0]?.riderId ??
-      apiResponse?.data?.riderId ??
-      firstItem?.riderId ??
-      null;
+  const riderId =
+    apiResponse?.data?.[0]?.riderId ??
+    apiResponse?.data?.riderId ??
+    firstItem?.riderId ??
+    null;
 
-    dispatch(
-      setKitCompleted({
-        apiResponse: apiResponse || null,
-        deliveryMode: resolvedDeliveryMode || null,
-        riderId,
-      })
-    );
-  }, [apiResponse, resolvedDeliveryMode, firstItem, dispatch]);
+  useEffect(() => {
+    if (!riderId) return;
+
+    dispatch(setKitCompleted({
+      riderId,
+      kitCompleted: true,
+      apiResponse,
+      deliveryMode: resolvedDeliveryMode,
+      currentStep: 'SuccessScreen',
+    }));
+  }, [dispatch, riderId, apiResponse, resolvedDeliveryMode]);
 
   const handleGoHome = () => {
     navigation.reset({
@@ -102,6 +104,7 @@ const SuccessScreen = () => {
       : null;
 
   const kitStatus = firstItem?.status ? formatEnum(firstItem.status) : null;
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>
