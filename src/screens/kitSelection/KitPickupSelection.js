@@ -7,35 +7,13 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
 import KitHeader from '../../components/kit/KitHeader';
-import { setKitCompleted } from '../../redux/slices/kitSlice';
 import { useEffect } from 'react';
 import { BackHandler } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
 
 const KitPickupSelection = ({ navigation, route }) => {
-  const goToHomeTab = () => {
-  navigation.reset({
-    index: 0,
-    routes: [
-      {
-        name: 'MainTabs',
-        params: {
-          screen: 'Home',
-        },
-      },
-    ],
-  });
-};
-
-useEffect(() => {
-  const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-    goToHomeTab();
-    return true;
-  });
-
-  return () => subscription.remove();
-}, [navigation]);
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
 
@@ -49,17 +27,56 @@ useEffect(() => {
   const responseMessage = apiResponse?.message;
   const displayData = deliveryMode === 'online' ? addressData : selectedZone;
 
-  const handleSubmit = () => {
-    console.log('KIT PICKUP FREE SUBMIT PRESSED');
-    const riderId = apiResponse?.data?.[0]?.riderId ?? null;
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
 
-    dispatch(
-      setKitCompleted({
-        apiResponse,
-        deliveryMode,
-        riderId,
-      })
-    );
+  useEffect(() => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitPickupSelection',
+      apiResponse,
+      deliveryMode,
+      addressData,
+      selectedZone,
+    }));
+  }, [dispatch, currentRiderId, apiResponse, deliveryMode, addressData, selectedZone]);
+
+  const goToHomeTab = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Home',
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      goToHomeTab();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [navigation]);
+
+  const handleSubmit = () => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitCompleted({
+      riderId: currentRiderId,
+      kitCompleted: true,
+      apiResponse,
+      deliveryMode,
+      currentStep: 'SuccessScreen',
+      addressData,
+      selectedZone,
+    }));
 
     navigation.reset({
       index: 0,
@@ -73,6 +90,17 @@ useEffect(() => {
   };
 
   const handleProceedToPayment = () => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'PaymentsScreen',
+      apiResponse,
+      deliveryMode,
+      addressData,
+      selectedZone,
+    }));
+
     navigation.navigate('PaymentsScreen', {
       apiResponse,
       deliveryMode,
@@ -80,7 +108,7 @@ useEffect(() => {
       selectedZone,
     });
   };
-  
+    
 
 
   return (
