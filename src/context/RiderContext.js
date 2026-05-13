@@ -496,7 +496,8 @@ const res = await orderService.acceptOrder(orderId);
 if (!res?.success) {
   throw new Error(res?.message || "Accept failed");
 } 
-      removeOrderFromQueue(orderId);
+      setOrderQueue([]);
+      setExpandedOrderId(null);
  
       navigate("OrderDetailsScreen", {
 
