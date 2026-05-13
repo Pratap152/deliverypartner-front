@@ -125,12 +125,12 @@ export default function PaymentsScreen({ route }) {
       );
 
       if (!patchResponse?.data?.success) {
-        Alert.alert(
-          'Payment error',
-          patchResponse?.data?.message || 'Failed to complete payment'
-        );
-        return;
-      }
+  Alert.alert(
+    'Payment error',
+    patchResponse?.data?.message || 'Failed to complete payment'
+  );
+  return;
+}
 
       const riderId =
         patchResponse?.data?.data?.[0]?.riderId ??

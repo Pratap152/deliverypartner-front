@@ -21,7 +21,6 @@ import WeeklyEarningsChartEmployee from '../../components/dashboard/earnings/Wee
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PremiumPressable from '../../components/common/PremiumPressable';
 import { formatMoney } from '../../utils/formatMoney';
 import { dashboardCache } from '../../hooks/useEarningsDashboard';
@@ -172,7 +171,6 @@ export default function EarningsScreen({ navigation }) {
           </View>
           {riderType === "INDIVIDUAL_EMPLOYEE" &&
             <WeeklyEarningsChart
-              riderType={riderType}
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={hp(30)} />
@@ -180,7 +178,6 @@ export default function EarningsScreen({ navigation }) {
 
           {riderType === "COMPANY_EMPLOYEE" &&
             <WeeklyEarningsChartEmployee
-              riderType={riderType}
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={hp(30)} />

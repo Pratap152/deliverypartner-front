@@ -43,37 +43,37 @@ export default function IncentiveDetails({ navigation }) {
   const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
   const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
 
-  const weeklyMinimumOrders = !isWeeklyEmpty ? 
-          weeklyData?.data[0]?.ruleType === "HYBRID" ?
-            weeklyData?.data[0]?.conditions?.minOrders :
-            weeklyData?.data[0]?.ruleType === "FIXED_TARGET" ?
-              weeklyData?.data[0]?.target?.orders :
-              weeklyData?.data[0]?.ruleType === "SLAB" ?
-                weeklyData?.data[0]?.slabs[0]?.minOrders : 0
-                : 0;
+  const weeklyMinimumOrders = !isWeeklyEmpty ?
+    weeklyData?.data[0]?.ruleType === "HYBRID" ?
+      weeklyData?.data[0]?.conditions?.minOrders :
+      weeklyData?.data[0]?.ruleType === "FIXED_TARGET" ?
+        weeklyData?.data[0]?.target?.orders :
+        weeklyData?.data[0]?.ruleType === "SLAB" ?
+          weeklyData?.data[0]?.slabs[0]?.minOrders : 0
+    : 0;
   const dailyMinimumOrders = !isDailyEmpty ?
-          dailyData?.data[0]?.ruleType === "HYBRID" ?
-            dailyData?.data[0]?.conditions?.minOrders :
-            dailyData?.data[0]?.ruleType === "FIXED_TARGET" ?
-              dailyData?.data[0]?.target?.orders :
-              dailyData?.data[0]?.ruleType === "SLAB" ?
-                dailyData?.data[0]?.slabs[0]?.minOrders : 0
-                : 0;
+    dailyData?.data[0]?.ruleType === "HYBRID" ?
+      dailyData?.data[0]?.conditions?.minOrders :
+      dailyData?.data[0]?.ruleType === "FIXED_TARGET" ?
+        dailyData?.data[0]?.target?.orders :
+        dailyData?.data[0]?.ruleType === "SLAB" ?
+          dailyData?.data[0]?.slabs[0]?.minOrders : 0
+    : 0;
 
   const peakMinimumOrders = !isPeakEmpty ?
-          peakData?.data?.[0].ruleType === "HYBRID" ?
-            peakData?.data[0]?.slots[0]?.conditions?.minOrders :
-            peakData?.data[0]?.ruleType === "FIXED_TARGET" ?
-              peakData?.data[0]?.slots[0]?.target?.orders :
-              peakData?.data[0]?.ruleType === "SLAB" ?
-                peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
-                : 0;
+    peakData?.data?.[0].ruleType === "HYBRID" ?
+      peakData?.data[0]?.slots[0]?.conditions?.minOrders :
+      peakData?.data[0]?.ruleType === "FIXED_TARGET" ?
+        peakData?.data[0]?.slots[0]?.target?.orders :
+        peakData?.data[0]?.ruleType === "SLAB" ?
+          peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
+    : 0;
 
   const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned || 0;
   const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned || 0;
   const peakRewardEarned = peakIncentivesProgress?.rewardAmount || 0;
 
-  
+
 
   console.log("peak: ", peakIncentivesProgress);
   /* ================= FETCH ALL INCENTIVES ================= */
@@ -89,7 +89,7 @@ export default function IncentiveDetails({ navigation }) {
         if (peakRes?.data[0]) {
           setPeakData(peakRes);
         } else {
-          setPeakData({emptyData: true});
+          setPeakData({ emptyData: true });
         }
       } catch (e) {
         console.log('PEAK Error:', e.response?.data || e.message);
@@ -103,8 +103,8 @@ export default function IncentiveDetails({ navigation }) {
         // Daily API returns data directly, not nested in .data
         if (dailyRes?.success) {
           setDailyData(dailyRes);
-        }  else {
-          setDailyData({emptyData: true});
+        } else {
+          setDailyData({ emptyData: true });
         }
       } catch (e) {
         console.log('DAILY Error:', e.response?.data || e.message);
@@ -118,7 +118,7 @@ export default function IncentiveDetails({ navigation }) {
         if (weeklyRes?.data) {
           setWeeklyData(weeklyRes);
         } else {
-          setWeeklyData({emptyData: true});
+          setWeeklyData({ emptyData: true });
         }
       } catch (e) {
         console.log('WEEKLY Error:', e.response?.data || e.message);
@@ -206,26 +206,33 @@ export default function IncentiveDetails({ navigation }) {
 
   // Calculate progress for each incentive
   const dailyProgress = Math.min(
-      (dailyCompletedOrders /
-        dailyMinimumOrders) *
-      100,
-      100
-    )
+    (dailyCompletedOrders /
+      dailyMinimumOrders) *
+    100,
+    100
+  )
     || 0;
 
   const peakProgress = Math.min(
-      (peakCompletedOrders / peakMinimumOrders) * 100,
-      100
-    )
+    (peakCompletedOrders / peakMinimumOrders) * 100,
+    100
+  )
     || 0;
 
-  const weeklyProgress = Math.min(
+  const weeklyProgress = weeklyIncentivesProgress.ruleType === "TASK" ?
+    Math.min(
+      (weeklyIncentivesProgress?.overallProgress.completedDays /
+        weeklyIncentivesProgress?.overallProgress.totalDays) *
+      100,
+      100
+    )
+    :
+    Math.min(
       (weeklyCompletedOrders /
         weeklyMinimumOrders) *
       100,
       100
-    )
-    || 0;
+    );
 
   return (
     <View style={styles.container}>
