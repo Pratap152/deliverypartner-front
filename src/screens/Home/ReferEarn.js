@@ -145,11 +145,11 @@ const getProgramContent = () => {
       };
 
     case "TASK":
-      return {
-        title: "Task Based Referral",
-        task: "Complete referral tasks",
-        reward: "Task reward applied",
-      };
+  return {
+    title: "Task Based Referral",
+    task: "Complete daily tasks to unlock rewards",
+    reward: "Rewards are based on completed task days",
+  };
 
     default:
       return {
@@ -175,52 +175,97 @@ const programContent = getProgramContent();
   );
 
   const renderItem = ({ item }) => {
-    const isCompleted = item.targetStatus === "TARGET_REACHED";
-    const isPerOrder = ruleType === "PER_ORDER";
-    return (
-      <View style={styles.refItem}>
-        {/* Left */}
-        <View style={styles.leftRow}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={18} color="#fff" />
-          </View>
+  const isTaskType = ruleType === "TASK";
 
-          <View>
-           <Text style={styles.name}>
-  {item.newRiderName || "New Rider"}
-</Text>
-            <Text style={styles.date}>{item.referredAtIST}</Text>
-          </View>
+  // OLD TYPES
+  const isCompleted = item.targetStatus === "TARGET_REACHED";
+  const isPerOrder = ruleType === "PER_ORDER";
+
+  // TASK TYPE VALUES
+  const completedDays = item?.overallProgress?.completedDays || 0;
+  const totalDays = item?.overallProgress?.totalDays || 0;
+
+  const earnedAmount =
+    item?.overallProgress?.earnedAmount ||
+    item?.rewardEarned ||
+    0;
+
+  const progressPercentage =
+    item?.overallProgress?.progressPercentage || 0;
+
+  return (
+    <View style={styles.refItem}>
+      {/* LEFT */}
+      <View style={styles.leftRow}>
+        <View style={styles.avatar}>
+          <Ionicons name="person" size={18} color="#fff" />
         </View>
 
-        {/* Right */}
-        <View style={{ alignItems: "flex-end" }}>
-          {isPerOrder ? (
-  <Text style={styles.amount}>
-    ₹{item.rewardEarned}
-  </Text>
-) : isCompleted ? (
-  <Text style={styles.amount}>
-    ₹{item.rewardEarned}
-  </Text>
-) : (
-  <Text style={styles.progress}>
-    {item.ordersCompleted}/{item.targetOrders}
-  </Text>
-)}
-
-          <Text
-            style={[
-              styles.status,
-              { color: isCompleted ? "#16A34A" : "#F59E0B" },
-            ]}
-          >
-            {isCompleted ? "Completed" : "Pending"}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.name}>
+            {item.newRiderName || "New Rider"}
           </Text>
+
+          <Text style={styles.date}>
+            {item.referredAtIST}
+          </Text>
+
+          {/* TASK TYPE EXTRA UI */}
+          {isTaskType && (
+            <Text style={styles.taskProgress}>
+              {completedDays}/{totalDays} Days Completed
+            </Text>
+          )}
         </View>
       </View>
-    );
-  };
+
+      {/* RIGHT */}
+      <View style={{ alignItems: "flex-end" }}>
+
+        {/* TASK TYPE */}
+        {isTaskType ? (
+          <>
+            <Text style={styles.amount}>
+              ₹{earnedAmount}
+            </Text>
+
+            <Text style={styles.progressPercent}>
+              {progressPercentage}% Progress
+            </Text>
+          </>
+        ) : isPerOrder ? (
+          <Text style={styles.amount}>
+            ₹{item.rewardEarned}
+          </Text>
+        ) : isCompleted ? (
+          <Text style={styles.amount}>
+            ₹{item.rewardEarned}
+          </Text>
+        ) : (
+          <Text style={styles.progress}>
+            {item.ordersCompleted}/{item.targetOrders}
+          </Text>
+        )}
+
+        <Text
+          style={[
+            styles.status,
+            {
+              color:
+                item.targetStatus === "TARGET_REACHED"
+                  ? "#16A34A"
+                  : "#F59E0B",
+            },
+          ]}
+        >
+          {item.targetStatus === "TARGET_REACHED"
+            ? "Completed"
+            : "Pending"}
+        </Text>
+      </View>
+    </View>
+  );
+};
 
  return (
   <View style={{ flex: 1 }}>
@@ -512,10 +557,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  leftRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+ leftRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  flex: 1,
+},
   avatar: {
     width: 38,
     height: 38,
@@ -530,9 +576,9 @@ const styles = StyleSheet.create({
     color: "#0F172A",
   },
   date: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 2,
+    fontSize: 14,
+    color: "#515863",
+    marginTop: 3,
   },
 
   amount: {
@@ -575,4 +621,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 15,
   },
+  taskProgress: {
+  fontSize: 13,
+  color: "#0284C7",
+  marginTop: 4,
+  fontWeight: "600",
+},
+
+progressPercent: {
+  fontSize: 12,
+  color: "#64748B",
+  marginTop: 4,
+},
 });
