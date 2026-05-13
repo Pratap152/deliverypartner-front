@@ -10,8 +10,32 @@ import {
 import { useDispatch } from 'react-redux';
 import KitHeader from '../../components/kit/KitHeader';
 import { setKitCompleted } from '../../redux/slices/kitSlice';
+import { useEffect } from 'react';
+import { BackHandler } from 'react-native';
 
 const KitPickupSelection = ({ navigation, route }) => {
+  const goToHomeTab = () => {
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: 'MainTabs',
+        params: {
+          screen: 'Home',
+        },
+      },
+    ],
+  });
+};
+
+useEffect(() => {
+  const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+    goToHomeTab();
+    return true;
+  });
+
+  return () => subscription.remove();
+}, [navigation]);
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
 

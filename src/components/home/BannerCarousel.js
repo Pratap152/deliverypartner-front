@@ -23,17 +23,29 @@ const BannerCarousel = ({ data }) => {
   const kitCompleted = useSelector(state => state.kit?.kitCompleted ?? false);
   const apiResponse = useSelector(state => state.kit?.apiResponse ?? null);
   const deliveryMode = useSelector(state => state.kit?.deliveryMode ?? null);
+  const savedRiderId = useSelector(state => state.kit?.riderId ?? null);
+
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
 
   const handleKitPress = () => {
     const firstItem = apiResponse?.data?.[0];
     const paymentStatus = firstItem?.Payment?.status ?? null;
     const kitStatus = firstItem?.status ?? null;
 
+    const isSameRider =
+      !!savedRiderId &&
+      !!currentRiderId &&
+      savedRiderId === currentRiderId;
+
     const isPaid =
-      kitCompleted ||
-      paymentStatus === 'COMPLETED' ||
-      paymentStatus === 'SUCCESS' ||
-      kitStatus === 'PAYMENT_COMPLETED';
+      isSameRider &&
+      kitCompleted &&
+      (
+        paymentStatus === 'SUCCESS' ||
+        paymentStatus === 'COMPLETED' ||
+        kitStatus === 'READY_FOR_DISPATCH' ||
+        kitStatus === 'PAYMENT_COMPLETED'
+      );
 
     if (isPaid && apiResponse) {
       navigation.navigate('SuccessScreen', {
@@ -44,13 +56,7 @@ const BannerCarousel = ({ data }) => {
     }
 
     navigation.navigate('KitSelectionScreen');
-
-    console.log('kitCompleted =>', kitCompleted);
-    console.log('apiResponse =>', apiResponse);
-    console.log('paymentStatus =>', paymentStatus);
-    console.log('kitStatus =>', kitStatus);
   };
-
   const handlePress = item => {
     switch (item.id) {
       case 'bank':
