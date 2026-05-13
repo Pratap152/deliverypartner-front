@@ -6,7 +6,6 @@ import {
   Animated,
   StatusBar,
   ActivityIndicator,
-  Alert,
   Platform,
   TouchableOpacity,
   useWindowDimensions,
@@ -80,7 +79,9 @@ const HeroCard = memo(({ program, totalReward, validityDays, hasJoined, compact,
       <View style={s.heroGlowOne} />
       <View style={s.heroGlowTwo} />
       <Animated.Text style={[s.heroEmoji, { transform: [{ scale: pulse }] }]}>🎉</Animated.Text>
-      <Text style={s.heroEyebrow} numberOfLines={1}>{program?.name || 'Joining Bonus'}</Text>
+      <Text style={s.heroEyebrow} numberOfLines={1}>
+  {program?.programName || 'Joining Bonus'}
+</Text>
       <Text style={[s.heroAmount, compact && s.heroAmountCompact]} numberOfLines={1}>
         ₹{Number(totalReward || 0).toLocaleString('en-IN')}
       </Text>
@@ -88,11 +89,13 @@ const HeroCard = memo(({ program, totalReward, validityDays, hasJoined, compact,
       <View style={s.heroMetaWrap}>
         <View style={s.heroMetaPill}><Text style={s.heroMetaText}>⏳ {validityDays || 0} days</Text></View>
         <View style={s.heroMetaPill}><Text style={s.heroMetaText}>📅 {validityDays || 7}-day program</Text></View>
-        <View style={[s.heroMetaPill, hasJoined && s.heroMetaPillJoined]}>
-          <Text style={[s.heroMetaText, hasJoined && s.heroMetaTextJoined]}>
-            {progress?.enrollment?.status === 'ACTIVE' ? '✓ Active' : hasJoined ? '✓ Joined' : 'Open now'}
-          </Text>
-        </View>
+        <View style={[s.heroMetaPill, s.heroMetaPillJoined]}>
+  <Text style={[s.heroMetaText, s.heroMetaTextJoined]}>
+    {progress?.targetStatus === 'TARGET_REACHED'
+      ? '✓ Completed'
+      : 'In Progress'}
+  </Text>
+</View>
       </View>
     </View>
   );
@@ -100,10 +103,28 @@ const HeroCard = memo(({ program, totalReward, validityDays, hasJoined, compact,
 
 const HowItWorks = memo(() => {
   const steps = [
-    { id: '1', title: 'Join the program', desc: 'One tap to enroll in the active joining bonus program.', color: C.orange, bg: C.orangeSoft },
-    { id: '2', title: 'Complete each day task', desc: 'Every day has one target like orders, acceptance rate, or peak slots.', color: C.amber, bg: 'rgba(245,158,11,0.10)' },
-    { id: '3', title: 'Earn the listed reward', desc: 'Each task card clearly shows the bonus amount for that day.', color: C.green, bg: C.greenSoft },
-  ];
+  {
+    id: '1',
+    title: 'Refer a rider',
+    desc: 'Invite riders using your referral code.',
+    color: C.orange,
+    bg: C.orangeSoft,
+  },
+  {
+    id: '2',
+    title: 'Complete daily targets',
+    desc: 'The referred rider must complete daily order targets.',
+    color: C.amber,
+    bg: 'rgba(245,158,11,0.10)',
+  },
+  {
+    id: '3',
+    title: 'Earn referral rewards',
+    desc: 'Rewards are unlocked as the rider finishes tasks.',
+    color: C.green,
+    bg: C.greenSoft,
+  },
+];
 
   return (
     <View style={s.sectionCard}>
@@ -127,83 +148,159 @@ const HowItWorks = memo(() => {
   );
 });
 
-const TaskCard = memo(({ task, index, compact,progress }) => {
-  const cfg = TASK_CONFIG[task.taskType] || TASK_CONFIG.ORDERS;
+const TaskCard = memo(({ task, index, compact, progress }) => {
+  const cfg = TASK_CONFIG.ORDERS;
+
   const translateY = useRef(new Animated.Value(18)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(translateY, { toValue: 0, duration: 320, delay: index * 60, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 280, delay: index * 60, useNativeDriver: true }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 320,
+        delay: index * 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 280,
+        delay: index * 60,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, [index, opacity, translateY]);
 
   return (
-    <Animated.View style={[s.taskCard, compact && s.taskCardCompact, { opacity, transform: [{ translateY }], borderColor: cfg.border }]}>
+    <Animated.View
+      style={[
+        s.taskCard,
+        compact && s.taskCardCompact,
+        {
+          opacity,
+          transform: [{ translateY }],
+          borderColor: cfg.border,
+        },
+      ]}>
+      
       <View style={s.taskTopRow}>
-        <View style={s.dayChip}><Text style={s.dayChipText}>Day {task.dayNumber}</Text></View>
-        <View style={s.rewardPill}><Text style={s.rewardPillText}>₹{task.rewardAmount}</Text></View>
-      </View>
-      <View style={s.taskMainRow}>
-        <View style={[s.taskIconWrap, { backgroundColor: cfg.bg, borderColor: cfg.border }]}>
-          <Text style={s.taskEmoji}>{cfg.emoji}</Text>
+        <View style={s.dayChip}>
+          <Text style={s.dayChipText}>
+            Day {task.dayNumber}
+          </Text>
         </View>
-        <View style={s.taskTextWrap}>
-          <Text style={[s.taskType, { color: cfg.accent }]} numberOfLines={1}>{cfg.label}</Text>
-          <Text style={s.taskDescription}>{getTaskDescription(task)}</Text>
+
+        <View style={s.rewardPill}>
+          <Text style={s.rewardPillText}>
+            Up to ₹{task.rewardAmount}
+          </Text>
         </View>
-      </View>
-      {!!progress && (
-      <View style={s.taskProgressRow}>
-        <View style={s.taskProgressBg}>
-          <View
-            style={[
-              s.taskProgressFill,
-              {
-                width: `${progress.percentage || 0}%`,
-                backgroundColor: progress.isCompleted ? C.green : cfg.accent,
-              },
-            ]}
-          />
-        </View>
-        <Text
+
+        <View
           style={[
-            s.taskProgressText,
-            { color: progress.isCompleted ? C.green : cfg.accent },
-          ]}
-        >
-          {progress.isCompleted ? 'Completed' : progress.label}
-        </Text>
+            s.statusPill,
+            {
+              backgroundColor: progress?.isCompleted
+                ? C.greenSoft
+                : progress?.status === 'LOCKED'
+                ? C.purpleSoft
+                : C.orangeSoft,
+            },
+          ]}>
+          <Text style={s.statusText}>
+            {progress?.isCompleted
+              ? 'COMPLETED'
+              : progress?.status}
+          </Text>
+        </View>
       </View>
-    )}
+
+      <View style={s.taskMainRow}>
+        <View
+          style={[
+            s.taskIconWrap,
+            {
+              backgroundColor: cfg.bg,
+              borderColor: cfg.border,
+            },
+          ]}>
+          <Text style={s.taskEmoji}>
+            {cfg.emoji}
+          </Text>
+        </View>
+
+        <View style={s.taskTextWrap}>
+          <Text
+            style={[
+              s.taskType,
+              { color: cfg.accent },
+            ]}
+            numberOfLines={1}>
+            {cfg.label}
+          </Text>
+
+          <Text style={s.taskDescription}>
+            Complete slab targets and earn rewards
+          </Text>
+
+          {progress?.status === 'LOCKED' && (
+            <Text style={s.lockedText}>
+              Complete previous day target to unlock
+            </Text>
+          )}
+        </View>
+      </View>
+
+      {/* SLABS */}
+
+      <View style={s.slabContainer}>
+        {task.slabs?.map((slab, slabIndex) => (
+          <View key={slabIndex} style={s.slabRow}>
+            <Text style={s.slabOrders}>
+              {slab.maxOrders
+                ? `${slab.minOrders}-${slab.maxOrders} Orders`
+                : `${slab.minOrders}+ Orders`}
+            </Text>
+
+            <Text style={s.slabReward}>
+              ₹{slab.rewardAmount}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {!!progress && (
+        <View style={s.taskProgressRow}>
+          <View style={s.taskProgressBg}>
+            <View
+              style={[
+                s.taskProgressFill,
+                {
+                  width: `${progress.percentage || 0}%`,
+                  backgroundColor: progress?.isCompleted
+                    ? C.green
+                    : cfg.accent,
+                },
+              ]}
+            />
+          </View>
+
+          <Text
+            style={[
+              s.taskProgressText,
+              {
+                color: progress?.isCompleted
+                  ? C.green
+                  : cfg.accent,
+              },
+            ]}>
+            {progress?.isCompleted
+              ? 'Completed'
+              : progress?.label}
+          </Text>
+        </View>
+      )}
     </Animated.View>
-  );
-});
-
-const StickyJoinBar = memo(({ onJoin, joining, joined }) => {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const handlePress = () => {
-    if (joining || joined) return;
-    Animated.sequence([
-      Animated.timing(scale, { toValue: 0.98, duration: 90, useNativeDriver: true }),
-      Animated.timing(scale, { toValue: 1, duration: 120, useNativeDriver: true }),
-    ]).start();
-    onJoin?.();
-  };
-
-  return (
-    <View style={s.stickyWrap}>
-      <Text style={s.stickyHelper}>
-        {joined ? 'You have already joined this bonus program.' : 'Join once to start the bonus journey.'}
-      </Text>
-      <Animated.View style={{ transform: [{ scale }] }}>
-        <TouchableOpacity style={[s.joinBtn, (joined || joining) && s.joinBtnDisabled]} onPress={handlePress} disabled={joining || joined} activeOpacity={0.9}>
-          {joining ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={s.joinBtnText}>{joined ? 'Joined Successfully' : 'Join Bonus Program'}</Text>}
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
   );
 });
 
@@ -248,25 +345,41 @@ const WeeklyProgressCard = memo(({ summary}) => {
 });
 
 const JoiningBonusScreen = ({ navigation }) => {
-  const { loading, joining, error, program, hasJoined, load, join, progress, sortedTasks } = useJoiningBonus();
+const {
+  loading,
+  error,
+  program,
+  load,
+  progress,
+  sortedTasks,
+} = useJoiningBonus();
   const { width } = useWindowDimensions();
   const compact = width < 360;
   const isTabletLike = width >= 768;
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  const totalReward = sortedTasks.reduce((sum, task) => sum + (task.rewardAmount || 0), 0);
-  const validityDays = progress?.program?.validityDays || program?.validityDays || 0;
-  const weeklySummary = progress?.summary || {
-    totalTasks: sortedTasks.length,
-    completedTasks: 0,
-    pendingTasks: sortedTasks.length,
-    totalRewardEarned: 0,
-  };
+const totalReward =
+  (progress?.overallProgress?.earnedAmount || 0) +
+  (progress?.overallProgress?.remainingAmount || 0);  
+const validityDays =
+  progress?.overallProgress?.totalDays ||
+  sortedTasks.length ||
+  0;
+  const weeklySummary = {
+  totalTasks:
+    progress?.overallProgress?.totalDays || 0,
 
-  const handleJoin = async () => {
-    const res = await join();
-    Alert.alert(res.success ? 'Joined Successfully' : 'Join Failed', res.message);
-  };
+  completedTasks:
+    progress?.overallProgress?.completedDays || 0,
+
+  pendingTasks:
+    (progress?.overallProgress?.totalDays || 0) -
+    (progress?.overallProgress?.completedDays || 0),
+
+  totalRewardEarned:
+    progress?.overallProgress?.earnedAmount || 0,
+};
+  
 
   const headerOpacity = scrollY.interpolate({ inputRange: [0, 70], outputRange: [0, 1], extrapolate: 'clamp' });
 
@@ -319,7 +432,6 @@ const JoiningBonusScreen = ({ navigation }) => {
         contentContainerStyle={[
           s.scrollContent,
           isTabletLike && s.scrollContentTablet,
-          !hasJoined && s.scrollContentWithJoinBar,
         ]}
         showsVerticalScrollIndicator={false}
         bounces={false}
@@ -330,15 +442,15 @@ const JoiningBonusScreen = ({ navigation }) => {
           program={program}
           totalReward={totalReward}
           validityDays={validityDays}
-          hasJoined={hasJoined}
           compact={compact}
           progress={progress}
         />
        
         <HowItWorks />
 
-        {!!progress?.summary && <WeeklyProgressCard summary={weeklySummary} />}
-
+{!!progress?.overallProgress && (
+  <WeeklyProgressCard summary={weeklySummary} />
+)}
         <View style={s.tasksHeaderWrap}>
           <Text style={s.sectionTitle}>Daily tasks</Text>
           <Text style={s.sectionSubtitle}>
@@ -352,12 +464,10 @@ const JoiningBonusScreen = ({ navigation }) => {
             task={task}
             index={index}
             compact={compact}
-            progress={task.progress}
+           progress={task.progressData}
           />
         ))}
       </Animated.ScrollView>
-
-      <StickyJoinBar onJoin={handleJoin} joining={joining} joined={hasJoined} />
     </View>
   );
 };
@@ -431,6 +541,56 @@ const s = StyleSheet.create({
   emptySub: { color: C.textSecondary, fontSize: 14, lineHeight: 21, textAlign: 'center', marginBottom: 22 },
   retryBtn: { backgroundColor: C.orange, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 13 },
   retryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  lockedText: {
+  marginTop: 6,
+  fontSize: 12,
+  color: C.textMuted,
+  fontWeight: '600',
+},
+
+slabContainer: {
+  marginTop: 14,
+  gap: 8,
+},
+
+slabRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  backgroundColor: C.surface2,
+  borderRadius: 12,
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  borderWidth: 1,
+  borderColor: C.borderSoft,
+},
+
+slabOrders: {
+  color: C.textSecondary,
+  fontSize: 12,
+  fontWeight: '700',
+},
+
+slabReward: {
+  color: C.green,
+  fontSize: 13,
+  fontWeight: '900',
+},
+
+  statusPill: {
+  paddingHorizontal: 10,
+  paddingVertical: 4,
+  borderRadius: 999,
+  marginTop: 8,
+  alignSelf: 'flex-start',
+},
+
+statusText: {
+  fontSize: 11,
+  fontWeight: '800',
+  color: C.text,
+},
+
   taskProgressRow: {
     flexDirection: 'row',
     alignItems: 'center',
