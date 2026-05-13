@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { PURGE } from 'redux-persist';
 
 const initialState = {
   kitCompleted: false,
@@ -23,6 +24,9 @@ const kitSlice = createSlice({
       state.apiResponse = null;
       state.deliveryMode = null;
     },
+  },
+  extraReducers: builder => {
+    builder.addCase(PURGE, () => initialState);
   },
 });
 

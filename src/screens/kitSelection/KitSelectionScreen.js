@@ -13,8 +13,31 @@ import {
 } from "react-native";
 import KitHeader from "../../components/kit/KitHeader";
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
+import { BackHandler } from 'react-native';
 
 const KitSelectionScreen = ({ navigation }) => {
+  const goToHomeTab = () => {
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: 'MainTabs',
+        params: {
+          screen: 'Home',
+        },
+      },
+    ],
+  });
+};
+
+useEffect(() => {
+  const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+    goToHomeTab();
+    return true;
+  });
+
+  return () => subscription.remove();
+}, [navigation]);
   const { width } = useWindowDimensions();
   
   // Delivery mode state

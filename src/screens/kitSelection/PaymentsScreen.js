@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import { useKitAddress } from '../../hooks/useCreateKitAddress';
 
 import { useDispatch } from 'react-redux';
 import { setKitCompleted } from '../../redux/slices/kitSlice';
+import { BackHandler } from 'react-native';
 
 
 const PAYMENT_METHODS = [
@@ -37,6 +38,28 @@ const PAYMENT_METHODS = [
 ];
 
 export default function PaymentsScreen({ route }) {
+  const goToHomeTab = () => {
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: 'MainTabs',
+        params: {
+          screen: 'Home',
+        },
+      },
+    ],
+  });
+};
+
+useEffect(() => {
+  const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+    goToHomeTab();
+    return true;
+  });
+
+  return () => subscription.remove();
+}, [navigation]);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [upiId, setUpiId] = useState('');
@@ -146,18 +169,10 @@ export default function PaymentsScreen({ route }) {
         })
       );
 
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'SuccessScreen',
-            params: {
-              apiResponse: patchResponse.data,
-              deliveryMode,
-            },
-          },
-        ],
-      });
+      navigation.replace('SuccessScreen', {
+            apiResponse: patchResponse.data,
+            deliveryMode,
+          });
             
           } catch (err) {
             Alert.alert(
