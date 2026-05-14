@@ -28,6 +28,8 @@ export default function SlotBookingScreen({navigation}) {
     loadSlots,
     bookSlot,
     cancelSlot,
+    clearSlots,
+    clearWeeks
   } = useSlots();
 
   // Slot selection management
@@ -50,8 +52,13 @@ export default function SlotBookingScreen({navigation}) {
   const [successVisible, setSuccessVisible] = useState(false);
   const [activeSlot, setActiveSlot] = useState(null);
 
+  const [nextWeekEmpty, setNextWeekEmpty] = useState(false);
+  const [upcomingEmpty, setUpcomingEmpty] = useState(false); 
+  const [currentWeekEmpty, setCurrentWeekEmpty] = useState(false);
+
   const cityId = useSelector((state) => state.profile.data?.location?.city?.trim());
   const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
+
   
   // Load weeks and slots in parallel on mount
   useEffect(() => {
@@ -70,24 +77,50 @@ export default function SlotBookingScreen({navigation}) {
     }
   }, [selectedWeek, filter]);
 
+  const autoSelectFirst = useRef(false);
+  useEffect(() => {
+    if (!autoSelectFirst.current) return;
+
+    if (weeks?.length > 0) {
+      autoSelectFirst.current = false;
+      setNextWeekEmpty(false);
+      setUpcomingEmpty(false);
+      setCurrentWeekEmpty(false);
+      const firstDate = weeks[0]?.date;
+      if (firstDate) setSelectedWeek(firstDate);
+    } else if (!weeksLoading) {
+      autoSelectFirst.current = false;
+      if (activeTab === TABS.CURRENT) setCurrentWeekEmpty(true);
+      if (activeTab === TABS.NEXT) setNextWeekEmpty(true);
+      if (activeTab === TABS.UPCOMING) setUpcomingEmpty(true);
+    }
+  }, [weeks, weeksLoading]);
+    
+
   // Handlers
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Clear selection when changing tabs
     setSelectedWeek(null);
     clearSelection();
-    
+    clearSlots();
+    clearWeeks();
+    setCurrentWeekEmpty(false);
+    setNextWeekEmpty(false);
+    setUpcomingEmpty(false);
+
     if (tab === TABS.CURRENT) {
-      // Load current week
-      loadWeeks({cityId, pincodeId});
+      autoSelectFirst.current = true;
+      loadWeeks({ cityId, pincodeId });
     } else if (tab === TABS.NEXT) {
-      // Load next week (current + 1)
-      const currentWeekNum = getWeekNumber();
-      const nextWeekNum = currentWeekNum + 1;
-      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });    
+      autoSelectFirst.current = true;
+      const nextWeekNum = getWeekNumber() + 1;
+      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });
+    } else if (tab === TABS.UPCOMING) {
+      autoSelectFirst.current = true;              // trigger the check
+      const nextWeekNum = getWeekNumber() + 2;     // upcoming week
+      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });
     }
   };
-
   const handleWeekSelect = (date) => {
     setSelectedWeek(date);
   };
@@ -146,10 +179,11 @@ export default function SlotBookingScreen({navigation}) {
     <View style={styles.container}>
       {/* Header */}
       <SlotBookingHeader activeTab={activeTab} onTabChange={handleTabChange} navigation={navigation} />
-
+      
       {/* Main Content */}
       {activeTab === TABS.UPCOMING ? (
-        <LockedWeekView />
+        <LockedWeekView
+      />
       ) : (
         <SlotsList
           weeks={weeks}

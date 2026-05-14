@@ -7,22 +7,7 @@ import EmptySlotState from './EmptySlotState';
 import { isSlotSelectable } from '../../../utils/slotHelpers';
 import SlotHistory from '../../common/SlotHistory';
 
-/**
- * SlotsList Component
- * Renders week selector, filters, and scrollable list of slot cards
- * 
- * @param {Array} weeks - Available weeks data
- * @param {Array} slots - Slots to display
- * @param {string} selectedWeek - Currently selected week
- * @param {string} filter - Active filter
- * @param {function} onWeekSelect - Handler for week selection
- * @param {function} onFilterChange - Handler for filter change
- * @param {function} onSlotSelect - Handler for slot selection
- * @param {function} onSlotCancel - Handler for slot cancellation
- * @param {function} isSlotSelected - Function to check if slot is selected
- * @param {boolean} loading - Loading state
- * @param {function} onRefresh - Pull to refresh handler
- */
+
 export default function SlotsList({
     weeks,
     slots,
