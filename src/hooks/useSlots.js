@@ -32,6 +32,9 @@ export function useSlots() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(false);
 
+  const clearWeeks = () => setWeeks([]);
+  const clearSlots = () => setSlots([]);
+
   // Load week
   const loadWeeks = async (payload) => {
     console.log("loadWeeks hook entered...payload", payload);
@@ -156,5 +159,7 @@ export function useSlots() {
     loadSlots,
     bookSlot,
     cancelSlot,
+    clearWeeks,
+    clearSlots,
   };
 }
