@@ -2,12 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-/**
- * LockedWeekView Component
- * Displays when next week slots are locked
- * 
- * @param {string} message - Optional custom lock message
- */
+
 export default function LockedWeekView({ message = 'Slots will be unlocked next 2 hours' }) {
     return (
         <View style={styles.lockedContainer}>
