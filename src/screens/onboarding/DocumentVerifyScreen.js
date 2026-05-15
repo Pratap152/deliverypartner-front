@@ -8,6 +8,12 @@ import Header from '../../components/common/Header';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { COLORS } from '../../utils/colors';
 import { getOnboardingStatus } from '../../services/onboardingApi';
+import DeviceInfo from 'react-native-device-info';
+
+const isTablet = DeviceInfo.isTablet();
+
+const horizontalPadding = isTablet ? 40 : 8;
+const containerMaxWidth = isTablet ? 900 : '100%';
 
 const DOCUMENTS = [
   { title: 'Aadhar Card', id: 'aadhaar', route: 'AadharEntryScreen' },
@@ -67,9 +73,10 @@ const DocumentVerificationScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Header text="Document Verification" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+          <Header text="Document Verification" />
 
         <View style={{ flex: 1, justifyContent: 'space-between' }}>
           <View style={styles.content}>
@@ -103,12 +110,15 @@ const DocumentVerificationScreen = () => {
             </View>
           </View>
 
-          <PrimaryButton
-            title="Submit"
-            disabled={!isAllDocumentsVerified || loading}
-            onPress={handleSubmit}
-          />
+          <View style={[isTablet && { width: 400, alignSelf: 'center' }]}>
+            <PrimaryButton
+              title="Submit"
+              disabled={!isAllDocumentsVerified || loading}
+              onPress={handleSubmit}
+            />
+          </View>
         </View>
+      </View>
       </View>
     </SafeAreaView>
   );
@@ -117,10 +127,17 @@ const DocumentVerificationScreen = () => {
 export default DocumentVerificationScreen;
 
 const styles = StyleSheet.create({
+  screenWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+  },
   container: {
     flex: 1,
+    width: '100%',
+    maxWidth: containerMaxWidth,
     paddingVertical: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: horizontalPadding,
     backgroundColor: COLORS.white,
   },
 

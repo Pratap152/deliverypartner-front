@@ -27,6 +27,10 @@ import { COLORS } from '../../utils/colors';
 import { isOtpFilled } from '../../utils/helpers';
 
 import useOtpVerification from '../../hooks/useOtpVerification';
+import DeviceInfo from 'react-native-device-info';
+
+const isTablet = DeviceInfo.isTablet();
+const containerMaxWidth = isTablet ? 900 : '100%';
 
 const OTP_LENGTH = 6;
 const AadhaarOtpVerificationScreen = ({ route }) => {
@@ -52,11 +56,12 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Header onBack={() => navigation.goBack()} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+          <Header onBack={() => navigation.goBack()} />
 
-        <View style={{ alignItems: 'center' }}>
+          <View style={{ alignItems: 'center' }}>
           <Image
             source={require('../../assets/aadhaar.png')}
             style={{
@@ -67,18 +72,20 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
           />
         </View>
         <View style={styles.form}>
-          <Text style={styles.title}>Enter OTP</Text>
-          <Text style={styles.description}>
+          <Text style={[styles.title, isTablet && { textAlign: 'center' }]}>Enter OTP</Text>
+          <Text style={[styles.description, isTablet && { textAlign: 'center' }]}>
             OTP was sent on your registrated mobile number
           </Text>
 
-          <OTPInputBox
-            otp={otp}
-            inputRefs={inputRefs}
-            handleChange={handleChange}
-            handleKeyPress={handleKeyPress}
-            handlePress={handlePress}
-          />
+          <View style={[isTablet && { width: '100%', maxWidth: 400 }]}>
+            <OTPInputBox
+              otp={otp}
+              inputRefs={inputRefs}
+              handleChange={handleChange}
+              handleKeyPress={handleKeyPress}
+              handlePress={handlePress}
+            />
+          </View>
 
           {/* <OtpInput
             otp={otp}
@@ -89,9 +96,9 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
             handlePress={handlePress}
           /> */}
 
-          {error && <Text style={styles.error}>{error}.</Text>}
+          {error && <Text style={[styles.error, isTablet && { textAlign: 'center' }]}>{error}.</Text>}
           {success && (
-            <Text style={styles.successText}>
+            <Text style={[styles.successText, isTablet && { textAlign: 'center' }]}>
               {success || 'OTP Verified successfully.'}
             </Text>
           )}
@@ -116,6 +123,7 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -123,8 +131,15 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
 export default AadhaarOtpVerificationScreen;
 
 const styles = StyleSheet.create({
+  screenWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+  },
   container: {
     flex: 1,
+    width: '100%',
+    maxWidth: containerMaxWidth,
     paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: COLORS.white,
@@ -132,13 +147,14 @@ const styles = StyleSheet.create({
   form: {
     marginTop: 10,
     paddingHorizontal: 30,
+    ...(isTablet && { alignItems: 'center', width: '100%' }),
   },
   title: {
     fontFamily: 'Roboto',
     fontSize: responsiveFontSize(2.7),
     fontWeight: '500',
     color: COLORS.black,
-    lineHeight: 20,
+    lineHeight: 40,
   },
   description: {
     fontFamily: 'Roboto',
@@ -152,6 +168,8 @@ const styles = StyleSheet.create({
 
   btn: {
     height: 54,
+    width: '100%',
+    maxWidth: isTablet ? 400 : '100%',
     backgroundColor: COLORS.lightBackground,
     justifyContent: 'center',
     alignItems: 'center',
