@@ -8,12 +8,16 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
-import PrimaryButton from '../../components/common/PrimaryButton';
+
+const isTablet = DeviceInfo.isTablet();
+const H_PADDING = isTablet ? 40 : 20;
+const CONTENT_MAX_WIDTH = isTablet ? 700 : '100%';
 
 export default function AreaSelectionScreen({ route, navigation }) {
-  const { city } = route.params;
+  const { city } = route.params;  
 
   const [allPincodes, setAllPincodes] = useState([]);
   const [pincodeList, setPincodeList] = useState([]);
@@ -21,17 +25,16 @@ export default function AreaSelectionScreen({ route, navigation }) {
   const [searchText, setSearchText] = useState('');
   const [errors, setErrors] = useState('');
 
-  /* ================= FETCH PINCODES ================= */
+  /* FETCH PINCODES */
   useEffect(() => {
     async function fetchPincodes() {
       try {
         const response = await apiClient.get(
-          `/api/location/areas?city=${city}`
+          `/api/location/areas?city=${city}`,
         );
 
         const pincodesData = response?.data?.pincodes || [];
 
-        // Extract only unique pincodes using reduce
         const uniquePincodes = pincodesData.reduce((acc, item) => {
           if (!acc.includes(item.code)) {
             acc.push(item.code);
@@ -50,7 +53,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
     fetchPincodes();
   }, [city]);
 
-  /* ================= SEARCH ================= */
+  /* SEARCH */
   function handleSearch(text) {
     setSearchText(text);
 
@@ -59,29 +62,19 @@ export default function AreaSelectionScreen({ route, navigation }) {
       return;
     }
 
-    const filtered = allPincodes.filter(code =>
-      code.includes(text)
-    );
-
+    const filtered = allPincodes.filter(code => code.includes(text));
     setPincodeList(filtered);
   }
 
-  /* ================= SUBMIT ================= */
+  /* SUBMIT */
   async function handleSubmit() {
     if (!selectedPincode) return;
 
     try {
       await apiClient.post(
         '/api/rider/location',
-        {
-          city,
-          pincode: selectedPincode,
-        },
-        {
-          headers: {
-            'x-client': 'mobile',
-          },
-        }
+        { city, pincode: selectedPincode },
+        { headers: { 'x-client': 'mobile' } },
       );
 
       navigation.replace('SplashScreen');
@@ -99,125 +92,185 @@ export default function AreaSelectionScreen({ route, navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={22} color="#000" />
-        </TouchableOpacity>
+    <View style={styles.screenWrapper}>
+      <View style={styles.container}>
 
-        <Text style={styles.headerTitle}>{city} - Select Pincode</Text>
-        <View style={{ width: 22 }} />
-      </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={isTablet ? 28 : 22} color="#000" />
+          </TouchableOpacity>
 
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <Icon name="search-outline" size={18} color="#888" />
-        <TextInput
-          placeholder="Search pincode"
-          style={styles.searchInput}
-          onChangeText={handleSearch}
-          value={searchText}
-        />
-      </View>
+          <Text style={styles.headerTitle}>{city} - Select Pincode</Text>
 
-      {/* List */}
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {pincodeList.length === 0 ? (
-          <Text style={{ textAlign: 'center', marginTop: 20 }}>
-            No pincodes found
-          </Text>
-        ) : (
-          pincodeList.map(code => (
-            <TouchableOpacity
-              key={code}
-              style={[
-                styles.cityItem,
-                selectedPincode === code && styles.citySelected,
-              ]}
-              onPress={() => {
-                setSelectedPincode(code);
-                setSearchText(code);
-              }}
-            >
-              <Icon
-                name="location-outline"
-                size={20}
-                color={selectedPincode === code ? '#fff' : '#00A8E8'}
-              />
+          <View style={{ width: isTablet ? 28 : 22 }} />
+        </View>
 
-              <Text
+        {/* Search */}
+        <View style={styles.searchContainer}>
+          <Icon name="search-outline" size={isTablet ? 22 : 18} color="#888" />
+          <TextInput
+            placeholder="Search pincode"
+            style={styles.searchInput}
+            onChangeText={handleSearch}
+            value={searchText}
+            placeholderTextColor="#999"
+          />
+        </View>
+
+        {/* List */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        >
+          {pincodeList.length === 0 ? (
+            <Text style={styles.emptyText}>No pincodes found</Text>
+          ) : (
+            pincodeList.map(code => (
+              <TouchableOpacity
+                key={code}
                 style={[
-                  styles.cityText,
-                  selectedPincode === code && styles.cityTextSelected,
+                  styles.cityItem,
+                  selectedPincode === code && styles.citySelected,
                 ]}
+                onPress={() => {
+                  setSelectedPincode(code);
+                  setSearchText(code);
+                }}
               >
-                {code}
-              </Text>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
+                <Icon
+                  name="location-outline"
+                  size={isTablet ? 24 : 20}
+                  color={selectedPincode === code ? '#fff' : '#00A8E8'}
+                />
+                <Text
+                  style={[
+                    styles.cityText,
+                    selectedPincode === code && styles.cityTextSelected,
+                  ]}
+                >
+                  {code}
+                </Text>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
 
-      {/* Submit */}
-      <PrimaryButton
-        title="Submit"
-        onPress={handleSubmit}
-        bgColor="#00B5CC"
-        textColor="#fff"
-        disabled={!selectedPincode}
-      />
+        {/* Submit */}
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            !selectedPincode && { opacity: 0.5 },
+          ]}
+          disabled={!selectedPincode}
+          onPress={handleSubmit}
+        >
+          <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
+
+      </View>
     </View>
   );
 }
 
-/* ================= STYLES ================= */
-
 const styles = StyleSheet.create({
+  screenWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    width: '100%',
+    maxWidth: CONTENT_MAX_WIDTH,
+    paddingHorizontal: H_PADDING,
+    paddingTop: isTablet ? 50 : 20,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
   },
+
   headerTitle: {
-    fontSize: 18,
+    fontSize: isTablet ? 22 : 18,
     fontWeight: '600',
+    color: '#000',
+    flex: 1,
+    textAlign: 'center',
   },
+
   searchContainer: {
     flexDirection: 'row',
     borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 10,
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: isTablet ? 12 : 10,
     marginBottom: 15,
     alignItems: 'center',
   },
+
   searchInput: {
     marginLeft: 8,
     flex: 1,
+    fontSize: isTablet ? 18 : 14,
+    color: '#000',
   },
+
+  listContent: {
+    paddingVertical: 10,
+  },
+
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#999',
+    fontSize: isTablet ? 16 : 14,
+  },
+
   cityItem: {
     flexDirection: 'row',
-    padding: 12,
+    alignItems: 'center',
+    padding: isTablet ? 16 : 12,
     borderWidth: 1.5,
     borderColor: '#00A8E8',
     borderRadius: 10,
-    marginVertical: 5,
-    alignItems: 'center',
+    marginVertical: isTablet ? 8 : 5,
   },
+
   citySelected: {
     backgroundColor: '#00A8E8',
   },
+
   cityText: {
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: isTablet ? 18 : 16,
     color: '#00A8E8',
   },
+
   cityTextSelected: {
     color: '#fff',
+    fontWeight: '600',
   },
+  submitButton: {
+  width: isTablet ? 600 : '100%',
+  alignSelf: 'center',
+  backgroundColor: '#00B5CC',
+  paddingVertical: isTablet ? 18 : 15,
+  borderRadius: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 20,
+  marginBottom: 10,
+},
+
+submitButtonText: {
+  color: '#fff',
+  fontSize: isTablet ? 22 : 18,
+  fontWeight: '700',
+},
 });
