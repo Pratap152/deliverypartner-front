@@ -7,12 +7,13 @@ import {
   Alert,
   StyleSheet,
   ActivityIndicator,
+  useWindowDimensions
 } from 'react-native';
+
+import DeviceInfo from 'react-native-device-info';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import { launchCamera } from 'react-native-image-picker';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
 
 import apiClient from '../../services/ApiClient';
 
@@ -21,6 +22,10 @@ export default function FaceVerificationScreen({ navigation, route }) {
   const initialUri = route?.params?.photoUri ?? null;
   const [photo, setPhoto] = useState(initialUri);
   const [uploading, setUploading] = useState(false);
+
+  const { width, height } = useWindowDimensions();
+  const isTablet = DeviceInfo.isTablet();
+  const styles = createStyles(isTablet, width, height);
 
   /* ================= CAMERA OPTIONS ================= */
 
@@ -112,129 +117,221 @@ export default function FaceVerificationScreen({ navigation, route }) {
   /* ================= UI ================= */
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* HEADING */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          marginTop: hp('5%'),
-        }}
-      >
-        <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
-          Verify Your Identity
-        </Text>
-      </View>
-
-      <Text
-        style={{
-          marginLeft: wp('16%'),
-          marginTop: hp('3.7%'),
-          fontSize: wp('4.5%'),
-        }}
-      >
-        Make sure your entire face is visible
-      </Text>
-
-      {/* CAMERA PREVIEW */}
-      <View style={styles.preview}>
-        {photo ? (
-          <Image source={{ uri: photo }} style={styles.previewImage} />
-        ) : (
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', textAlign: 'center' }}>
-              No photo selected
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* UPLOAD BUTTON */}
-      <TouchableOpacity
-        onPress={uploadSelfie}
-        style={styles.uploadBtn}
-        disabled={uploading}>
-        {uploading ? (
-          <>
-            <ActivityIndicator
-              size="small"
-              color="#fff"
-              style={{ marginRight: wp('2.6%') }}
-            />
-            <Text style={{ color: '#fff', fontWeight: '600' }}>
-              Uploading...
-            </Text>
-          </>
-        ) : (
-          <Text
-            style={{
-              textAlign: 'center',
-              fontSize: wp('5%'),
-              color: 'white',
-              fontWeight: '600',
-            }}>
-            Upload Photo
+    <View style={styles.container}>
+      <View style={styles.contentWrapper}>
+        {/* HEADING */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>
+            Verify Your Identity
           </Text>
-        )}
-      </TouchableOpacity>
 
-      {/* RETAKE BUTTON */}
-      <TouchableOpacity onPress={retake} style={styles.retakeBtn}>
-        <Text
-          style={{
-            textAlign: 'center',
-            fontSize: wp('5%'),
-            color: '#0CBACE',
-            fontWeight: '600',
-          }}>
-          Retake Photo
-        </Text>
-      </TouchableOpacity>
+          <Text style={styles.subTitle}>
+            Make sure your entire face is visible
+          </Text>
+        </View>
+
+        {/* CAMERA PREVIEW */}
+        <View style={styles.previewCard}>
+          <View style={styles.preview}>
+            {photo ? (
+              <Image source={{ uri: photo }} style={styles.previewImage} />
+            ) : (
+              <View style={styles.emptyPreview}>
+                <Ionicons
+                  name="camera-outline"
+                  size={isTablet ? 60 : 42}
+                  color="#9CA3AF"
+                />
+
+                <Text style={styles.emptyText}>
+                  No photo selected
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.buttonsContainer}>
+          {/* UPLOAD BUTTON */}
+          <TouchableOpacity
+            onPress={uploadSelfie}
+            style={styles.uploadBtn}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <>
+                <ActivityIndicator
+                  size="small"
+                  color="#fff"
+                  style={{ marginRight: 10 }}
+                />
+                <Text style={styles.uploadText}>
+                  Uploading...
+                </Text>
+              </>
+            ) : (
+              <>
+                <Ionicons
+                  name="cloud-upload-outline"
+                  size={isTablet ? 28 : 22}
+                  color="#fff"
+                />
+
+                <Text
+                  style={styles.uploadText}>
+                  Upload Photo
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {/* RETAKE BUTTON */}
+          <TouchableOpacity
+            onPress={retake}
+            style={styles.retakeBtn}
+          >
+            <Ionicons
+              name="camera-reverse-outline"
+              size={isTablet ? 28 : 22}
+              color="#00B5CC"
+            />
+
+            <Text
+              style={styles.retakeText}>
+              Retake Photo
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
 
 /* ================= STYLES ================= */
 
-const styles = StyleSheet.create({
-  preview: {
-    width: wp('90%'),
-    height: hp('40%'),
-    borderRadius: hp('10%'),
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    marginTop: hp('6%'),
-    alignSelf: 'center',
-  },
+const createStyles = (
+  isTablet,
+  width,
+  height,
+) => {
+  const contentWidth = isTablet
+    ? width > 1000
+      ? '58%'
+      : '74%'
+    : '100%';
 
-  previewImage: {
-    width: wp('90%'),
-    height: hp('40%'),
-    resizeMode: 'contain',
-    backgroundColor: 'white',
-  },
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#F8FAFC',
+      alignItems: 'center',
+    },
 
-  uploadBtn: {
-    alignSelf: 'center',
-    marginBottom: hp('1.2%'),
-    backgroundColor: '#00B5CC',
-    paddingVertical: hp('1.5%'),
-    borderRadius: wp('8%'),
-    width: wp('80%'),
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: hp('10%'),
-  },
+    contentWrapper: {
+      flex: 1,
+      width: contentWidth,
+      paddingHorizontal: isTablet ? 30 : 24,
+      paddingTop: isTablet ? 50 : 36,
+      paddingBottom: isTablet ? 24 : 18,
+    },
 
-  retakeBtn: {
-    marginTop: hp('2.4%'),
-    alignSelf: 'center',
-    backgroundColor: 'white',
-    borderColor: '#00B5CC',
-    borderWidth: 1,
-    paddingVertical: hp('1.5%'),
-    borderRadius: wp('8%'),
-    width: wp('80%'),
-  },
-});
+    headerContainer: {
+      alignItems: 'center',
+      marginBottom: isTablet ? 36 : 26,
+    },
+
+    headerTitle: {
+      fontSize: isTablet ? 34 : 26,
+      fontWeight: '700',
+      color: '#111827',
+    },
+
+    subTitle: {
+      marginTop: 10,
+      fontSize: isTablet ? 18 : 15,
+      color: '#6B7280',
+      textAlign: 'center',
+      lineHeight: isTablet ? 28 : 22,
+    },
+
+    previewCard: {
+      backgroundColor: '#fff',
+      borderRadius: isTablet ? 28 : 20,
+      padding: isTablet ? 20 : 14,
+      shadowColor: '#000',
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+
+    preview: {
+      width: '100%',
+      height: isTablet
+        ? height * 0.46
+        : height * 0.42,
+      borderRadius: isTablet ? 24 : 18,
+      overflow: 'hidden',
+      backgroundColor: '#111827',
+      alignSelf: 'center',
+    },
+
+    previewImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'contain',
+      backgroundColor: '#fff',
+    },
+
+    emptyPreview: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    emptyText: {
+      marginTop: 12,
+      color: '#D1D5DB',
+      fontSize: isTablet ? 20 : 15,
+      fontWeight: '500',
+    },
+
+    buttonsContainer: {
+      marginTop: isTablet ? 34 : 26,
+    },
+
+    uploadBtn: {
+      backgroundColor: '#00B5CC',
+      paddingVertical: isTablet ? 20 : 16,
+      borderRadius: isTablet ? 20 : 16,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    uploadText: {
+      marginLeft: 10,
+      fontSize: isTablet ? 22 : 17,
+      color: '#fff',
+      fontWeight: '700',
+    },
+
+    retakeBtn: {
+      marginTop: isTablet ? 18 : 14,
+      backgroundColor: '#fff',
+      borderColor: '#00B5CC',
+      borderWidth: 1.5,
+      paddingVertical: isTablet ? 20 : 16,
+      borderRadius: isTablet ? 20 : 16,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    retakeText: {
+      marginLeft: 10,
+      fontSize: isTablet ? 22 : 17,
+      color: '#00B5CC',
+      fontWeight: '700',
+    },
+  });
+};
