@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   View,
   TextInput,
@@ -14,8 +13,6 @@ import {
 import DeviceInfo from "react-native-device-info";
 
 const isTablet = DeviceInfo.isTablet();
-
-import DeviceInfo from "react-native-device-info";
 
 const OTPInputBox = ({
   otp,
