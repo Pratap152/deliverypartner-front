@@ -1,14 +1,16 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
+import DeviceInfo from 'react-native-device-info';
 import { launchCamera } from 'react-native-image-picker';
 
 
 export default function FaceInstructionScreen({ navigation }) {
+
+  const { width, height } = useWindowDimensions();
+  const isTablet = DeviceInfo.isTablet();
+  const styles = createStyles(isTablet, width, height);
+
   const openCamera = async () => {
     const options = {
       mediaType: 'photo',
@@ -40,107 +42,194 @@ export default function FaceInstructionScreen({ navigation }) {
     });
   };
 
+  const instructions = [
+    'Show full face clearly',
+    'Use good lighting',
+    'Hold camera at eye level',
+    'Look straight',
+  ];
+
   return (
-    <View style={{ flex: 1 }}>
-      {/* HEADING */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          marginTop: hp('5%'),
-        }}
-      >
-        <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
-          Take a Selfie
-        </Text>
-      </View>
+    <View style={styles.container}>
+      <View style={styles.contentWrapper}>
+        {/* HEADING */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>
+            Take a Selfie
+          </Text>
 
-      {/* INSTRUCTIONS */}
-      <View
-        style={{
-          marginLeft: wp('8%'),
-          marginTop: hp('5%'),
-        }}
-      >
-        <Text
-          style={{
-            fontWeight: '500',
-            fontSize: wp('5%'),
-            marginLeft: wp('5%'),
-          }}
-        >
-          Do This
-        </Text>
+          <Text style={styles.subTitle}>
+            Follow the instructions below for a
+            successful verification
+          </Text>
+        </View>
 
-        {/* GUIDELINES */}
-        <View
-          style={{
-            marginLeft: wp('5%'),
-            marginTop: hp('2%'),
-          }}
-        >
-          {[
-            'Show full face clearly',
-            'Use good lighting',
-            'Hold camera at eye level',
-            'Look straight',
-          ].map((text, index) => (
-            <View
-              key={index}
-              style={{
-                flexDirection: 'row',
-                marginBottom: hp('0.8%'),
-              }}
-            >
-              <Ionicons name="caret-forward-outline" size={18} color="black" />
-              <Text style={{ fontSize: wp('4%') }}> {text}</Text>
+        <View style={styles.mainContent}>
+          {/* INSTRUCTIONS */}
+          <View style={styles.instructionsCard}>
+            <Text style={styles.instructionsTitle}>
+              Do This
+            </Text>
+
+            {/* GUIDELINES */}
+            <View style={styles.instructionsList}>
+              {instructions.map((text, index) => (
+                <View
+                  key={index}
+                  style={styles.instructionRow}
+                >
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={isTablet ? 28 : 20}
+                    color="#00B5CC"
+                  />
+                  <Text style={styles.instructionText}> {text}</Text>
+                </View>
+              ))}
             </View>
-          ))}
+          </View>
+
+          {/* IMAGE */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('../../../src/assets/selfie.png')}
+              style={styles.selfieImage}
+            />
+          </View>
+        </View>
+
+        {/* SELFIE BUTTON */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            onPress={openCamera}
+            style={styles.button}
+          >
+            <Ionicons
+              name="camera-outline"
+              size={isTablet ? 28 : 22}
+              color="#fff"
+            />
+            <Text style={styles.buttonText}>
+              Click a Selfie
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-
-      {/* IMAGE */}
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          marginTop: hp('6%'),
-        }}
-      >
-        <Image
-          source={require('../../../src/assets/selfie.png')}
-          style={{
-            height: hp('30%'),
-            width: wp('60%'),
-            marginTop: hp('2.5%'),
-            resizeMode: 'contain',
-          }}
-        />
-      </View>
-
-      {/* SELFIE BUTTON */}
-      <TouchableOpacity
-        onPress={openCamera}
-        style={{
-          marginBottom: hp('12%'),
-          alignSelf: 'center',
-          backgroundColor: '#00B5CC',
-          paddingVertical: hp('1.5%'),
-          borderRadius: wp('8%'),
-          width: wp('80%'),
-        }}
-      >
-        <Text
-          style={{
-            alignSelf: 'center',
-            fontSize: wp('5%'),
-            color: 'white',
-            fontWeight: '600',
-          }}
-        >
-          Click a Selfie
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
+
+/* ---------------- STYLES ---------------- */
+
+const createStyles = (isTablet, width, height) => {
+  const contentWidth = isTablet
+    ? width > 1000
+      ? '60%'
+      : '75%'
+    : '100%';
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#F8FAFC',
+      alignItems: 'center',
+    },
+
+    contentWrapper: {
+      flex: 1,
+      width: contentWidth,
+      paddingHorizontal: isTablet ? 30 : 24,
+      paddingTop: isTablet ? 50 : 36,
+      paddingBottom: isTablet ? 30 : 20,
+    },
+
+    headerContainer: {
+      alignItems: 'center',
+      marginBottom: isTablet ? 40 : 28,
+    },
+
+    headerTitle: {
+      fontSize: isTablet ? 34 : 26,
+      fontWeight: '700',
+      color: '#111827',
+    },
+
+    subTitle: {
+      marginTop: 10,
+      fontSize: isTablet ? 18 : 14,
+      color: '#6B7280',
+      textAlign: 'center',
+      lineHeight: isTablet ? 28 : 20,
+    },
+
+    mainContent: {
+      flex: 1,
+      justifyContent: 'space-between',
+    },
+
+    instructionsCard: {
+      backgroundColor: '#fff',
+      borderRadius: isTablet ? 24 : 18,
+      padding: isTablet ? 28 : 20,
+      shadowColor: '#000',
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+
+    instructionsTitle: {
+      fontSize: isTablet ? 26 : 20,
+      fontWeight: '700',
+      color: '#111827',
+      marginBottom: isTablet ? 22 : 16,
+    },
+
+    instructionsList: {
+      gap: isTablet ? 18 : 12,
+    },
+
+    instructionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    instructionText: {
+      marginLeft: isTablet ? 14 : 10,
+      fontSize: isTablet ? 20 : 15,
+      color: '#374151',
+      fontWeight: '500',
+    },
+
+    imageContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: isTablet ? 30 : 20,
+    },
+
+    selfieImage: {
+      height: isTablet ? height * 0.32 : height * 0.28,
+      width: isTablet ? width * 0.32 : width * 0.62,
+      resizeMode: 'contain',
+    },
+
+    buttonContainer: {
+      marginTop: isTablet ? 30 : 20,
+    },
+
+    button: {
+      backgroundColor: '#00B5CC',
+      borderRadius: isTablet ? 22 : 18,
+      paddingVertical: isTablet ? 20 : 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    buttonText: {
+      marginLeft: 10,
+      fontSize: isTablet ? 22 : 17,
+      color: '#fff',
+      fontWeight: '700',
+    },
+  });
+};

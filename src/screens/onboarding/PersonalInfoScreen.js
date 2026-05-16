@@ -6,14 +6,14 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ScrollView,
-  Keyboard
+  Keyboard,
+  StyleSheet,
+  useWindowDimensions,
+  Platform
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
+import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
 import PrimaryButton from '../../components/common/PrimaryButton';
@@ -30,12 +30,16 @@ export default function PersonalInfoScreen({ navigation }) {
     secondaryPhone: '',
     email: '',
     gender: '',
-    referralCode:''
+    referralCode: ''
   });
 
   const [isModalVisible, setModalVisible] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  const { width } = useWindowDimensions();
+  const isTablet = DeviceInfo.isTablet();
+  const styles = createStyles(isTablet, width);
 
   /* ---------------- HELPERS ---------------- */
 
@@ -64,7 +68,7 @@ export default function PersonalInfoScreen({ navigation }) {
     if (field === 'primaryPhone') error = validateMobile(value);
     if (field === 'secondaryPhone') error = validateMobile(value);
     if (field === 'email') error = validateEmail(value);
-    if (field === 'referralCode') error = ''; 
+    if (field === 'referralCode') error = '';
 
     setErrors(prev => ({ ...prev, [field]: error }));
   };
@@ -75,8 +79,8 @@ export default function PersonalInfoScreen({ navigation }) {
     !v
       ? 'Name is required'
       : /^[A-Za-z\s]{3,}$/.test(v)
-      ? ''
-      : 'Only alphabets allowed';
+        ? ''
+        : 'Only alphabets allowed';
 
   const validateEmail = v =>
     /^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z]{2,})+$/.test(v) ? '' : 'Invalid email';
@@ -118,7 +122,7 @@ export default function PersonalInfoScreen({ navigation }) {
       primaryPhone: formData.primaryPhone,
       secondaryPhone: formData.secondaryPhone,
       email: formData.email,
-      referralCode:formData.referralCode
+      referralCode: formData.referralCode
     };
 
     console.log('submit', payload);
@@ -131,18 +135,18 @@ export default function PersonalInfoScreen({ navigation }) {
       console.log('BODY:', res.data);
 
       navigation.replace('SplashScreen');
-      } catch (err) {
-        const apiMsg =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          'Something went wrong. Please try again.';
+    } catch (err) {
+      const apiMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Something went wrong. Please try again.';
 
-        setErrors(prev => ({ ...prev, referralCode: apiMsg }));
+      setErrors(prev => ({ ...prev, referralCode: apiMsg }));
 
-        console.log('API ERROR:', err.response?.status, err.response?.data);
-      } finally {
-        setSubmitting(false); 
-      }
+      console.log('API ERROR:', err.response?.status, err.response?.data);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /* UI  */
@@ -152,31 +156,36 @@ export default function PersonalInfoScreen({ navigation }) {
     return (
       <TouchableOpacity
         onPress={() => handleChange('gender', value)}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: hp('0.8%') }}
+        style={styles.genderOption}
       >
         <Ionicons
           name={selected ? 'radio-button-on' : 'radio-button-off'}
-          size={22}
-          color={selected ? 'black' : 'grey'}
+          size={isTablet ? 28 : 22}
+          color={selected ? '#00B5CC' : '#9CA3AF'}
         />
-        <Text>{label}</Text>
+        <Text style={styles.genderText}>{label}</Text>
       </TouchableOpacity>
     );
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
-        <View style={{ marginTop: hp('5%'), alignItems: 'center' }}>
-          <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>
-            Personal Information
-          </Text>
-        </View>
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: hp('6%') }}
-        keyboardShouldPersistTaps="handled">
-        <View style={{ marginTop: hp('3%'), marginLeft: wp('6%') }}>
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.formWrapper}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerTitle}>
+              Personal Information
+            </Text>
+          </View>
           {/* NAME */}
-          <Text style={styles.field_name}>User Name</Text>
+          <Text style={styles.fieldName}>User Name</Text>
           <TextInput
             value={formData.fullName}
             onChangeText={t => handleChange('fullName', t)}
@@ -187,15 +196,27 @@ export default function PersonalInfoScreen({ navigation }) {
           {errors.fullName && <Text style={styles.err}>{errors.fullName}</Text>}
 
           {/* DOB */}
-          <Text style={styles.field_name}>Date of Birth</Text>
+          <Text style={styles.fieldName}>Date of Birth</Text>
           <TouchableOpacity
             onPress={() => {
-                        Keyboard.dismiss();
-                        setModalVisible(true);
-                      }}
-            style={styles.input}>
-            <Text>{formData.dob || 'DD-MM-YYYY'}</Text>
-            <Ionicons name='calendar-outline' size={17}/>
+              Keyboard.dismiss();
+              setModalVisible(true);
+            }}
+            style={styles.input}
+          >
+            <Text
+              style={[
+                styles.dateText,
+                !formData.dob && styles.placeholderText,
+              ]}
+            >
+              {formData.dob || 'DD-MM-YYYY'}
+            </Text>
+            <Ionicons
+              name='calendar-outline'
+              size={isTablet ? 24 : 18}
+              color="#4B5563"
+            />
           </TouchableOpacity>
           <DateTimePickerModal
             isVisible={isModalVisible}
@@ -206,7 +227,7 @@ export default function PersonalInfoScreen({ navigation }) {
           />
 
           {/* MOBILE */}
-          <Text style={styles.field_name}>Mobile Number</Text>
+          <Text style={styles.fieldName}>Mobile Number</Text>
           <TextInput
             keyboardType="number-pad"
             value={formData.primaryPhone}
@@ -221,7 +242,7 @@ export default function PersonalInfoScreen({ navigation }) {
           )}
 
           {/* ALT MOBILE */}
-          <Text style={styles.field_name}>Alternative Mobile Number</Text>
+          <Text style={styles.fieldName}>Alternative Mobile Number</Text>
           <TextInput
             keyboardType="number-pad"
             value={formData.secondaryPhone}
@@ -236,7 +257,7 @@ export default function PersonalInfoScreen({ navigation }) {
           )}
 
           {/* EMAIL */}
-          <Text style={styles.field_name}>Email</Text>
+          <Text style={styles.fieldName}>Email</Text>
           <TextInput
             value={formData.email}
             onChangeText={t => handleChange('email', t.toLowerCase())}
@@ -247,31 +268,36 @@ export default function PersonalInfoScreen({ navigation }) {
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
           {/* REFERRAL CODE */}
-          <Text style={styles.field_name}>Referral Code (Optional)</Text>
-          <TextInput value={formData.referralCode} 
-                    onChangeText={t => handleChange('referralCode',t)} 
-                    style={styles.input} 
-                    placeholder='Enter Referral Code'
-                    placeholderTextColor='darkgrey'/>
+          <Text style={styles.fieldName}>Referral Code (Optional)</Text>
+          <TextInput
+            value={formData.referralCode}
+            onChangeText={t => handleChange('referralCode', t)}
+            style={styles.input}
+            placeholder='Enter Referral Code'
+            placeholderTextColor='darkgrey'
+          />
           {errors.referralCode && <Text style={styles.err}>{errors.referralCode}</Text>}
 
           {/* GENDER */}
-          <Text style={styles.field_name}>Gender</Text>
-          <View style={{ flexDirection: 'row', gap: wp('12%'),marginBottom:hp(10) }}>
+          <Text style={styles.fieldName}>Gender</Text>
+          <View style={styles.genderContainer}>
             <GenderRadio value="male" label="Male" />
             <GenderRadio value="female" label="Female" />
           </View>
-          
+
+
+          {/* SUBMIT */}
+          <View style={styles.buttonContainer}>
+            <PrimaryButton
+              title="Submit"
+              onPress={handleSubmit}
+              bgColor="#00B5CC"
+              textColor="#fff"
+              loading={submitting}
+              disabled={submitting}
+            />
+          </View>
         </View>
-        {/* SUBMIT */}
-          <PrimaryButton
-            title="Submit"
-            onPress={handleSubmit}
-            bgColor="#00B5CC"
-            textColor="#fff"
-            loading={submitting}
-            disabled={submitting}
-          />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -279,26 +305,103 @@ export default function PersonalInfoScreen({ navigation }) {
 
 /* ---------------- STYLES ---------------- */
 
-const styles = {
-  input: {
-    borderWidth: 1,
-    borderColor: 'grey',
-    borderRadius: wp('2.5%'),
-    padding: hp('1.2%'),
-    marginBottom: hp('2.5%'),
-    width: wp('90%'),
-    flexDirection:'row',
-    alignItems:'center',
-    justifyContent:'space-between',
-    color:'black'
-  },
-  field_name:{
-    fontSize:wp(4),
-    fontWeight:'400',
-    marginBottom:hp(0.2)
+const createStyles = (isTablet, width) => {
+  const formWidth = isTablet
+    ? width > 1000
+      ? '58%'
+      : '72%'
+    : '100%';
+
+  return StyleSheet.create({
+    keyboardContainer: {
+      flex: 1,
+      backgroundColor: '#F8FAFC',
     },
-  err: {
-    color: 'red',
-    marginBottom: hp('2%'),
-  },
+
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: isTablet ? 40 : 24,
+      alignItems: 'center',
+    },
+
+    formWrapper: {
+      width: formWidth,
+      paddingHorizontal: isTablet ? 20 : 24,
+      paddingTop: isTablet ? 50 : 36,
+    },
+
+    headerContainer: {
+      alignItems: 'center',
+      marginBottom: isTablet ? 40 : 28,
+    },
+
+    headerTitle: {
+      fontSize: isTablet ? 34 : 24,
+      fontWeight: '700',
+      color: '#111827',
+    },
+
+    fieldName: {
+      fontSize: isTablet ? 20 : 15,
+      fontWeight: '600',
+      color: '#374151',
+      marginBottom: isTablet ? 8 : 6,
+    },
+
+    input: {
+      borderWidth: 1,
+      borderColor: '#D1D5DB',
+      borderRadius: isTablet ? 18 : 12,
+      paddingHorizontal: isTablet ? 18 : 14,
+      paddingVertical: isTablet ? 18 : 12,
+      marginBottom: isTablet ? 24 : 18,
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: '#fff',
+      color: '#111827',
+      fontSize: isTablet ? 20 : 15,
+    },
+
+    placeholderText: {
+      color: 'darkgrey',
+    },
+
+    dateText: {
+      fontSize: isTablet ? 20 : 15,
+      color: '#111827',
+    },
+
+    genderContainer: {
+      flexDirection: 'row',
+      gap: isTablet ? 50 : 30,
+      marginTop: 6,
+      marginBottom: isTablet ? 50 : 35,
+    },
+
+    genderOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: isTablet ? 10 : 6,
+    },
+
+    genderText: {
+      fontSize: isTablet ? 20 : 15,
+      color: '#111827',
+      fontWeight: '500',
+    },
+
+    err: {
+      color: '#DC2626',
+      marginTop: -10,
+      marginBottom: isTablet ? 18 : 14,
+      fontSize: isTablet ? 16 : 13,
+    },
+
+    buttonContainer: {
+      marginTop: 10,
+      marginBottom: isTablet ? 30 : 20,
+    },
+  });
 };
