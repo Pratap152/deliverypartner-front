@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   Image,
   Platform,
@@ -17,9 +16,11 @@ import {
   check,
 } from 'react-native-permissions';
 
+import DeviceInfo from 'react-native-device-info';
 import PermissionItem from '../../components/onboarding/AppPermissions/PermissionItem';
-import PrimaryButton from '../../components/common/PrimaryButton';
 import apiClient from '../../services/ApiClient';
+
+const isTablet = DeviceInfo.isTablet();
 
 const APP_PERMISSIONS = {
   location: {
@@ -27,13 +28,11 @@ const APP_PERMISSIONS = {
     android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
     ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
   },
-
   backgroundLocation: {
     title: 'Background Location',
     android: PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
     ios: PERMISSIONS.IOS.LOCATION_ALWAYS,
   },
-
   camera: {
     title: 'Camera',
     android: PERMISSIONS.ANDROID.CAMERA,
@@ -53,19 +52,9 @@ const AppPermissionScreen = ({ navigation }) => {
     try {
       await apiClient.post(
         '/api/rider/app-permissions',
-        {
-          camera: true,
-          foregroundLocation: true,
-          backgroundLocation: true,
-        },
-        {
-          headers: {
-            'x-client': 'mobile', // non-auth header
-          },
-        },
+        { camera: true, foregroundLocation: true, backgroundLocation: true },
+        { headers: { 'x-client': 'mobile' } },
       );
-
-      // Always go through Splash
       navigation.replace('RiderTypeScreen');
     } catch (e) {
       console.log('Permission API error:', e);
@@ -81,27 +70,15 @@ const AppPermissionScreen = ({ navigation }) => {
     const permission = await check(perm);
 
     if (permission === RESULTS.GRANTED) {
-      setPermissionStatus(status => ({
-        ...status,
-        [permissionType]: RESULTS.GRANTED,
-      }));
+      setPermissionStatus(s => ({ ...s, [permissionType]: RESULTS.GRANTED }));
       return RESULTS.GRANTED;
     }
-
     if (permission === RESULTS.DENIED) {
       const response = await request(perm);
-
-      if (response === RESULTS.BLOCKED) {
-        openSettings();
-      }
-
-      setPermissionStatus(status => ({
-        ...status,
-        [permissionType]: response,
-      }));
+      if (response === RESULTS.BLOCKED) openSettings();
+      setPermissionStatus(s => ({ ...s, [permissionType]: response }));
       return response;
     }
-
     if (permission === RESULTS.BLOCKED) {
       openSettings();
       return RESULTS.BLOCKED;
@@ -116,25 +93,30 @@ const AppPermissionScreen = ({ navigation }) => {
     );
   }
 
+  const allGranted =
+    permissionStatus.location === RESULTS.GRANTED &&
+    permissionStatus.backgroundLocation === RESULTS.GRANTED &&
+    permissionStatus.camera === RESULTS.GRANTED;
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image source={require('../../assets/permissionsImage.png')} />
-      </View>
+  <View style={styles.screenWrapper}>
 
-      <Text style={styles.title}>
-        We need the following permissions to serve you better
-      </Text>
+  <ScrollView
+    contentContainerStyle={styles.scrollContent}
+    showsVerticalScrollIndicator={false}
+  >
+    <Image
+      source={require('../../assets/permissionsImage.png')}
+      style={[styles.image, isTablet && styles.imageTablet]}
+      resizeMode="contain"
+    />
 
-      <View
-        style={{
-          width: '100%',
-          height: 450,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <PermissionItem
+    <Text style={styles.title}>
+      We need the following permissions to serve you better
+    </Text>
+
+    <View style={styles.permissionsWrapper}>
+     <PermissionItem
           icon="location"
           title="Location"
           desc="We need this permission to intelligently surface location and allocate orders"
@@ -166,54 +148,107 @@ const AppPermissionScreen = ({ navigation }) => {
             permissionStatus.camera !== RESULTS.GRANTED
           }
         />
-      </View>
+    </View>
+  </ScrollView>
 
-      {permissionStatus.location === RESULTS.GRANTED &&
-        permissionStatus.backgroundLocation === RESULTS.GRANTED &&
-        permissionStatus.camera === RESULTS.GRANTED && (
-          <PrimaryButton
-            title="Submit"
-            onPress={handleSubmit}
-            bgColor="#00B5CC"
-            textColor="#fff"
-          />
-        )}
-    </ScrollView>
+  <View
+    style={[
+      styles.fixedButtonContainer,
+      { opacity: allGranted ? 1 : 0 },
+    ]}
+    pointerEvents={allGranted ? 'auto' : 'none'}
+  >
+    <TouchableOpacity
+      style={styles.submitButton}
+      onPress={handleSubmit}
+      disabled={!allGranted}
+    >
+      <Text style={styles.submitButtonText}>Submit</Text>
+    </TouchableOpacity>
+  </View>
+
+</View>
   );
 };
 
 export default AppPermissionScreen;
 
 const styles = StyleSheet.create({
-  placeholderBox: {
-    width: 200,
-    height: 120,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 12,
-    marginBottom: 20,
+scrollContent: {
+  paddingHorizontal: isTablet ? 40 : 20,
+  paddingTop: 20,
+  paddingBottom: 200,
+  alignItems: 'center',
+},
+
+fixedButtonContainer: {
+  position: 'absolute',
+  bottom: 20,
+  left: 20,
+  right: 20,
+  alignItems: 'center',
+},
+
+content: {
+  flexGrow: 1,
+  alignItems: 'center',
+  paddingHorizontal: isTablet ? 40 : 20,
+  paddingTop: 20,
+  paddingBottom: 24,
+},
+
+buttonWrapper: {
+  width: '100%',
+  maxWidth: isTablet ? 700 : '100%',
+  alignSelf: 'center',
+  marginTop: 'auto',
+  paddingTop: 20,
+},
+
+submitButton: {
+  width: isTablet ? 700 : '100%',
+  alignSelf: 'center',
+  backgroundColor: '#00B5CC',
+  paddingVertical: isTablet ? 18 : 15,
+  borderRadius: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+submitButtonText: {
+  color: '#fff',
+  fontSize: isTablet ? 22 : 18,
+  fontWeight: '700',
+},
+screenWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  container: {
-    padding: 20,
-    alignItems: 'center',
+image: {
+    width: '100%',
+    height: 200,
+    marginBottom: 10,
   },
-  title: {
-    fontSize: 17,
+
+imageTablet: {
+    width: 300,
+    height: 300,
+    alignSelf: 'center',
+  },
+
+title: {
+    fontSize: isTablet ? 24 : 17,
     fontWeight: '600',
     marginBottom: 25,
     textAlign: 'center',
+    color: '#000',
+    lineHeight: isTablet ? 34 : 24,
+    maxWidth: isTablet ? 600 : '100%',
   },
 
-  button: {
-    backgroundColor: '#56dcee',
-    paddingVertical: 14,
-    borderRadius: 8,
+permissionsWrapper: {
     width: '100%',
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
+    maxWidth: isTablet ? 700 : '100%',
+    alignSelf: 'center',
   },
 });
