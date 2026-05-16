@@ -5,6 +5,9 @@ import {
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from "react-native-responsive-dimensions";
+import DeviceInfo from "react-native-device-info";
+
+const isTablet = DeviceInfo.isTablet();
 
 const OTPInputBox = ({ otp, inputRefs, handleChange, handleKeyPress, length = 6 }) => {
   return (
@@ -35,12 +38,12 @@ const styles = StyleSheet.create({
   },
 
   otpBox: {
-    width: rw(12),
-    height: rh(6),
+    width: isTablet ? 60 : rw(12),
+    height: isTablet ? 60 : rh(6),
     borderWidth: 1.2,
     borderColor: "#A5A5A5",
-    borderRadius: rw(2),
-    fontSize: rf(2.8),
+    borderRadius: isTablet ? 12 : rw(2),
+    fontSize: isTablet ? 24 : rf(2.8),
     textAlign: "center",
     backgroundColor: "#fff",
   },
