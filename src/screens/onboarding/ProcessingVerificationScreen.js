@@ -7,6 +7,11 @@ import {
 } from 'react-native-responsive-dimensions';
 import { useNavigation } from '@react-navigation/native';
 import { getOnboardingStatus } from '../../services/onboardingApi';
+import DeviceInfo from 'react-native-device-info';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const isTablet = DeviceInfo.isTablet();
+const containerMaxWidth = isTablet ? 900 : '100%';
 
 const POLL_INTERVAL = 8000; // 8 seconds
 
@@ -49,22 +54,32 @@ const ProcessingVerificationScreen = () => {
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
-      <Image source={require('../../assets/Notify.png')} style={styles.image} />
-      <Text style={styles.text}>
-        We will notify once the verification is{'\n'}
-        successfully completed
-      </Text>
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+          <Image source={require('../../assets/Notify.png')} style={styles.image} />
+          <Text style={styles.text}>
+            We will notify once the verification is{'\n'}
+            successfully completed
+          </Text>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default ProcessingVerificationScreen;
 
 const styles = StyleSheet.create({
+  screenWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    width: '100%',
+    maxWidth: containerMaxWidth,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: responsiveWidth(5),
@@ -78,10 +93,10 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    fontSize: responsiveFontSize(2.2),
+    fontSize: isTablet ? 24 : responsiveFontSize(2.2),
     fontWeight: '500',
     color: '#000',
     textAlign: 'center',
-    lineHeight: responsiveHeight(3),
+    lineHeight: isTablet ? 36 : responsiveHeight(3),
   },
 });
