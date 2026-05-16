@@ -19,7 +19,7 @@ import {
   Animated,
 
 } from "react-native";
- 
+
 import {
 
   widthPercentageToDP as wp,
@@ -27,11 +27,11 @@ import {
   heightPercentageToDP as hp,
 
 } from "react-native-responsive-screen";
- 
+
 import LoginEntryScreen from './LoginEntryScreen';
 
 // import VehicleSelectionScreen from "./VehicleSelectionScreen";
- 
+
 const slides = [
 
   {
@@ -79,8 +79,8 @@ const slides = [
   },
 
 ];
- 
- 
+
+
 const OnBoardingScreen = ({navigation}) => {
 
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -88,13 +88,13 @@ const OnBoardingScreen = ({navigation}) => {
   const flatListRef = useRef(null);
 
   const [index, setIndex] = useState(0);
- 
+
   const onViewRef = useRef(({ viewableItems }) => {
 
     setIndex(viewableItems[0].index);
 
   });
- 
+
   return (
 <View style={styles.container}>
 
@@ -127,11 +127,11 @@ const OnBoardingScreen = ({navigation}) => {
                 {/* LEAF */}
 
                 {item.leaf && <Image source={item.leaf} style={styles.leaf} />}
- 
+
                 {/* WAVE */}
 
                 {item.wave && <Image source={item.wave} style={styles.wave} />}
- 
+
                 {/* MAIN IMAGE */}
 <Image
 
@@ -144,7 +144,7 @@ const OnBoardingScreen = ({navigation}) => {
                 />
 </View>
 </ImageBackground>
- 
+
             {/* TEXT SECTION */}
 <View style={styles.bottom}>
 <Text style={styles.title}>
@@ -159,7 +159,7 @@ const OnBoardingScreen = ({navigation}) => {
         )}
 
       />
- 
+
       {/* INDICATORS */}
 <View style={styles.indicatorContainer}>
 
@@ -186,7 +186,7 @@ const OnBoardingScreen = ({navigation}) => {
 
         ))}
 </View>
- 
+
       {/* BUTTONS */}
 
       {index === 0 ? (
@@ -223,9 +223,9 @@ const OnBoardingScreen = ({navigation}) => {
   );
 
 };
- 
+
 export default OnBoardingScreen;
- 
+
 const styles = StyleSheet.create({
 
   container: {
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#CDF5E7",
 
   },
- 
+
   bgImage: {
 
     width: wp("100%"),
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
   },
- 
+
   imgWrap: {
 
     width: wp("100%"),
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
   },
- 
+
   leaf: {
 
     position: "absolute",
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     height: hp("12%"),
 
   },
- 
+
   wave: {
 
     position: "absolute",
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     height: hp("6%"),
 
   },
- 
+
   mainImage: {
 
     width: wp("86%"),
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     marginTop: hp("18%"),
 
   },
- 
+
   bottom: {
 
     width: "100%",
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     marginTop: hp("2%"),
 
   },
- 
+
   title: {
 
     fontSize: hp("3%"),
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     marginLeft: wp("6%"),
 
   },
- 
+
   title1: {
 
     fontSize: hp("2.8%"),
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
 
   },
- 
+
   description: {
 
     fontSize: hp("1.8%"),
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     lineHeight: hp("3%"),
 
   },
- 
+
   indicatorContainer: {
 
     flexDirection: "row",
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     bottom: hp("14%"),
 
   },
- 
+
   dot: {
 
     height: hp("1%"),
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp("1%"),
 
   },
- 
+
   arrowBtn: {
 
     position: "absolute",
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     right: wp("15%"),
 
   },
- 
+
   arrowImage: {
 
     width: wp("6%"),
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     marginBottom:hp('3%')
 
   },
- 
+
   getStartedBtn: {
 
     backgroundColor: "#0AA17F",
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     bottom: hp("5%"),
 
   },
- 
+
   getStartedText: {
 
     color: "#fff",
@@ -411,5 +411,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
- 
