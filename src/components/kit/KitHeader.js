@@ -11,7 +11,7 @@ const KitHeader = () => {
   const { width } = useWindowDimensions();
 
   // Responsive image size
-  const imageSize = width * 0.28; // ~28% of screen width
+  const imageSize = width * 0.28; // 28% of screen width
 
   return (
     <View style={styles.wrapper}>
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   imagesRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around", // ✅ key for exact spacing
+    justifyContent: "space-around", 
   },
 
   imageContainer: {

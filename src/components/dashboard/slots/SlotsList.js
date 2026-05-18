@@ -6,8 +6,12 @@ import SlotCard from './SlotCard';
 import EmptySlotState from './EmptySlotState';
 import { isSlotSelectable } from '../../../utils/slotHelpers';
 import SlotHistory from '../../common/SlotHistory';
+import { Dimensions } from 'react-native';
 
 
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 export default function SlotsList({
     weeks,
     slots,
@@ -63,11 +67,15 @@ export default function SlotsList({
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 16,
-        marginTop: 10,
-    },
+  container: {
+    flex: 1,
+    paddingHorizontal: isTablet ? 28 : 16,
+    marginTop: isTablet ? 20 : 10,
+    ...(isTablet && {
+        alignSelf: 'center',
+        width: '94%',
+    }),
+},
     listContent: {
         paddingBottom: 100, // Space for floating footer
     },

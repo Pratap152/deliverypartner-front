@@ -1,7 +1,12 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet, ScrollView } from "react-native";
+import { Dimensions } from 'react-native';
+
 
 const filters = ["all", "available", "booked", "cancelled"];
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export default function SlotFilters({ value, onChange }) {
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -40,15 +45,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   filterPill: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8, // Pill shape
+    paddingVertical: isTablet ? 16 : 8,
+    paddingHorizontal: isTablet ? 32 : 20,
+    borderRadius: isTablet ? 16 : 8,
     marginRight: 10,
     borderWidth: 1,
-    minWidth: 80,
+    minWidth: isTablet ? 160 : 80,
     alignItems: "center",
     justifyContent: "center",
-  },
+},
   activePill: {
     backgroundColor: "#4C4CFF",
     borderColor: "#4C4CFF",
@@ -58,9 +63,9 @@ const styles = StyleSheet.create({
     borderColor: "#E5E5EA", // Light border
   },
   text: {
-    fontSize: 14,
+    fontSize: isTablet ? 22 : 14,
     fontWeight: "600",
-  },
+},
   activeText: {
     color: "#FFF",
   },

@@ -25,7 +25,11 @@ import PremiumPressable from '../../components/common/PremiumPressable';
 import { formatMoney } from '../../utils/formatMoney';
 import { dashboardCache } from '../../hooks/useEarningsDashboard';
 import useIncentives from '../../hooks/useIncentives';
+import { Dimensions } from 'react-native';
 
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export default function EarningsScreen({ navigation }) {
   const { data, loading, refreshing, onRefresh } = useEarningsDashboard();
@@ -36,8 +40,6 @@ export default function EarningsScreen({ navigation }) {
     fetchDailyIncentivesProgress();
     fetchPeakIncentivesProgress();
   }, []);
-
-  // console.log("WEEKLY PROGRESS: ", weeklyIncentivesProgress);
 
   const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
   const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
@@ -67,12 +69,11 @@ export default function EarningsScreen({ navigation }) {
     incentives = [],
   } = data;
 
-  // console.log("WEEKLY BAR CHART: ", weeklyBarChart, riderType);
 
-  const month = earningsSummary.month || {};
+ const month = earningsSummary.month || {};
 
-  const CARD_WIDTH = wp(95);
-  const CARD_PADDING = wp(4);
+ const CARD_WIDTH = isTablet ? wp(97) : wp(95);
+ const CARD_PADDING = wp(4);
 
   const formatOrderLabel = count => {
   return `${count} ${count === 1 ? 'order' : 'orders'}`;
@@ -90,7 +91,11 @@ export default function EarningsScreen({ navigation }) {
         <View style={styles.topBar}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}>
-            <Ionicons name='chevron-back-outline' size={24} color="#FFF" />
+            <Ionicons
+              name='chevron-back-outline'
+              size={isTablet ? 32 : 24}
+              color="#FFF"
+            />
           </TouchableOpacity>
           <Text style={styles.title}>Earnings</Text>
 
@@ -99,7 +104,11 @@ export default function EarningsScreen({ navigation }) {
               style={styles.iconBtn}
               onPress={() =>
                 navigation.navigate('EarningsHistoryScreen', { mode: 'HISTORY' })}>
-              <MaterialIcons name="history" size={22} color="#FFFFFF" />
+              <MaterialIcons
+                name="history"
+                size={isTablet ? 30 : 22}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn}
               onPress={() => navigation.navigate('HelpCenterList')}>
@@ -123,7 +132,7 @@ export default function EarningsScreen({ navigation }) {
             </View>
 
             <View style={styles.dailyIconWrap}>
-              <Ionicons name="cash-outline" size={24} color="#10B981" />
+              <Ionicons name="cash-outline" size={isTablet? 32: 24} color="#10B981" />
             </View>
           </View>
 
@@ -173,14 +182,14 @@ export default function EarningsScreen({ navigation }) {
             <WeeklyEarningsChart
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
-              height={hp(30)} />
+              height={isTablet ? hp(38) : hp(30)} />
           }
 
           {riderType === "COMPANY_EMPLOYEE" &&
             <WeeklyEarningsChartEmployee
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
-              height={hp(30)} />
+              height={isTablet ? hp(38) : hp(30)} />
           }
         </PremiumPressable>
       </View>
@@ -202,20 +211,28 @@ export default function EarningsScreen({ navigation }) {
               </Text>
             </View>
             <View style={styles.walletIconWrap}>
-              <Ionicons name="wallet" size={26} color="#6366F1" />
+              <Ionicons name="wallet" size={isTablet? 32 :26} color="#6366F1" />
             </View>
           </View>
           <View style={styles.walletActions}>
             <TouchableOpacity style={styles.walletBtn}
               activeOpacity={0.9}
               onPress={() => navigation.navigate('Wallet')}>
-              <Ionicons name="arrow-up-circle-outline" size={18} color="#6366F1" />
+              <Ionicons
+                name="arrow-up-circle-outline"
+                size={isTablet ? 24 : 18}
+                color="#6366F1"
+              />
               <Text style={styles.walletBtnText}>Withdraw</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.walletBtnOutline}
               activeOpacity={0.7}
               onPress={() => navigation.navigate('Wallet')}>
-              <Ionicons name="time-outline" size={18} color="#fff" />
+              <Ionicons
+                name="time-outline"
+                size={isTablet ? 24 : 18}
+                color="#fff"
+              />
               <Text style={styles.walletBtnTextOutline}>History</Text>
             </TouchableOpacity>
           </View>
@@ -340,33 +357,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    color: '#fff',
-    fontSize: wp(6),
-    fontWeight: '500',
-    paddingRight: wp(35)
-  },
+  color: '#fff',
+  fontSize: isTablet ? 34 : wp(6),
+  fontWeight: '600',
+  flex: 1,
+  marginLeft: wp(2),
+},
   chat_icon: {
     width: wp(6),
     height: wp(5),
   },
   topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: hp(3),
-    paddingHorizontal: wp(3)
-  },
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingTop: isTablet ? hp(2) : hp(3),
+  paddingHorizontal: isTablet ? wp(4) : wp(3),
+},
   topBarIcons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(2),
-    borderRadius: wp(3),
-    marginLeft: wp(3),
-  },
+  backgroundColor: 'rgba(255,255,255,0.15)',
+  paddingVertical: isTablet ? hp(1.2) : hp(1),
+  paddingHorizontal: isTablet ? wp(1.5) : wp(2),
+  borderRadius: isTablet ? wp(2) : wp(3),
+  marginLeft: wp(2),
+},
   chatIcon: {
     width: wp(5),
     height: wp(5),
@@ -374,13 +392,13 @@ const styles = StyleSheet.create({
   },
 
   dailyCard: {
-    width: wp(92),
+    width: isTablet ? wp(96) : wp(92),
     alignSelf: 'center',
     marginTop: hp(1),
     marginBottom: hp(2),
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: wp(4),
-    padding: wp(5),
+    padding: isTablet ? wp(3) : wp(5),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
   },
@@ -511,7 +529,7 @@ const styles = StyleSheet.create({
   },
 
   walletCard: {
-    width: wp(95),
+    width: isTablet ? wp(97) : wp(95),
     alignSelf: 'center',
     marginTop: hp(3),
     borderRadius: wp(5),
@@ -553,36 +571,34 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
     justifyContent: 'space-between',
   },
-
-  walletBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1),
-    borderRadius: wp(3),
-  },
-
+walletBtn: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#FFFFFF',
+  paddingHorizontal: isTablet ? wp(4) : wp(4),
+  paddingVertical: isTablet ? hp(1.5) : hp(1),
+  borderRadius: isTablet ? wp(2) : wp(3),
+},
   walletBtnText: {
-    marginLeft: wp(2),
-    fontWeight: '600',
-    color: '#6366F1',
-  },
-
-  walletBtnOutline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1),
-    borderRadius: wp(3),
-  },
-
+  marginLeft: wp(2),
+  fontWeight: '600',
+  color: '#6366F1',
+  fontSize: isTablet ? 18 : 14,
+},
+ walletBtnOutline: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: 'rgba(255,255,255,0.5)',
+  paddingHorizontal: isTablet ? wp(4) : wp(4),
+  paddingVertical: isTablet ? hp(1.5) : hp(1),
+  borderRadius: isTablet ? wp(2) : wp(3),
+},
   walletBtnTextOutline: {
     marginLeft: wp(2),
     color: '#fff',
     fontWeight: '600',
+    fontSize: isTablet ? 18 : 14,
   },
 
   walletDivider: {
@@ -607,8 +623,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(0.3),
   },
-
-
   incentiveTitle: {
     fontSize: wp(5),
     fontWeight: '600',

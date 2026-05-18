@@ -1,16 +1,11 @@
 import React from 'react';
 import { Modal, View, StyleSheet } from 'react-native';
+import { Dimensions } from 'react-native';
 
-/**
- * BaseModal - Reusable modal wrapper component
- * Provides consistent modal overlay and card structure
- * 
- * @param {boolean} visible - Whether modal is visible
- * @param {function} onClose - Handler for closing modal
- * @param {ReactNode} children - Modal content
- * @param {object} cardStyle - Optional custom card styles
- * @param {string} animationType - Modal animation type
- */
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
+
 export default function BaseModal({
     visible,
     onClose,
@@ -41,10 +36,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    card: {
-        width: '90%',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 20,
-    },
+   card: {
+    width: isTablet ? '70%' : '90%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: isTablet ? 28 : 16,
+    padding: isTablet ? 32 : 20,
+},
 });

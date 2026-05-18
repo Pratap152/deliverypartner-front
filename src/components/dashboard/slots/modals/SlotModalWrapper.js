@@ -2,23 +2,11 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-/**
- * SlotModalWrapper - Reusable modal structure for slot-related modals
- * Provides consistent layout: header, scrollable content, footer with buttons
- * 
- * @param {boolean} visible - Whether modal is visible
- * @param {string} title - Modal header title
- * @param {string} headerColor - Header background color
- * @param {function} onClose - Close handler
- * @param {ReactNode} children - Modal content
- * @param {string} primaryButtonText - Primary button label
- * @param {string} primaryButtonColor - Primary button background color
- * @param {function} onPrimaryPress - Primary button handler
- * @param {string} secondaryButtonText - Secondary button label
- * @param {function} onSecondaryPress - Secondary button handler
- */
+
+const { height: SCREEN_HEIGHT,width } = Dimensions.get('window');
+const isTablet = width >= 768;
+
 export default function SlotModalWrapper({
     visible,
     title,
@@ -37,7 +25,7 @@ export default function SlotModalWrapper({
         <View style={styles.modalOverlay} pointerEvents="box-none">
             <View style={styles.modalContainer}>
 
-                {/* --- HEADER --- */}
+                {/*HEADER*/}
                 <View style={[styles.header, { backgroundColor: headerColor }]}>
                     <Text style={styles.headerTitle}>{title}</Text>
                     <TouchableOpacity onPress={onClose}>
@@ -45,7 +33,7 @@ export default function SlotModalWrapper({
                     </TouchableOpacity>
                 </View>
 
-                {/* --- SCROLLABLE CONTENT --- */}
+                {/*SCROLLABLE CONTENT*/}
                 <ScrollView
                     style={styles.scrollContainer}
                     contentContainerStyle={styles.scrollContent}
@@ -54,7 +42,7 @@ export default function SlotModalWrapper({
                     {children}
                 </ScrollView>
 
-                {/* --- FOOTER BUTTONS --- */}
+                {/*FOOTER BUTTONS*/}
                 <View style={styles.footer}>
                     <TouchableOpacity
                         style={styles.secondaryButton}
@@ -84,26 +72,23 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContainer: {
-        backgroundColor: '#FFF',
-        borderRadius: 24,
-        width: '100%',
-        maxHeight: SCREEN_HEIGHT * 0.85,
-        overflow: 'hidden',
-    },
-
-    // Header
+    backgroundColor: '#FFF',
+    borderRadius: isTablet ? 32 : 24,
+    width: isTablet ? '75%' : '100%',
+    maxHeight: SCREEN_HEIGHT * 0.85,
+    overflow: 'hidden',
+},
     header: {
-        padding: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
+    padding: isTablet ? 30 : 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+},
     headerTitle: {
-        color: '#FFF',
-        fontSize: 18,
-        fontWeight: '700',
-    },
-
+    color: '#FFF',
+    fontSize: isTablet ? 30 : 18,
+    fontWeight: '700',
+},
     // Scroll Area
     scrollContainer: {
         maxHeight: '70%',
@@ -111,31 +96,29 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: 20,
     },
-
-    // Footer
-    footer: {
-        padding: 20,
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
+footer: {
+    padding: isTablet ? 28 : 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+},
     secondaryButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginRight: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F9FAFB',
-    },
+    flex: 1,
+    paddingVertical: isTablet ? 20 : 14,
+    borderRadius: isTablet ? 18 : 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
+},
     secondaryText: {
-        color: '#4B5563',
-        fontWeight: '600',
-        fontSize: 16,
-    },
+    color: '#4B5563',
+    fontWeight: '600',
+    fontSize: isTablet ? 22 : 16,
+},
     primaryButton: {
         flex: 1,
         paddingVertical: 14,
@@ -143,9 +126,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    primaryText: {
-        color: '#FFF',
-        fontWeight: '600',
-        fontSize: 16,
-    },
+   primaryText: {
+    color: '#FFF',
+    fontWeight: '600',
+    fontSize: isTablet ? 22 : 16,
+},
 });
