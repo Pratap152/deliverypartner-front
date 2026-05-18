@@ -2,13 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { FILTERS } from '../../../utils/constants/slotConstants';
+import { Dimensions } from 'react-native';
 
-/**
- * EmptySlotState - Display empty state message based on filter type
- * Shows appropriate icon and message when no slots are available
- * 
- * @param {string} filter - Current active filter (all, available, booked, cancelled)
- */
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
+
 export default function EmptySlotState({ filter }) {
     const getEmptyStateConfig = () => {
         switch (filter) {
@@ -49,7 +47,11 @@ export default function EmptySlotState({ filter }) {
     return (
         <View style={styles.container}>
             <View style={[styles.iconWrapper, { backgroundColor: config.backgroundColor }]}>
-                <Ionicons name={config.icon} size={48} color={config.iconColor} />
+                <Ionicons
+                    name={config.icon}
+                    size={isTablet ? 82 : 48}
+                    color={config.iconColor}
+                    />
             </View>
             <Text style={styles.message}>{config.message}</Text>
         </View>
@@ -65,18 +67,18 @@ const styles = StyleSheet.create({
         paddingVertical: 60,
     },
     iconWrapper: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
+    width: isTablet ? 180 : 100,
+    height: isTablet ? 180 : 100,
+    borderRadius: isTablet ? 90 : 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: isTablet ? 32 : 20,
+},
     message: {
-        fontSize: 16,
-        color: '#6B7280',
-        textAlign: 'center',
-        lineHeight: 24,
-        fontWeight: '500',
-    },
+    fontSize: isTablet ? 28 : 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: isTablet ? 42 : 24,
+    fontWeight: '500',
+},
 });

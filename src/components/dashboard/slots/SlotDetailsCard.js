@@ -3,13 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import SlotInfoRow from './SlotInfoRow';
 import { formatTime, formatDate } from '../../../utils/slotHelpers';
 
-/**
- * SlotDetailsCard - Displays slot information in a consistent format
- * Reusable across BookSlotModal and CancelSlotModal
- * 
- * @param {object} slot - Slot object with date, times, type, etc.
- * @param {string} selectedDate - Optional selected date if slot.date is missing
- */
+
 export default function SlotDetailsCard({ slot, selectedDate }) {
     return (
         <View style={styles.container}>

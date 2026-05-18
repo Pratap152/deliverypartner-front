@@ -10,9 +10,12 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {useSlotHistory} from '../../hooks/useSlotHistory';
 import { COLORS,GRADIENTS } from '../../utils/SlotHistoryColors';
 import LinearGradient from 'react-native-linear-gradient';
+import { Dimensions } from 'react-native';
 
 
- 
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
+
 export default function SlotHistoryScreen({navigation}){
    
     const [expandedDates, setExpandedDates] = useState([]);
@@ -307,7 +310,11 @@ export default function SlotHistoryScreen({navigation}){
                 style={styles.backBtn}
                 onPress={() => navigation.goBack()}
               >
-                <Ionicons name='chevron-back-outline' size={24} color="#FFF" />
+                <Ionicons
+                  name='chevron-back-outline'
+                  size={isTablet ? 30 : 24}
+                  color="#FFF"
+                />
               </TouchableOpacity>
 
               <Text style={styles.headerTitleGradient}>
@@ -318,7 +325,7 @@ export default function SlotHistoryScreen({navigation}){
             </LinearGradient>
 
                 {/* Spacer to balance back button */}
-                <View style={{ width: 40 }} />
+                <View style={{ width: isTablet ? 50 : 40 }} />
              
                 {/* DAYS LIST */}
                 <FlatList
@@ -413,11 +420,32 @@ export default function SlotHistoryScreen({navigation}){
 }
  
  const styles = StyleSheet.create({
-  backBtn:              { width: 40, alignItems: 'flex-start' },
+  backBtn: {
+  width: isTablet ? 50 : 40,
+  alignItems: 'flex-start',
+  justifyContent: 'center',
+},
+  headerGradient: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: isTablet ? 22 : wp(4),
+  paddingVertical: isTablet ? hp(1.8) : hp(2.2),
+  borderBottomLeftRadius: isTablet ? 22 : 24,
+  borderBottomRightRadius: isTablet ? 22 : 24,
+},
+  headerTitleGradient: {
+  flex: 1,
+  textAlign: 'center',
 
-  headerGradient:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: wp(4), paddingVertical: hp(2.2), borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
-  headerTitleGradient:  { flex: 1, textAlign: 'center', fontSize: wp(6), fontWeight: '600', color: '#FFF', letterSpacing: 0.5 },
+  fontSize: isTablet ? 36 : wp(6),
 
+  fontWeight: '700',
+
+  color: '#FFF',
+
+  letterSpacing: 0.3,
+},
   weekRangeGradientCard:{ marginTop: hp(2), marginBottom: hp(1), padding: wp(4.5), width: wp('95%'), borderRadius: 22, alignSelf: 'center', borderWidth: 1, borderColor: '#EEF2FF', shadowColor: '#4F46E5', shadowOpacity: 0.08, shadowRadius: 18, elevation: 6 },
   weekSelectorTopRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: hp(0.8), gap: wp(2) },
   weekSelectorLabel:    { fontSize: wp(3.2), fontWeight: '600', color: '#6B7280', letterSpacing: 0.4 },

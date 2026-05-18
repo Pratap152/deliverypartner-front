@@ -4,16 +4,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SlotModalWrapper from './SlotModalWrapper';
 import SlotDetailsCard from '../SlotDetailsCard';
 
-/**
- * BookSlotModal - Modal for confirming slot bookings
- * Uses SlotModalWrapper and SlotDetailsCard for consistency
- * 
- * @param {boolean} visible - Whether modal is visible
- * @param {array} slots - Array of selected slots
- * @param {string} date - Selected date
- * @param {function} onClose - Handler for closing modal
- * @param {function} onConfirm - Handler for confirming booking
- */
+
+
 export default function BookSlotModal({ visible, slots, date: selectedDateStr, onClose, onConfirm }) {
   return (
     <SlotModalWrapper

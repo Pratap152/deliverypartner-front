@@ -2,16 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-/**
- * SlotInfoRow - Reusable component for displaying slot information
- * Used in BookSlotModal and CancelSlotModal
- * 
- * @param {string} icon - Ionicon name
- * @param {string} iconColor - Icon color
- * @param {string} backgroundColor - Icon box background color
- * @param {string} label - Label text (e.g., "Day", "Time")
- * @param {string|ReactNode} value - Value to display
- */
+
 export default function SlotInfoRow({
     icon,
     iconColor,

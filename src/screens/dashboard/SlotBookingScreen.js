@@ -15,7 +15,6 @@ import SlotBookingFooter from '../../components/dashboard/slots/SlotBookingFoote
 import BookSlotModal from '../../components/dashboard/slots/modals/BookSlotModal';
 import CancelSlotModal from '../../components/dashboard/slots/modals/CancelSlotModal';
 import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
-import SlotHistory from '../../components/common/SlotHistory';
 
 
 export default function SlotBookingScreen({navigation}) {
@@ -23,7 +22,6 @@ export default function SlotBookingScreen({navigation}) {
     weeks,
     slots,
     slotsLoading,
-    weeksLoading,
     loadWeeks,
     loadSlots,
     bookSlot,
@@ -52,13 +50,19 @@ export default function SlotBookingScreen({navigation}) {
   const [successVisible, setSuccessVisible] = useState(false);
   const [activeSlot, setActiveSlot] = useState(null);
 
-  const [nextWeekEmpty, setNextWeekEmpty] = useState(false);
-  const [upcomingEmpty, setUpcomingEmpty] = useState(false); 
-  const [currentWeekEmpty, setCurrentWeekEmpty] = useState(false);
-
   const cityId = useSelector((state) => state.profile.data?.location?.city?.trim());
   const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
 
+  const refreshSlots = () => {
+    if (selectedWeek) {
+      loadSlots({
+        date: selectedWeek,
+        filter,
+        cityId,
+        pincodeId,
+      });
+    }
+  };
   
   // Load weeks and slots in parallel on mount
   useEffect(() => {
@@ -72,29 +76,19 @@ export default function SlotBookingScreen({navigation}) {
       isInitialMount.current = false;
       return; // skip on mount because we already loaded todays slots
     }
-    if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    
-    }
+    refreshSlots();
   }, [selectedWeek, filter]);
+
 
   const autoSelectFirst = useRef(false);
   useEffect(() => {
     if (!autoSelectFirst.current) return;
-
     if (weeks?.length > 0) {
       autoSelectFirst.current = false;
-      setNextWeekEmpty(false);
-      setUpcomingEmpty(false);
-      setCurrentWeekEmpty(false);
       const firstDate = weeks[0]?.date;
       if (firstDate) setSelectedWeek(firstDate);
-    } else if (!weeksLoading) {
-      autoSelectFirst.current = false;
-      if (activeTab === TABS.CURRENT) setCurrentWeekEmpty(true);
-      if (activeTab === TABS.NEXT) setNextWeekEmpty(true);
-      if (activeTab === TABS.UPCOMING) setUpcomingEmpty(true);
-    }
-  }, [weeks, weeksLoading]);
+    } 
+  }, [weeks]);
     
 
   // Handlers
@@ -104,23 +98,22 @@ export default function SlotBookingScreen({navigation}) {
     clearSelection();
     clearSlots();
     clearWeeks();
-    setCurrentWeekEmpty(false);
-    setNextWeekEmpty(false);
-    setUpcomingEmpty(false);
 
-    if (tab === TABS.CURRENT) {
-      autoSelectFirst.current = true;
-      loadWeeks({ cityId, pincodeId });
-    } else if (tab === TABS.NEXT) {
-      autoSelectFirst.current = true;
-      const nextWeekNum = getWeekNumber() + 1;
-      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });
-    } else if (tab === TABS.UPCOMING) {
-      autoSelectFirst.current = true;              // trigger the check
-      const nextWeekNum = getWeekNumber() + 2;     // upcoming week
-      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });
+    autoSelectFirst.current = true;
+    let weekNumber;
+    if (tab === TABS.NEXT) {
+      weekNumber = getWeekNumber() + 1;
     }
+    if (tab === TABS.UPCOMING) {
+      weekNumber = getWeekNumber() + 2;
+    }
+    loadWeeks({
+      weekNumber,
+      cityId,
+      pincodeId,
+    });
   };
+
   const handleWeekSelect = (date) => {
     setSelectedWeek(date);
   };
@@ -140,7 +133,6 @@ export default function SlotBookingScreen({navigation}) {
 
   const handleBookConfirm = async () => {
     const slotIds = extractSlotIds(selectedSlots);
-    console.log(slotIds);
     const success = await bookSlot({
       slotIds,
       date: selectedWeek,
@@ -151,9 +143,7 @@ export default function SlotBookingScreen({navigation}) {
       setSuccessVisible(true);
       clearSelection();
       // Refresh slots
-      if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      
-      }
+     refreshSlots();
     }
   };
 
@@ -161,17 +151,12 @@ export default function SlotBookingScreen({navigation}) {
     const success = await cancelSlot(activeSlot.bookingId);
     if (success) {
       setCancelModalVisible(false);
-      // Refresh slots
-      if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      
-      }
+      refreshSlots();
     }
   };
 
   const handleRefresh = () => {
-    if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    
-    }
+    refreshSlots();
   };
 
 

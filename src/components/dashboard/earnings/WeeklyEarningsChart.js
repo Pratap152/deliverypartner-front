@@ -7,6 +7,11 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { formatMoney } from '../../../utils/formatMoney';
+import { Dimensions } from 'react-native';
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const PADDING = wp(4);
 
@@ -168,7 +173,7 @@ export default function WeeklyEarningsChart({ data, width, height }) {
               key={`y-label-${i}`}
               x={PADDING - 15}
               y={y + 4}
-              fontSize={wp(3.5)}
+              fontSize={isTablet ? wp(2.8) : wp(3.5)}
             >
               ₹{value}
             </TextSvg>
@@ -182,7 +187,7 @@ export default function WeeklyEarningsChart({ data, width, height }) {
             key={`x-label-${p.label}-${index}`}
             x={p.x}
             y={CHART_HEIGHT - 2}
-            fontSize={wp(3.5)}
+            fontSize={isTablet ? wp(3) : wp(3.5)}
             textAnchor="middle"
           >
             {p.label}
@@ -198,7 +203,10 @@ export default function WeeklyEarningsChart({ data, width, height }) {
           style={[
             styles.tooltip,
             {
-              left: points[activeIndex].x - 20,
+              left:
+                points[activeIndex].x > CHART_WIDTH - 80
+                  ? points[activeIndex].x - 70
+                  : points[activeIndex].x - 25,
               top: Math.max(points[activeIndex].y - 50, 10),
             },
           ]}
@@ -219,14 +227,14 @@ const styles = StyleSheet.create({
   tooltip: {
     position: 'absolute',
     backgroundColor: '#111',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: isTablet ? 10 : 6,
+    paddingHorizontal: isTablet ? 18 : 10,
     borderRadius: 8,
     elevation: 4,
   },
   tooltipText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: isTablet ? 20 : 12,
     fontWeight: '600',
     textAlign: 'center',
   },

@@ -4,15 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SlotModalWrapper from './SlotModalWrapper';
 import SlotDetailsCard from '../SlotDetailsCard';
 
-/**
- * CancelSlotModal - Modal for confirming slot cancellation
- * Uses SlotModalWrapper and SlotDetailsCard for consistency
- * 
- * @param {boolean} visible - Whether modal is visible
- * @param {object} slot - Slot to cancel
- * @param {function} onClose - Handler for closing modal
- * @param {function} onConfirm - Handler for confirming cancellation
- */
+
 export default function CancelSlotModal({ visible, slot, date, onClose, onConfirm }) {
   if (!slot) return null;
 
