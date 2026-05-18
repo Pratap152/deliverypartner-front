@@ -9,21 +9,29 @@ import {
   StatusBar,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  Linking,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Alert, Linking } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
+
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+
+import DeviceInfo from 'react-native-device-info';
+
 import { authService } from '../../services/AuthService';
 import apiClient from '../../services/ApiClient';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
+
   const { data: profile } = useSelector(state => state.profile);
 
   const partnerId = profile?.partnerId;
@@ -42,13 +50,16 @@ export default function ProfileScreen({ navigation }) {
   const openCamera = async () => {
     try {
       let permission = await Camera.getCameraPermissionStatus();
+
       if (permission === 'not-determined') {
         permission = await Camera.requestCameraPermission();
       }
+
       if (permission === 'authorized') {
         navigation.navigate('CameraScreen');
         return;
       }
+
       Alert.alert(
         'Camera Permission Required',
         'Please allow camera access to continue',
@@ -94,14 +105,15 @@ export default function ProfileScreen({ navigation }) {
     if (!selfie) return null;
 
     if (typeof selfie === 'string') return selfie;
-    if (typeof selfie === 'object' && selfie.url) return selfie.url;
+
+    if (typeof selfie === 'object' && selfie.url) {
+      return selfie.url;
+    }
 
     return null;
   };
 
   const selfieUri = getSelfieUri(profile?.selfie);
-
-
 
   return (
     <View style={styles.root}>
@@ -143,14 +155,18 @@ export default function ProfileScreen({ navigation }) {
                   style={[
                     styles.activeBadge,
                     {
-                      backgroundColor: isPartnerActive ? '#E6F6EC' : '#FDECEA',
+                      backgroundColor: isPartnerActive
+                        ? '#E6F6EC'
+                        : '#FDECEA',
                     },
                   ]}
                 >
                   <Text
                     style={[
                       styles.activeText,
-                      { color: isPartnerActive ? '#2E7D32' : '#C62828' },
+                      {
+                        color: isPartnerActive ? '#2E7D32' : '#C62828',
+                      },
                     ]}
                   >
                     {isPartnerActive ? 'Active' : 'Inactive'}
@@ -197,13 +213,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/personal.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Personal Details</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Personal Details
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     View detailed personal information
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
           </View>
@@ -224,13 +259,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Rider.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Rider Assets</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Rider Assets
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     View your assigned equipment
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
@@ -244,13 +298,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Documents.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Documents</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Documents
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     License, permits & verification
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
           </View>
@@ -269,13 +342,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Wallet.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Wallet</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Wallet
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     View balance & transactions
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
@@ -289,9 +381,27 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Cash.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Cash Balance</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Cash Balance
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     Cash collected from orders
                   </Text>
                 </View>
@@ -310,13 +420,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Bank.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Bank Account Details</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Bank Account Details
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     Payment & withdrawal info
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
           </View>
@@ -324,6 +453,7 @@ export default function ProfileScreen({ navigation }) {
           {/* PERFORMANCE & REWARDS */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>PERFORMANCE & REWARDS</Text>
+
             <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
@@ -334,13 +464,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Rewards.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Rewards</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Rewards
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     View your earned rewards
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
           </View>
@@ -348,6 +497,7 @@ export default function ProfileScreen({ navigation }) {
           {/* HISTORY & ACTIVITY */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>HISTORY & ACTIVITY</Text>
+
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('OrderHistory');
@@ -360,15 +510,35 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Order.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Order History</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Order History
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     View all completed orders
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.listItemReduced}
               activeOpacity={0.7}
@@ -379,13 +549,32 @@ export default function ProfileScreen({ navigation }) {
                   source={require('../../assets/profile/Slot.png')}
                   style={styles.icon}
                 />
-                <View style={{ maxWidth: 220, marginLeft: 12 }}>
-                  <Text style={styles.listTitle}>Slot History</Text>
-                  <Text style={styles.listSubtitle}>
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Slot History
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     View your slot bookings
                   </Text>
                 </View>
               </View>
+
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
           </View>
@@ -400,6 +589,7 @@ export default function ProfileScreen({ navigation }) {
                 source={require('../../assets/profile/Logout.png')}
                 style={styles.logoutIcon}
               />
+
               <Text style={styles.logoutText}>Logout</Text>
             </View>
           </TouchableOpacity>
@@ -408,6 +598,7 @@ export default function ProfileScreen({ navigation }) {
     </View>
   );
 }
+const isTablet = DeviceInfo.isTablet();
 
 const styles = StyleSheet.create({
   root: {
@@ -428,20 +619,6 @@ const styles = StyleSheet.create({
 
   avatarWrapper: {
     position: 'relative',
-  },
-
-  cameraIconWrapper: {
-    position: 'absolute',
-    bottom: hp('-2%'),
-    right: wp('0%'),
-    borderRadius: wp('5%'),
-    padding: wp('1.5%'),
-  },
-
-  cameraIcon: {
-    width: wp('7%'),
-    height: wp('7%'),
-    resizeMode: 'contain',
   },
 
   header: {
@@ -506,6 +683,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp('0.4%'),
     borderRadius: wp('3%'),
   },
+
   activeText: {
     fontSize: wp('3.3%'),
     color: '#2E7D32',
@@ -574,6 +752,7 @@ const styles = StyleSheet.create({
   listLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
 
   listTitle: {
@@ -621,9 +800,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: wp('3%'),
   },
-  driverId: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 4,
-  },
+
+ driverId: {
+  fontSize: isTablet ? wp('2.4%') : 13,
+  color: '#666',
+  marginTop: 4,
+},
 });
