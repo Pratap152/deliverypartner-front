@@ -15,6 +15,14 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DeviceInfo from "react-native-device-info";
+import {
+  responsiveFontSize as rf,
+  responsiveHeight as rh,
+  responsiveWidth as rw,
+} from "react-native-responsive-dimensions";
+
+const isTablet = DeviceInfo.isTablet();
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Clipboard from "@react-native-clipboard/clipboard";
@@ -67,7 +75,30 @@ export default function ReferEarn({ navigation }) {
     );
   }
 
-  if (!data) return null;
+ if (!data || Object.keys(data).length === 0) {
+  return (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="people-outline" size={70} color="#CBD5E1" />
+
+      <Text style={styles.emptyTitle}>
+        No Referral Data
+      </Text>
+
+      <Text style={styles.emptySubtitle}>
+        Start inviting friends and earn rewards.
+      </Text>
+
+      <TouchableOpacity
+        style={styles.emptyButton}
+        onPress={() => navigation.navigate("ReferFrd")}
+      >
+        <Text style={styles.emptyButtonText}>
+          Refer Now
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
   const referralCode = data?.referrer?.partnerId || "";
   const ruleType = data?.program?.ruleType || "";
@@ -165,15 +196,26 @@ const programContent = getProgramContent();
 
   // 🔹 Empty UI
   const renderEmpty = () => (
-    <Text style={styles.emptyText}>
-      {tab === "PENDING"
-        ? "No pending referrals"
-        : tab === "COMPLETED"
-        ? "No completed referrals"
-        : "No referrals yet"}
-    </Text>
-  );
+  <View style={styles.listEmptyContainer}>
+    <Ionicons
+      name="gift-outline"
+      size={55}
+      color="#CBD5E1"
+    />
 
+    <Text style={styles.emptyTitle}>
+      {tab === "PENDING"
+        ? "No Pending Referrals"
+        : tab === "COMPLETED"
+        ? "No Completed Referrals"
+        : "No Referrals Yet"}
+    </Text>
+
+    <Text style={styles.emptySubtitle}>
+      Invite your friends and start earning rewards.
+    </Text>
+  </View>
+);
   const renderItem = ({ item }) => {
   const isTaskType = ruleType === "TASK";
 
@@ -386,14 +428,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
+
   fixedTopBanner: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 10,
-  backgroundColor: "#F8FAFC",
-},
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: "#F8FAFC",
+  },
+
   loader: {
     flex: 1,
     justifyContent: "center",
@@ -403,18 +447,22 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 15,
+    marginVertical: isTablet ? rh(2) : 15,
     paddingHorizontal: 16,
   },
+
   line: {
     flex: 1,
     height: 1,
     backgroundColor: "#E2E8F0",
   },
+
   title: {
     marginHorizontal: 10,
     fontWeight: "700",
-    fontSize: 16,
+
+    fontSize: isTablet ? rf(1.6) : 16,
+
     color: "#1E293B",
   },
 
@@ -424,52 +472,70 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 5,
   },
+
   card: {
     width: "48%",
-    padding: 16,
+    padding: isTablet ? rw(2.5) : 16,
+
     borderRadius: 16,
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 10,
     elevation: 4,
   },
+
   greenCard: {
     backgroundColor: "#DCFCE7",
-
   },
+
   orangeCard: {
     backgroundColor: "#FFE4D5",
   },
+
   cardValue1: {
     color: "#166534",
-    fontSize: 20,
+
+    fontSize: isTablet ? rf(1.8) : 20,
+
     fontWeight: "700",
     marginTop: 6,
   },
+
   cardValue2: {
     color: "#9A3412",
-    fontSize: 20,
+
+    fontSize: isTablet ? rf(1.8) : 20,
+
     fontWeight: "700",
     marginTop: 6,
   },
+
   cardLabel1: {
     color: "#166534",
-    fontSize: 12,
+
+    fontSize: isTablet ? rf(1.1) : 12,
+
     marginTop: 4,
   },
-   cardLabel2: {
+
+  cardLabel2: {
     color: "#9A3412",
-    fontSize: 12,
+
+    fontSize: isTablet ? rf(1.1) : 12,
+
     marginTop: 4,
   },
 
   codeBox: {
     margin: 16,
-    padding: 14,
+
+    padding: isTablet ? rw(2) : 14,
+
     borderRadius: 14,
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#E2E8F0",
+
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -479,76 +545,105 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
+
   codeText: {
     fontWeight: "700",
-    fontSize: 16,
+
+    fontSize: isTablet ? rf(1.5) : 16,
+
     letterSpacing: 1,
     color: "#0F172A",
   },
+
   iconRow: {
     flexDirection: "row",
-    gap: 16,
+    gap: isTablet ? rw(2) : 16,
   },
+
   howBox: {
     marginHorizontal: 16,
     backgroundColor: "#fff",
-    padding: 14,
+
+    padding: isTablet ? rw(2.2) : 14,
+
     borderRadius: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
+
   howTitle: {
     fontWeight: "700",
+
     marginBottom: 8,
+
+    fontSize: isTablet ? rf(1.3) : 16,
+
     color: "#0F172A",
   },
+
   howItem: {
     marginVertical: 3,
     color: "#475569",
-    fontSize: 15,
-    // fontWeight:700
+
+    fontSize: isTablet ? rf(1.15) : 15,
   },
+
   howItem1: {
-     fontSize: 18,
-    fontWeight:800,
+    fontSize: isTablet ? rf(1.5) : 18,
+    fontWeight: "800",
   },
+
   sectionTitle: {
     marginTop: 16,
     marginHorizontal: 16,
+
     fontWeight: "700",
-    fontSize: 15,
+
+    fontSize: isTablet ? rf(1.4) : 15,
+
     color: "#0F172A",
   },
+
   tabs: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 16,
     marginTop: 10,
   },
+
   tab: {
     flex: 1,
     marginHorizontal: 4,
-    paddingVertical: 8,
+
+    paddingVertical: isTablet ? rh(1) : 8,
+
     backgroundColor: "#E2E8F0",
     borderRadius: 20,
     alignItems: "center",
   },
+
   activeTab: {
-   backgroundColor: '#19A7CE',
+    backgroundColor: "#19A7CE",
   },
 
   emptyText: {
     textAlign: "center",
     marginTop: 20,
+
+    fontSize: isTablet ? rf(1.2) : 14,
+
     color: "#94A3B8",
   },
 
   refItem: {
     flexDirection: "row",
     justifyContent: "space-between",
+
     marginHorizontal: 16,
     marginTop: 10,
-    padding: 14,
+
+    padding: isTablet ? rw(2.2) : 14,
+
     borderRadius: 14,
     backgroundColor: "#fff",
 
@@ -557,40 +652,59 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
- leftRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  flex: 1,
-},
+
+  leftRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
   avatar: {
-    width: 38,
-    height: 38,
+    width: isTablet ? rw(5) : 38,
+    height: isTablet ? rw(5) : 38,
+
     borderRadius: 20,
-    backgroundColor: '#74c4da',
+    backgroundColor: "#74c4da",
+
     justifyContent: "center",
     alignItems: "center",
+
     marginRight: 10,
   },
+
   name: {
     fontWeight: "600",
+
+    fontSize: isTablet ? rf(1.3) : 15,
+
     color: "#0F172A",
   },
+
   date: {
-    fontSize: 14,
+    fontSize: isTablet ? rf(1.15) : 14,
+
     color: "#515863",
     marginTop: 3,
   },
 
   amount: {
     fontWeight: "700",
+
+    fontSize: isTablet ? rf(1.5) : 14,
+
     color: "#16A34A",
   },
+
   progress: {
     fontWeight: "700",
+
+    fontSize: isTablet ? rf(1.20) : 14,
+
     color: "#F59E0B",
   },
+
   status: {
-    fontSize: 12,
+    fontSize: isTablet ? rf(1.05) : 12,
     marginTop: 2,
   },
 
@@ -599,15 +713,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+
     backgroundColor: "#F8FAFC",
-    padding: 10,
+
+    padding: isTablet ? rw(1.8) : 10,
+
     borderTopWidth: 1,
     borderColor: "#E2E8F0",
   },
 
   button: {
-    backgroundColor: '#19A7CE',
-    padding: 16,
+    backgroundColor: "#19A7CE",
+
+    padding: isTablet ? rh(1.6) : 16,
+
     borderRadius: 30,
     alignItems: "center",
 
@@ -616,21 +735,67 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 6,
   },
+
   buttonText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 15,
+
+    fontSize: isTablet ? rf(1.3) : 15,
   },
+
   taskProgress: {
-  fontSize: 13,
-  color: "#0284C7",
-  marginTop: 4,
-  fontWeight: "600",
+    fontSize: isTablet ? rf(1.07) : 13,
+    color: "#0284C7",
+    marginTop: 4,
+    fontWeight: "600",
+  },
+
+  progressPercent: {
+    fontSize: isTablet ? rf(1) : 12,
+    color: "#64748B",
+    marginTop: 4,
+  },
+  emptyContainer: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#F8FAFC",
+  paddingHorizontal: 30,
 },
 
-progressPercent: {
-  fontSize: 12,
+emptyTitle: {
+  marginTop: 16,
+  fontSize: isTablet ? rf(1.8) : 20,
+  fontWeight: "700",
+  color: "#0F172A",
+  textAlign: "center",
+},
+
+emptySubtitle: {
+  marginTop: 8,
+  fontSize: isTablet ? rf(1.2) : 14,
   color: "#64748B",
-  marginTop: 4,
+  textAlign: "center",
+  lineHeight: 22,
+},
+
+emptyButton: {
+  marginTop: 24,
+  backgroundColor: "#19A7CE",
+  paddingVertical: 14,
+  paddingHorizontal: 32,
+  borderRadius: 30,
+},
+
+emptyButtonText: {
+  color: "#fff",
+  fontWeight: "700",
+  fontSize: isTablet ? rf(1.2) : 15,
+},
+
+listEmptyContainer: {
+  justifyContent: "center",
+  alignItems: "center",
+  paddingVertical: 40,
 },
 });
