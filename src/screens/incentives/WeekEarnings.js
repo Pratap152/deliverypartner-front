@@ -5,13 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import DeviceInfo from "react-native-device-info";
 
 import WeeklyMissionProgress from '../../components/dashboard/earnings/WeeklyMissionProgress';
 
@@ -24,7 +22,11 @@ const WeeklyCheckpointBar = ({ slabs, ordersCompleted }) => {
       <View style={styles.checkpointHeaderRow}>
         <Text style={styles.checkpointTitle}>Weekly Progress</Text>
         <View style={styles.ordersBadge}>
-          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Ionicons
+          name="cube"
+          size={isTablet ? 18: 14}
+          color="#4F39F6"
+          />
           <Text style={styles.ordersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
@@ -61,7 +63,7 @@ const WeeklyCheckpointBar = ({ slabs, ordersCompleted }) => {
               >
                 <Ionicons
                   name={isCompleted ? "checkmark" : "lock-closed"}
-                  size={12}
+                  size={isTablet ? 16 : 12}
                   color={isCompleted ? "#FFF" : "#999"}
                 />
               </View>
@@ -101,7 +103,11 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
       <View style={styles.checkpointHeaderRow}>
         <Text style={styles.checkpointTitle}>Weekly Progress</Text>
         <View style={styles.ordersBadge}>
-          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Ionicons
+          name="cube"
+          size={isTablet ? 18 : 14}
+          color="#4F39F6"
+          />
           <Text style={styles.ordersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
@@ -121,18 +127,28 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
 };
 
 const WeekEarnings = ({ route, navigation }) => {
+  const { width } = useWindowDimensions();
+  const isTablet = DeviceInfo.isTablet();
+  const styles = createStyles(isTablet, width);
+
   const params = route.params || {};
   const data = params?.data || params;
   console.log("data from week Earnings", data);
 
   if (data.emptyData || data.weeklyIncentivesProgress?.emptyData) {
     return (
-      <View>
-        <Text>
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name="calendar-outline"
+          size={isTablet ? 70 : 50}
+          color="#9CA3AF"
+        />
+
+        <Text style={styles.emptyText}>
           Please come again later
         </Text>
       </View>
-    )
+    );
   }
 
   /* ---------------- EXTRACT DATA ---------------- */
@@ -150,10 +166,6 @@ const WeekEarnings = ({ route, navigation }) => {
   //Data for ruleType = "HYBRID"
   const minEarnings = data?.weekly_data.data[0].conditions?.minEarnings;
 
-  const totalDaysInWeek = 7;
-  const minOrdersPerDay = 4;
-  const allowPartialDays = true;
-
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* --- HERO HEADER --- */}
@@ -165,14 +177,22 @@ const WeekEarnings = ({ route, navigation }) => {
       >
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
+            <Ionicons
+            name="arrow-back"
+            size={isTablet ? 30 : 24}
+            color="#FFF"
+            />
           </TouchableOpacity>
         </View>
 
         <Text style={styles.heroTitle}>{title}</Text>
 
         <View style={styles.rewardPill}>
-          <Ionicons name="trophy" size={16} color="#FFD700" />
+          <Ionicons
+          name="trophy"
+          size={isTablet ? 20 : 16}
+          color="#FFD700"
+          />
           <Text style={styles.rewardLabel}>Max Reward:</Text>
           <Text style={styles.rewardValue}>₹{maxRewardPerWeek}</Text>
         </View>
@@ -183,7 +203,11 @@ const WeekEarnings = ({ route, navigation }) => {
         <View style={styles.rulesCard}>
           <View style={styles.cardHeaderRow}>
             <View style={styles.iconBox}>
-              <Ionicons name="calendar" size={20} color="#4F39F6" />
+              <Ionicons
+              name="calendar"
+              size={isTablet ? 26 : 20}
+              color="#4F39F6"
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Weekly Requirements</Text>
@@ -195,7 +219,12 @@ const WeekEarnings = ({ route, navigation }) => {
           {/* Rule Rows */}
           {ruleType === "TASK" && (
             <View style={styles.ruleRow}>
-              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Ionicons
+              name="cube-outline"
+              size={isTablet ? 24 : 18}
+              color="#555"
+              style={styles.ruleIcon}
+              />
               <Text style={styles.ruleText}>
                 Complete your tasks to earn rewards
               </Text>
@@ -203,7 +232,12 @@ const WeekEarnings = ({ route, navigation }) => {
           )}
           {minOrders !== 0 && (
             <View style={styles.ruleRow}>
-              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Ionicons
+              name="cube-outline"
+              size={isTablet ? 24 : 18}
+              color="#555"
+              style={styles.ruleIcon}
+              />
               <Text style={styles.ruleText}>
                 Deliver <Text style={styles.boldPurple}>{minOrders}+ orders</Text> in a week
               </Text>
@@ -211,7 +245,12 @@ const WeekEarnings = ({ route, navigation }) => {
           )}
           {minEarnings && (
             <View style={styles.ruleRow}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Ionicons
+              name="checkmark-circle-outline"
+              size={isTablet ? 24 : 18}
+              color="#555"
+              style={styles.ruleIcon}
+              />
               <Text style={styles.ruleText}>
                 Should have minimum earnings of <Text style={styles.boldPurple}>{minEarnings}</Text> rupees
               </Text>
@@ -234,6 +273,8 @@ const WeekEarnings = ({ route, navigation }) => {
             <FixedTargetType
               target={minOrders}
               ordersCompleted={ordersCompleted}
+              isTablet={isTablet}
+              styles={styles}
             />
           </View>
         }
@@ -253,7 +294,11 @@ const WeekEarnings = ({ route, navigation }) => {
                 colors={["#4F39F6", "#3B28C7"]}
                 style={styles.statIconBox}
               >
-                <Ionicons name="cube" size={24} color="#FFF" />
+                <Ionicons
+                name="cube"
+                size={isTablet ? 32 : 24}
+                color="#FFF"
+                />
               </LinearGradient>
               <View style={{ flex: 1, marginLeft: 16 }}>
                 <Text style={styles.statLabel}>Total Orders This Week</Text>
@@ -266,7 +311,11 @@ const WeekEarnings = ({ route, navigation }) => {
         {/* PAYOUT INFO */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <Ionicons name="cash-outline" size={20} color="#00A63E" />
+            <Ionicons
+            name="cash-outline"
+            size={isTablet ? 28 : 20}
+            color="#00A63E"
+            />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.infoTitle}>Payout Details</Text>
               <Text style={styles.infoText}>
@@ -292,7 +341,7 @@ const WeekEarnings = ({ route, navigation }) => {
               <Text style={styles.stepNumberText}>2</Text>
             </View>
             <Text style={styles.stepText}>
-              Complete minimum {minOrdersPerDay} orders per day
+              Complete minimum {minOrders} orders per day
             </Text>
           </View>
           <View style={styles.stepRow}>
@@ -311,385 +360,390 @@ const WeekEarnings = ({ route, navigation }) => {
 
 export default WeekEarnings;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F7FB", // Light gray-blue bg
-  },
+const createStyles = (
+  isTablet,
+  width,
+) => {
+  const contentWidth = isTablet
+    ? width > 1000
+      ? '70%'
+      : '82%'
+    : '100%';
 
-  /* --- HERO HEADER STYLES --- */
-  heroHeader: {
-    paddingTop: hp("3%"),
-    paddingBottom: hp("4%"),
-    paddingHorizontal: wp("5%"),
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: hp("2%"),
-  },
-  statusBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
-  },
-  inactiveBadge: {
-    backgroundColor: "rgba(0,0,0,0.2)",
-  },
-  statusText: {
-    color: "#AAFFAA", // Light green text for eligible
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
-  inactiveText: {
-    color: "#CCC",
-  },
-  heroTitle: {
-    fontSize: wp("6.5%"),
-    fontWeight: "800",
-    color: "#FFF",
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    fontSize: wp("3.8%"),
-    color: "rgba(255,255,255,0.9)",
-    marginBottom: hp("2.5%"),
-  },
-  rewardPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignSelf: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  rewardLabel: {
-    color: "#E0E0E0",
-    fontSize: 13,
-    marginLeft: 6,
-    marginRight: 6,
-  },
-  rewardValue: {
-    color: "#FFD700", // Gold
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  contentContainer: {
-    padding: wp("5%"),
-  },
-
-  /* --- RULES CARD --- */
-  rulesCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    borderLeftWidth: 4,
-    borderLeftColor: "#4F39F6",
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E0E7FF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1F2937",
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EFF0F6",
-    marginBottom: 12,
-  },
-  ruleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  ruleIcon: {
-    marginRight: 10,
-    opacity: 0.7,
-  },
-  ruleText: {
-    fontSize: 14,
-    color: "#4B5563",
-    flex: 1,
-    lineHeight: 20,
-  },
-  boldPurple: {
-    fontWeight: "700",
-    color: "#4F39F6",
-  },
-
-  /* --- 7-DAY CHECKPOINT BAR STYLES --- */
-  progressWrapper: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  checkpointContainer: {},
-  checkpointHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  checkpointTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-  },
-  ordersBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E0E7FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  ordersText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#4F39F6",
-    marginLeft: 4,
-  },
-  checkpointTrackWrapper: {
-    height: 60,
-    position: "relative",
-    marginTop: 20,
-    marginBottom: 30,
-    marginHorizontal: 10,
-  },
-  checkpointTrack: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 22,
-    height: 8,
-    backgroundColor: "#EEF0F4",
-    borderRadius: 4,
-  },
-  checkpointFill: {
-    position: "absolute",
-    left: 0,
-    top: 22,
-    height: 8,
-    borderRadius: 4,
-  },
-  checkpoint: {
-    position: "absolute",
-    top: 0,
-    alignItems: "center",
-    marginLeft: -15,
-  },
-  checkpointIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#E5E7EB",
-    borderWidth: 3,
-    borderColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  checkpointIconCompleted: {
-    backgroundColor: "#00A63E",
-  },
-  checkpointDayLabel: {
-    position: "absolute",
-    top: -22,
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#999",
-  },
-  checkpointDayLabelActive: {
-    color: "#4F39F6",
-    fontSize: 11,
-  },
-  checkpointRewardLabel: {
-    position: "absolute",
-    top: 36,
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#999",
-  },
-  checkpointRewardLabelActive: {
-    color: "#00A63E",
-    fontSize: 10,
-  },
-
-  //Styles for FIXED_TARGET
-  fixedTargetLabel: {
-    marginBottom: 5,
-    fontSize: 14,
-    fontWeight: '500'
-  },
-  fixedTargetContainer: {
-    height: 12,
-    backgroundColor: '#eee',
-    borderRadius: 6,
-    overflow: 'hidden'
-  },
-  fixedTargetProgress: {
-    height: '100%',
-    backgroundColor: '#4CAF50'
-  },
-  fixedTargetPercent: {
-    marginTop: 5,
-    fontSize: 12,
-    color: '#555'
-  },
-
-  /* --- STATS CARD --- */
-  statsCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  statIconBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  statLabel: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1F2937",
-    marginBottom: 2,
-  },
-  statHint: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    fontStyle: "italic",
-  },
-
-  /* --- INFO CARD --- */
-  infoCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  infoTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 2,
-  },
-  infoText: {
-    fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 18,
-  },
-
-  /* --- HOW IT WORKS CARD --- */
-  howItWorksCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 16,
-  },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#E0E7FF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  stepNumberText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#4F39F6",
-  },
-  stepText: {
-    fontSize: 14,
-    color: "#4B5563",
-    flex: 1,
-    lineHeight: 20,
-  },
-});
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#F4F7FB',
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F4F7FB',
+    },
+    emptyText: {
+      marginTop: 14,
+      fontSize: isTablet ? 22 : 16,
+      color: '#6B7280',
+      fontWeight: '600',
+    },
+    heroHeader: {
+      paddingTop: isTablet ? 55 : 35,
+      paddingBottom: isTablet ? 45 : 30,
+      paddingHorizontal: isTablet ? 34 : 20,
+      borderBottomLeftRadius: 28,
+      borderBottomRightRadius: 28,
+      alignItems: 'flex-start',
+    },
+    headerTop: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isTablet ? 28 : 18,
+    },
+    heroTitle: {
+      fontSize: isTablet ? 38 : 26,
+      fontWeight: '800',
+      color: '#FFF',
+      marginBottom: 10,
+      textAlign: isTablet
+        ? 'center'
+        : 'left',
+    },
+    rewardPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.15)',
+      paddingHorizontal: isTablet
+        ? 22
+        : 16,
+      paddingVertical: isTablet
+        ? 12
+        : 8,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.2)',
+    },
+    rewardLabel: {
+      color: '#E0E0E0',
+      fontSize: isTablet ? 16 : 13,
+      marginLeft: 6,
+      marginRight: 6,
+    },
+    rewardValue: {
+      color: '#FFD700',
+      fontSize: isTablet ? 24 : 18,
+      fontWeight: '700',
+    },
+    contentContainer: {
+      width: contentWidth,
+      alignSelf: 'center',
+      paddingVertical: isTablet
+        ? 28
+        : 20,
+      paddingHorizontal: isTablet
+        ? 0
+        : 20,
+    },
+    rulesCard: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 24 : 16,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+      borderLeftWidth: 5,
+      borderLeftColor: '#4F39F6',
+    },
+    cardHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    iconBox: {
+      width: isTablet ? 54 : 40,
+      height: isTablet ? 54 : 40,
+      borderRadius: 999,
+      backgroundColor: '#E0E7FF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 14,
+    },
+    cardTitle: {
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: '700',
+      color: '#1F2937',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: '#EFF0F6',
+      marginBottom: 14,
+    },
+    ruleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    ruleIcon: {
+      marginRight: 10,
+      opacity: 0.7,
+    },
+    ruleText: {
+      fontSize: isTablet ? 18 : 14,
+      color: '#4B5563',
+      flex: 1,
+      lineHeight: isTablet ? 30 : 20,
+    },
+    boldPurple: {
+      fontWeight: '700',
+      color: '#4F39F6',
+    },
+    progressWrapper: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 28 : 20,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    checkpointContainer: {},
+    checkpointHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isTablet ? 34 : 24,
+    },
+    checkpointTitle: {
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: '700',
+      color: '#333',
+    },
+    ordersBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#E0E7FF',
+      paddingHorizontal: isTablet
+        ? 14
+        : 10,
+      paddingVertical: isTablet
+        ? 8
+        : 4,
+      borderRadius: 14,
+    },
+    ordersText: {
+      fontSize: isTablet ? 15 : 12,
+      fontWeight: '700',
+      color: '#4F39F6',
+      marginLeft: 4,
+    },
+    checkpointTrackWrapper: {
+      height: isTablet ? 90 : 60,
+      position: 'relative',
+      marginTop: 20,
+      marginBottom: isTablet ? 50 : 30,
+      marginHorizontal: 10,
+    },
+    checkpointTrack: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: isTablet ? 34 : 22,
+      height: isTablet ? 12 : 8,
+      backgroundColor: '#EEF0F4',
+      borderRadius: 6,
+    },
+    checkpointFill: {
+      position: 'absolute',
+      left: 0,
+      top: isTablet ? 34 : 22,
+      height: isTablet ? 12 : 8,
+      borderRadius: 6,
+    },
+    checkpoint: {
+      position: 'absolute',
+      top: 0,
+      alignItems: 'center',
+      marginLeft: isTablet ? -22 : -15,
+    },
+    checkpointIcon: {
+      width: isTablet ? 44 : 30,
+      height: isTablet ? 44 : 30,
+      borderRadius: 999,
+      backgroundColor: '#E5E7EB',
+      borderWidth: 3,
+      borderColor: '#FFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 3,
+    },
+    checkpointIconCompleted: {
+      backgroundColor: '#00A63E',
+    },
+    checkpointDayLabel: {
+      position: 'absolute',
+      top: isTablet ? -34 : -22,
+      fontSize: isTablet ? 14 : 10,
+      fontWeight: '700',
+      color: '#999',
+    },
+    checkpointDayLabelActive: {
+      color: '#4F39F6',
+    },
+    checkpointRewardLabel: {
+      position: 'absolute',
+      top: isTablet ? 54 : 36,
+      fontSize: isTablet ? 13 : 10,
+      fontWeight: '700',
+      color: '#999',
+    },
+    checkpointRewardLabelActive: {
+      color: '#00A63E',
+    },
+    fixedTargetLabel: {
+      marginBottom: 8,
+      fontSize: isTablet ? 18 : 14,
+      fontWeight: '500',
+      color: '#374151',
+    },
+    fixedTargetContainer: {
+      height: isTablet ? 18 : 12,
+      backgroundColor: '#eee',
+      borderRadius: 999,
+      overflow: 'hidden',
+    },
+    fixedTargetProgress: {
+      height: '100%',
+      backgroundColor: '#4CAF50',
+    },
+    fixedTargetPercent: {
+      marginTop: 8,
+      fontSize: isTablet ? 16 : 12,
+      color: '#555',
+      fontWeight: '600',
+    },
+    statsCard: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 24 : 16,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    statRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    statIconBox: {
+      width: isTablet ? 76 : 56,
+      height: isTablet ? 76 : 56,
+      borderRadius: 999,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: isTablet ? 16 : 13,
+      color: '#6B7280',
+      marginBottom: 4,
+    },
+    statValue: {
+      fontSize: isTablet ? 30 : 20,
+      fontWeight: '800',
+      color: '#1F2937',
+    },
+    infoCard: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 24 : 16,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    infoTitle: {
+      fontSize: isTablet ? 20 : 15,
+      fontWeight: '700',
+      color: '#1F2937',
+      marginBottom: 4,
+    },
+    infoText: {
+      fontSize: isTablet ? 16 : 13,
+      color: '#6B7280',
+      lineHeight: isTablet ? 28 : 18,
+    },
+    howItWorksCard: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 28 : 20,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    sectionTitle: {
+      fontSize: isTablet ? 24 : 16,
+      fontWeight: '700',
+      color: '#333',
+      marginBottom: 20,
+    },
+    stepRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    stepNumber: {
+      width: isTablet ? 42 : 28,
+      height: isTablet ? 42 : 28,
+      borderRadius: 999,
+      backgroundColor: '#E0E7FF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 14,
+    },
+    stepNumberText: {
+      fontSize: isTablet ? 18 : 14,
+      fontWeight: '700',
+      color: '#4F39F6',
+    },
+    stepText: {
+      fontSize: isTablet ? 18 : 14,
+      color: '#4B5563',
+      flex: 1,
+      lineHeight: isTablet ? 30 : 20,
+    },
+  });
+};

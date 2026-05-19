@@ -5,16 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
+
+import DeviceInfo from "react-native-device-info";
 import LinearGradient from "react-native-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
 
 /* --- PROGRESSIVE CHECKPOINT BAR COMPONENT --- */
-const ProgressiveCheckpointBar = ({ slabs, currentOrders }) => {
+const ProgressiveCheckpointBar = ({ slabs, currentOrders, styles, isTablet }) => {
   // If no slabs, return null
   if (!slabs || slabs.length === 0) return null;
 
@@ -57,7 +56,7 @@ const ProgressiveCheckpointBar = ({ slabs, currentOrders }) => {
               >
                 <Ionicons
                   name={isCompleted ? "checkmark" : "lock-closed"}
-                  size={12}
+                  size={isTablet ? 18 : 12}
                   color={isCompleted ? "#FFF" : "#999"}
                 />
               </View>
@@ -94,7 +93,7 @@ const ProgressiveCheckpointBar = ({ slabs, currentOrders }) => {
   );
 };
 
-const FixedTargetType = ({ target, ordersCompleted }) => {
+const FixedTargetType = ({ target, ordersCompleted, styles, isTablet }) => {
   const progress = Math.min((ordersCompleted / target) * 100, 100);
 
   return (
@@ -102,7 +101,11 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
       <View style={styles.peakCheckpointHeaderRow}>
         <Text style={styles.peakCheckpointTitle}>Peak Slot Progress</Text>
         <View style={styles.ordersBadge}>
-          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Ionicons
+          name="cube"
+          size={isTablet ? 18 : 14}
+          color="#4F39F6"
+          />
           <Text style={styles.ordersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
@@ -122,13 +125,17 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
 };
 
 const PeakHourBonusScreen = ({ route, navigation }) => {
+  const { width } = useWindowDimensions();
+  const isTablet = DeviceInfo.isTablet();
+  const styles = createStyles(isTablet, width);
+
   const data = route.params;
   console.log("data from peak hour bonus: ", data);
 
   if (data.emptyData || data.peakIncentivesProgress?.emptyData) {
     return (
-      <View>
-        <Text>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>
           Please come again later
         </Text>
       </View>
@@ -170,7 +177,11 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
       >
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
+            <Ionicons
+            name="arrow-back"
+            size={isTablet ? 34 : 24}
+            color="#FFF"
+            />
           </TouchableOpacity>
         </View>
 
@@ -180,14 +191,16 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
         </Text>
 
         <View style={styles.rewardPill}>
-          <Ionicons name="flash" size={16} color="#FFD700" />
+          <Ionicons
+          name="flash"
+          size={isTablet ? 22 : 16}
+          color="#FFD700"
+          />
           <Text style={styles.rewardLabel}>Peak Hours:</Text>
           {
             !peakSlotTime
               ? <Text style={styles.rewardValue}>No peak slots</Text>
-              : <Text style={styles.rewardValue}>
-                {peakSlotTime}
-              </Text>
+              : <Text style={styles.rewardValue}>{peakSlotTime}</Text>
           }
         </View>
       </LinearGradient>
@@ -213,6 +226,8 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
             <ProgressiveCheckpointBar
               slabs={slabs}
               currentOrders={currentOrders}
+              styles={styles}
+              isTablet={isTablet}
             />
           </View>}
 
@@ -221,6 +236,8 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
             <FixedTargetType
               target={minOrders}
               ordersCompleted={currentOrders}
+              styles={styles}
+              isTablet={isTablet}
             />
           </View>
         }
@@ -228,7 +245,11 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
         {(ruleType === "FIXED_TARGET" || ruleType === "HYBRID") &&
           <View style={styles.card}>
             <View style={styles.iconCircle}>
-              <Ionicons name="cash-outline" size={20} color="#00A63E" />
+              <Ionicons
+              name="cash-outline"
+              size={isTablet ? 28 : 20}
+              color="#00A63E"
+              />
             </View>
 
             <View style={{ flex: 1 }}>
@@ -295,333 +316,544 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
 
 export default PeakHourBonusScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F7FB", // Light gray-blue bg (same as DailyGuarentee)
-  },
+const createStyles = (
+  isTablet,
+  width
+) => {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor:
+        "#F4F7FB",
+    },
 
-  /* --- HERO HEADER STYLES --- */
-  heroHeader: {
-    paddingTop: hp("3%"),
-    paddingBottom: hp("4%"),
-    paddingHorizontal: wp("5%"),
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: hp("2%"),
-  },
-  statusBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
-  },
-  inactiveBadge: {
-    backgroundColor: "rgba(0,0,0,0.2)",
-  },
-  statusText: {
-    color: "#AAFFAA", // Light green text for active
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
-  inactiveText: {
-    color: "#CCC",
-  },
-  heroTitle: {
-    fontSize: wp("6.5%"),
-    fontWeight: "800",
-    color: "#FFF",
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    fontSize: wp("3.8%"),
-    color: "rgba(255,255,255,0.9)",
-    marginBottom: hp("2.5%"),
-  },
-  rewardPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignSelf: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  rewardLabel: {
-    color: "#E0E0E0",
-    fontSize: 13,
-    marginLeft: 6,
-    marginRight: 6,
-  },
-  rewardValue: {
-    color: "#FFD700", // Gold
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    emptyContainer: {
+      flex: 1,
+      justifyContent:
+        "center",
+      alignItems: "center",
+    },
 
-  contentContainer: {
-    padding: wp("5%"),
-  },
+    emptyText: {
+      fontSize: isTablet
+        ? 24
+        : 16,
+      fontWeight: "600",
+      color: "#6B7280",
+    },
 
-  /* --- TIME CARD (KEEPING EXACTLY AS ORIGINAL) --- */
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: hp("2%"),
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#E0F2FE",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  icon: {
-    fontSize: 20,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  cardSubText: {
-    fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 18,
-  },
+    heroHeader: {
+      paddingTop: isTablet
+        ? 40
+        : 25,
+      paddingBottom:
+        isTablet
+          ? 45
+          : 30,
+      paddingHorizontal:
+        isTablet
+          ? 35
+          : 20,
+      borderBottomLeftRadius:
+        isTablet ? 36 : 24,
+      borderBottomRightRadius:
+        isTablet ? 36 : 24,
+    },
 
-  //Styles for FIXED_TARGET'
-  peakCheckpointHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  peakCheckpointTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-  },
-  ordersBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E0E7FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  ordersText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#4F39F6",
-    marginLeft: 4,
-  },
-  fixedTargetLabel: {
-    marginBottom: 5,
-    fontSize: 14,
-    fontWeight: '500'
-  },
-  fixedTargetContainer: {
-    height: 12,
-    backgroundColor: '#eee',
-    borderRadius: 6,
-    overflow: 'hidden'
-  },
-  fixedTargetProgress: {
-    height: '100%',
-    backgroundColor: '#4CAF50'
-  },
-  fixedTargetPercent: {
-    marginTop: 5,
-    fontSize: 12,
-    color: '#555'
-  },
+    headerTop: {
+      flexDirection: "row",
+      justifyContent:
+        "space-between",
+      alignItems: "center",
+      marginBottom:
+        isTablet
+          ? 30
+          : 18,
+    },
 
-  /* --- PROGRESSIVE CHECKPOINT BAR STYLES --- */
-  progressWrapper: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  checkpointContainer: {},
-  checkpointTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 24,
-  },
-  checkpointTrackWrapper: {
-    height: 60,
-    position: "relative",
-    marginTop: 20,
-    marginBottom: 30,
-    marginHorizontal: 10,
-  },
-  checkpointTrack: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 22,
-    height: 8,
-    backgroundColor: "#EEF0F4",
-    borderRadius: 4,
-  },
-  checkpointFill: {
-    position: "absolute",
-    left: 0,
-    top: 22,
-    height: 8,
-    borderRadius: 4,
-  },
-  checkpoint: {
-    position: "absolute",
-    top: 0,
-    alignItems: "center",
-    marginLeft: -15, // Center the checkpoint
-  },
-  checkpointIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#E5E7EB",
-    borderWidth: 3,
-    borderColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  checkpointIconCompleted: {
-    backgroundColor: "#00A63E",
-  },
-  checkpointOrderLabel: {
-    position: "absolute",
-    top: -22,
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#999",
-  },
-  checkpointOrderLabelActive: {
-    color: "#4F39F6",
-    fontSize: 12,
-  },
-  checkpointRewardLabel: {
-    position: "absolute",
-    top: 36,
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#999",
-  },
-  checkpointRewardLabelActive: {
-    color: "#00A63E",
-    fontSize: 13,
-  },
-  currentProgressText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#4F39F6",
-    textAlign: "center",
-    marginTop: 10,
-  },
+    heroTitle: {
+      fontSize: isTablet
+        ? 34
+        : 26,
+      fontWeight: "800",
+      color: "#FFF",
+      marginBottom: 6,
+    },
 
-  /* --- INFO CARD --- */
-  infoCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  infoTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 2,
-  },
-  infoText: {
-    fontSize: 13,
-    color: "#6B7280",
-  },
+    heroSubtitle: {
+      fontSize: isTablet
+        ? 20
+        : 15,
+      color:
+        "rgba(255,255,255,0.9)",
+      marginBottom:
+        isTablet
+          ? 28
+          : 18,
+      lineHeight:
+        isTablet
+          ? 30
+          : 22,
+    },
 
-  /* --- HOW IT WORKS CARD --- */
-  howItWorksCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 16,
-  },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#E0E7FF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  stepNumberText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#4F39F6",
-  },
-  stepText: {
-    fontSize: 14,
-    color: "#4B5563",
-    flex: 1,
-    lineHeight: 20,
-  },
-});
+    rewardPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      backgroundColor:
+        "rgba(255,255,255,0.15)",
+      paddingHorizontal:
+        isTablet
+          ? 20
+          : 14,
+      paddingVertical:
+        isTablet
+          ? 12
+          : 8,
+      borderRadius:
+        isTablet
+          ? 20
+          : 16,
+    },
+
+    rewardLabel: {
+      color: "#E0E0E0",
+      fontSize: isTablet
+        ? 18
+        : 13,
+      marginHorizontal: 6,
+    },
+
+    rewardValue: {
+      color: "#FFD700",
+      fontSize: isTablet
+        ? 22
+        : 16,
+      fontWeight: "700",
+    },
+
+    contentContainer: {
+      padding: isTablet
+        ? 30
+        : 18,
+    },
+
+    card: {
+      backgroundColor:
+        "#FFF",
+      borderRadius:
+        isTablet
+          ? 24
+          : 16,
+      padding: isTablet
+        ? 24
+        : 16,
+      marginBottom:
+        isTablet
+          ? 24
+          : 16,
+      flexDirection: "row",
+      alignItems: "center",
+
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+
+    iconCircle: {
+      width: isTablet
+        ? 65
+        : 44,
+
+      height: isTablet
+        ? 65
+        : 44,
+
+      borderRadius: isTablet
+        ? 32
+        : 22,
+
+      backgroundColor:
+        "#E0F2FE",
+
+      justifyContent:
+        "center",
+
+      alignItems: "center",
+
+      marginRight:
+        isTablet
+          ? 18
+          : 12,
+    },
+
+    icon: {
+      fontSize: isTablet
+        ? 28
+        : 20,
+    },
+
+    cardTitle: {
+      fontSize: isTablet
+        ? 24
+        : 16,
+      fontWeight: "700",
+      color: "#1F2937",
+      marginBottom: 4,
+    },
+
+    cardSubText: {
+      fontSize: isTablet
+        ? 18
+        : 13,
+      color: "#6B7280",
+      lineHeight:
+        isTablet
+          ? 28
+          : 18,
+    },
+
+    progressWrapper: {
+      backgroundColor:
+        "#FFF",
+      borderRadius:
+        isTablet
+          ? 24
+          : 16,
+      padding: isTablet
+        ? 28
+        : 20,
+      marginBottom:
+        isTablet
+          ? 24
+          : 16,
+
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+
+    checkpointContainer: {},
+
+    checkpointTitle: {
+      fontSize: isTablet
+        ? 24
+        : 16,
+      fontWeight: "700",
+      color: "#333",
+      marginBottom:
+        isTablet
+          ? 32
+          : 24,
+    },
+
+    checkpointTrackWrapper: {
+      height: isTablet
+        ? 90
+        : 60,
+      position: "relative",
+      marginBottom:
+        isTablet
+          ? 45
+          : 30,
+      marginHorizontal:
+        isTablet
+          ? 20
+          : 10,
+    },
+
+    checkpointTrack: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: isTablet
+        ? 35
+        : 22,
+      height: isTablet
+        ? 10
+        : 8,
+      backgroundColor:
+        "#EEF0F4",
+      borderRadius: 10,
+    },
+
+    checkpointFill: {
+      position: "absolute",
+      left: 0,
+      top: isTablet
+        ? 35
+        : 22,
+      height: isTablet
+        ? 10
+        : 8,
+      borderRadius: 10,
+    },
+
+    checkpoint: {
+      position: "absolute",
+      top: 0,
+      alignItems: "center",
+      marginLeft: isTablet
+        ? -22
+        : -15,
+    },
+
+    checkpointIcon: {
+      width: isTablet
+        ? 46
+        : 30,
+
+      height: isTablet
+        ? 46
+        : 30,
+
+      borderRadius: isTablet
+        ? 23
+        : 15,
+
+      backgroundColor:
+        "#E5E7EB",
+
+      borderWidth: 3,
+      borderColor: "#FFF",
+
+      justifyContent:
+        "center",
+
+      alignItems: "center",
+    },
+
+    checkpointIconCompleted:
+      {
+        backgroundColor:
+          "#00A63E",
+      },
+
+    checkpointOrderLabel: {
+      position: "absolute",
+      top: isTablet
+        ? -30
+        : -22,
+      fontSize: isTablet
+        ? 16
+        : 11,
+      fontWeight: "700",
+      color: "#999",
+    },
+
+    checkpointOrderLabelActive:
+      {
+        color: "#4F39F6",
+      },
+
+    checkpointRewardLabel: {
+      position: "absolute",
+      top: isTablet
+        ? 54
+        : 36,
+      fontSize: isTablet
+        ? 16
+        : 13,
+      fontWeight: "700",
+      color: "#999",
+    },
+
+    checkpointRewardLabelActive:
+      {
+        color: "#00A63E",
+      },
+
+    currentProgressText: {
+      fontSize: isTablet
+        ? 20
+        : 14,
+      fontWeight: "600",
+      color: "#4F39F6",
+      textAlign: "center",
+      marginTop: 10,
+    },
+
+    peakCheckpointHeaderRow:
+      {
+        flexDirection: "row",
+        justifyContent:
+          "space-between",
+        alignItems: "center",
+        marginBottom:
+          isTablet
+            ? 30
+            : 24,
+      },
+
+    peakCheckpointTitle: {
+      fontSize: isTablet
+        ? 24
+        : 16,
+      fontWeight: "700",
+      color: "#333",
+    },
+
+    ordersBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor:
+        "#E0E7FF",
+      paddingHorizontal:
+        isTablet
+          ? 16
+          : 10,
+      paddingVertical:
+        isTablet
+          ? 8
+          : 4,
+      borderRadius:
+        isTablet
+          ? 16
+          : 12,
+    },
+
+    ordersText: {
+      fontSize: isTablet
+        ? 16
+        : 12,
+      fontWeight: "700",
+      color: "#4F39F6",
+      marginLeft: 4,
+    },
+
+    fixedTargetLabel: {
+      marginBottom: 8,
+      fontSize: isTablet
+        ? 18
+        : 14,
+      fontWeight: "500",
+    },
+
+    fixedTargetContainer: {
+      height: isTablet
+        ? 18
+        : 12,
+      backgroundColor:
+        "#eee",
+      borderRadius: 10,
+      overflow: "hidden",
+    },
+
+    fixedTargetProgress: {
+      height: "100%",
+      backgroundColor:
+        "#4CAF50",
+    },
+
+    fixedTargetPercent: {
+      marginTop: 6,
+      fontSize: isTablet
+        ? 16
+        : 12,
+      color: "#555",
+    },
+
+    howItWorksCard: {
+      backgroundColor:
+        "#FFF",
+      borderRadius:
+        isTablet
+          ? 24
+          : 16,
+      padding: isTablet
+        ? 28
+        : 20,
+      marginBottom:
+        isTablet
+          ? 24
+          : 16,
+
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+
+    sectionTitle: {
+      fontSize: isTablet
+        ? 24
+        : 16,
+      fontWeight: "700",
+      color: "#333",
+      marginBottom:
+        isTablet
+          ? 24
+          : 16,
+    },
+
+    stepRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom:
+        isTablet
+          ? 18
+          : 12,
+    },
+
+    stepNumber: {
+      width: isTablet
+        ? 42
+        : 28,
+
+      height: isTablet
+        ? 42
+        : 28,
+
+      borderRadius: isTablet
+        ? 21
+        : 14,
+
+      backgroundColor:
+        "#E0E7FF",
+
+      justifyContent:
+        "center",
+
+      alignItems: "center",
+
+      marginRight:
+        isTablet
+          ? 18
+          : 12,
+    },
+
+    stepNumberText: {
+      fontSize: isTablet
+        ? 18
+        : 14,
+      fontWeight: "700",
+      color: "#4F39F6",
+    },
+
+    stepText: {
+      flex: 1,
+      fontSize: isTablet
+        ? 18
+        : 14,
+      color: "#4B5563",
+      lineHeight:
+        isTablet
+          ? 28
+          : 20,
+    },
+  });
+};
