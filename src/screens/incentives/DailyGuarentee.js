@@ -5,15 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import DeviceInfo from 'react-native-device-info';
 
-const ProgressCheckpointBar = ({ slabs, ordersCompleted }) => {
+const ProgressCheckpointBar = ({ slabs, ordersCompleted, isTablet, styles }) => {
   const minOrders = slabs[slabs.length - 1]?.minOrders;
   const progressPercent = Math.min((ordersCompleted / minOrders) * 100, 100);
 
@@ -22,7 +20,11 @@ const ProgressCheckpointBar = ({ slabs, ordersCompleted }) => {
       <View style={styles.progressCheckpointHeaderRow}>
         <Text style={styles.progressCheckpointTitle}>Daily Progress</Text>
         <View style={styles.progressOrdersBadge}>
-          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Ionicons
+            name="cube"
+            size={isTablet ? 18 : 14}
+            color="#4F39F6"
+          />
           <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
@@ -59,7 +61,7 @@ const ProgressCheckpointBar = ({ slabs, ordersCompleted }) => {
               >
                 <Ionicons
                   name={isCompleted ? "checkmark" : "lock-closed"}
-                  size={12}
+                  size={isTablet ? 16 : 12}
                   color={isCompleted ? "#FFF" : "#999"}
                 />
               </View>
@@ -91,7 +93,7 @@ const ProgressCheckpointBar = ({ slabs, ordersCompleted }) => {
   );
 };
 
-const FixedTargetType = ({ target, ordersCompleted }) => {
+const FixedTargetType = ({ target, ordersCompleted, isTablet, styles }) => {
   const progress = Math.min((ordersCompleted / target) * 100, 100);
 
   return (
@@ -99,7 +101,10 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
       <View style={styles.progressCheckpointHeaderRow}>
         <Text style={styles.progressCheckpointTitle}>Daily Progress</Text>
         <View style={styles.progressOrdersBadge}>
-          <Ionicons name="cube" size={14} color="#4F39F6" />
+          <Ionicons
+            name="cube"
+            size={isTablet ? 18 : 14}
+            color="#4F39F6" />
           <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
         </View>
       </View>
@@ -119,18 +124,29 @@ const FixedTargetType = ({ target, ordersCompleted }) => {
 };
 
 const DailyGuarentee = ({ route, navigation }) => {
+
+  const { width } = useWindowDimensions;
+  const isTablet = DeviceInfo.isTablet();
+  console.log("FWS: ", isTablet);
+  const styles = createStyles(isTablet, width);
+
   // Safe extraction with default values
   const params = route.params;
   console.log("data in daily guarantee: ", params);
 
   if (params.emptyData || params.dailyIncentivesProgress.emptyData) {
     return (
-      <View>
-        <Text>
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name="calendar-outline"
+          size={isTablet ? 70 : 50}
+          color="#9CA3AF"
+        />
+        <Text style={styles.emptyText}>
           Please come again later
         </Text>
       </View>
-    )
+    );
   }
 
   const title = params.daily_data.data[0].name;
@@ -158,7 +174,11 @@ const DailyGuarentee = ({ route, navigation }) => {
       >
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
+            <Ionicons
+              name="arrow-back"
+              size={isTablet ? 30 : 24}
+              color="#FFF"
+            />
           </TouchableOpacity>
         </View>
 
@@ -178,7 +198,11 @@ const DailyGuarentee = ({ route, navigation }) => {
           {!perOrderAmount &&
             <View style={styles.cardHeaderRow}>
               <View style={[styles.iconBox, styles.normalIconBox]}>
-                <Ionicons name="bicycle" size={20} color="#00A63E" />
+                <Ionicons
+                  name="bicycle"
+                  size={isTablet ? 26 : 20}
+                  color="#00A63E"
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>Targets</Text>
@@ -189,13 +213,21 @@ const DailyGuarentee = ({ route, navigation }) => {
           {perOrderAmount &&
             <View style={styles.cardHeaderRow}>
               <View style={[styles.iconBox, styles.normalIconBox]}>
-                <Ionicons name="bicycle" size={20} color="#00A63E" />
+                <Ionicons
+                  name="bicycle"
+                  size={isTablet ? 26 : 20}
+                  color="#00A63E"
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>Orders Delivered</Text>
               </View>
               <View style={styles.progressOrdersBadge}>
-                <Ionicons name="cube" size={14} color="#4F39F6" />
+                <Ionicons
+                  name="cube"
+                  size={isTablet ? 18 : 14}
+                  color="#4F39F6"
+                />
                 <Text style={styles.progressOrdersText}>{ordersCompleted} orders</Text>
               </View>
             </View>
@@ -208,18 +240,28 @@ const DailyGuarentee = ({ route, navigation }) => {
           {/* Rule Rows */}
           {minOrders !== 0 && (
             <View style={styles.ruleRow}>
-              <Ionicons name="cube-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Ionicons
+                name="cube-outline"
+                size={isTablet ? 24 : 18}
+                color="#555"
+                style={styles.ruleIcon}
+              />
               <Text style={styles.ruleText}>
-                Deliver minimum of <Text style={styles.boldNormal}>{minOrders} Orders</Text> to achieve rewards
+                Deliver minimum of{' '}<Text style={styles.boldNormal}>{minOrders} Orders</Text>{' '}to achieve rewards
               </Text>
             </View>
           )}
 
           {minEarnings && (
             <View style={styles.ruleRow}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={isTablet ? 24 : 18}
+                color="#555"
+                style={styles.ruleIcon}
+              />
               <Text style={styles.ruleText}>
-                Should have minimum earnings of <Text style={styles.boldNormal}>{minEarnings}</Text> rupees
+                Should have minimum earnings of{' '}<Text style={styles.boldNormal}>{minEarnings}</Text>{' '}rupees
               </Text>
             </View>
           )}
@@ -230,24 +272,19 @@ const DailyGuarentee = ({ route, navigation }) => {
             <ProgressCheckpointBar
               slabs={slabs}
               ordersCompleted={ordersCompleted}
+              styles={styles}
+              isTablet={isTablet}
             />
           </View>
         }
 
-        {ruleType === "FIXED_TARGET" &&
+        {(ruleType === "FIXED_TARGET" || ruleType === "HYBRID") &&
           <View style={styles.progressWrapper}>
             <FixedTargetType
               target={target}
               ordersCompleted={ordersCompleted}
-            />
-          </View>
-        }
-
-        {ruleType === "HYBRID" &&
-          <View style={styles.progressWrapper}>
-            <FixedTargetType
-              target={target}
-              ordersCompleted={ordersCompleted}
+              styles={styles}
+              isTablet={isTablet}
             />
           </View>
         }
@@ -255,9 +292,14 @@ const DailyGuarentee = ({ route, navigation }) => {
         {perOrderAmount && (
           <View style={[styles.ruleCard, styles.normalCard]}>
             <View style={{ flexDirection: 'row' }}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#555" style={styles.ruleIcon} />
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={isTablet ? 24 : 18}
+                color="#555"
+                style={styles.ruleIcon}
+              />
               <Text style={styles.ruleText}>
-                You will get <Text style={styles.boldNormal}>{perOrderAmount} rupees</Text> for each order you deliver
+                You will get{' '}<Text style={styles.boldNormal}>{perOrderAmount} rupees</Text>{' '}for each order you deliver
               </Text>
             </View>
           </View>
@@ -270,266 +312,293 @@ const DailyGuarentee = ({ route, navigation }) => {
 
 export default DailyGuarentee;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F7FB", // Light gray-blue bg
-  },
-  heroHeader: {
-    paddingTop: hp("3%"),
-    paddingBottom: hp("4%"),
-    paddingHorizontal: wp("5%"),
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: hp("2%"),
-  },
-  heroTitle: {
-    fontSize: wp("6.5%"),
-    fontWeight: "800",
-    color: "#FFF",
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    fontSize: wp("3.8%"),
-    color: "rgba(255,255,255,0.9)",
-    marginBottom: hp("2.5%"),
-  },
-  rewardPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)'
-  },
-  rewardLabel: {
-    color: '#E0E0E0',
-    fontSize: 13,
-    marginRight: 8,
-  },
-  rewardValue: {
-    color: '#FFD700', // Gold
-    fontSize: 18,
-    fontWeight: '700',
-  },
+const createStyles = (
+  isTablet,
+  width,
+) => {
+  const contentWidth = isTablet
+    ? width > 1000
+      ? '70%'
+      : '82%'
+    : '100%';
 
-  contentContainer: {
-    padding: wp("5%"),
-  },
-  sectionTitle: {
-    fontSize: wp("4.5%"),
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: hp("2%"),
-    marginLeft: 4,
-  },
-
-  //Progress Bar
-  progressWrapper: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  progressCheckpointContainer: {},
-  progressCheckpointHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  progressCheckpointTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
-  },
-  progressOrdersBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E0E7FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  progressOrdersText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#4F39F6",
-    marginLeft: 4,
-  },
-  progressCheckpointTrackWrapper: {
-    height: 60,
-    position: "relative",
-    marginTop: 20,
-    marginBottom: 30,
-    marginHorizontal: 10,
-  },
-  progressCheckpointTrack: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 22,
-    height: 8,
-    backgroundColor: "#EEF0F4",
-    borderRadius: 4,
-  },
-  progressCheckpointFill: {
-    position: "absolute",
-    left: 0,
-    top: 22,
-    height: 8,
-    borderRadius: 4,
-  },
-  progressCheckpoint: {
-    position: "absolute",
-    top: 0,
-    alignItems: "center",
-    marginLeft: -15,
-  },
-  progressCheckpointIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#E5E7EB",
-    borderWidth: 3,
-    borderColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  progressCheckpointIconCompleted: {
-    backgroundColor: "#00A63E",
-  },
-  progressCheckpointDayLabel: {
-    position: "absolute",
-    top: -22,
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#999",
-  },
-  progressCheckpointDayLabelActive: {
-    color: "#4F39F6",
-    fontSize: 11,
-  },
-  progressCheckpointRewardLabel: {
-    position: "absolute",
-    top: 36,
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#999",
-  },
-  progressCheckpointRewardLabelActive: {
-    color: "#00A63E",
-    fontSize: 10,
-  },
-
-  //Styles for FIXED_TARGET
-  fixedTargetLabel: {
-    marginBottom: 5,
-    fontSize: 14,
-    fontWeight: '500'
-  },
-  fixedTargetContainer: {
-    height: 12,
-    backgroundColor: '#eee',
-    borderRadius: 6,
-    overflow: 'hidden'
-  },
-  fixedTargetProgress: {
-    height: '100%',
-    backgroundColor: '#4CAF50'
-  },
-  fixedTargetPercent: {
-    marginTop: 5,
-    fontSize: 12,
-    color: '#555'
-  },
-
-  /* Card Styles */
-  ruleCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    borderLeftWidth: 4,
-  },
-  normalCard: {
-    borderLeftColor: "#00A63E", // Green Accent
-  },
-
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  peakIconBox: {
-    backgroundColor: "#FFF0E0",
-  },
-  normalIconBox: {
-    backgroundColor: "#E0F5E9",
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1F2937",
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EFF0F6",
-    marginBottom: 12,
-  },
-
-  ruleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  ruleIcon: {
-    marginRight: 10,
-    opacity: 0.7,
-  },
-  ruleText: {
-    fontSize: 14,
-    color: "#4B5563",
-    flex: 1,
-    lineHeight: 20,
-  },
-  boldNormal: {
-    fontWeight: "700",
-    color: "#15803D",
-  },
-});
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#F4F7FB',
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F4F7FB',
+    },
+    emptyText: {
+      marginTop: 14,
+      fontSize: isTablet ? 22 : 16,
+      color: '#6B7280',
+      fontWeight: '600',
+    },
+    heroHeader: {
+      paddingTop: isTablet ? 55 : 35,
+      paddingBottom: isTablet ? 45 : 30,
+      paddingHorizontal: isTablet ? 34 : 20,
+      borderBottomLeftRadius: 28,
+      borderBottomRightRadius: 28,
+      alignItems: 'flex-start',
+    },
+    headerTop: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isTablet ? 28 : 18,
+    },
+    heroTitle: {
+      fontSize: isTablet ? 38 : 26,
+      fontWeight: '800',
+      color: '#FFF',
+      marginBottom: 10,
+      textAlign: isTablet
+        ? 'center'
+        : 'left',
+    },
+    rewardPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.15)',
+      paddingHorizontal: isTablet
+        ? 22
+        : 16,
+      paddingVertical: isTablet
+        ? 12
+        : 8,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.2)',
+    },
+    rewardLabel: {
+      color: '#E0E0E0',
+      fontSize: isTablet ? 16 : 13,
+      marginRight: 8,
+    },
+    rewardValue: {
+      color: '#FFD700',
+      fontSize: isTablet ? 24 : 18,
+      fontWeight: '700',
+    },
+    contentContainer: {
+      width: contentWidth,
+      alignSelf: 'center',
+      paddingVertical: isTablet
+        ? 28
+        : 20,
+      paddingHorizontal: isTablet
+        ? 0
+        : 20,
+    },
+    sectionTitle: {
+      fontSize: isTablet ? 28 : 20,
+      fontWeight: '700',
+      color: '#333',
+      marginBottom: isTablet ? 22 : 16,
+    },
+    progressWrapper: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 28 : 20,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    progressCheckpointContainer: {
+      backgroundColor: '#FFFFFF'
+    },
+    progressCheckpointHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isTablet ? 34 : 24,
+    },
+    progressCheckpointTitle: {
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: '700',
+      color: '#333',
+    },
+    progressOrdersBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#E0E7FF',
+      paddingHorizontal: isTablet
+        ? 14
+        : 10,
+      paddingVertical: isTablet
+        ? 8
+        : 4,
+      borderRadius: 14,
+    },
+    progressOrdersText: {
+      fontSize: isTablet ? 15 : 12,
+      fontWeight: '700',
+      color: '#4F39F6',
+      marginLeft: 4,
+    },
+    progressCheckpointTrackWrapper: {
+      height: isTablet ? 90 : 60,
+      position: 'relative',
+      marginTop: 20,
+      marginBottom: isTablet ? 50 : 30,
+      marginHorizontal: 10,
+    },
+    progressCheckpointTrack: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: isTablet ? 34 : 22,
+      height: isTablet ? 12 : 8,
+      backgroundColor: '#EEF0F4',
+      borderRadius: 6,
+    },
+    progressCheckpointFill: {
+      position: 'absolute',
+      left: 0,
+      top: isTablet ? 34 : 22,
+      height: isTablet ? 12 : 8,
+      borderRadius: 6,
+    },
+    progressCheckpoint: {
+      position: 'absolute',
+      top: 0,
+      alignItems: 'center',
+      marginLeft: isTablet ? -22 : -15,
+    },
+    progressCheckpointIcon: {
+      width: isTablet ? 44 : 30,
+      height: isTablet ? 44 : 30,
+      borderRadius: 999,
+      backgroundColor: '#E5E7EB',
+      borderWidth: 3,
+      borderColor: '#FFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 3,
+    },
+    progressCheckpointIconCompleted: {
+      backgroundColor: '#00A63E',
+    },
+    progressCheckpointDayLabel: {
+      position: 'absolute',
+      top: isTablet ? -34 : -22,
+      fontSize: isTablet ? 14 : 10,
+      fontWeight: '700',
+      color: '#999',
+    },
+    progressCheckpointDayLabelActive: {
+      color: '#4F39F6',
+    },
+    progressCheckpointRewardLabel: {
+      position: 'absolute',
+      top: isTablet ? 54 : 36,
+      fontSize: isTablet ? 13 : 10,
+      fontWeight: '700',
+      color: '#999',
+    },
+    progressCheckpointRewardLabelActive:
+    {
+      color: '#00A63E',
+    },
+    fixedTargetLabel: {
+      marginBottom: 8,
+      fontSize: isTablet ? 18 : 14,
+      fontWeight: '500',
+      color: '#374151',
+    },
+    fixedTargetContainer: {
+      height: isTablet ? 18 : 12,
+      backgroundColor: '#eee',
+      borderRadius: 999,
+      overflow: 'hidden',
+    },
+    fixedTargetProgress: {
+      height: '100%',
+      backgroundColor: '#4CAF50',
+    },
+    fixedTargetPercent: {
+      marginTop: 8,
+      fontSize: isTablet ? 16 : 12,
+      color: '#555',
+      fontWeight: '600',
+    },
+    ruleCard: {
+      backgroundColor: '#FFF',
+      borderRadius: isTablet ? 24 : 16,
+      padding: isTablet ? 24 : 16,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+      borderLeftWidth: 5,
+    },
+    normalCard: {
+      borderLeftColor: '#00A63E',
+    },
+    cardHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    iconBox: {
+      width: isTablet ? 54 : 40,
+      height: isTablet ? 54 : 40,
+      borderRadius: 999,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 14,
+    },
+    normalIconBox: {
+      backgroundColor: '#E0F5E9',
+    },
+    cardTitle: {
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: '700',
+      color: '#1F2937',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: '#EFF0F6',
+      marginBottom: 14,
+    },
+    ruleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    ruleIcon: {
+      marginRight: 10,
+      opacity: 0.7,
+    },
+    ruleText: {
+      fontSize: isTablet ? 20 : 14,
+      color: '#4B5563',
+      flex: 1,
+      lineHeight: isTablet ? 30 : 20,
+    },
+    boldNormal: {
+      fontWeight: '700',
+      color: '#15803D',
+    },
+  });
+};
