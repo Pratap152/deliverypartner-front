@@ -17,6 +17,14 @@ import { EarningsNewAPI } from "../../api/api";
 import { EarningsCache } from "../../utils/earningsCache";
 import { Analytics } from "../../utils/analytics";
 import SelectModal from "../../components/dashboard/earnings/SelectModal";
+import DeviceInfo from "react-native-device-info";
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from "react-native-responsive-dimensions";
+
+const isTablet = DeviceInfo.isTablet();
 
 
 
@@ -610,41 +618,99 @@ function getWeekNumber(d) {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F7F8FA" },
+  container: {
+    flex: 1,
+    backgroundColor: "#F7F8FA",
+  },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    padding: isTablet ? responsiveWidth(2.5) : 12,
     backgroundColor: "#FFF",
   },
-  backBtn: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: "700", marginLeft: 8 },
+
+  backBtn: {
+    padding: isTablet ? responsiveWidth(1) : 8,
+  },
+
+  headerTitle: {
+    fontSize: isTablet
+      ? responsiveFontSize(1.9)
+      : 18,
+
+    fontWeight: "700",
+    marginLeft: 8,
+  },
+
   card: {
     margin: 16,
-    padding: 20,
+    padding: isTablet ? responsiveWidth(2.5) : 20,
     borderRadius: 12,
     backgroundColor: "#9c50ff",
   },
-  cardLabel: { color: "#fff" },
-  cardAmount: { fontSize: 28, fontWeight: "800", color: "#fff" },
+
+  cardLabel: {
+    color: "#fff",
+
+    fontSize: isTablet
+      ? responsiveFontSize(1.2)
+      : responsiveFontSize(1.5),
+  },
+
+  cardAmount: {
+    fontSize: isTablet
+      ? responsiveFontSize(2.2)
+      : 28,
+
+    fontWeight: "800",
+    color: "#fff",
+  },
+
   row: {
-    padding: 16,
+    padding: isTablet ? responsiveWidth(2.2) : 16,
+
     borderWidth: 2,
     marginHorizontal: 16,
     marginBottom: 8,
+
     flexDirection: "row",
     justifyContent: "space-between",
+
     borderRadius: 10,
     borderColor: "#e5b6fd",
   },
-  rowTitle: { fontSize: 15, fontWeight: "600" },
-  rowSub: { fontSize: 12, color: "#777", marginTop: 4 },
-  rowRight: { fontSize: 15, fontWeight: "700", color: "#24c77b" },
+
+  rowTitle: {
+    fontSize: isTablet
+      ? responsiveFontSize(1.25)
+      : 15,
+
+    fontWeight: "600",
+  },
+
+  rowSub: {
+    fontSize: isTablet
+      ? responsiveFontSize(1)
+      : 12,
+
+    color: "#777",
+    marginTop: 4,
+  },
+
+  rowRight: {
+    fontSize: isTablet
+      ? responsiveFontSize(1.25)
+      : 15,
+
+    fontWeight: "700",
+    color: "#24c77b",
+  },
 
   breakRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 16,
+    padding: isTablet ? responsiveWidth(2.2) : 16,
   },
 
   box: {
@@ -659,13 +725,21 @@ const styles = StyleSheet.create({
   selectorRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    padding: 8,
+    padding: isTablet ? responsiveWidth(1.5) : 8,
   },
 
   dropdown: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 8,
+
+    paddingVertical: isTablet
+      ? responsiveHeight(0.9)
+      : 8,
+
+    paddingHorizontal: isTablet
+      ? responsiveWidth(1.5)
+      : 8,
+
     borderWidth: 1,
     borderRadius: 8,
     borderColor: "#ddd",
@@ -678,7 +752,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-  errorText: { color: "#C00" },
+
+  errorText: {
+    color: "#C00",
+
+    fontSize: isTablet
+      ? responsiveFontSize(1.1)
+      : 14,
+  },
 });
-
-

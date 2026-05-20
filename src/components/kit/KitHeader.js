@@ -10,8 +10,11 @@ import {
 const KitHeader = () => {
   const { width } = useWindowDimensions();
 
-  // Responsive image size
-  const imageSize = width * 0.28; // 28% of screen width
+  const isTablet = width >= 768;
+
+  const bagSize = isTablet ? 240 : width * 0.28;
+  const tshirtSize = isTablet ? 200 : width * 0.28;
+const styles = getStyles(isTablet);
 
   return (
     <View style={styles.wrapper}>
@@ -23,7 +26,10 @@ const KitHeader = () => {
           <View
             style={[
               styles.imageContainer,
-              { width: imageSize+20, height: imageSize+40 },
+              {
+              width: isTablet ? 260 : bagSize + 20,
+              height: isTablet ? 280 : bagSize + 40,
+            }
             ]}
           >
             <Image
@@ -40,7 +46,10 @@ const KitHeader = () => {
           <View
             style={[
               styles.imageContainer,
-              { width: imageSize, height: imageSize },
+              {
+                width: tshirtSize,
+                height: tshirtSize,
+              }
             ]}
           >
             <Image
@@ -57,13 +66,14 @@ const KitHeader = () => {
 
 export default KitHeader;
 
-const styles = StyleSheet.create({
+const getStyles = (isTablet) =>
+  StyleSheet.create({
   wrapper: {
-    marginBottom: 20,
+    marginBottom: isTablet ? 32 : 20,
   },
 
   heading: {
-    fontSize: 16,
+    fontSize: isTablet ? 24 : 16,
     fontWeight: "600",
     marginBottom: 8,
     color: "#333",
@@ -72,9 +82,9 @@ const styles = StyleSheet.create({
   kitBox: {
     borderWidth: 1,
     borderColor: "#00BCD4",
-    borderRadius: 10,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    paddingVertical: isTablet ? 28 : 16,
+    paddingHorizontal: isTablet ? 24 : 12,
+    borderRadius: isTablet ? 18 : 10,
   },
 
   imagesRow: {
@@ -94,7 +104,7 @@ const styles = StyleSheet.create({
   },
 
   plus: {
-    fontSize: 28,
+    fontSize: isTablet ? 44 : 28,
     fontWeight: "500",
     color: "#00BCD4",
   },

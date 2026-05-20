@@ -11,7 +11,10 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import useJoiningBonus from '../../hooks/useJoiningBonus';
+import { Dimensions } from 'react-native';
 import { getTaskDescription } from '../../services/JoiningBonusService';
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const C = {
   bg: '#F6F8FC',
@@ -474,199 +477,760 @@ const validityDays =
 
 const s = StyleSheet.create({
   flex: { flex: 1 },
-  screen: { flex: 1, backgroundColor: C.bg },
-  headerBg: { position: 'absolute', top: 0, left: 0, right: 0, height: TOP_INSET + 58, backgroundColor: C.bg, borderBottomWidth: 1, borderBottomColor: C.borderSoft, zIndex: 10 },
-  header: { position: 'absolute', top: TOP_INSET, left: 0, right: 0, height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderSoft, alignItems: 'center', justifyContent: 'center' },
-  backArrow: { color: C.text, fontSize: 20, fontWeight: '700', marginTop: Platform.OS === 'android' ? -1 : 0 , },
-  headerTitle: { flex: 1, color: C.text, textAlign: 'center', fontSize: 17, fontWeight: '800', marginHorizontal: 12 },
-  headerRightSpacer: { width: 40, height: 40 },
-  scrollContent: { paddingTop: TOP_INSET + 74, paddingHorizontal: 16, paddingBottom: 180 },
-  scrollContentTablet: { paddingHorizontal: 24, alignSelf: 'center', width: '100%', maxWidth: 920 },
-  scrollContentWithJoinBar: { paddingBottom: Platform.OS === 'ios' ? 200 : 180 },
-  heroCard: { backgroundColor: C.surface, borderRadius: 26, borderWidth: 1, borderColor: 'rgba(249,115,22,0.18)', paddingHorizontal: 20, paddingVertical: 22, marginBottom: 16, overflow: 'hidden', alignItems: 'center', shadowColor: C.shadow, shadowOpacity: 0.08, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 3 },
-  heroCardCompact: { paddingHorizontal: 16, paddingVertical: 18 },
-  heroGlowOne: { position: 'absolute', width: 210, height: 210, borderRadius: 105, backgroundColor: 'rgba(249,115,22,0.06)', top: -70, right: -70 },
-  heroGlowTwo: { position: 'absolute', width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(245,158,11,0.05)', left: -45, bottom: -45 },
-  heroEmoji: { fontSize: 44, marginBottom: 8 },
-  heroEyebrow: { color: C.textSecondary, fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center', marginBottom: 6 },
-  heroAmount: { color: C.text, fontSize: 42, lineHeight: 50, fontWeight: '900', letterSpacing: -1.2, textAlign: 'center' },
-  heroAmountCompact: { fontSize: 34, lineHeight: 40 },
-  heroSub: { color: C.textMuted, fontSize: 13, lineHeight: 18, textAlign: 'center', marginTop: 6, marginBottom: 16, paddingHorizontal: 6 },
-  heroMetaWrap: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
-  heroMetaPill: { backgroundColor: C.cardAlt, borderWidth: 1, borderColor: C.borderSoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 },
-  heroMetaPillJoined: { borderColor: C.greenBorder, backgroundColor: C.greenSoft },
-  heroMetaText: { color: C.textSecondary, fontSize: 12, fontWeight: '700' },
-  heroMetaTextJoined: { color: C.green },
-  infoGrid: { marginBottom: 16, gap: 10 },
-  infoGridTablet: { flexDirection: 'row', flexWrap: 'wrap' },
-  infoCard: { flex: 1, minWidth: 0, backgroundColor: C.card, borderWidth: 1, borderColor: C.borderSoft, borderRadius: 18, padding: 16, position: 'relative', overflow: 'hidden' },
-  infoAccent: { position: 'absolute', top: 0, left: 0, width: 4, bottom: 0 },
-  infoTitle: { color: C.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, paddingLeft: 4 },
-  infoValue: { color: C.text, fontSize: 16, fontWeight: '800', marginBottom: 4, paddingLeft: 4 },
-  infoHelper: { color: C.textSecondary, fontSize: 12, lineHeight: 17, paddingLeft: 4 },
-  sectionCard: { backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.borderSoft, padding: 18, marginBottom: 18 },
-  sectionTitle: { color: C.text, fontSize: 18, fontWeight: '800', letterSpacing: -0.3, marginBottom: 4 },
-  sectionSubtitle: { color: C.textMuted, fontSize: 13, lineHeight: 19, marginBottom: 16 },
-  stepRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  stepBadge: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  stepBadgeText: { fontSize: 15, fontWeight: '900' },
-  stepContent: { flex: 1, paddingTop: 2 },
-  stepTitle: { color: C.text, fontSize: 14, fontWeight: '800', marginBottom: 3 },
-  stepDesc: { color: C.textSecondary, fontSize: 12, lineHeight: 18 },
-  stepLine: { width: 1, height: 12, backgroundColor: C.divider, marginLeft: 16, marginVertical: 6 },
-  tasksHeaderWrap: { marginBottom: 10 },
-  taskCard: { backgroundColor: C.card, borderRadius: 18, borderWidth: 1, padding: 14, marginBottom: 12 },
-  taskCardCompact: { padding: 12 },
-  taskTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  dayChip: { backgroundColor: '#F7F9FC', borderWidth: 1, borderColor: C.borderSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
-  dayChipText: { color: C.textSecondary, fontSize: 11, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase' },
-  rewardPill: { backgroundColor: 'rgba(245,158,11,0.10)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.20)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
-  rewardPillText: { color: C.amber, fontSize: 13, fontWeight: '900' },
-  taskMainRow: { flexDirection: 'row', alignItems: 'center' },
-  taskIconWrap: { width: 50, height: 50, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  taskEmoji: { fontSize: 22 },
-  taskTextWrap: { flex: 1, minWidth: 0 },
-  taskType: { fontSize: 11, fontWeight: '900', letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 4 },
-  taskDescription: { color: C.text, fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  stickyWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: C.bg, borderTopWidth: 1, borderTopColor: C.borderSoft, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 28 : 14 },
-  stickyHelper: { color: C.textMuted, textAlign: 'center', fontSize: 11, lineHeight: 16, marginBottom: 10 },
-  joinBtn: { backgroundColor: C.orange, borderRadius: 16, minHeight: 54, alignItems: 'center', justifyContent: 'center', shadowColor: C.orange, shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
-  joinBtnDisabled: { backgroundColor: '#A7B1C2', shadowOpacity: 0, elevation: 0 },
-  joinBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', letterSpacing: 0.2 },
-  centered: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  loadingText: { marginTop: 14, color: C.textSecondary, fontSize: 14, fontWeight: '600' },
-  emptyEmoji: { fontSize: 44, marginBottom: 12 },
-  emptyTitle: { color: C.text, fontSize: 20, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
-  emptySub: { color: C.textSecondary, fontSize: 14, lineHeight: 21, textAlign: 'center', marginBottom: 22 },
-  retryBtn: { backgroundColor: C.orange, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 13 },
-  retryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+
+  screen: {
+    flex: 1,
+    backgroundColor: C.bg,
+  },
+
+  headerBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+
+    height: isTablet ? TOP_INSET + 72 : TOP_INSET + 58,
+
+    backgroundColor: C.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: C.borderSoft,
+    zIndex: 10,
+  },
+
+  header: {
+    position: 'absolute',
+    top: TOP_INSET,
+    left: 0,
+    right: 0,
+
+    height: isTablet ? 72 : 58,
+
+    paddingHorizontal: isTablet ? 28 : 16,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+
+    zIndex: 20,
+  },
+
+  backBtn: {
+    width: isTablet ? 52 : 40,
+    height: isTablet ? 52 : 40,
+
+    borderRadius: 14,
+
+    backgroundColor: C.surface,
+
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  backArrow: {
+    color: C.text,
+
+    fontSize: isTablet ? 40 : 20,
+
+    fontWeight: '700',
+
+    marginTop: Platform.OS === 'android' ? -1 : 0,
+  },
+
+  headerTitle: {
+    flex: 1,
+    color: C.text,
+    textAlign: 'center',
+
+    fontSize: isTablet ? 30 : 17,
+
+    fontWeight: '800',
+    marginHorizontal: 12,
+  },
+
+  headerRightSpacer: {
+    width: isTablet ? 52 : 40,
+    height: isTablet ? 52 : 40,
+  },
+
+  scrollContent: {
+    paddingTop: isTablet ? TOP_INSET + 92 : TOP_INSET + 74,
+
+    paddingHorizontal: isTablet ? 28 : 16,
+
+    paddingBottom: 180,
+  },
+
+  scrollContentTablet: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 1000,
+  },
+
+  scrollContentWithJoinBar: {
+    paddingBottom: Platform.OS === 'ios' ? 200 : 180,
+  },
+
+  heroCard: {
+    backgroundColor: C.surface,
+
+    borderRadius: isTablet ? 32 : 26,
+
+    borderWidth: 1,
+    borderColor: 'rgba(249,115,22,0.18)',
+
+    paddingHorizontal: isTablet ? 36 : 20,
+    paddingVertical: isTablet ? 38 : 22,
+
+    marginBottom: 20,
+
+    overflow: 'hidden',
+    alignItems: 'center',
+
+    shadowColor: C.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+
+    elevation: 3,
+  },
+
+  heroCardCompact: {
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+  },
+
+  heroGlowOne: {
+    position: 'absolute',
+    width: 210,
+    height: 210,
+    borderRadius: 105,
+    backgroundColor: 'rgba(249,115,22,0.06)',
+    top: -70,
+    right: -70,
+  },
+
+  heroGlowTwo: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(245,158,11,0.05)',
+    left: -45,
+    bottom: -45,
+  },
+
+  heroEmoji: {
+    fontSize: isTablet ? 64 : 44,
+    marginBottom: 8,
+  },
+
+  heroEyebrow: {
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 24 : 12,
+
+    fontWeight: '800',
+
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+
+    textAlign: 'center',
+
+    marginBottom: 8,
+  },
+
+  heroAmount: {
+    color: C.text,
+
+    fontSize: isTablet ? 62 : 42,
+
+    lineHeight: isTablet ? 72 : 50,
+
+    fontWeight: '900',
+
+    letterSpacing: -1.2,
+
+    textAlign: 'center',
+  },
+
+  heroAmountCompact: {
+    fontSize: 34,
+    lineHeight: 40,
+  },
+
+  heroSub: {
+    color: C.textMuted,
+
+    fontSize: isTablet ? 23 : 13,
+
+    lineHeight: isTablet ? 28 : 18,
+
+    textAlign: 'center',
+
+    marginTop: 8,
+    marginBottom: 20,
+
+    paddingHorizontal: 6,
+  },
+
+  heroMetaWrap: {
+    width: '100%',
+
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+
+    justifyContent: 'center',
+
+    gap: 10,
+  },
+
+  heroMetaPill: {
+    backgroundColor: C.cardAlt,
+
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+
+    paddingHorizontal: isTablet ? 18 : 12,
+    paddingVertical: isTablet ? 12 : 8,
+
+    borderRadius: 999,
+  },
+
+  heroMetaPillJoined: {
+    borderColor: C.greenBorder,
+    backgroundColor: C.greenSoft,
+  },
+
+  heroMetaText: {
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 20 : 12,
+
+    fontWeight: '700',
+  },
+
+  heroMetaTextJoined: {
+    color: C.green,
+  },
+
+  sectionCard: {
+    backgroundColor: C.card,
+
+    borderRadius: isTablet ? 24 : 20,
+
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+
+    padding: isTablet ? 28 : 18,
+
+    marginBottom: 20,
+  },
+
+  sectionTitle: {
+    color: C.text,
+
+    fontSize: isTablet ? 28 : 18,
+
+    fontWeight: '800',
+
+    letterSpacing: -0.3,
+
+    marginBottom: 8,
+  },
+
+  sectionSubtitle: {
+    color: C.textMuted,
+
+    fontSize: isTablet ? 22 : 13,
+
+    lineHeight: isTablet ? 28 : 19,
+
+    marginBottom: 18,
+  },
+
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+
+  stepBadge: {
+    width: isTablet ? 50 : 34,
+    height: isTablet ? 50 : 34,
+
+    borderRadius: 12,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    marginRight: 14,
+  },
+
+  stepBadgeText: {
+    fontSize: isTablet ? 20 : 15,
+    fontWeight: '900',
+  },
+
+  stepContent: {
+    flex: 1,
+    paddingTop: 2,
+  },
+
+  stepTitle: {
+    color: C.text,
+
+    fontSize: isTablet ? 23 : 14,
+
+    fontWeight: '800',
+
+    marginBottom: 5,
+  },
+
+  stepDesc: {
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 20 : 12,
+
+    lineHeight: isTablet ? 26 : 18,
+  },
+
+  stepLine: {
+    width: 1,
+    height: isTablet ? 18 : 12,
+
+    backgroundColor: C.divider,
+
+    marginLeft: 22,
+    marginVertical: 6,
+  },
+
+  tasksHeaderWrap: {
+    marginBottom: 14,
+  },
+
+  taskCard: {
+    backgroundColor: C.card,
+
+    borderRadius: isTablet ? 24 : 18,
+
+    borderWidth: 1,
+
+    padding: isTablet ? 24 : 14,
+
+    marginBottom: 16,
+  },
+
+  taskCardCompact: {
+    padding: 12,
+  },
+
+  taskTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+
+    marginBottom: 16,
+  },
+
+  dayChip: {
+    backgroundColor: '#F7F9FC',
+
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+
+    borderRadius: 999,
+
+    paddingHorizontal: isTablet ? 16 : 10,
+    paddingVertical: isTablet ? 10 : 5,
+  },
+
+  dayChipText: {
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 20 : 11,
+
+    fontWeight: '800',
+
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+
+  rewardPill: {
+    backgroundColor: 'rgba(245,158,11,0.10)',
+
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.20)',
+
+    borderRadius: 999,
+
+    paddingHorizontal: isTablet ? 16 : 10,
+    paddingVertical: isTablet ? 10 : 5,
+  },
+
+  rewardPillText: {
+    color: C.amber,
+
+    fontSize: isTablet ? 20 : 13,
+
+    fontWeight: '900',
+  },
+
+  taskMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  taskIconWrap: {
+    width: isTablet ? 74 : 50,
+    height: isTablet ? 74 : 50,
+
+    borderRadius: 18,
+
+    borderWidth: 1,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    marginRight: 18,
+  },
+
+  taskEmoji: {
+    fontSize: isTablet ? 34 : 22,
+  },
+
+  taskTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  taskType: {
+    fontSize: isTablet ? 20 : 11,
+
+    fontWeight: '900',
+
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+
+    marginBottom: 6,
+  },
+
+  taskDescription: {
+    color: C.text,
+
+    fontSize: isTablet ? 22 : 14,
+
+    lineHeight: isTablet ? 32 : 20,
+
+    fontWeight: '700',
+  },
+
   lockedText: {
-  marginTop: 6,
-  fontSize: 12,
-  color: C.textMuted,
-  fontWeight: '600',
-},
+    marginTop: 8,
 
-slabContainer: {
-  marginTop: 14,
-  gap: 8,
-},
+    fontSize: isTablet ? 20 : 12,
 
-slabRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  backgroundColor: C.surface2,
-  borderRadius: 12,
-  paddingHorizontal: 12,
-  paddingVertical: 10,
-  borderWidth: 1,
-  borderColor: C.borderSoft,
-},
+    color: C.textMuted,
+    fontWeight: '600',
+  },
 
-slabOrders: {
-  color: C.textSecondary,
-  fontSize: 12,
-  fontWeight: '700',
-},
+  slabContainer: {
+    marginTop: 18,
+    gap: 10,
+  },
 
-slabReward: {
-  color: C.green,
-  fontSize: 13,
-  fontWeight: '900',
-},
+  slabRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    backgroundColor: C.surface2,
+
+    borderRadius: 14,
+
+    paddingHorizontal: isTablet ? 18 : 12,
+    paddingVertical: isTablet ? 16 : 10,
+
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+  },
+
+  slabOrders: {
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 20 : 12,
+
+    fontWeight: '700',
+  },
+
+  slabReward: {
+    color: C.green,
+
+    fontSize: isTablet ? 20 : 13,
+
+    fontWeight: '900',
+  },
 
   statusPill: {
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-  borderRadius: 999,
-  marginTop: 8,
-  alignSelf: 'flex-start',
-},
+    paddingHorizontal: isTablet ? 14 : 10,
+    paddingVertical: isTablet ? 8 : 4,
 
-statusText: {
-  fontSize: 11,
-  fontWeight: '800',
-  color: C.text,
-},
+    borderRadius: 999,
+    marginTop: 8,
+
+    alignSelf: 'flex-start',
+  },
+
+  statusText: {
+    fontSize: isTablet ? 20 : 11,
+
+    fontWeight: '800',
+    color: C.text,
+  },
 
   taskProgressRow: {
     flexDirection: 'row',
     alignItems: 'center',
+
     gap: 10,
-    marginTop: 12,
-    paddingTop: 10,
+
+    marginTop: 14,
+    paddingTop: 12,
+
     borderTopWidth: 1,
     borderTopColor: C.divider,
   },
+
   taskProgressBg: {
     flex: 1,
-    height: 6,
+    height: isTablet ? 8 : 6,
+
     backgroundColor: C.divider,
+
     borderRadius: 999,
     overflow: 'hidden',
   },
+
   taskProgressFill: {
     height: '100%',
     borderRadius: 999,
   },
+
   taskProgressText: {
-    fontSize: 11,
+    fontSize: isTablet ? 20 : 11,
+
     fontWeight: '700',
-    minWidth: 80,
+
+    minWidth: 90,
+
     textAlign: 'right',
   },
+
   weeklyProgressRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 10,
-  marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    gap: 12,
+
+    marginBottom: 18,
   },
+
   weeklyProgressBg: {
     flex: 1,
-    height: 8,
+
+    height: isTablet ? 10 : 8,
+
     backgroundColor: C.divider,
+
     borderRadius: 999,
     overflow: 'hidden',
   },
+
   weeklyProgressFill: {
     height: '100%',
     borderRadius: 999,
     backgroundColor: C.green,
   },
+
   weeklyProgressText: {
-    minWidth: 48,
+    minWidth: 80,
+
     textAlign: 'right',
+
     color: C.textSecondary,
-    fontSize: 12,
+
+    fontSize: isTablet ? 20 : 12,
+
     fontWeight: '800',
   },
+
   weeklyStatsGrid: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
+
   weeklyStatCard: {
     flex: 1,
+
     backgroundColor: C.cardAlt,
+
     borderWidth: 1,
     borderColor: C.borderSoft,
-    borderRadius: 14,
-    paddingVertical: 14,
+
+    borderRadius: 16,
+
+    paddingVertical: isTablet ? 22 : 14,
     paddingHorizontal: 10,
+
     alignItems: 'center',
   },
+
   weeklyStatValue: {
     color: C.text,
-    fontSize: 18,
+
+    fontSize: isTablet ? 30 : 18,
+
     fontWeight: '900',
-    marginBottom: 4,
+
+    marginBottom: 6,
   },
+
   weeklyStatLabel: {
     color: C.textMuted,
-    fontSize: 11,
+
+    fontSize: isTablet ? 15 : 11,
+
     fontWeight: '700',
+
     textTransform: 'uppercase',
+  },
+
+  stickyWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+
+    backgroundColor: C.bg,
+
+    borderTopWidth: 1,
+    borderTopColor: C.borderSoft,
+
+    paddingHorizontal: 16,
+    paddingTop: 12,
+
+    paddingBottom: Platform.OS === 'ios' ? 28 : 14,
+  },
+
+  stickyHelper: {
+    color: C.textMuted,
+    textAlign: 'center',
+
+    fontSize: isTablet ? 14 : 11,
+
+    lineHeight: isTablet ? 22 : 16,
+
+    marginBottom: 10,
+  },
+
+  joinBtn: {
+    backgroundColor: C.orange,
+
+    borderRadius: 16,
+
+    minHeight: isTablet ? 66 : 54,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    shadowColor: C.orange,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+
+    elevation: 4,
+  },
+
+  joinBtnDisabled: {
+    backgroundColor: '#A7B1C2',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+
+  joinBtnText: {
+    color: '#FFFFFF',
+
+    fontSize: isTablet ? 20 : 16,
+
+    fontWeight: '900',
+
+    letterSpacing: 0.2,
+  },
+
+  centered: {
+    flex: 1,
+    backgroundColor: C.bg,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    paddingHorizontal: 28,
+  },
+
+  loadingText: {
+    marginTop: 14,
+
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 18 : 14,
+
+    fontWeight: '600',
+  },
+
+  emptyEmoji: {
+    fontSize: isTablet ? 70 : 44,
+    marginBottom: 12,
+  },
+
+  emptyTitle: {
+    color: C.text,
+
+    fontSize: isTablet ? 30 : 20,
+
+    fontWeight: '800',
+
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+
+  emptySub: {
+    color: C.textSecondary,
+
+    fontSize: isTablet ? 18 : 14,
+
+    lineHeight: isTablet ? 30 : 21,
+
+    textAlign: 'center',
+
+    marginBottom: 22,
+  },
+
+  retryBtn: {
+    backgroundColor: C.orange,
+
+    borderRadius: 14,
+
+    paddingHorizontal: isTablet ? 32 : 24,
+    paddingVertical: isTablet ? 18 : 13,
+  },
+
+  retryText: {
+    color: '#FFFFFF',
+
+    fontSize: isTablet ? 18 : 14,
+
+    fontWeight: '800',
   },
 });
 
