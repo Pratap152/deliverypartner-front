@@ -32,7 +32,7 @@ class GpsService {
       distanceFilter: 50, // update every 50 meters
       stopTimeout: 5, // keep tracking for 5 minutes after stopping
       debug: false,
-      logLevel: BackgroundGeolocation.LOG_LEVEOFF,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false, // keep tracking even if the app is killed
       startOnBoot: true,
       // We do not use the built-in HTTP sync because we rely on our apiClient for Auth tokens
