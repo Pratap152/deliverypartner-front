@@ -29,7 +29,7 @@ class GpsService {
     // 2. Ready the plugin
     const state = await BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 50, // update every 50 meters
+      distanceFilter: 1, // update every 1 meters
       stopTimeout: 5, // keep tracking for 5 minutes after stopping
       debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
