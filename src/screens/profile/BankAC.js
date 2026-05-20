@@ -10,19 +10,28 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
+
+import DeviceInfo from 'react-native-device-info';
+
 import apiClient from '../../services/ApiClient';
+
+const isTablet = DeviceInfo.isTablet();
+const containerMaxWidth = isTablet ? 900 : '100%';
 
 const BankAC = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const [bankDetails, setBankDetails] = useState({
@@ -39,7 +48,7 @@ const BankAC = ({ navigation }) => {
     ifsc: '',
   });
 
-  /*  FETCH BANK DETAILS  */
+  /* FETCH BANK DETAILS */
   const fetchBankDetails = async () => {
     try {
       const res = await apiClient.get(`/api/profile/bank-details`);
@@ -70,7 +79,7 @@ const BankAC = ({ navigation }) => {
     fetchBankDetails();
   }, []);
 
-  /*  UPDATE BANK DETAILS  */
+  /* UPDATE BANK DETAILS */
   const updateBankDetails = async () => {
     try {
       const payload = {
@@ -114,114 +123,204 @@ const BankAC = ({ navigation }) => {
       : '#FF3B30';
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Ionicons
-          name="arrow-back"
-          size={rf(3)}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.headerTitle}>Bank Details</Text>
-
-        {verification.bank !== 'VERIFIED' && (
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-            <Text style={{ color: '#1976D2', fontWeight: '600' }}>
-              {isEditing ? 'Cancel' : 'Edit'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <ScrollView>
-        <View style={styles.infoContainer}>
-          <TouchableOpacity onPress={toggleTooltip} style={styles.infoRow}>
-            <Icon name="info-outline" size={22} color="#1976D2" />
-            <Text style={styles.infoText}>Secure Information</Text>
-          </TouchableOpacity>
-
-          {showInfo && (
-            <Animated.View style={[styles.tooltip, { opacity: fadeAnim }]}>
-              <Text style={styles.tooltipText}>
-                Your bank details are securely stored and used only for payouts.
-              </Text>
-            </Animated.View>
-          )}
-        </View>
-     
-
-      <View style={styles.detailsContainer}>
-        <View style={styles.accountHeader}>
-          <Image
-            source={require('../../assets/profile/BankIcon.png')}
-            style={styles.accountIcon}
-          />
-          <Text style={styles.accountHeaderText}>Bank Account Information</Text>
-        </View>
-
-        {[
-          { label: 'Account Holder Name', key: 'accountHolderName' },
-          { label: 'Account Number', key: 'accountNumber' },
-          { label: 'IFSC Code', key: 'ifscCode' },
-          { label: 'Bank Name', key: 'bankName' },
-          { label: 'Account Type', key: 'accountType' },
-          { label: 'Branch', key: 'branch' },
-        ].map((item, index) => (
-          <View key={index} style={styles.inputBox}>
-            <Text style={styles.label}>{item.label}</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.disabledInput]}
-              editable={isEditing}
-              value={bankDetails[item.key]}
-              onChangeText={text =>
-                setBankDetails({ ...bankDetails, [item.key]: text })
-              }
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Ionicons
+              name="arrow-back"
+              size={rf(3)}
+              onPress={() => navigation.goBack()}
             />
+
+            <Text style={styles.headerTitle}>Bank Details</Text>
+
+            {verification.bank !== 'VERIFIED' ? (
+              <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+                <Text style={styles.editText}>
+                  {isEditing ? 'Cancel' : 'Edit'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: rw(10) }} />
+            )}
           </View>
-        ))}
 
-        {isEditing && (
-          <TouchableOpacity style={styles.saveBtn} onPress={updateBankDetails}>
-            <Text style={styles.saveText}>Save Changes</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* INFO */}
+            <View style={styles.infoContainer}>
+              <TouchableOpacity
+                onPress={toggleTooltip}
+                style={styles.infoRow}
+              >
+                <Icon name="info-outline" size={22} color="#1976D2" />
 
-      {/* VERIFICATION STATUS */}
-      {!isEditing && (
-        <View style={styles.detailsContainer1}>
-          <View style={styles.verifyContainer}>
-            <Text style={styles.verifyTitle}>Verification Status</Text>
+                <Text style={styles.infoText}>Secure Information</Text>
+              </TouchableOpacity>
 
-            {[
-              { label: 'Bank Account', value: verification.bank },
-              { label: 'IFSC Code', value: verification.ifsc },
-            ].map((item, index) => (
-              <View key={index} style={styles.verifyCard}>
-                <View style={styles.leftRow}>
-                  <View
-                    style={[
-                      styles.greenDot,
-                      { backgroundColor: statusColor(item.value) },
-                    ]}
-                  />
-                  <Text style={styles.verifyLabel}>{item.label}</Text>
-                </View>
-
-                <Text
-                  style={[
-                    styles.verifyText,
-                    { color: statusColor(item.value) },
-                  ]}
+              {showInfo && (
+                <Animated.View
+                  style={[styles.tooltip, { opacity: fadeAnim }]}
                 >
-                  {item.value}
+                  <Text style={styles.tooltipText}>
+                    Your bank details are securely stored and used only for
+                    payouts.
+                  </Text>
+                </Animated.View>
+              )}
+            </View>
+
+            {/* BANK DETAILS */}
+            <View style={styles.detailsContainer}>
+              <View style={styles.accountHeader}>
+                <Image
+                  source={require('../../assets/profile/BankIcon.png')}
+                  style={styles.accountIcon}
+                />
+
+                <Text style={styles.accountHeaderText}>
+                  Bank Account Information
                 </Text>
               </View>
-            ))}
-          </View>
+
+              {[
+                {
+                  label: 'Account Holder Name',
+                  key: 'accountHolderName',
+                },
+                {
+                  label: 'Account Number',
+                  key: 'accountNumber',
+                },
+                {
+                  label: 'IFSC Code',
+                  key: 'ifscCode',
+                },
+                {
+                  label: 'Bank Name',
+                  key: 'bankName',
+                },
+                {
+                  label: 'Account Type',
+                  key: 'accountType',
+                },
+                {
+                  label: 'Branch',
+                  key: 'branch',
+                },
+              ].map((item, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.inputBox,
+                    isTablet && styles.inputBoxTablet,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.label,
+                      isTablet && styles.labelTablet,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+
+                  <TextInput
+                    style={[
+                      styles.input,
+                      !isEditing && styles.disabledInput,
+                      isTablet && styles.inputTablet,
+                    ]}
+                    editable={isEditing}
+                    value={bankDetails[item.key]}
+                    onChangeText={text =>
+                      setBankDetails({
+                        ...bankDetails,
+                        [item.key]: text,
+                      })
+                    }
+                  />
+                </View>
+              ))}
+
+              {isEditing && (
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={updateBankDetails}
+                >
+                  <Text style={styles.saveText}>Save Changes</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* VERIFICATION STATUS */}
+            {!isEditing && (
+              <View style={styles.detailsContainer1}>
+                <View style={styles.verifyContainer}>
+                  <Text style={styles.verifyTitle}>
+                    Verification Status
+                  </Text>
+
+                  {[
+                    {
+                      label: 'Bank Account',
+                      value: verification.bank,
+                    },
+                    {
+                      label: 'IFSC Code',
+                      value: verification.ifsc,
+                    },
+                  ].map((item, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.verifyCard,
+                        isTablet && styles.verifyCardTablet,
+                      ]}
+                    >
+                      <View style={styles.leftRow}>
+                        <View
+                          style={[
+                            styles.greenDot,
+                            {
+                              backgroundColor: statusColor(item.value),
+                            },
+                          ]}
+                        />
+
+                        <Text
+                          style={[
+                            styles.verifyLabel,
+                            isTablet && styles.verifyLabelTablet,
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                      </View>
+
+                      <Text
+                        style={[
+                          styles.verifyText,
+                          {
+                            color: statusColor(item.value),
+                          },
+                          isTablet && styles.verifyTextTablet,
+                        ]}
+                      >
+                        {item.value}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </ScrollView>
         </View>
-      )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -229,7 +328,33 @@ const BankAC = ({ navigation }) => {
 export default BankAC;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+
+  screenWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+
+    ...(isTablet && {
+      alignItems: 'center',
+    }),
+  },
+
+  container: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#fff',
+
+    ...(isTablet && {
+      maxWidth: containerMaxWidth,
+    }),
+  },
+
+  scrollContent: {
+    paddingBottom: rh(4),
+  },
 
   header: {
     flexDirection: 'row',
@@ -241,6 +366,15 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: rf(2.3),
+    fontWeight: '600',
+
+    ...(isTablet && {
+      fontSize: rf(2.8),
+    }),
+  },
+
+  editText: {
+    color: '#1976D2',
     fontWeight: '600',
   },
 
@@ -277,20 +411,45 @@ const styles = StyleSheet.create({
     margin: 12,
     borderRadius: 10,
     padding: 16,
+
+    ...(isTablet && {
+      width: '95%',
+      alignSelf: 'center',
+      padding: 24,
+    }),
   },
 
   detailsContainer1: {
     backgroundColor: '#F9FAFB',
     margin: 12,
     borderRadius: 10,
+
+    ...(isTablet && {
+      width: '95%',
+      alignSelf: 'center',
+    }),
   },
 
-  inputBox: { marginBottom: 14 },
+  inputBox: {
+    marginBottom: 14,
+  },
+
+  inputBoxTablet: {
+    width: '100%',
+    alignSelf: 'center',
+  },
 
   label: {
     fontSize: 14,
     color: '#444',
     marginBottom: 6,
+  },
+
+  labelTablet: {
+    ...(isTablet && {
+      fontSize: rf(1.9),
+      marginBottom: 10,
+    }),
   },
 
   input: {
@@ -299,6 +458,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     backgroundColor: '#FFF',
+  },
+
+  inputTablet: {
+    ...(isTablet && {
+      height: rh(7),
+      fontSize: rf(1.9),
+      paddingHorizontal: rw(2.5),
+    }),
   },
 
   disabledInput: {
@@ -315,11 +482,20 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     marginRight: 10,
+
+    ...(isTablet && {
+      width: 34,
+      height: 34,
+    }),
   },
 
   accountHeaderText: {
     fontSize: 18,
     fontWeight: '600',
+
+    ...(isTablet && {
+      fontSize: rf(2.4),
+    }),
   },
 
   verifyContainer: {
@@ -330,6 +506,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
+
+    ...(isTablet && {
+      fontSize: rf(2.2),
+    }),
   },
 
   verifyCard: {
@@ -339,6 +519,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  verifyCardTablet: {
+    ...(isTablet && {
+      paddingVertical: rh(2),
+      paddingHorizontal: rw(3),
+    }),
   },
 
   leftRow: {
@@ -351,6 +539,12 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     marginRight: 10,
+
+    ...(isTablet && {
+      width: 14,
+      height: 14,
+      borderRadius: 10,
+    }),
   },
 
   verifyLabel: {
@@ -358,9 +552,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
+  verifyLabelTablet: {
+    ...(isTablet && {
+      fontSize: rf(2),
+    }),
+  },
+
   verifyText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+
+  verifyTextTablet: {
+    ...(isTablet && {
+      fontSize: rf(1.9),
+    }),
   },
 
   saveBtn: {
@@ -369,6 +575,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 10,
     alignItems: 'center',
+
+    ...(isTablet && {
+      width: '50%',
+      alignSelf: 'center',
+    }),
   },
 
   saveText: {
