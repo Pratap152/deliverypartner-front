@@ -29,6 +29,7 @@ import OrderSkeleton from '../../components/order/OrderSkeleton';
 import EmptyState from '../../components/order/EmptyState';
 import { orderService } from '../../services/order/OrderService';
 import CustomerNotResponding from '../Home/CustomerNotResponding';
+import SwipeButton from '../../components/common/SwipeButton';
 
 const OrderDetailsScreen = ({ route, navigation }) => {
 
@@ -482,34 +483,15 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Sticky Bottom Button - Replaces SwipeButton */}
-      {ui.bottomButtons && ui.bottomButtons.length > 0 && (
-        <View style={styles.stickyButtonContainer}>
-          <TouchableOpacity
-            style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
-            onPress={handleAction}
-            disabled={buttonLoading}
-            activeOpacity={0.8}
-          >
-            {buttonLoading ? (
-              <>
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 10 }} />
-                <Text style={styles.actionButtonText}>Loading...</Text>
-              </>
-            ) : (
-              <Text style={styles.actionButtonText}>
-                {status === 'EN_ROUTE_TO_DROP' && (
-                  orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
-                  orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
-                  orderDetails?.payment?.mode?.toUpperCase() === 'COD'
-                )
-                  ? (paymentMethod === 'CASH' ? 'Collect Cash' : 'Confirm Online Payment')
-                  : ui.bottomButtons?.[0]?.label}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+      <SwipeButton
+        ui={ui}
+        buttonLoading={buttonLoading}
+        handleAction={handleAction}
+        status={status}
+        orderDetails={orderDetails}
+        paymentMethod={paymentMethod}
+        distanceToTarget={distanceToTarget}
+      />
 
       {/* Customer Not Responding Modal */}
       <Modal
@@ -1133,48 +1115,6 @@ const styles = StyleSheet.create({
     borderColor: '#C7D2FE',
   },
 
-  // Sticky Bottom Button Styles
-  stickyButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: wp('4%'),
-    paddingTop: hp('2%'),
-    paddingBottom: hp('3%'),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  actionButton: {
-    backgroundColor: '#00C4B4',
-    paddingVertical: hp('2.2%'),
-    borderRadius: wp('14%'),
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    shadowColor: '#00C4B4',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  actionButtonDisabled: {
-    backgroundColor: '#94A3B8',
-    opacity: 0.7,
-  },
-  actionButtonText: {
-    fontSize: wp('4.2%'),
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'System',
-    letterSpacing: 0.6,
-  },
 
   // Payment Section Styles
   paymentSection: {
