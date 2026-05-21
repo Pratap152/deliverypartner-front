@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import BaseModal from './BaseModal';
 import { Dimensions } from 'react-native';
-
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 export default function SuccessModal({ visible, onClose }) {
+  const navigation = useNavigation();
   return (
     <BaseModal
       visible={visible}
@@ -28,7 +29,10 @@ export default function SuccessModal({ visible, onClose }) {
         Estimated Earnings ₹180–250
       </Text>
 
-      <TouchableOpacity style={styles.primaryBtn} onPress={onClose}>
+      <TouchableOpacity
+        style={styles.primaryBtn}
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] })}
+      >
         <Text style={styles.primaryText}>
           Go Online & Start Earning
         </Text>
@@ -44,9 +48,9 @@ const styles = StyleSheet.create({
     padding: isTablet ? 42 : 24,
     alignItems: 'center',
     width: isTablet ? '70%' : '100%',
-},
+  },
 
- checkCircle: {
+  checkCircle: {
     width: isTablet ? 110 : 64,
     height: isTablet ? 110 : 64,
     borderRadius: isTablet ? 55 : 32,
@@ -54,42 +58,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: isTablet ? 24 : 12,
-},
+  },
   check: {
     color: '#FFF',
     fontSize: isTablet ? 52 : 32,
     fontWeight: '900',
-},
+  },
   title: {
     fontSize: isTablet ? 34 : 18,
     fontWeight: '800',
     color: '#000',
     marginTop: 8,
-},
-subTitle: {
+  },
+  subTitle: {
     fontSize: isTablet ? 22 : 14,
     color: '#4A4A4A',
     marginTop: 10,
-},
+  },
 
   earning: {
     fontSize: isTablet ? 24 : 16,
     fontWeight: '700',
     color: '#1E7F3D',
     marginTop: 14,
-},
+  },
 
- primaryBtn: {
+  primaryBtn: {
     marginTop: isTablet ? 30 : 20,
     backgroundColor: '#34C759',
     paddingVertical: isTablet ? 20 : 14,
     paddingHorizontal: isTablet ? 50 : 30,
     borderRadius: isTablet ? 20 : 14,
-},
+  },
 
- primaryText: {
+  primaryText: {
     color: '#FFF',
     fontWeight: '700',
     fontSize: isTablet ? 20 : 14,
-},
+  },
 });
