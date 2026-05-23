@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getJoiningBonusProgress } from '../services/JoiningBonusService';
+import {
+  getReferralPrograms,
+  getReferralProgramsProgress,
+} from '../services/JoiningBonusService';
 
 const initialState = {
   loading: true,
@@ -12,15 +15,47 @@ const initialState = {
 const buildTaskProgress = (task) => {
   const progress = task.progress || {};
 
+  let label = '';
+
+  switch (task.taskRuleType) {
+
+    case 'SLAB':
+      label = progress.isCompleted
+        ? 'Completed'
+        : `${progress.completedOrders || 0} Orders`;
+      break;
+
+    case 'FIXED_TARGET':
+      label = `${progress.completedOrders || 0}/${progress.targetOrders || 0}`;
+      break;
+
+    case 'PER_ORDER':
+      label = `₹${progress.earnedAmount || 0}`;
+      break;
+
+    case 'HYBRID':
+      label = `${progress.progressPercentage || 0}%`;
+      break;
+
+    default:
+      label = 'In Progress';
+  }
+
   return {
     current: progress.completedOrders || 0,
-    target: progress.nextTargetOrders || 0,
+
+    target:
+      progress.targetOrders ||
+      progress.nextTargetOrders ||
+      0,
+
     percentage: progress.progressPercentage || 0,
+
     isCompleted: progress.isCompleted || false,
+
     status: progress.status,
-    label: progress.isCompleted
-  ? 'Completed'
-  : `${progress.completedOrders || 0} Orders`,
+
+    label,
   };
 };
 
@@ -30,7 +65,10 @@ const buildSortedTasks = (tasks = []) => {
     .map((task) => ({
       ...task,
       rewardAmount:
-        task.slabs?.[task.slabs.length - 1]?.rewardAmount || 0,
+  task.reward?.amount ||
+  task.maxEarning ||
+  task.slabs?.[task.slabs.length - 1]?.rewardAmount ||
+  0,
       progressData: buildTaskProgress(task),
     }));
 };
@@ -48,14 +86,32 @@ const useJoiningBonus = () => {
         loading: true,
         error: null,
       });
+const [programRes, progressRes] = await Promise.all([
+  getReferralPrograms(),
+  getReferralProgramsProgress(),
+]);
 
-      const res = await getJoiningBonusProgress();
+const activeProgram = programRes?.data?.[0];
+const activeProgress = progressRes?.data?.[0];
+const mergedTasks =
+  activeProgress?.tasks?.map((progressTask) => {
+
+    const programTask =
+      activeProgram?.tasks?.find(
+        (t) => t.dayNumber === progressTask.dayNumber
+      );
+
+    return {
+      ...programTask,
+      ...progressTask,
+    };
+  }) || [];
 
       setPartial({
         loading: false,
-        program: res.program,
-        progress: res.data,
-        sortedTasks: buildSortedTasks(res.data?.tasks || []),
+        program: activeProgram,
+progress: activeProgress,
+sortedTasks: buildSortedTasks(mergedTasks),
       });
     } catch (e) {
       setPartial({
