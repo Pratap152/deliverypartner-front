@@ -22,66 +22,12 @@ const SwipeButton = ({
         return null;
     }
 
-    // ─── Button enable/disable logic ─────────────────────────────────────────
-    //
-    // Flow:
-    //  ASSIGNED          → "Navigate to Pickup"    → navigation, always enabled
-    //  EN_ROUTE_TO_PICKUP → "Reached Restaurant"   → 5m check vs pickup location
-    //  PICKED_UP         → "Navigate to Drop"      → navigation, always enabled
-    //  EN_ROUTE_TO_DROP  → "Order Delivered"       → 5m check vs drop location
-    //  EN_ROUTE_TO_DROP (COD) → "Collect Cash" /
-    //                      "Confirm Online Payment" → always enabled (payment step)
-    //
-    // NOTE: Set FORCE_PRODUCTION_TEST = true to test the 5m restriction in dev
-    //       using your fake GPS app. Set back to false before committing.
-    const FORCE_PRODUCTION_TEST = true;
-
-    const isDevMode = (typeof __DEV__ !== 'undefined' ? __DEV__ : true) && !FORCE_PRODUCTION_TEST;
-
-    // Navigation buttons (Navigate to Pickup / Navigate to Drop) are always enabled.
-    const isNavigationAction = !!ui.bottomButtons?.[0]?.navigateTo;
-
-    // COD payment buttons are always enabled — rider is already at drop by this stage.
-    const isCOD = status === 'EN_ROUTE_TO_DROP' && (
-        orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
-        orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
-        orderDetails?.payment?.mode?.toUpperCase() === 'COD'
-    );
-
-    // Only "Reached Restaurant" and "Order Delivered" buttons respect the 5m gate.
-    // distanceToTarget is automatically pointed at the correct address by OrderDetailsScreen:
-    //   ASSIGNED / EN_ROUTE_TO_PICKUP → distance to pickup address
-    //   all other statuses            → distance to drop address
-    const isDistanceBlocked = !isDevMode && !isNavigationAction && !isCOD && (
-        distanceToTarget === null ||
-        distanceToTarget === undefined ||
-        distanceToTarget > 5
-    );
-
-    // 🔍 DEBUG — remove after testing
-    console.log('[SwipeButton]', {
-        status,
-        distanceToTarget,
-        isDevMode,
-        isNavigationAction,
-        isCOD,
-        isDistanceBlocked,
-        FORCE_PRODUCTION_TEST,
-    });
-
-    const buttonText = isCOD
-        ? (paymentMethod === 'CASH' ? 'Collect Cash' : 'Confirm Online Payment')
-        : ui.bottomButtons?.[0]?.label;
-
     return (
         <View style={styles.stickyButtonContainer}>
             <TouchableOpacity
-                style={[
-                    styles.actionButton,
-                    (buttonLoading || isDistanceBlocked) && styles.actionButtonDisabled
-                ]}
+                style={[styles.actionButton, buttonLoading && styles.actionButtonDisabled]}
                 onPress={handleAction}
-                disabled={buttonLoading || isDistanceBlocked}
+                disabled={buttonLoading}
                 activeOpacity={0.8}
             >
                 {buttonLoading ? (
@@ -91,7 +37,13 @@ const SwipeButton = ({
                     </>
                 ) : (
                     <Text style={styles.actionButtonText}>
-                        {buttonText}
+                        {status === 'EN_ROUTE_TO_DROP' && (
+                            orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
+                            orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
+                            orderDetails?.payment?.mode?.toUpperCase() === 'COD'
+                        )
+                            ? (paymentMethod === 'CASH' ? 'Collect Cash' : 'Confirm Online Payment')
+                            : ui.bottomButtons?.[0]?.label}
                     </Text>
                 )}
             </TouchableOpacity>
