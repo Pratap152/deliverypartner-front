@@ -13,7 +13,8 @@ import { useNavigation } from '@react-navigation/native';
 const PeakHourBonusBanner = () => {
   const navigation = useNavigation();
   return (
-    <LinearGradient
+    <TouchableOpacity onPress={() => navigation.navigate('IncentiveDetails')} activeOpacity={0.85}>
+      <LinearGradient
       colors={['#0EA5E9', '#0284C7']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -34,6 +35,8 @@ const PeakHourBonusBanner = () => {
         </TouchableOpacity>
       </View>
     </LinearGradient>
+    </TouchableOpacity>
+    
   );
 };
 
