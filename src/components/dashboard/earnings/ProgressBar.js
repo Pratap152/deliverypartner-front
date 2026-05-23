@@ -20,11 +20,10 @@ export default function ProgressBar({ progress, progressColor }) {
 
 const styles = StyleSheet.create({
   track: {
-    height: hp(1),
+    height: hp(1.5),
     backgroundColor: '#E5E7EB',
     borderRadius: wp(2),
     overflow: 'hidden',
-    marginTop: hp(1),
   },
   fill: {
     height: '100%',
