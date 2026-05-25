@@ -45,9 +45,11 @@ const buildTaskProgress = (task) => {
     current: progress.completedOrders || 0,
 
     target:
-      progress.targetOrders ||
-      progress.nextTargetOrders ||
-      0,
+  progress.targetOrders ||
+  progress.nextTargetOrders ||
+  progress.remainingOrders +
+    progress.completedOrders ||
+  0,
 
     percentage: progress.progressPercentage || 0,
 
