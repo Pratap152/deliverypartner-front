@@ -71,7 +71,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* --- HERO HEADER --- */}
       <LinearGradient
-        colors={["#4F39F6", "#3B28C7"]}
+        colors={["#192A51", "#475B8A"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.heroHeader}

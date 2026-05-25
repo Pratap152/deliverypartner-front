@@ -37,7 +37,7 @@ const SlabRuleTypeIncentives = ({ title, status, slabs, ordersCompleted, maxRewa
 
                 <View style={styles.content}>
                     <Text style={styles.contentLabel}>Completed Orders</Text>
-                    <Text style={styles.contentValue}>{ordersCompleted}/{slabs[slabs.length - 1].maxOrders}</Text>
+                    <Text style={styles.contentValue}>{ordersCompleted}/{slabs[slabs.length - 1]?.maxOrders}</Text>
                 </View>
 
                 <View style={styles.content}>
