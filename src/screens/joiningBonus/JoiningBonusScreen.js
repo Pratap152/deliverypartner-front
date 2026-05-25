@@ -143,19 +143,27 @@ const WeeklyProgressCard = memo(
         </View>
       </View>
     );
+    
   }
 );
-
 const TaskCard = memo(({ task, progress }) => {
+
+  const status = progress?.status;
 
   const isCompleted =
     progress?.isCompleted;
 
   const isRunning =
-    progress?.status === 'RUNNING';
+    status === 'RUNNING';
 
-  const isUpcoming =
-    progress?.status === 'NOT_STARTED';
+  const isMissed =
+    status === 'MISSED';
+
+  const isLocked =
+    status === 'LOCKED';
+
+  const isNotStarted =
+    status === 'NOT_STARTED';
 
   const progressPercent =
     progress?.percentage || 0;
@@ -170,14 +178,43 @@ const TaskCard = memo(({ task, progress }) => {
     'SAT',
   ];
 
+  /* CARD COLORS */
+
   const cardBg = isCompleted
-  ? '#A3EBD499'
-  : isRunning
-  ? '#E9E6FF'
-  : '#F4F4F4';
+    ? '#CFF3E4'
+    : isRunning
+    ? '#E7E1FF'
+    : isMissed
+    ? '#FFE3E3'
+    : '#F4F4F4';
+
   const leftBg = isCompleted
-  ? '#00C78633'
-  :'#D0C9FF';
+    ? '#A7E6CC'
+    : isRunning
+    ? '#D4CBFF'
+    : isMissed
+    ? '#FFC9C9'
+    : '#E3E3E3';
+
+  /* STATUS */
+
+  const statusText = isCompleted
+    ? 'Completed'
+    : isRunning
+    ? 'Running'
+    : isMissed
+    ? 'Missed'
+    : isLocked
+    ? 'Locked'
+    : 'Upcoming';
+
+  const statusColor = isCompleted
+    ? '#2DBE60'
+    : isRunning
+    ? '#1A275C'
+    : isMissed
+    ? '#E53935'
+    : '#8E8E8E';
 
   return (
     <View
@@ -188,7 +225,7 @@ const TaskCard = memo(({ task, progress }) => {
         },
       ]}>
 
-      {/* LEFT DAY SECTION */}
+      {/* LEFT SECTION */}
 
       <View
         style={[
@@ -211,91 +248,110 @@ const TaskCard = memo(({ task, progress }) => {
         </Text>
       </View>
 
-      {/* RIGHT CONTENT */}
+      {/* RIGHT SECTION */}
 
       <View style={s.taskRightSection}>
 
-        {/* UPCOMING OVERLAY */}
+        {/* LOCKED OVERLAY */}
 
-        {isUpcoming && (
+        {isLocked && (
           <View style={s.upcomingOverlay}>
             <View style={s.upcomingBadge}>
+
               <Ionicons
-  name="lock-closed"
-  size={14}
-  color="#FFF"
-  style={s.lockIcon}
-/>
+                name="lock-closed"
+                size={14}
+                color="#FFF"
+                style={s.lockIcon}
+              />
 
               <Text style={s.upcomingText}>
-                Upcoming
+                Locked
               </Text>
+
             </View>
           </View>
         )}
 
         <View
           style={{
-            opacity: isUpcoming ? 0.25 : 1,
+            opacity: isLocked ? 0.22 : 1,
           }}>
 
-          {/* STATUS */}
+          {/* TOP */}
 
           <View style={s.topRow}>
-<View>
-  <Text style={s.Task}>
-    {getTaskDescription(task)}
-  </Text>
-</View>
 
-            <View>
+            <View style={{ flex: 1 }}>
+
+              <Text style={s.Task}>
+                {getTaskDescription(task)}
+              </Text>
+
+            </View>
+
+            <View style={{ marginLeft: 10 }}>
 
               <View
                 style={[
                   s.statusPill,
                   {
                     backgroundColor:
-                      isCompleted
-                        ? '#33C46B'
-                        : '#1A275C',
+                      statusColor,
                   },
                 ]}>
 
                 <Text style={s.statusPillText}>
-                  {isCompleted
-                    ? 'Completed'
-                    : isRunning
-                    ? 'Running'
-                    : 'Upcoming'}
+                  {statusText}
                 </Text>
+
               </View>
 
               <Text style={s.orderCount}>
-  {progress?.current || 0}/
-  {progress?.target || 0}
-</Text>
+
+                {progress?.current || 0}/
+
+                {progress?.target ||
+
+                  task?.target?.orders ||
+
+                  task?.maxOrders ||
+
+                  task?.slabs?.[
+                    task.slabs.length - 1
+                  ]?.maxOrders ||
+
+                  0}
+
+              </Text>
+
             </View>
+
           </View>
 
           {/* PROGRESS */}
 
           <View style={s.progressBottomRow}>
 
-  <View style={s.progressTrack}>
-    <View
-      style={[
-        s.progressFill,
-        {
-          width: `${progressPercent}%`,
-        },
-      ]}
-    />
-  </View>
+            <View style={s.progressTrack}>
 
-  <Text style={s.percentText}>
-    {progressPercent}%
-  </Text>
-</View>
+              <View
+                style={[
+                  s.progressFill,
+                  {
+                    width: `${progressPercent}%`,
+                  },
+                ]}
+              />
+
+            </View>
+
+            <Text style={s.percentText}>
+              {progressPercent}%
+            </Text>
+
+          </View>
+
         </View>
       </View>
     </View>

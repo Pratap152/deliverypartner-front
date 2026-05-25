@@ -82,7 +82,7 @@ const WeekEarnings = ({ route, navigation }) => {
             status={status}
             slabs={task.slabs}
             ordersCompleted={progressTask.progress.completedOrders}
-            maxReward={task.slabs[task.slabs.length - 1].rewardAmount}
+            maxReward={task.slabs[task.slabs.length - 1]?.rewardAmount}
             styles={styles}
             isTablet={isTablet}
           />
