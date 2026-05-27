@@ -1,6 +1,11 @@
 import React from "react";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { Dimensions } from 'react-native';
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export default function Checkbox({ checked, onPress, disabled = false }) {
   return (
@@ -22,7 +27,7 @@ export default function Checkbox({ checked, onPress, disabled = false }) {
         {checked && (
           <Ionicons
             name="checkmark"
-            size={14}
+            size={isTablet ? 18 : 14}
             color="#FFF"
           />
         )}
@@ -34,18 +39,23 @@ const styles = StyleSheet.create({
   container: {
     padding: 4,
   },
-
   box: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: "#C7C7CC",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-  },
+    width: isTablet ? 30 : 22,
 
+    height: isTablet ? 30 : 22,
+
+    borderRadius: isTablet ? 8 : 6,
+
+    borderWidth: 1.5,
+
+    borderColor: "#C7C7CC",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    backgroundColor: "#FFF",
+},
   checkedBox: {
     backgroundColor: "#4C4CFF",
     borderColor: "#4C4CFF",

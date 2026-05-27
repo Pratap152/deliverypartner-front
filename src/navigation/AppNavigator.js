@@ -24,7 +24,7 @@ import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
 import SplashScreen from '../screens/onboarding/SplashScreen';
 import PaymentsScreen from '../screens/kitSelection/PaymentsScreen';
-import SuccessScreen from '../screens/onboarding/SuccessScreen';
+import SuccessScreen from '../screens/kitSelection/SuccessScreen';
 import HelpCenterList from '../screens/help/HelpCenterList';
 import HelpIssueScreen from '../screens/help/HelpIssueScreen';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';

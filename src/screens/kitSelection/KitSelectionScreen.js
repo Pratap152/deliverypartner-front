@@ -8,15 +8,22 @@ import {
   ScrollView,
   useWindowDimensions,
   ActivityIndicator,
-  Keyboard,
   KeyboardAvoidingView,
 } from "react-native";
 import KitHeader from "../../components/kit/KitHeader";
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
+import { BackHandler } from 'react-native';
 
-const KitSelectionScreen = ({ navigation }) => {
+import { useDispatch, useSelector } from 'react-redux';
+import { setKitFlowStep } from '../../redux/slices/kitSlice';
+
+
+
+
+const KitSelectionScreen = ({ navigation }) => {  
   const { width } = useWindowDimensions();
-  
+  const isTablet = width >= 768;
+  const styles = getStyles(isTablet);
   // Delivery mode state
   const [deliveryMode, setDeliveryMode] = useState("online"); 
   
@@ -34,6 +41,64 @@ const KitSelectionScreen = ({ navigation }) => {
   
   const { createKitAddress, getKitAddress, loading } = useKitAddress();
 
+  const goToHomeTab = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Home',
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      goToHomeTab();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [navigation]);
+
+  const riderKitData = useSelector(state =>
+    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
+  );
+
+  useEffect(() => {
+    if (!riderKitData) return;
+
+    if (riderKitData?.deliveryMode) {
+      setDeliveryMode(riderKitData.deliveryMode);
+    }
+
+    if (riderKitData?.addressData) {
+      setName(riderKitData.addressData.name ?? "");
+      setAddress(riderKitData.addressData.address ?? "");
+      setPincode(riderKitData.addressData.pincode ?? "");
+    }
+
+    if (riderKitData?.selectedZone) {
+      setSelectedZone(riderKitData.selectedZone);
+    }
+  }, [riderKitData]);
+
+  const dispatch = useDispatch();
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  useEffect(() => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitSelectionScreen',
+      deliveryMode,
+    }));
+  }, [dispatch, currentRiderId, deliveryMode]);
+
   // Fetch zones when switching to offline mode
   useEffect(() => {
     if (deliveryMode === "offline") {
@@ -45,19 +110,19 @@ const KitSelectionScreen = ({ navigation }) => {
 
   // Fetch pickup zones for offline mode
   const fetchZones = async () => {
-  setZonesLoading(true);
-  setZonesError(null);
-  try {
-    const response = await getKitAddress();
-    setZones(response || []); 
-  } catch (error) {
-    console.log("Error fetching zones:", error);
-    setZonesError(error.message || "Failed to fetch zones");
-    setZones([]);
-  } finally {
-    setZonesLoading(false);
-  }
-};
+    setZonesLoading(true);
+    setZonesError(null);
+    try {
+      const response = await getKitAddress();
+      setZones(response || []); 
+    } catch (error) {
+      console.log("Error fetching zones:", error);
+      setZonesError(error.message || "Failed to fetch zones");
+      setZones([]);
+    } finally {
+      setZonesLoading(false);
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -79,28 +144,47 @@ const KitSelectionScreen = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    if (deliveryMode === "online") {
-      if (!validate()) return;
-      navigation.replace("KitPickupSelection", {
-        deliveryMode: "online",
-        addressData: {
-          name,
-          address,
-          pincode,
-        },
-      });
-    } else {
-      if (!selectedZone) {
-        alert("Please select a pickup zone");
-        return;
-      }
+  if (deliveryMode === "online") {
+    if (!validate()) return;
 
-      navigation.replace("KitPickupSelection", {
-        deliveryMode: "offline",
-        selectedZone,
-      });
+    const payload = {
+      name,
+      address,
+      pincode,
+    };
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitPickupSelection',
+      deliveryMode: 'online',
+      addressData: payload,
+      selectedZone: null,
+    }));
+
+    navigation.replace("KitPickupSelection", {
+      deliveryMode: "online",
+      addressData: payload,
+    });
+  } else {
+    if (!selectedZone) {
+      alert("Please select a pickup zone");
+      return;
     }
-  };
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitPickupSelection',
+      deliveryMode: 'offline',
+      addressData: null,
+      selectedZone,
+    }));
+
+    navigation.replace("KitPickupSelection", {
+      deliveryMode: "offline",
+      selectedZone,
+    });
+  }
+};
   // Determine button text and disabled state
   const getButtonConfig = () => {
     if (deliveryMode === "online") {
@@ -119,7 +203,17 @@ const KitSelectionScreen = ({ navigation }) => {
   const buttonConfig = getButtonConfig();
 
   return (
-    <View style={[styles.container,{padding: width * 0.05}]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingHorizontal: isTablet ? width * 0.12 : width * 0.05,
+          alignSelf: 'center',
+          width: '100%',
+          maxWidth: isTablet ? 850 : '100%',
+        },
+      ]}
+    >
      <Text style={styles.title}>Kit Selection</Text>
       
       <KitHeader />
@@ -299,13 +393,14 @@ const KitSelectionScreen = ({ navigation }) => {
 
 export default KitSelectionScreen;
 
-const styles = StyleSheet.create({
+const getStyles = (isTablet) =>
+  StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: "#F8FAFC"
   }, 
   title: { 
-    fontSize: 28, 
+    fontSize: isTablet ? 42 : 28,
     fontWeight: "700", 
     marginBottom: 8,
     marginTop: 10,
@@ -328,7 +423,7 @@ const styles = StyleSheet.create({
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: isTablet ? 22 : 14,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 11,
@@ -349,7 +444,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   segmentText: {
-    fontSize: 15,
+    fontSize: isTablet ? 20 : 15,
     fontWeight: "600",
     color: "#64748B",
     letterSpacing: 0.3,
@@ -363,7 +458,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   text: {
-    fontSize: 15,
+    fontSize: isTablet ? 22 : 15,
     fontWeight: "600",
     color: "#334155",
     marginTop: 16,
@@ -373,10 +468,11 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1.5,
     borderColor: "#CBD5E1",
-    borderRadius: 12,
-    padding: 16,
+    paddingVertical: isTablet ? 22 : 16,
+    paddingHorizontal: isTablet ? 24 : 16,
+    fontSize: isTablet ? 20 : 15,
+    borderRadius: isTablet ? 18 : 12,
     marginBottom: 6,
-    fontSize: 15,
     backgroundColor: "#FFFFFF",
     color: "#1E293B",
     shadowColor: "#000",
@@ -396,8 +492,8 @@ const styles = StyleSheet.create({
   zoneCard: {
     borderWidth: 2,
     borderColor: "#E2E8F0",
-    borderRadius: 16,
-    padding: 18,
+    padding: isTablet ? 30 : 18,
+    borderRadius: isTablet ? 22 : 16,
     marginBottom: 14,
     backgroundColor: "#FFFFFF",
     shadowColor: "#000",
@@ -443,13 +539,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   zoneName: {
-    fontSize: 17,
+    fontSize: isTablet ? 26 : 17,
     color: "#1E293B",
     marginBottom: 6,
     letterSpacing: 0.2,
   },
   zoneAddress: {
-    fontSize: 14,
+    fontSize: isTablet ? 18 : 14,
+    lineHeight: isTablet ? 28 : 20,
     color: "#64748B",
     lineHeight: 20,
     letterSpacing: 0.1,
@@ -510,8 +607,8 @@ const styles = StyleSheet.create({
   },
   continueBtn: {
     backgroundColor: "#0EA5E9",
-    borderRadius: 16,
-    paddingVertical: 18,
+    paddingVertical: isTablet ? 24 : 18,
+    borderRadius: isTablet ? 22 : 16,
     alignItems: "center",
     marginTop: 28,
     marginBottom: 24,
@@ -530,8 +627,9 @@ const styles = StyleSheet.create({
   },
   continueText: { 
     color: "#FFFFFF", 
-    fontSize: 17, 
+    fontSize: isTablet ? 22 : 17,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
-});
+  });
+

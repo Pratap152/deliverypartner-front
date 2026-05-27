@@ -1,47 +1,57 @@
+
 import apiClient from '../services/ApiClient';
 
+/* GET PROGRAMS */
+export const getReferralPrograms = async () => {
+  const res = await apiClient.get(
+    '/api/referral/programs'
+  );
 
-export const getJoiningBonusProgram = async (params = {}) => {
-  const res = await apiClient.get('/api/rider/joining/bonus/programs', {
-    params,
-  });
-  const programs = res.data?.data || [];
-
-  if (!programs.length) {
-    throw new Error('No active joining bonus program');
-  }
-
-  return programs[0];
-};
-
-export const joinJoiningBonus = async (programId) => {
-  const res = await apiClient.post(`/api/rider/joining/bonus/programs/${programId}/join`);
   return res.data;
 };
 
-export const getJoiningBonusProgress = async () => {
-  const res = await apiClient.get(`/api/rider/joining/bonus/programs/myProgress`);
-  return res.data?.data;
+/* GET PROGRAM PROGRESS */
+export const getReferralProgramsProgress = async () => {
+  const res = await apiClient.get(
+    '/api/referral/programs/progress'
+  );
+
+  return res.data;
 };
 
-
-
+/* TASK DESCRIPTION */
 export const getTaskDescription = (task) => {
-  const minOrders = task.minOrders ?? task.conditions?.minOrders;
-  const minAcceptanceRate = task.minAcceptanceRate ?? task.conditions?.minAcceptanceRate;
-  const minPeakSlots = task.minPeakSlots ?? task.conditions?.minPeakSlots;
-  const minEarnings = task.minEarnings ?? task.conditions?.minEarnings;
 
-  switch (task.taskType) {
-    case 'ORDERS':
-      return `Complete ${minOrders} deliveries`;
-    case 'ACCEPTANCE_RATE':
-      return `Maintain ${minAcceptanceRate}% acceptance rate`;
-    case 'PEAK_SLOTS':
-      return `Work ${minPeakSlots} peak slot${minPeakSlots > 1 ? 's' : ''}`;
-    case 'EARNINGS':
-      return `Earn ₹${minEarnings}`;
+  switch (task.taskRuleType) {
+
+    case 'SLAB':
+      return (
+        task.slabs
+          ?.map((slab) => {
+            if (slab.maxOrders) {
+              return `${slab.minOrders}-${slab.maxOrders} orders → ₹${slab.rewardAmount}`;
+            }
+
+            return `${slab.minOrders}+ orders → ₹${slab.rewardAmount}`;
+          })
+          .join('\n') || 'Complete slab targets'
+      );
+
+    case 'FIXED_TARGET':
+      return `Complete ${task.target?.orders || 0} orders and earn ₹${task.reward?.amount || 0}`;
+
+    case 'PER_ORDER':
+      return `Earn ₹${task.rewardPerOrder || 0} per order upto ₹${task.maxEarning || 0}`;
+
+    case 'HYBRID':
+      return `
+Min Orders: ${task.conditions?.minOrders || 0}
+Acceptance Rate: ${task.conditions?.minAcceptanceRate || 0}%
+Completion Rate: ${task.conditions?.minCompletionRate || 0}%
+Min Earnings: ₹${task.conditions?.minEarnings || 0}
+      `;
+
     default:
-      return 'Complete the daily task';
+      return 'Complete daily target';
   }
 };

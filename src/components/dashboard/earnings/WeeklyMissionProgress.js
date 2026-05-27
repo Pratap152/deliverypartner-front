@@ -3,12 +3,18 @@ import {
   View,
   Text,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 
 const WeeklyMissionProgressBar = ({
   missionsData,
   progressData,
 }) => {
+  const { width } = useWindowDimensions();
+  const isTablet = DeviceInfo.isTablet();
+  const styles = createStyles(isTablet, width);
+
   const mission = missionsData;
   const progress = progressData;
 
@@ -326,148 +332,139 @@ return (
 );
 };
 
-const styles = StyleSheet.create({
-card: {
-  backgroundColor: '#FFFFFF',
-  marginBottom: 20,
-  padding: 18,
-  borderRadius: 20,
+const createStyles = (
+  isTablet,
+  width,
+) => {
+  return StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    marginBottom: 20,
+    padding: isTablet ? 28 : 18,
+    borderRadius: isTablet ? 28 : 20,
 
-  shadowColor: '#000',
-  shadowOffset: {
-    width: 0,
-    height: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+
+    elevation: 2,
   },
-  shadowOpacity: 0.08,
-  shadowRadius: 5,
-
-  elevation: 2,
-},
-
-progressText: {
-  fontSize: 15,
-  fontWeight: '700',
-  color: '#111827',
-  marginBottom: 12,
-},
-
-progressBar: {
-  height: 10,
-  backgroundColor: '#E5E7EB',
-  borderRadius: 999,
-  overflow: 'hidden',
-},
-
-progressFill: {
-  height: '100%',
-  backgroundColor: '#22C55E',
-  borderRadius: 999,
-},
-
-stepperContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: 26,
-},
-
-stepWrapper: {
-  flexDirection: 'row',
-  alignItems: 'center',
-},
-
-circle: {
-  width: 25,
-  height: 25,
-  borderRadius: 15,
-  backgroundColor: '#D1D5DB',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-completedCircle: {
-  backgroundColor: '#22C55E',
-},
-
-runningCircle: {
-  backgroundColor: '#2563EB',
-},
-
-pendingCircle: {
-  backgroundColor: '#EF4444',
-},
-
-circleText: {
-  color: '#FFFFFF',
-  fontSize: 11,
-  fontWeight: '700',
-},
-
-line: {
-  width: 18,
-  height: 3,
-  backgroundColor: '#D1D5DB',
-  marginHorizontal: 2,
-  borderRadius: 10,
-},
-
-completedLine: {
-  backgroundColor: '#22C55E',
-},
-
-conditionsContainer: {
-  marginTop: 24,
-  backgroundColor: '#F9FAFB',
-  borderRadius: 16,
-  padding: 16,
-},
-
-conditionTitle: {
-  fontSize: 16,
-  fontWeight: '700',
-  color: '#111827',
-  marginBottom: 14,
-},
-
-conditionText: {
-  fontSize: 14,
-  color: '#374151',
-  lineHeight: 22,
-  fontWeight: '500',
-  marginBottom: 8,
-  backgroundColor: '#FFFFFF',
-  paddingVertical: 10,
-  paddingHorizontal: 14,
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: '#CCC',
-},
-
-conditionCard: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 14,
-  padding: 14,
-  marginBottom: 10,
-  borderWidth: 1,
-  borderColor: '#F3F4F6',
-},
-
-conditionRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  marginBottom: 8,
-},
-
-conditionLabel: {
-  fontSize: 14,
-  color: '#6B7280',
-},
-
-conditionValue: {
-  fontSize: 14,
-  fontWeight: '700',
-  color: '#111827',
-},
+  cardTablet: {
+    width: '92%',
+    alignSelf: 'center',
+  },
+  progressText: {
+    fontSize: isTablet ? 22 : 15,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: isTablet ? 18 : 12,
+  },
+  progressBar: {
+    height: isTablet ? 16 : 10,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#22C55E',
+    borderRadius: 999,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: isTablet ? 40 : 26,
+  },
+  stepWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  circle: {
+    width: isTablet ? 42 : 25,
+    height: isTablet ?  42 : 25,
+    borderRadius: isTablet ?  21 : 15,
+    backgroundColor: '#D1D5DB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  completedCircle: {
+    backgroundColor: '#22C55E',
+  },
+  runningCircle: {
+    backgroundColor: '#2563EB',
+  },
+  pendingCircle: {
+    backgroundColor: '#EF4444',
+  },
+  circleText: {
+    color: '#FFFFFF',
+    fontSize: isTablet ? 18 : 11,
+    fontWeight: '700',
+  },
+  line: {
+    width: isTablet ? 42 : 18,
+    height: isTablet ? 5 : 3,
+    backgroundColor: '#D1D5DB',
+    marginHorizontal: isTablet ? 4 : 2,
+    borderRadius: 10,
+  },
+  completedLine: {
+    backgroundColor: '#22C55E',
+  },
+  conditionsContainer: {
+    marginTop: isTablet ? 34 : 24,
+    backgroundColor: '#F9FAFB',
+    borderRadius: isTablet ? 24 : 16,
+    padding: isTablet ? 24 : 16,
+  },
+  conditionTitle: {
+    fontSize: isTablet ? 24 : 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: isTablet ? 22 : 14,
+  },
+  conditionText: {
+    fontSize: isTablet ? 20 : 14,
+    color: '#374151',
+    lineHeight: isTablet ? 30 : 22,
+    fontWeight: '500',
+    marginBottom: isTablet ? 14 : 8,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: isTablet ? 18 : 10,
+    paddingHorizontal: isTablet ? 20 : 14,
+    borderRadius: isTablet ? 18 : 12,
+    borderWidth: 1,
+    borderColor: '#CCC',
+  },
+  conditionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  conditionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  conditionLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  conditionValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+  },
 });
+};
+
 
 export default WeeklyMissionProgressBar;

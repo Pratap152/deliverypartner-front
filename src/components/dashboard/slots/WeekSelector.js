@@ -1,6 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Dimensions } from 'react-native';
 
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 export default function WeekSelector({ weeks, selectedWeek, onSelect }) {
   return (
     <View style={styles.container}>
@@ -34,13 +38,12 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
   },
-  label: {
-    fontSize: 16,
+ label: {
+    fontSize: isTablet ? 30 : 16,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 12,
-    marginLeft: 4,
-  },
+    marginBottom: isTablet ? 20 : 12,
+},
   row: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -48,30 +51,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   day: {
-    width: 44,
-    height: 90,
-    borderRadius: 16,
+    width: isTablet ? 85 : 44,
+    height: isTablet ? 140 : 90,
+    borderRadius: isTablet ? 24 : 16,
     backgroundColor: "#FFF",
     borderWidth: 1,
     borderColor: "#E5E5EA",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
-  },
+    paddingVertical: isTablet ? 18 : 12,
+},
   active: {
     borderColor: "#4C4CFF",
     backgroundColor: "#F0F0FF", // Light blue tint
     borderWidth: 2,
   },
   dayText: {
-    fontSize: 13,
+    fontSize: isTablet ? 20 : 13,
     color: "#6B7280",
-  },
+},
   dateText: {
-    fontSize: 20, // Larger date
+    fontSize: isTablet ? 34 : 20,
     fontWeight: "700",
     color: "#333",
-  },
+},
   activeText: {
     color: "#4C4CFF",
   },

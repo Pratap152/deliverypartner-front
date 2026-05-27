@@ -15,7 +15,6 @@ import SlotBookingFooter from '../../components/dashboard/slots/SlotBookingFoote
 import BookSlotModal from '../../components/dashboard/slots/modals/BookSlotModal';
 import CancelSlotModal from '../../components/dashboard/slots/modals/CancelSlotModal';
 import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
-import SlotHistory from '../../components/common/SlotHistory';
 
 
 export default function SlotBookingScreen({navigation}) {
@@ -23,11 +22,12 @@ export default function SlotBookingScreen({navigation}) {
     weeks,
     slots,
     slotsLoading,
-    weeksLoading,
     loadWeeks,
     loadSlots,
     bookSlot,
     cancelSlot,
+    clearSlots,
+    clearWeeks
   } = useSlots();
 
   // Slot selection management
@@ -52,6 +52,17 @@ export default function SlotBookingScreen({navigation}) {
 
   const cityId = useSelector((state) => state.profile.data?.location?.city?.trim());
   const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
+
+  const refreshSlots = () => {
+    if (selectedWeek) {
+      loadSlots({
+        date: selectedWeek,
+        filter,
+        cityId,
+        pincodeId,
+      });
+    }
+  };
   
   // Load weeks and slots in parallel on mount
   useEffect(() => {
@@ -65,27 +76,42 @@ export default function SlotBookingScreen({navigation}) {
       isInitialMount.current = false;
       return; // skip on mount because we already loaded todays slots
     }
-    if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    
-    }
+    refreshSlots();
   }, [selectedWeek, filter]);
+
+
+  const autoSelectFirst = useRef(false);
+  useEffect(() => {
+    if (!autoSelectFirst.current) return;
+    if (weeks?.length > 0) {
+      autoSelectFirst.current = false;
+      const firstDate = weeks[0]?.date;
+      if (firstDate) setSelectedWeek(firstDate);
+    } 
+  }, [weeks]);
+    
 
   // Handlers
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Clear selection when changing tabs
     setSelectedWeek(null);
     clearSelection();
-    
-    if (tab === TABS.CURRENT) {
-      // Load current week
-      loadWeeks({cityId, pincodeId});
-    } else if (tab === TABS.NEXT) {
-      // Load next week (current + 1)
-      const currentWeekNum = getWeekNumber();
-      const nextWeekNum = currentWeekNum + 1;
-      loadWeeks({ weekNumber: nextWeekNum, cityId, pincodeId });    
+    clearSlots();
+    clearWeeks();
+
+    autoSelectFirst.current = true;
+    let weekNumber;
+    if (tab === TABS.NEXT) {
+      weekNumber = getWeekNumber() + 1;
     }
+    if (tab === TABS.UPCOMING) {
+      weekNumber = getWeekNumber() + 2;
+    }
+    loadWeeks({
+      weekNumber,
+      cityId,
+      pincodeId,
+    });
   };
 
   const handleWeekSelect = (date) => {
@@ -107,7 +133,6 @@ export default function SlotBookingScreen({navigation}) {
 
   const handleBookConfirm = async () => {
     const slotIds = extractSlotIds(selectedSlots);
-    console.log(slotIds);
     const success = await bookSlot({
       slotIds,
       date: selectedWeek,
@@ -118,9 +143,7 @@ export default function SlotBookingScreen({navigation}) {
       setSuccessVisible(true);
       clearSelection();
       // Refresh slots
-      if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      
-      }
+     refreshSlots();
     }
   };
 
@@ -128,17 +151,12 @@ export default function SlotBookingScreen({navigation}) {
     const success = await cancelSlot(activeSlot.bookingId);
     if (success) {
       setCancelModalVisible(false);
-      // Refresh slots
-      if (selectedWeek) {
-        loadSlots({ date: selectedWeek, filter, cityId, pincodeId });      
-      }
+      refreshSlots();
     }
   };
 
   const handleRefresh = () => {
-    if (selectedWeek) {
-      loadSlots({ date: selectedWeek, filter, cityId, pincodeId });    
-    }
+    refreshSlots();
   };
 
 
@@ -146,10 +164,11 @@ export default function SlotBookingScreen({navigation}) {
     <View style={styles.container}>
       {/* Header */}
       <SlotBookingHeader activeTab={activeTab} onTabChange={handleTabChange} navigation={navigation} />
-
+      
       {/* Main Content */}
       {activeTab === TABS.UPCOMING ? (
-        <LockedWeekView />
+        <LockedWeekView
+      />
       ) : (
         <SlotsList
           weeks={weeks}

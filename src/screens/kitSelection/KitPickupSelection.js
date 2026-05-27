@@ -7,12 +7,18 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
 import KitHeader from '../../components/kit/KitHeader';
-import { setKitCompleted } from '../../redux/slices/kitSlice';
+import { useEffect } from 'react';
+import { BackHandler } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
 
 const KitPickupSelection = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
+
+const isTablet = width >= 768;
+
+const styles = getStyles(isTablet);
   const dispatch = useDispatch();
 
   const { deliveryMode, addressData, selectedZone, apiResponse } = route?.params || {};
@@ -25,17 +31,56 @@ const KitPickupSelection = ({ navigation, route }) => {
   const responseMessage = apiResponse?.message;
   const displayData = deliveryMode === 'online' ? addressData : selectedZone;
 
-  const handleSubmit = () => {
-    console.log('KIT PICKUP FREE SUBMIT PRESSED');
-    const riderId = apiResponse?.data?.[0]?.riderId ?? null;
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
 
-    dispatch(
-      setKitCompleted({
-        apiResponse,
-        deliveryMode,
-        riderId,
-      })
-    );
+  useEffect(() => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'KitPickupSelection',
+      apiResponse,
+      deliveryMode,
+      addressData,
+      selectedZone,
+    }));
+  }, [dispatch, currentRiderId, apiResponse, deliveryMode, addressData, selectedZone]);
+
+  const goToHomeTab = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Home',
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      goToHomeTab();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [navigation]);
+
+  const handleSubmit = () => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitCompleted({
+      riderId: currentRiderId,
+      kitCompleted: true,
+      apiResponse,
+      deliveryMode,
+      currentStep: 'SuccessScreen',
+      addressData,
+      selectedZone,
+    }));
 
     navigation.reset({
       index: 0,
@@ -49,6 +94,17 @@ const KitPickupSelection = ({ navigation, route }) => {
   };
 
   const handleProceedToPayment = () => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'PaymentsScreen',
+      apiResponse,
+      deliveryMode,
+      addressData,
+      selectedZone,
+    }));
+
     navigation.navigate('PaymentsScreen', {
       apiResponse,
       deliveryMode,
@@ -56,11 +112,19 @@ const KitPickupSelection = ({ navigation, route }) => {
       selectedZone,
     });
   };
-  
+    
 
 
   return (
-    <ScrollView style={[styles.container, { paddingHorizontal: width * 0.05 }]}>
+    <ScrollView
+        style={styles.container}
+        contentContainerStyle={{
+          paddingHorizontal: isTablet ? width * 0.1 : width * 0.05,
+          alignSelf: 'center',
+          width: '100%',
+          maxWidth: isTablet ? 900 : '100%',
+        }}
+      >
       <Text style={styles.title}>Kit Selection</Text>
       <KitHeader />
 
@@ -158,13 +222,14 @@ const KitPickupSelection = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (isTablet) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
   title: {
-    fontSize: 28,
+    fontSize: isTablet ? 38 : 28,
     fontWeight: '700',
     marginBottom: 16,
     marginTop: 10,
@@ -174,8 +239,8 @@ const styles = StyleSheet.create({
   },
   promoCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 28,
+    padding: isTablet ? 42 : 28,
+    borderRadius: isTablet ? 28 : 20,
     marginBottom: 24,
     alignItems: 'center',
     borderWidth: 2,
@@ -190,10 +255,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   promoIcon: {
-    fontSize: 72,
+    fontSize: isTablet ? 120 : 72,
   },
   promoTitle: {
-    fontSize: 24,
+    fontSize: isTablet ? 38 : 24,
     fontWeight: '700',
     color: '#1E293B',
     marginBottom: 8,
@@ -201,14 +266,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   promoSubtitle: {
-    fontSize: 18,
+    fontSize: isTablet ? 26 : 18,
     fontWeight: '600',
     color: '#0EA5E9',
     marginBottom: 12,
     letterSpacing: 0.3,
   },
   promoDescription: {
-    fontSize: 14,
+    fontSize: isTablet ? 18 : 14,
+    lineHeight: isTablet ? 30 : 22,
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 22,
@@ -218,8 +284,8 @@ const styles = StyleSheet.create({
   },
   promoBadge: {
     backgroundColor: '#0EA5E9',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingHorizontal: isTablet ? 32 : 24,
+    paddingVertical: isTablet ? 14 : 10,
     borderRadius: 20,
     shadowColor: '#0EA5E9',
     shadowOffset: { width: 0, height: 4 },
@@ -229,7 +295,7 @@ const styles = StyleSheet.create({
   },
   promoBadgeText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: isTablet ? 20 : 16,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
@@ -245,8 +311,8 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: '#F0F9FF',
-    borderRadius: 16,
-    padding: 18,
+    padding: isTablet ? 26 : 18,
+    borderRadius: isTablet ? 22 : 16,
     marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -264,9 +330,9 @@ const styles = StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: isTablet ? 18 : 15,
+    lineHeight: isTablet ? 28 : 22,
     color: '#0C4A6E',
-    lineHeight: 22,
     fontWeight: '500',
     letterSpacing: 0.2,
   },
@@ -299,8 +365,8 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 2,
     borderColor: '#E2E8F0',
-    borderRadius: 16,
-    padding: 18,
+    padding: isTablet ? 28 : 18,
+    borderRadius: isTablet ? 22 : 16,
     marginBottom: 8,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
@@ -345,22 +411,22 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   name: {
-    fontSize: 17,
+    fontSize: isTablet ? 24 : 17,
     fontWeight: '700',
     color: '#1E293B',
     letterSpacing: 0.2,
   },
   address: {
-    fontSize: 14,
+    fontSize: isTablet ? 18 : 14,
+    lineHeight: isTablet ? 28 : 20,
     marginTop: 6,
     color: '#64748B',
-    lineHeight: 20,
     letterSpacing: 0.1,
   },
   submitBtn: {
     backgroundColor: '#0EA5E9',
     borderRadius: 16,
-    paddingVertical: 18,
+    paddingVertical: isTablet ? 24 : 18,
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 30,
@@ -378,14 +444,14 @@ const styles = StyleSheet.create({
   },
   submitText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: isTablet ? 24 : 18,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
   payBtn: {
     backgroundColor: '#F59E0B',
-    borderRadius: 16,
-    paddingVertical: 18,
+    paddingVertical: isTablet ? 24 : 18,
+    borderRadius: isTablet ? 22 : 16,
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 30,

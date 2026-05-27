@@ -18,6 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../utils/colors';
 
 import useAadhaarVerification from '../../hooks/useAadhaarVerification';
+import DeviceInfo from 'react-native-device-info';
+
+const isTablet = DeviceInfo.isTablet();
+const containerMaxWidth = isTablet ? 900 : '100%';
 
 const AadhaarVerificationScreen = () => {
   const {
@@ -33,9 +37,10 @@ const AadhaarVerificationScreen = () => {
   console.log(aadhaar);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={{ alignItems: 'center' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+          <View style={{ alignItems: 'center' }}>
           <Image
             source={require('../../assets/aadhaar.png')}
             style={{
@@ -48,8 +53,8 @@ const AadhaarVerificationScreen = () => {
 
         <View style={styles.form}>
           <View style={{ width: '95%' }}>
-            <Text style={styles.title}>Fill Aadhar Card Details</Text>
-            <Text style={styles.description}>
+            <Text style={[styles.title, isTablet && { textAlign: 'center' }]}>Fill Aadhar Card Details</Text>
+            <Text style={[styles.description, isTablet && { textAlign: 'center' }]}>
               Instant Verification of your Aadhar with OTP
             </Text>
             <TextInput
@@ -83,6 +88,7 @@ const AadhaarVerificationScreen = () => {
           </View>
         </View>
       </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -90,8 +96,15 @@ const AadhaarVerificationScreen = () => {
 export default AadhaarVerificationScreen;
 
 const styles = StyleSheet.create({
+  screenWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+  },
   container: {
     flex: 1,
+    width: '100%',
+    maxWidth: containerMaxWidth,
     paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: COLORS.white,
@@ -106,7 +119,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(2.7),
     fontWeight: '600',
     color: COLORS.textPrimary,
-    lineHeight: 20,
+    lineHeight: 40,
   },
   description: {
     fontFamily: 'Roboto',
@@ -130,7 +143,9 @@ const styles = StyleSheet.create({
   },
   otpBtn: {
     height: 54,
-    maxWidth: 348,
+    width: '100%',
+    maxWidth: isTablet ? 400 : 348,
+    alignSelf: 'center',
     backgroundColor: COLORS.lightBackground,
     justifyContent: 'center',
     alignItems: 'center',

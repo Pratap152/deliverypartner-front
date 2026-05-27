@@ -10,18 +10,12 @@ import { formatTime, getDisplayStatus } from '../../../utils/slotHelpers';
 import { DISPLAY_STATUS } from '../../../utils/constants/slotConstants';
 import StatusBadge from './StatusBadge';
 import Checkbox from './Checkbox';
+import { Dimensions } from 'react-native';
 
-/**
- * SlotCard Component
- * Displays slot information with status, time, and actions
- * 
- * @param {object} slot - Slot data object
- * @param {boolean} selectable - Whether slot can be selected
- * @param {boolean} selected - Whether slot is currently selected
- * @param {function} onSelect - Handler for selection
- * @param {function} onCancel - Handler for cancellation
- * @param {string} activeFilter - Current active filter
- */
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 export default function SlotCard({
   slot,
   selectable,
@@ -111,20 +105,20 @@ export default function SlotCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 16,
+    borderRadius: isTablet ? 24 : 16,
     borderWidth: 1,
     borderColor: '#E5E5EA',
-    padding: 16,
-    marginVertical: 8,
+    padding: isTablet ? 28 : 16,
+    marginVertical: isTablet ? 14 : 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 3,
-  },
+},
   peakCard: {
-    backgroundColor: '#F5F5FF', // Very light blue background to match brand
-    borderColor: '#C7C7FF',     // Soft blue border
+    backgroundColor: '#F5F5FF', 
+    borderColor: '#C7C7FF',     
   },
   selectedCard: {
     borderColor: '#4C4CFF',
@@ -162,29 +156,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: isTablet ? 72 : 40,
+    height: isTablet ? 72 : 40,
+    borderRadius: isTablet ? 36 : 20,
     backgroundColor: '#FFE5D6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-  },
+    marginRight: isTablet ? 20 : 12,
+},
   peakIconWrapper: {
-    backgroundColor: '#E0E0FF', // Accented light blue for peak icon
+    backgroundColor: '#E0E0FF', 
   },
   time: {
-    fontSize: 16,
+    fontSize: isTablet ? 30 : 16,
     fontWeight: '700',
     color: '#000',
-  },
+},
   earn: {
-    fontSize: 12,
+    fontSize: isTablet ? 18 : 12,
     color: '#6B7280',
-    marginTop: 2,
-    marginBottom: 4,
-  },
-
+    marginTop: 4,
+    marginBottom: 6,
+},
   // Peak specific text styles
   peakInfoContainer: {
     flexDirection: 'row',

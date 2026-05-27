@@ -6,23 +6,12 @@ import SlotCard from './SlotCard';
 import EmptySlotState from './EmptySlotState';
 import { isSlotSelectable } from '../../../utils/slotHelpers';
 import SlotHistory from '../../common/SlotHistory';
+import { Dimensions } from 'react-native';
 
-/**
- * SlotsList Component
- * Renders week selector, filters, and scrollable list of slot cards
- * 
- * @param {Array} weeks - Available weeks data
- * @param {Array} slots - Slots to display
- * @param {string} selectedWeek - Currently selected week
- * @param {string} filter - Active filter
- * @param {function} onWeekSelect - Handler for week selection
- * @param {function} onFilterChange - Handler for filter change
- * @param {function} onSlotSelect - Handler for slot selection
- * @param {function} onSlotCancel - Handler for slot cancellation
- * @param {function} isSlotSelected - Function to check if slot is selected
- * @param {boolean} loading - Loading state
- * @param {function} onRefresh - Pull to refresh handler
- */
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 export default function SlotsList({
     weeks,
     slots,
@@ -78,11 +67,15 @@ export default function SlotsList({
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 16,
-        marginTop: 10,
-    },
+  container: {
+    flex: 1,
+    paddingHorizontal: isTablet ? 28 : 16,
+    marginTop: isTablet ? 20 : 10,
+    ...(isTablet && {
+        alignSelf: 'center',
+        width: '94%',
+    }),
+},
     listContent: {
         paddingBottom: 100, // Space for floating footer
     },

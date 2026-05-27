@@ -1,96 +1,81 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getJoiningBonusProgram,
-  joinJoiningBonus,
-  getJoiningBonusProgress,
+  getReferralPrograms,
+  getReferralProgramsProgress,
 } from '../services/JoiningBonusService';
 
 const initialState = {
   loading: true,
-  joining: false,
   error: null,
   program: null,
-  hasJoined: false,
   progress: null,
   sortedTasks: [],
 };
 
-const getTaskTarget = (task) => {
-  const conditions = task.conditions || {};
-
-  switch (task.taskType) {
-    case 'ORDERS':
-      return conditions.minOrders || 0;
-    case 'ACCEPTANCE_RATE':
-      return conditions.minAcceptanceRate || 0;
-    case 'PEAK_SLOTS':
-      return conditions.minPeakSlots || 0;
-    case 'EARNINGS':
-      return conditions.minEarnings || 0;
-    default:
-      return 0;
-  }
-};
-
-const getTaskProgressLabel = (taskType, current, target, isCompleted) => {
-  if (isCompleted) return 'Completed';
-
-  switch (taskType) {
-    case 'EARNINGS':
-      return `₹${current}/₹${target}`;
-    case 'ACCEPTANCE_RATE':
-      return `${current}%/${target}%`;
-    default:
-      return `${current}/${target}`;
-  }
-};
-
-const buildSortedTasks = (progressData) => {
-  return [...(progressData?.tasks || [])]
-    .sort((a, b) => a.dayNumber - b.dayNumber)
-    .map((task) => ({
-      ...task,
-      minOrders: task.conditions?.minOrders,
-      minAcceptanceRate: task.conditions?.minAcceptanceRate,
-      minPeakSlots: task.conditions?.minPeakSlots,
-      minEarnings: task.conditions?.minEarnings,
-      progress: buildTaskProgress(task),
-    }));
-};
-
 const buildTaskProgress = (task) => {
-  const target = getTaskTarget(task);
-  const current = task.progressValue || 0;
-  const isCompleted = !!task.isCompleted;
-      // const current =
-      //   task.dayNumber === 2
-      //     ? 50
-      //     : task.progressValue || 0;
+  const progress = task.progress || {};
 
-      // const isCompleted =
-      //   task.dayNumber === 3
-      //     ? false
-      //     : !!task.isCompleted;
+  let label = '';
 
+  switch (task.taskRuleType) {
 
-  const percentage = isCompleted
-    ? 100
-    : target > 0
-    ? Math.min(100, Math.round((current / target) * 100))
-    : 0;
+    case 'SLAB':
+      label = progress.isCompleted
+        ? 'Completed'
+        : `${progress.completedOrders || 0} Orders`;
+      break;
+
+    case 'FIXED_TARGET':
+      label = `${progress.completedOrders || 0}/${progress.targetOrders || 0}`;
+      break;
+
+    case 'PER_ORDER':
+      label = `₹${progress.earnedAmount || 0}`;
+      break;
+
+    case 'HYBRID':
+      label = `${progress.progressPercentage || 0}%`;
+      break;
+
+    default:
+      label = 'In Progress';
+  }
 
   return {
-    current,
-    target,
-    percentage,
-    isCompleted,
-    label: getTaskProgressLabel(task.taskType, current, target, isCompleted),
+    current: progress.completedOrders || 0,
+
+    target:
+  progress.targetOrders ||
+  progress.nextTargetOrders ||
+  progress.remainingOrders +
+    progress.completedOrders ||
+  0,
+
+    percentage: progress.progressPercentage || 0,
+
+    isCompleted: progress.isCompleted || false,
+
+    status: progress.status,
+
+    label,
   };
 };
 
+const buildSortedTasks = (tasks = []) => {
+  return [...tasks]
+    .sort((a, b) => a.dayNumber - b.dayNumber)
+    .map((task) => ({
+      ...task,
+      rewardAmount:
+  task.reward?.amount ||
+  task.maxEarning ||
+  task.slabs?.[task.slabs.length - 1]?.rewardAmount ||
+  0,
+      progressData: buildTaskProgress(task),
+    }));
+};
 
-
-const useJoiningBonus = ({ cityId, pincodeId } = {}) => {
+const useJoiningBonus = () => {
   const [state, setState] = useState(initialState);
 
   const setPartial = (patch) => {
@@ -99,86 +84,47 @@ const useJoiningBonus = ({ cityId, pincodeId } = {}) => {
 
   const load = useCallback(async () => {
     try {
-      setPartial({ loading: true, error: null });
-
-      const programSummary = await getJoiningBonusProgram({
-        cityId,
-        pincodeId,
+      setPartial({
+        loading: true,
+        error: null,
       });
+const [programRes, progressRes] = await Promise.all([
+  getReferralPrograms(),
+  getReferralProgramsProgress(),
+]);
 
-      let progress = null;
+const activeProgram = programRes?.data?.[0];
+const activeProgress = progressRes?.data?.[0];
+const mergedTasks =
+  activeProgress?.tasks?.map((progressTask) => {
 
-      try {
-        progress = await getJoiningBonusProgress(programSummary.id);
-      } catch (e) {
-        progress = null;
-      }
+    const programTask =
+      activeProgram?.tasks?.find(
+        (t) => t.dayNumber === progressTask.dayNumber
+      );
 
-      const resolvedProgram = progress?.program
-        ? {
-            ...programSummary,
-            ...progress.program,
-          }
-        : programSummary;
+    return {
+      ...programTask,
+      ...progressTask,
+    };
+  }) || [];
 
       setPartial({
         loading: false,
-        program: resolvedProgram,
-        hasJoined: progress?.enrollment?.status === 'ACTIVE' || !!programSummary.isEnrolled,
-        progress,
-        sortedTasks: buildSortedTasks(progress),
+        program: activeProgram,
+progress: activeProgress,
+sortedTasks: buildSortedTasks(mergedTasks),
       });
     } catch (e) {
       setPartial({
         loading: false,
-        error: e?.response?.data?.message || e.message || 'Something went wrong',
+        error:
+          e?.response?.data?.message ||
+          e.message ||
+          'Something went wrong',
       });
     }
-  }, [cityId, pincodeId]);
-
-  const join = useCallback(async () => {
-    if (!state.program) {
-      return { success: false, message: 'Program not found' };
-    }
-
-    try {
-      setPartial({ joining: true });
-
-      const res = await joinJoiningBonus(state.program.id);
-      const progress = await getJoiningBonusProgress(state.program.id);
-
-      const updatedProgram = progress?.program
-        ? {
-            ...state.program,
-            ...progress.program,
-            isEnrolled: true,
-            enrollmentStatus: 'ENROLLED',
-          }
-        : {
-            ...state.program,
-            isEnrolled: true,
-            enrollmentStatus: 'ENROLLED',
-          };
-
-      setPartial({
-        joining: false,
-        hasJoined: true,
-        program: updatedProgram,
-        progress,
-        sortedTasks: buildSortedTasks(progress),
-      });
-
-      return {
-        success: true,
-        message: res?.message || 'Program joined successfully',
-      };
-    } catch (e) {
-      const message =
-        e?.response?.data?.message || e.message || 'Could not join. Please try again.';
-      setPartial({ joining: false });
-      return { success: false, message };
-    }
-  }, [state.program]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -187,7 +133,6 @@ const useJoiningBonus = ({ cityId, pincodeId } = {}) => {
   return {
     ...state,
     load,
-    join,
   };
 };
 

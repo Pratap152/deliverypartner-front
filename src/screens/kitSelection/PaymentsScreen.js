@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,8 +24,9 @@ import { COLORS } from '../../utils/colors';
 
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
 
-import { useDispatch } from 'react-redux';
-import { setKitCompleted } from '../../redux/slices/kitSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
+import { BackHandler } from 'react-native';
 
 
 const PAYMENT_METHODS = [
@@ -42,13 +43,53 @@ export default function PaymentsScreen({ route }) {
   const [upiId, setUpiId] = useState('');
 
   const { width, height } = useWindowDimensions();
-  const styles = getStyles(width, height);
+  const isTablet = width >= 768;
+  const styles = getStyles(width, height, isTablet);
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
   const { createKitAddress } = useKitAddress();
   const { deliveryMode, addressData, selectedZone } = route?.params || {};
   const { apiResponse} = route?.params || {};
+
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  const goToHomeTab = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Home',
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      goToHomeTab();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [navigation]);
+    
+
+  useEffect(() => {
+    if (!currentRiderId) return;
+
+    dispatch(setKitFlowStep({
+      riderId: currentRiderId,
+      currentStep: 'PaymentsScreen',
+      apiResponse,
+      deliveryMode,
+      addressData,
+      selectedZone,
+    }));
+  }, [dispatch, currentRiderId, apiResponse, deliveryMode, addressData, selectedZone]);
 
   const handlePaymentType = async type => {
 
@@ -83,6 +124,8 @@ export default function PaymentsScreen({ route }) {
         );
       }
 
+
+
       const items = kitResponse?.data || [];
       const payableRequest =
         items.find(item => item.status === 'PAYMENT_PENDING') ||
@@ -100,6 +143,7 @@ export default function PaymentsScreen({ route }) {
         ...(type === 'emi' && selectedPayment !== 'cod' ? { emiMonths: 3 } : {}),
       };
 
+      
       const postResponse = await apiClient.post(
         `/api/kit/payment/${payableRequest.id}`,
         paymentSelectionPayload
@@ -125,39 +169,32 @@ export default function PaymentsScreen({ route }) {
       );
 
       if (!patchResponse?.data?.success) {
-  Alert.alert(
-    'Payment error',
-    patchResponse?.data?.message || 'Failed to complete payment'
-  );
-  return;
-}
+        Alert.alert(
+          'Payment error',
+          patchResponse?.data?.message || 'Failed to complete payment'
+        );
+        return;
+      }
 
       const riderId =
         patchResponse?.data?.data?.[0]?.riderId ??
         apiResponse?.data?.[0]?.riderId ??
         null;
 
-      dispatch(
-        setKitCompleted({
-          kitCompleted: true,
-          riderId,
-          apiResponse: patchResponse.data,
-          deliveryMode,
-        })
-      );
+      dispatch(setKitCompleted({
+        riderId: currentRiderId || riderId,
+        kitCompleted: true,
+        apiResponse: patchResponse.data,
+        deliveryMode,
+        currentStep: 'SuccessScreen',
+        addressData,
+        selectedZone,
+      }));
 
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'SuccessScreen',
-            params: {
-              apiResponse: patchResponse.data,
-              deliveryMode,
-            },
-          },
-        ],
-      });
+      navigation.replace('SuccessScreen', {
+            apiResponse: patchResponse.data,
+            deliveryMode,
+          });
             
           } catch (err) {
             Alert.alert(
@@ -177,10 +214,10 @@ export default function PaymentsScreen({ route }) {
         {item.id === 'upi' && (
           <Text
             style={{
-              fontSize: 24,
+              fontSize: isTablet ? 38 : 24,
               fontWeight: '600',
               textAlign: 'center',
-              marginBottom: 20,
+              marginBottom: isTablet ? 32 : 20,
             }}
           >
             Other options
@@ -207,8 +244,8 @@ export default function PaymentsScreen({ route }) {
           >
             <View
               style={{
-                width: 170,
-                minHeight: 50,
+                width: isTablet ? 260 : 170,
+                minHeight: isTablet ? 80 : 50,
                 justifyContent: 'center',
                 overflow: 'hidden',
               }}
@@ -216,10 +253,14 @@ export default function PaymentsScreen({ route }) {
               {item.image ? (
                 <Image
                   source={item.image}
-                  style={{ width: '100%', height: 50, resizeMode: 'cover' }}
+                  style={{
+                      width: '100%',
+                      height: isTablet ? 75 : 50,
+                      resizeMode: 'cover',
+                    }}
                 />
               ) : (
-                <Text style={{ fontSize: 16, fontWeight: '600', color: COLORS.textPrimary }}>
+                <Text style={{ fontSize: isTablet ? 24 : 16, fontWeight: '600', color: COLORS.textPrimary }}>
                   {item.label}
                 </Text>
               )}
@@ -327,7 +368,7 @@ export default function PaymentsScreen({ route }) {
   );
 }
 
-const getStyles = (width, height) =>
+const getStyles = (width, height,isTablet) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: COLORS.white },
     container: {
@@ -340,7 +381,7 @@ const getStyles = (width, height) =>
       borderWidth: 1,
       borderColor: COLORS.primary,
       borderRadius: width * 0.02,
-      padding: width * 0.03,
+      padding: isTablet ? 24 : width * 0.03,
       backgroundColor: COLORS.white,
       marginBottom: height * 0.025,
     },
@@ -352,17 +393,17 @@ const getStyles = (width, height) =>
       elevation: 2,
     },
     radioOuter: {
-      width: width * 0.055,
-      height: width * 0.055,
-      borderRadius: width * 0.028,
+      width: isTablet ? 34 : width * 0.055,
+      height: isTablet ? 34 : width * 0.055,
+      borderRadius: isTablet ? 17 : width * 0.028,
       borderWidth: 1.5,
       borderColor: COLORS.border,
       alignItems: 'center',
       justifyContent: 'center',
     },
     radioInner: {
-      width: width * 0.03,
-      height: width * 0.03,
+      width: isTablet ? 18 : width * 0.03,
+      height: isTablet ? 18 : width * 0.03,
       borderRadius: width * 0.015,
       backgroundColor: COLORS.primary,
     },
@@ -383,12 +424,12 @@ const getStyles = (width, height) =>
     },
     payTypeTextActive: {
       color: COLORS.white,
-      fontSize: width * 0.038,
+      fontSize: isTablet ? 22 : width * 0.038,
       fontWeight: '600',
     },
     headerTitle: {
       textAlign: 'center',
-      fontSize: 18,
+      fontSize: isTablet ? 38 : 18,
       fontWeight: '700',
       color: COLORS.textPrimary,
     },

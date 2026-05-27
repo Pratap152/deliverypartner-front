@@ -27,15 +27,15 @@ import { tokenService } from "../services/TokenService";
 import OrderQueueModal from "../components/order/OrderQueueModal";
 
 import { WEBSOCKET_URL } from "../utils/host";
- 
+
 const RiderContext = createContext();
- 
+
 export const RiderProvider = ({ children }) => {
 
   const socketRef = useRef(null);
 
   const popupShownRef = useRef(false);
- 
+
   /** ---------------------------
 
    * STATE
@@ -45,13 +45,13 @@ export const RiderProvider = ({ children }) => {
   const [orderQueue, setOrderQueue] = useState([]);
 
   const [expandedOrderId, setExpandedOrderId] = useState(null);
- 
+
   const [status, setStatus] = useState("DISCONNECTED");
 
   const [loading, setLoading] = useState(false);
 
   const [accessToken, setAccessToken] = useState(null);
- 
+
   const [riderStatus, setRiderStatus] = useState(null);
 
   const [isGoingOnline, setIsGoingOnline] = useState(false);
@@ -59,7 +59,7 @@ export const RiderProvider = ({ children }) => {
   const [isGoingOffline, setIsGoingOffline] = useState(false);
 
   const [actuallyOnline, setActuallyOnline] = useState(false);
- 
+
   const isOnline = actuallyOnline;
 
   const [isActive, setIsActive] = useState(false);
@@ -69,7 +69,8 @@ export const RiderProvider = ({ children }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const isLoading = isGoingOnline || isGoingOffline;
- 
+  const onlineRef = useRef(false);
+
   /** ---------------------------
 
    * LOAD TOKEN
@@ -85,11 +86,11 @@ export const RiderProvider = ({ children }) => {
       setAccessToken(accessToken);
 
     };
- 
+
     loadToken();
 
   }, []);
- 
+
   /** ---------------------------
 
    * SHIFT STARTED POPUP
@@ -101,7 +102,7 @@ export const RiderProvider = ({ children }) => {
     if (isOnline && !popupShownRef.current) {
 
       popupShownRef.current = true;
- 
+
       // Alert.alert(
 
       //   "Shift Started 🚴‍♂️",
@@ -111,7 +112,7 @@ export const RiderProvider = ({ children }) => {
       // );
 
     }
- 
+
     if (!isOnline) {
 
       popupShownRef.current = false;
@@ -119,7 +120,11 @@ export const RiderProvider = ({ children }) => {
     }
 
   }, [isOnline]);
- 
+
+  useEffect(() => {
+    onlineRef.current = actuallyOnline;
+  }, [actuallyOnline]);
+
   /** ---------------------------
 
    * SOCKET
@@ -127,93 +132,118 @@ export const RiderProvider = ({ children }) => {
    * --------------------------*/
 
   const connectSocket = () => {
+    try {
+      /**
+       * IMPORTANT
+       * ONLY BLOCK IF SOCKET IS REALLY ACTIVE
+       */
+      const existingSocket = socketRef.current;
 
-    const isSocketConnected =
+      const isSocketActive =
+        existingSocket &&
+        (existingSocket.readyState === WebSocket.OPEN ||
+          existingSocket.readyState === WebSocket.CONNECTING);
 
-      socketRef.current &&
+      if (isSocketActive || !accessToken) {
+        console.log(
+          "SOCKET ALREADY ACTIVE OR TOKEN MISSING"
+        );
+        return;
+      }
 
-      socketRef.current.readyState === WebSocket.OPEN;
- 
-    if (isSocketConnected || !accessToken) return;
- 
-    setStatus("CONNECTING");
- 
-    const ws = new WebSocket(
+      console.log("CONNECTING WS...");
 
-      `${WEBSOCKET_URL}/ws?type=RIDER_NOTIFICATION&token=${accessToken}`
+      setStatus("CONNECTING");
 
-    );
- 
-    socketRef.current = ws;
- 
-    ws.onopen = () => {
+      const ws = new WebSocket(
+        `${WEBSOCKET_URL}/ws?type=RIDER_NOTIFICATION&token=${accessToken}`
+      );
 
-      console.log("WS connected");
+      socketRef.current = ws;
 
-      setStatus("CONNECTED");
+      ws.onopen = () => {
+        console.log("WS CONNECTED");
 
-    };
- 
-    ws.onerror = (error) => {
+        setStatus("CONNECTED");
+      };
 
-      console.log("WS error", error);
+      ws.onerror = (error) => {
+        console.log("WS ERROR:", error);
 
-    };
- 
-    ws.onmessage = (event) => {
+        /**
+         * IMPORTANT
+         * FORCE CLEAR BAD SOCKET
+         */
+        socketRef.current = null;
+      };
 
-      try {
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
 
-        const data = JSON.parse(event.data);
- 
-        if (data.type === "ORDER_POPUP") {
+          console.log("WS MESSAGE:", data);
 
-          addOrderToQueue(data);
+          if (data.type === "ORDER_POPUP") {
+            addOrderToQueue(data);
+          }
 
+          if (data.type === "ORDER_CANCELLED") {
+            removeOrderFromQueue(data.orderId);
+
+            Alert.alert(
+              "Order Cancelled",
+              "Order was cancelled by the system."
+            );
+
+            navigate("MainTabs");
+          }
+        } catch (e) {
+          console.log("WS PARSE ERROR:", e);
         }
- 
-        if (data.type === "ORDER_CANCELLED") {
+      };
 
-          removeOrderFromQueue(data.orderId);
- 
-          Alert.alert(
+      ws.onclose = () => {
+        console.log("WS DISCONNECTED");
 
-            "Order Cancelled",
+        /**
+         * VERY IMPORTANT
+         * CLEAR OLD SOCKET
+         */
+        socketRef.current = null;
 
-            "Order was cancelled by the system."
+        setStatus("DISCONNECTED");
 
+        if (!onlineRef.current) {
+          setOrderQueue([]);
+        }
+
+        /**
+         * AUTO RECONNECT
+         */
+        if (onlineRef.current) {
+          console.log(
+            "RECONNECTING IN 2 SECONDS..."
           );
- 
-          navigate("MainTabs");
 
+          setTimeout(() => {
+            /**
+             * EXTRA SAFETY
+             */
+            if (
+              !socketRef.current &&
+              onlineRef.current
+            ) {
+              console.log("RECONNECTING WS...");
+              connectSocket();
+            }
+          }, 1000);
         }
-
-      } catch (e) {
-
-        console.log("WS parse error", e);
-
-      }
-
-    };
- 
-    ws.onclose = () => {
-
-      console.log("WS disconnected");
- 
-      socketRef.current = null;
-
-      setStatus("DISCONNECTED");
- 
-      if (!actuallyOnline) {
-
-        setOrderQueue([]);
-
-      }
-
-    };
-
+      };
+    } catch (e) {
+      console.log("CONNECT SOCKET ERROR:", e);
+    }
   };
- 
+  
   const disconnectSocket = () => {
 
     if (socketRef.current) {
@@ -223,13 +253,13 @@ export const RiderProvider = ({ children }) => {
       socketRef.current = null;
 
     }
- 
+
     setStatus("DISCONNECTED");
 
     setOrderQueue([]);
 
   };
- 
+
   /** ---------------------------
 
    * APP STATE RECONNECT
@@ -245,7 +275,7 @@ export const RiderProvider = ({ children }) => {
       (nextAppState) => {
 
         console.log("App State:", nextAppState);
- 
+
         if (
 
           nextAppState === "active" &&
@@ -261,7 +291,7 @@ export const RiderProvider = ({ children }) => {
             socketRef.current &&
 
             socketRef.current.readyState === WebSocket.OPEN;
- 
+
           if (!isSocketConnected) {
 
             console.log("App active again, reconnecting socket");
@@ -275,7 +305,7 @@ export const RiderProvider = ({ children }) => {
       }
 
     );
- 
+
     return () => {
 
       subscription.remove();
@@ -283,7 +313,7 @@ export const RiderProvider = ({ children }) => {
     };
 
   }, [actuallyOnline, accessToken]);
- 
+
   /** ---------------------------
 
    * GO ONLINE / OFFLINE
@@ -293,13 +323,13 @@ export const RiderProvider = ({ children }) => {
   const goOnline = async () => {
 
     if (isGoingOnline || isGoingOffline || status === "CONNECTED") return;
- 
+
     setIsGoingOnline(true);
- 
+
     try {
 
       const res = await orderService.setRiderOnline();
- 
+
       if (res?.success) {
 
         setRiderStatus(res.riderStatus || null);
@@ -313,7 +343,7 @@ export const RiderProvider = ({ children }) => {
     } catch (e) {
 
       const msg = e?.response?.data?.message || e?.message || "";
- 
+
       if (msg.toLowerCase().includes("already online")) {
 
         setActuallyOnline(true);
@@ -333,17 +363,17 @@ export const RiderProvider = ({ children }) => {
     }
 
   };
- 
+
   const goOffline = async () => {
 
     if (isGoingOnline || isGoingOffline) return;
- 
+
     setIsGoingOffline(true);
- 
+
     try {
 
       const res = await orderService.setRiderOffline();
- 
+
       if (res?.success) {
 
         setRiderStatus(res.riderStatus || null);
@@ -357,7 +387,7 @@ export const RiderProvider = ({ children }) => {
     } catch (e) {
 
       const msg = e?.response?.data?.message || e?.message || "";
- 
+
       if (msg.toLowerCase().includes("already offline")) {
 
         setActuallyOnline(false);
@@ -394,7 +424,7 @@ export const RiderProvider = ({ children }) => {
       setRefreshing(false);
     }
   };
- 
+
   /** ---------------------------
 
    * ORDER QUEUE
@@ -402,7 +432,7 @@ export const RiderProvider = ({ children }) => {
    * --------------------------*/
 
   const MAX_QUEUE_SIZE = 5;
- 
+
   const addOrderToQueue = (orderData) => {
 
     const newOrder = {
@@ -416,43 +446,43 @@ export const RiderProvider = ({ children }) => {
       receivedAt: Date.now(),
 
     };
- 
+
     setOrderQueue((prev) => {
 
       if (prev.some((o) => o.id === newOrder.id)) return prev;
- 
+
       return [newOrder, ...prev].slice(0, MAX_QUEUE_SIZE);
 
     });
- 
+
     setExpandedOrderId(newOrder.id);
 
   };
- 
+
   const removeOrderFromQueue = (orderId) => {
 
     setOrderQueue((prev) => {
 
       const updated = prev.filter((o) => o.id !== orderId);
- 
+
       if (orderId === expandedOrderId && updated.length > 0) {
 
         setExpandedOrderId(updated[0].id);
 
       }
- 
+
       return updated;
 
     });
 
   };
- 
+
   const expandOrder = (orderId) => setExpandedOrderId(orderId);
- 
+
   useEffect(() => {
 
     if (orderQueue.length === 0) return;
- 
+
     const interval = setInterval(() => {
 
       setOrderQueue((prev) =>
@@ -472,11 +502,11 @@ export const RiderProvider = ({ children }) => {
       );
 
     }, 1000);
- 
+
     return () => clearInterval(interval);
 
   }, [orderQueue.length]);
- 
+
   /** ---------------------------
 
    * ORDER ACTIONS
@@ -486,42 +516,43 @@ export const RiderProvider = ({ children }) => {
   const acceptOrder = async (orderId) => {
 
     if (!orderId) return;
- 
+
     try {
 
       setLoading(true);
- 
-const res = await orderService.acceptOrder(orderId);
 
-if (!res?.success) {
-  throw new Error(res?.message || "Accept failed");
-} 
-      removeOrderFromQueue(orderId);
- 
+      const res = await orderService.acceptOrder(orderId);
+
+      if (!res?.success) {
+        throw new Error(res?.message || "Accept failed");
+      }
+      setOrderQueue([]);
+      setExpandedOrderId(null);
+
       navigate("OrderDetailsScreen", {
 
         orderId,
 
-status: "ASSIGNED",
+        status: "ASSIGNED",
       });
 
     } catch (err) {
-  console.log("ACCEPT ERROR:", err?.response?.data || err.message);
+      console.log("ACCEPT ERROR:", err?.response?.data || err.message);
 
-  removeOrderFromQueue(orderId);
+      removeOrderFromQueue(orderId);
 
-  Alert.alert(
-    "Error",
-    err?.response?.data?.message || "Failed to accept order"
-  );
-} finally {
+      Alert.alert(
+        "Error",
+        err?.response?.data?.message || "Failed to accept order"
+      );
+    } finally {
 
       setLoading(false);
 
     }
 
   };
- 
+
   const rejectOrder = async (orderId) => {
 
     try {
@@ -539,7 +570,7 @@ status: "ASSIGNED",
     }
 
   };
- 
+
   /** ---------------------------
 
    * PROVIDER
@@ -547,7 +578,7 @@ status: "ASSIGNED",
    * --------------------------*/
 
   return (
-<RiderContext.Provider
+    <RiderContext.Provider
 
       value={{
 
@@ -585,10 +616,10 @@ status: "ASSIGNED",
 
         fetchRiderStatus,
       }}
->
+    >
 
       {children}
- 
+
       <OrderQueueModal
         visible={orderQueue.length > 0}
         orderQueue={orderQueue}
@@ -596,12 +627,11 @@ status: "ASSIGNED",
         onAccept={acceptOrder}
         onClose={() => setOrderQueue([])}
       />
-</RiderContext.Provider>
+    </RiderContext.Provider>
 
   );
 
 };
- 
+
 export const useRider = () => useContext(RiderContext);
 
- 

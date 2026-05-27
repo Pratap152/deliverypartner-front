@@ -22,6 +22,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/common/Header';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import apiClient from '../../services/ApiClient';
+import DeviceInfo from 'react-native-device-info';
+
+const isTablet = DeviceInfo.isTablet();
+
+const horizontalPadding = isTablet ? 40 : 20;
+const containerMaxWidth = isTablet ? 900 : '100%';
+
+const uploadCardWidth = isTablet ? '48%' : '100%';
+const uploadCardHeight = isTablet ? 320 : 240;
+
+const previewWidth = isTablet ? 280 : 200;
+const previewHeight = isTablet ? 180 : 120;
+
+const titleFont = isTablet ? 28 : 22;
+const subtitleFont = isTablet ? 18 : 14;
+const inputFont = isTablet ? 18 : 16;
+const buttonFont = isTablet ? 20 : 20;
 
 const PanUploadScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
@@ -103,9 +120,10 @@ const PanUploadScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={styles.headerRow}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+          <View style={styles.headerRow}>
           <TouchableOpacity
             onPress={() =>
               navigation.replace('DocumentVerifyScreen')
@@ -145,7 +163,8 @@ const PanUploadScreen = ({ navigation }) => {
           ) : null}
           <Text>PAN format: ABCDE1234F</Text>
 
-          <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
+          <View style={[isTablet && { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }]}>
+            <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
             {image ? (
               <>
                 <Image
@@ -189,7 +208,8 @@ const PanUploadScreen = ({ navigation }) => {
               • Shows your full name + photo
             </Text>
             <Text style={styles.instruction}>• Not blurred or cropped</Text>
-            <Text style={styles.instruction}>• Taken in good lighting</Text>
+              <Text style={styles.instruction}>• Taken in good lighting</Text>
+            </View>
           </View>
 
           <View style={{ flex: 1, justifyContent: 'flex-end' }}>
@@ -219,6 +239,7 @@ const PanUploadScreen = ({ navigation }) => {
           />
         </View>
       </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -228,9 +249,22 @@ export default PanUploadScreen;
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
-  title: { fontSize: 22, fontWeight: '700', color: '#000' },
-  subtitle: { fontSize: 14, color: '#777', marginTop: 4 },
+  screenWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    maxWidth: containerMaxWidth,
+    backgroundColor: '#fff',
+    paddingHorizontal: horizontalPadding,
+    paddingTop: 20,
+    paddingBottom: 20,
+  },
+  title: { fontSize: titleFont, fontWeight: '700', color: '#000' },
+  subtitle: { fontSize: subtitleFont, color: '#777', marginTop: 4 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -247,7 +281,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#999',
     borderRadius: 8,
-    padding: 10,
+    padding: isTablet ? 18 : 10,
+    fontSize: inputFont,
     marginTop: 20,
   },
   errorText: {
@@ -256,8 +291,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   uploadBox: {
-    width: '100%',
-    height: 240,
+    width: uploadCardWidth,
+    height: uploadCardHeight,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderRadius: 14,
@@ -269,8 +304,8 @@ const styles = StyleSheet.create({
   },
 
   placeholderImg: {
-    width: 200,
-    height: 120,
+    width: previewWidth,
+    height: previewHeight,
     resizeMode: 'contain',
     marginBottom: 10,
   },
@@ -279,12 +314,12 @@ const styles = StyleSheet.create({
     color: '#666',
     width: '85%',
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: isTablet ? 16 : 14,
   },
 
   previewImage: {
-    width: 200,
-    height: 120,
+    width: previewWidth,
+    height: previewHeight,
     borderRadius: 8,
     resizeMode: 'cover',
     marginBottom: 10,
@@ -304,24 +339,26 @@ const styles = StyleSheet.create({
 
   instructionsBox: {
     marginTop: 25,
+    width: isTablet ? uploadCardWidth : '100%',
+    ...(isTablet && { marginTop: 30 }),
   },
 
   instructionTitle: {
-    fontSize: 15,
+    fontSize: isTablet ? 22 : 16,
     color: '#000',
     marginBottom: 5,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 
   instruction: {
-    fontSize: 14,
+    fontSize: isTablet ? 20 : 15,
     color: '#555',
     marginVertical: 1,
   },
 
   submitBtn: {
     backgroundColor: '#00B5CC',
-    paddingVertical: 15,
+    paddingVertical: isTablet ? 20 : 15,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
@@ -329,7 +366,7 @@ const styles = StyleSheet.create({
 
   submitText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: buttonFont,
     fontWeight: '900',
   },
 

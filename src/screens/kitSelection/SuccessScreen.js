@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  useWindowDimensions
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
@@ -20,10 +21,15 @@ const formatEnum = value => {
     .replace(/\b\w/g, c => c.toUpperCase());
 };
 
+
 const SuccessScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
+  
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const styles = getStyles(isTablet);
 
   const { apiResponse, deliveryMode, paymentType } = route?.params || {};
 
@@ -41,21 +47,23 @@ const SuccessScreen = () => {
 
   const isPaidFlow = !!paymentType || !!payment;
 
-  useEffect(() => {
-    const riderId =
-      apiResponse?.data?.[0]?.riderId ??
-      apiResponse?.data?.riderId ??
-      firstItem?.riderId ??
-      null;
+  const riderId =
+    apiResponse?.data?.[0]?.riderId ??
+    apiResponse?.data?.riderId ??
+    firstItem?.riderId ??
+    null;
 
-    dispatch(
-      setKitCompleted({
-        apiResponse: apiResponse || null,
-        deliveryMode: resolvedDeliveryMode || null,
-        riderId,
-      })
-    );
-  }, [apiResponse, resolvedDeliveryMode, firstItem, dispatch]);
+  useEffect(() => {
+    if (!riderId) return;
+
+    dispatch(setKitCompleted({
+      riderId,
+      kitCompleted: true,
+      apiResponse,
+      deliveryMode: resolvedDeliveryMode,
+      currentStep: 'SuccessScreen',
+    }));
+  }, [dispatch, riderId, apiResponse, resolvedDeliveryMode]);
 
   const handleGoHome = () => {
     navigation.reset({
@@ -102,6 +110,7 @@ const SuccessScreen = () => {
       : null;
 
   const kitStatus = firstItem?.status ? formatEnum(firstItem.status) : null;
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -230,19 +239,21 @@ const SuccessScreen = () => {
 
 export default SuccessScreen;
 
-const styles = StyleSheet.create({
+const getStyles = (isTablet) =>
+  StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
   container: {
-    padding: 20,
+    paddingHorizontal: isTablet ? 80 : 20,
+    paddingVertical: isTablet ? 30 : 20,
     paddingBottom: 32,
   },
   iconOuter: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+   width: isTablet ? 160 : 120,
+   height: isTablet ? 160 : 120,
+  borderRadius: isTablet ? 80 : 60,
     backgroundColor: '#DCFCE7',
     alignSelf: 'center',
     alignItems: 'center',
@@ -251,38 +262,38 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconInner: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
+    width: isTablet ? 110 : 78,
+    height: isTablet ? 110 : 78,
+    borderRadius: isTablet ? 55 : 39,
     backgroundColor: COLORS.success || '#22C55E',
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkIcon: {
     color: '#FFFFFF',
-    fontSize: 38,
+    fontSize: isTablet ? 54 : 38,
     fontWeight: '800',
   },
   title: {
-    fontSize: 22,
+    fontSize: isTablet ? 40 : 22,
+    lineHeight: isTablet ? 52 : 30,
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 30,
+    marginBottom: 8
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: isTablet ? 18 : 14,
+    lineHeight: isTablet ? 28 : 22,
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: 22,
     marginBottom: 24,
     paddingHorizontal: 10,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
+    padding: isTablet ? 28 : 18,
+    borderRadius: isTablet ? 24 : 18,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -312,19 +323,19 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontSize: 14,
+    fontSize: isTablet ? 18 : 14,
     color: '#64748B',
   },
   value: {
     flex: 1,
-    fontSize: 14,
+    fontSize: isTablet ? 20 : 14,
     fontWeight: '600',
     color: '#1E293B',
     textAlign: 'right',
   },
   amountValue: {
     flex: 1,
-    fontSize: 18,
+    fontSize: isTablet ? 28 : 18,
     fontWeight: '800',
     color: '#0F172A',
     textAlign: 'right',
@@ -355,14 +366,14 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: '#142C63',
-    borderRadius: 16,
-    paddingVertical: 18,
+    paddingVertical: isTablet ? 24 : 18,
+    borderRadius: isTablet ? 22 : 16,
     alignItems: 'center',
     marginBottom: 10,
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: isTablet ? 24 : 17,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
