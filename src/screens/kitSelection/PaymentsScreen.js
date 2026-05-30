@@ -49,10 +49,16 @@ export default function PaymentsScreen({ route }) {
   const dispatch = useDispatch();
 
   const { createKitAddress } = useKitAddress();
-  const { deliveryMode, addressData, selectedZone } = route?.params || {};
-  const { apiResponse} = route?.params || {};
 
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  const riderKitData = useSelector(state =>
+    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
+  );
+  const deliveryMode = riderKitData?.deliveryMode ?? null;
+  const addressData = riderKitData?.addressData ?? null;
+  const selectedZone = riderKitData?.selectedZone ?? null;
+  const apiResponse = riderKitData?.apiResponse ?? null;
 
   const goToHomeTab = () => {
     navigation.reset({
@@ -91,6 +97,12 @@ export default function PaymentsScreen({ route }) {
     }));
   }, [dispatch, currentRiderId, apiResponse, deliveryMode, addressData, selectedZone]);
 
+  const pickupLocationId =
+    selectedZone?.id ??
+    selectedZone?._id ??
+    selectedZone?.pickupLocationId ??
+    null;
+
   const handlePaymentType = async type => {
 
     if (!selectedPayment) {
@@ -115,19 +127,23 @@ export default function PaymentsScreen({ route }) {
           addressData?.pincode
         );
       } else {
+        if (!pickupLocationId) {
+          Alert.alert('Payment failed', 'pickupLocationId missing for selected pickup zone');
+          return;
+        }
+
         kitResponse = await createKitAddress(
           selectedZone?.zone?.name || selectedZone?.name,
           selectedZone?.addressLine1,
           selectedZone?.pincode,
           'PICKUP',
-          selectedZone?.id
+          pickupLocationId
         );
       }
 
 
-
-      const items = kitResponse?.data || [];
-      const payableRequest =
+    const items = kitResponse?.data || [];
+    const payableRequest =
         items.find(item => item.status === 'PAYMENT_PENDING') ||
         items[0] ||
         null;
@@ -137,19 +153,20 @@ export default function PaymentsScreen({ route }) {
         return;
       }
 
-      const paymentSelectionPayload = {
+    const paymentSelectionPayload = {
         paymentMode: 'ONLINE',
         paymentType: type === 'emi' ? 'EMI' : 'FULL',
         ...(type === 'emi' && selectedPayment !== 'cod' ? { emiMonths: 3 } : {}),
       };
 
       
-      const postResponse = await apiClient.post(
-        `/api/kit/payment/${payableRequest.id}`,
+    const requestIds = payableRequest.id;
+
+    const postResponse = await apiClient.post(
+        `/api/kit/payment?requestIds=${requestIds}`,
         paymentSelectionPayload
       );
-
-      if (!postResponse?.data?.success) {
+    if (!postResponse?.data?.success) {
         Alert.alert(
           'Payment error',
           postResponse?.data?.message || 'Failed to select payment'
@@ -157,18 +174,19 @@ export default function PaymentsScreen({ route }) {
         return;
       }
 
-      const assetRequestId = postResponse?.data?.data?.[0]?.assetRequestId;
+    const requestIdsForComplete =
+        postResponse?.data?.data?.map(item => item.assetRequestId).filter(Boolean).join(',') ||
+        payableRequest.id;
 
-      if (!assetRequestId) {
-        Alert.alert('Payment error', 'assetRequestId not received from POST response');
+    if (!requestIdsForComplete) {
+        Alert.alert('Payment error', 'requestIds not available for payment completion');
         return;
       }
 
-      const patchResponse = await apiClient.patch(
-        `/api/kit/payments/complete/${assetRequestId}`
+    const patchResponse = await apiClient.patch(
+        `/api/kit/payments/complete?requestIds=${requestIdsForComplete}`
       );
-
-      if (!patchResponse?.data?.success) {
+    if (!patchResponse?.data?.success) {
         Alert.alert(
           'Payment error',
           patchResponse?.data?.message || 'Failed to complete payment'
@@ -176,7 +194,7 @@ export default function PaymentsScreen({ route }) {
         return;
       }
 
-      const riderId =
+    const riderId =
         patchResponse?.data?.data?.[0]?.riderId ??
         apiResponse?.data?.[0]?.riderId ??
         null;
