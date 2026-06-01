@@ -149,6 +149,7 @@ const DailyGuarentee = ({ route, navigation }) => {
             title={title}
             status={status}
             perOrderAmount={perOrderAmount}
+            ordersCompleted={ordersCompleted}
             maxOrders={maxOrders}
             maxReward={maxReward}
             styles={styles}
