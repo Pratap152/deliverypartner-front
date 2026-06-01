@@ -102,16 +102,19 @@ const BannerCarousel = ({ data }) => {
 
   const renderItem = ({ item }) => {
     return (
-      <View style={[styles.banner, { backgroundColor: item.backgroundColor }]}>
+      <Pressable
+        onPress={() => handlePress(item)}
+        style={[styles.banner, { backgroundColor: item.backgroundColor }]}
+      >
         <View>
           <Text style={styles.title}>{item.title}</Text>
           <Text style={styles.subtitle}>{item.subtitle}</Text>
         </View>
 
-        <Pressable onPress={() => handlePress(item)} style={styles.cta}>
+        <View style={styles.cta}>
           <Text style={styles.ctaText}>{item.cta}</Text>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     );
   };
 
