@@ -133,7 +133,7 @@ const createStyles = (isTablet, width) => {
 
         title: {
             flex: 1,
-            fontSize: isTablet ? 24 : 17,
+            fontSize: isTablet ? 24 : 18,
             fontWeight: '700',
             color: '#333',
         },
