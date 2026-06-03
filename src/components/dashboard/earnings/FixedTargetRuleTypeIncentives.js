@@ -50,7 +50,7 @@ const FixedTargetRuleTypeIncentives = ({ title, status, target, ordersCompleted,
                         progressColor="#192A51"
                     />
                 </View>
-                <Text style={styles.progressPercent}>{Math.round((ordersCompleted / target) * 100)}%</Text>
+                <Text style={styles.progressPercent}>{Math.min(Math.round((ordersCompleted / target) * 100), 100)}%</Text>
             </View>
         </View>
     );
