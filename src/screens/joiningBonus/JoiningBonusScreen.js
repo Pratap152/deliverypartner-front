@@ -43,10 +43,10 @@ const HeaderBar = memo(({
   hasJoiningBonus,
 }) => (
   <View
-  style={[
-    s.header,
-    !hasJoiningBonus && s.smallHeader,
-  ]}>
+    style={[
+      s.header,
+      !hasJoiningBonus && s.smallHeader,
+    ]}>
 
     <View style={s.headerRow}>
 
@@ -78,8 +78,8 @@ const WeeklyProgressCard = memo(
     const progressPercent =
       totalTasks > 0
         ? Math.round(
-            (completedTasks / totalTasks) * 100
-          )
+          (completedTasks / totalTasks) * 100
+        )
         : 0;
 
     return (
@@ -96,27 +96,27 @@ const WeeklyProgressCard = memo(
           </View>
 
           <Image
-  source={require('../../assets/gift.png')}
-  style={s.giftImage}
-/>
+            source={require('../../assets/gift.png')}
+            style={s.giftImage}
+          />
         </View>
 
         <View style={s.progressMainRow}>
-  <View style={s.bigProgressBg}>
-    <View
-      style={[
-        s.bigProgressFill,
-        {
-          width: `${progressPercent}%`,
-        },
-      ]}
-    />
-  </View>
+          <View style={s.bigProgressBg}>
+            <View
+              style={[
+                s.bigProgressFill,
+                {
+                  width: `${progressPercent}%`,
+                },
+              ]}
+            />
+          </View>
 
-  <Text style={s.progressPercentTop}>
-    {progressPercent}%
-  </Text>
-</View>
+          <Text style={s.progressPercentTop}>
+            {progressPercent}%
+          </Text>
+        </View>
 
         <View style={s.progressBottomRow}>
           <View style={s.progressInfoBox}>
@@ -143,7 +143,7 @@ const WeeklyProgressCard = memo(
         </View>
       </View>
     );
-    
+
   }
 );
 const TaskCard = memo(({ task, progress }) => {
@@ -168,53 +168,45 @@ const TaskCard = memo(({ task, progress }) => {
   const progressPercent =
     progress?.percentage || 0;
 
-  const days = [
-    'SUN',
-    'MON',
-    'TUE',
-    'WED',
-    'THU',
-    'FRI',
-    'SAT',
-  ];
+
 
   /* CARD COLORS */
 
   const cardBg = isCompleted
     ? '#CFF3E4'
     : isRunning
-    ? '#E7E1FF'
-    : isMissed
-    ? '#FFE3E3'
-    : '#F4F4F4';
+      ? '#E7E1FF'
+      : isMissed
+        ? '#FFE3E3'
+        : '#F4F4F4';
 
   const leftBg = isCompleted
     ? '#A7E6CC'
     : isRunning
-    ? '#D4CBFF'
-    : isMissed
-    ? '#FFC9C9'
-    : '#E3E3E3';
+      ? '#D4CBFF'
+      : isMissed
+        ? '#FFC9C9'
+        : '#E3E3E3';
 
   /* STATUS */
 
   const statusText = isCompleted
     ? 'Completed'
     : isRunning
-    ? 'Running'
-    : isMissed
-    ? 'Missed'
-    : isLocked
-    ? 'Locked'
-    : 'Upcoming';
+      ? 'Running'
+      : isMissed
+        ? 'Missed'
+        : isLocked
+          ? 'Locked'
+          : 'Upcoming';
 
   const statusColor = isCompleted
     ? '#2DBE60'
     : isRunning
-    ? '#1A275C'
-    : isMissed
-    ? '#E53935'
-    : '#8E8E8E';
+      ? '#1A275C'
+      : isMissed
+        ? '#E53935'
+        : '#8E8E8E';
 
   return (
     <View
@@ -243,9 +235,6 @@ const TaskCard = memo(({ task, progress }) => {
           {task.dayNumber}
         </Text>
 
-        <Text style={s.dayLabel}>
-          {days[task.dayNumber - 1]}
-        </Text>
       </View>
 
       {/* RIGHT SECTION */}
@@ -371,7 +360,7 @@ const JoiningBonusScreen = ({
   } = useJoiningBonus();
 
   const totalReward =
-  program?.maxReward || 0;
+    program?.maxReward || 0;
 
   const weeklySummary = {
     totalTasks:
@@ -415,8 +404,8 @@ const JoiningBonusScreen = ({
       </View>
     );
   }
-const hasJoiningBonus =
-  sortedTasks && sortedTasks.length > 0;
+  const hasJoiningBonus =
+    sortedTasks && sortedTasks.length > 0;
   return (
     <View style={s.container}>
       <StatusBar
@@ -424,51 +413,51 @@ const hasJoiningBonus =
         barStyle="dark-content"
       />
 
-     <HeaderBar
-  onBack={() => navigation.goBack()}
-  hasJoiningBonus={hasJoiningBonus}
-/>
-
-     {hasJoiningBonus ? (
-  <>
-    <View style={s.fixedTopSection}>
-      <WeeklyProgressCard
-        summary={weeklySummary}
-        totalReward={totalReward}
+      <HeaderBar
+        onBack={() => navigation.goBack()}
+        hasJoiningBonus={hasJoiningBonus}
       />
-    </View>
 
-    <Text style={s.sectionTitle}>
-      Tasks Unlocked
-    </Text>
+      {hasJoiningBonus ? (
+        <>
+          <View style={s.fixedTopSection}>
+            <WeeklyProgressCard
+              summary={weeklySummary}
+              totalReward={totalReward}
+            />
+          </View>
 
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={s.taskScrollContent}>
+          <Text style={s.sectionTitle}>
+            Tasks Unlocked
+          </Text>
 
-      {sortedTasks.map((task, index) => (
-        <TaskCard
-          key={`${task.dayNumber}-${index}`}
-          task={task}
-          progress={task.progressData}
-        />
-      ))}
-    </ScrollView>
-  </>
-) : (
-  <View style={s.emptyContainer}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={s.taskScrollContent}>
 
-    <Text style={s.emptyTitle}>
-      No Joining Bonus Available
-    </Text>
+            {sortedTasks.map((task, index) => (
+              <TaskCard
+                key={`${task.dayNumber}-${index}`}
+                task={task}
+                progress={task.progressData}
+              />
+            ))}
+          </ScrollView>
+        </>
+      ) : (
+        <View style={s.emptyContainer}>
 
-    <Text style={s.emptySubTitle}>
-      There are currently no active joining
-      bonus programs available for you.
-    </Text>
+          <Text style={s.emptyTitle}>
+            No Joining Bonus Available
+          </Text>
 
-  </View>
-)}
+          <Text style={s.emptySubTitle}>
+            There are currently no active joining
+            bonus programs available for you.
+          </Text>
+
+        </View>
+      )}
     </View>
   );
 };
