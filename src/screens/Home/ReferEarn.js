@@ -916,8 +916,7 @@ export default function ReferEarn({ navigation }) {
     </View>
   );
 }
-
-  const referralCode = data?.referrer?.partnerId || "PID431096";
+const referralCode = data?.partnerId || "";
 
   const copyToClipboard = () => {
     Clipboard.setString(referralCode);
