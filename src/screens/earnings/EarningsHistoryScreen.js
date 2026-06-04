@@ -213,12 +213,12 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     }
   };
 
-  const loadOrder = async (orderId) => {
-    Analytics.track("earnings_open_order", { orderId });
+  const loadTransactionDetails = async (id) => {
+    Analytics.track("earnings_open_transaction", { id });
 
     setLoading(true);
-    const key = `order_${orderId}`;
-    const data = await safeApiCached(key, () => EarningsNewAPI.getOrder(orderId));
+    const key = `transaction_${id}`;
+    const data = await safeApiCached(key, () => EarningsNewAPI.getOrder(id));
     setLoading(false);
 
     if (data) {
@@ -343,19 +343,24 @@ function getBackendWeekNumber(date) {
 
   // HEADER
   const headerTitle = useMemo(() => {
-    if (view === "ORDER") return "Delivery";
+    const detail = orderData?.transaction || orderData;
+
+    if (view === "ORDER") {
+      if (detail?.type === "INCENTIVE") return "Incentive Details";
+      if (detail?.type === "DELIVERY") return "Delivery Details";
+      return "Transaction Details";
+    }
+
     if (mode === "TODAY" && view === "DAY") {
       return "Today's Earnings";
     }
 
     if (view === "DAY") return "Daily Earnings";
-
     if (mode === "WEEK") return "Weekly Earnings";
-
     if (mode === "HISTORY") return "Earnings History";
 
     return "Earnings";
-  }, [mode, view]);
+  }, [mode, view, orderData]);
 
 
   // UI RENDERERS 
@@ -428,29 +433,68 @@ function getBackendWeekNumber(date) {
           subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
           right={`₹${formatMoney(item.amount) || 0}`}
           onPress={() => {
-            if (item.type === "DELIVERY") loadOrder(item.orderId);
+            if (item.type === "DELIVERY" && item.orderId) {
+              loadTransactionDetails(item.orderId);
+              return;
+            }
+
+            if (item.type === "INCENTIVE" && item.transactionId) {
+              loadTransactionDetails(item.transactionId);
+            }
           }}
         />
       )}
     />
   );
 
+
   const renderOrder = () => {
     if (!orderData) return <EmptyState />;
 
+    const transaction = orderData.transaction || orderData;
+    const isIncentive = transaction?.type === "INCENTIVE";
     const b = orderData.breakup || {};
+
+    if (isIncentive) {
+      return (
+        <View style={{ padding: 16 }}>
+          <TotalCard title="Incentive Amount" amount={formatMoney(transaction.amount) || 0} />
+          <View style={styles.box}>
+            <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
+              <Text style={{ fontSize: 16, fontWeight: "600" }}>Incentive</Text>
+              <Text style={{ marginLeft: 8, color: "#777" }}>
+                #{transaction.transactionId || ""}
+              </Text>
+            </View>
+
+            <BreakRow label="Type" value={transaction.type} />
+            <BreakRow label="Status" value={transaction.status} />
+            <BreakRow label="Description" value={transaction.description} />
+            <BreakRow
+              label="Credited At"
+              value={
+                transaction.creditedAt
+                  ? new Date(transaction.creditedAt).toLocaleString()
+                  : "-"
+              }
+            />
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={{ padding: 16 }}>
         <TotalCard title="Total Earnings" amount={formatMoney(orderData.totalEarnings) || 0} />
         <View style={styles.box}>
-          <View style={{ flexDirection: "column", alignItems: "center",padding:7 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>{orderData.store || "Store"}</Text>
-          <Text style={{ marginLeft: 8, color: "#777" }}>#{orderData.orderId || ""}</Text>
-        </View>
-          <BreakRow label="Base Fare" value={b.basePay} />
-          <BreakRow label="Distance Fare" value={formatMoney(b.distancePay)} />
-          <BreakRow label="Surge" value={b.surgePay} />
-          <BreakRow label="Tips" value={b.tips} />
+          <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
+            <Text style={{ fontSize: 16, fontWeight: "600" }}>{orderData.store || "Store"}</Text>
+            <Text style={{ marginLeft: 8, color: "#777" }}>#{orderData.orderId || ""}</Text>
+          </View>
+          <BreakRow label="Base Fare" value={b.basePay} isAmount />
+          <BreakRow label="Distance Fare" value={formatMoney(b.distancePay)} isAmount />
+          <BreakRow label="Surge" value={b.surgePay} isAmount />
+          <BreakRow label="Tips" value={b.tips} isAmount />
         </View>
       </View>
     );
@@ -567,25 +611,18 @@ function Row({ title, subtitle, right, onPress }) {
   );
 }
 
-function BreakRow({ label, value }) {
+function BreakRow({ label, value, isAmount = false }) {
   return (
     <View style={styles.breakRow}>
       <Text>{label}</Text>
-      <Text style={{ color: "#0A9F5A", fontWeight: "700" }}>₹{value || 0}</Text>
+      <Text style={{ color: "#0A9F5A", fontWeight: "700" }}>
+        {isAmount ? `₹${value || 0}` : value || "-"}
+      </Text>
     </View>
   );
 }
 
-function Skeleton() {
-  return (
-    <View style={{ padding: 16 }}>
-      <View style={[styles.card, { opacity: 0.3 }]} />
-      <View style={[styles.row, { opacity: 0.3 }]} />
-      <View style={[styles.row, { opacity: 0.3 }]} />
-      <View style={[styles.row, { opacity: 0.3 }]} />
-    </View>
-  );
-}
+
 
 function EmptyState() {
   return (
