@@ -292,7 +292,7 @@ export const RiderProvider = ({ children }) => {
  
   const goOnline = async () => {
  
-    if (isGoingOnline || isGoingOffline || status === "CONNECTED") return;
+    if (isGoingOnline || isGoingOffline) return;
  
     setIsGoingOnline(true);
  

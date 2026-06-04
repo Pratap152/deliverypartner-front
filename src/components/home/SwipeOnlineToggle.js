@@ -24,6 +24,7 @@ const SwipeOnlineToggle = ({
   isOnline,
   isLoading = false,
 }) => {
+  console.log("ISONLINE: ", isOnline);
   const translateX = useRef(
     new Animated.Value(isOnline ? MAX_SWIPE : 0)
   ).current;
@@ -34,6 +35,15 @@ const SwipeOnlineToggle = ({
   useEffect(() => {
     isLoadingRef.current = isLoading;
   }, [isLoading]);
+
+useEffect(() => {
+  const resetStatus = async () => {
+    await onSwipeOffline();
+    await onSwipeOnline();
+  };
+
+  resetStatus();
+}, []);
  
   // Sync animation with actual isOnline state
   useEffect(() => {
