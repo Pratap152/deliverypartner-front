@@ -64,20 +64,20 @@ export default function EarningsScreen({ navigation }) {
     weeklyBarChart = [],
     riderType = "",
     weeklyTotal = 0,
-    weeklyOrders=0,
+    weeklyOrders = 0,
     wallet = {},
     incentives = [],
   } = data;
 
 
- const month = earningsSummary.month || {};
+  const month = earningsSummary.month || {};
 
- const CARD_WIDTH = isTablet ? wp(97) : wp(95);
- const CARD_PADDING = wp(4);
+  const CARD_WIDTH = isTablet ? wp(97) : wp(95);
+  const CARD_PADDING = wp(4);
 
   const formatOrderLabel = count => {
-  return `${count} ${count === 1 ? 'order' : 'orders'}`;
-};
+    return `${count} ${count === 1 ? 'order' : 'orders'}`;
+  };
 
 
   /* HEADER */
@@ -132,7 +132,7 @@ export default function EarningsScreen({ navigation }) {
             </View>
 
             <View style={styles.dailyIconWrap}>
-              <Ionicons name="cash-outline" size={isTablet? 32: 24} color="#10B981" />
+              <Ionicons name="cash-outline" size={isTablet ? 32 : 24} color="#10B981" />
             </View>
           </View>
 
@@ -147,6 +147,11 @@ export default function EarningsScreen({ navigation }) {
             </View>
 
             <View style={styles.dailyStatItem}>
+              <Text style={styles.statValue}>₹{formatMoney(todayEarnings.incentives ?? 0)}</Text>
+              <Text style={styles.statLabel}>Incentives</Text>
+            </View>
+
+            <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>
                 {todayEarnings.orders ?? 0}
               </Text>
@@ -156,11 +161,6 @@ export default function EarningsScreen({ navigation }) {
             <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>₹{formatMoney(todayEarnings.tips ?? 0)}</Text>
               <Text style={styles.statLabel}>Tips</Text>
-            </View>
-
-            <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>₹{formatMoney(todayEarnings.incentives ?? 0)}</Text>
-              <Text style={styles.statLabel}>Incentives</Text>
             </View>
 
           </View>
@@ -211,7 +211,7 @@ export default function EarningsScreen({ navigation }) {
               </Text>
             </View>
             <View style={styles.walletIconWrap}>
-              <Ionicons name="wallet" size={isTablet? 32 :26} color="#6366F1" />
+              <Ionicons name="wallet" size={isTablet ? 32 : 26} color="#6366F1" />
             </View>
           </View>
           <View style={styles.walletActions}>
@@ -304,16 +304,16 @@ export default function EarningsScreen({ navigation }) {
 
                 {item.type === "daily" &&
                   <Text style={styles.emptyTitle}>
-                  Daily Incentives Not Available
-                </Text>}
+                    Daily Incentives Not Available
+                  </Text>}
                 {item.type === "peak" &&
                   <Text style={styles.emptyTitle}>
-                  Peak Incentives Not Available
-                </Text>}
+                    Peak Incentives Not Available
+                  </Text>}
                 {item.type === "weekly" &&
                   <Text style={styles.emptyTitle}>
-                  Weekly Incentives Not Available
-                </Text>}
+                    Weekly Incentives Not Available
+                  </Text>}
 
                 <Text style={styles.emptySubtitle}>
                   Complete more orders to unlock exciting incentives.
@@ -357,34 +357,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-  color: '#fff',
-  fontSize: isTablet ? 34 : wp(6),
-  fontWeight: '600',
-  flex: 1,
-  marginLeft: wp(2),
-},
+    color: '#fff',
+    fontSize: isTablet ? 34 : wp(6),
+    fontWeight: '600',
+    flex: 1,
+    marginLeft: wp(2),
+  },
   chat_icon: {
     width: wp(6),
     height: wp(5),
   },
   topBar: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingTop: isTablet ? hp(2) : hp(3),
-  paddingHorizontal: isTablet ? wp(4) : wp(3),
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: isTablet ? hp(2) : hp(3),
+    paddingHorizontal: isTablet ? wp(4) : wp(3),
+  },
   topBarIcons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconBtn: {
-  backgroundColor: 'rgba(255,255,255,0.15)',
-  paddingVertical: isTablet ? hp(1.2) : hp(1),
-  paddingHorizontal: isTablet ? wp(1.5) : wp(2),
-  borderRadius: isTablet ? wp(2) : wp(3),
-  marginLeft: wp(2),
-},
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: isTablet ? hp(1.2) : hp(1),
+    paddingHorizontal: isTablet ? wp(1.5) : wp(2),
+    borderRadius: isTablet ? wp(2) : wp(3),
+    marginLeft: wp(2),
+  },
   chatIcon: {
     width: wp(5),
     height: wp(5),
@@ -571,29 +571,29 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
     justifyContent: 'space-between',
   },
-walletBtn: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#FFFFFF',
-  paddingHorizontal: isTablet ? wp(4) : wp(4),
-  paddingVertical: isTablet ? hp(1.5) : hp(1),
-  borderRadius: isTablet ? wp(2) : wp(3),
-},
+  walletBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: isTablet ? wp(4) : wp(4),
+    paddingVertical: isTablet ? hp(1.5) : hp(1),
+    borderRadius: isTablet ? wp(2) : wp(3),
+  },
   walletBtnText: {
-  marginLeft: wp(2),
-  fontWeight: '600',
-  color: '#6366F1',
-  fontSize: isTablet ? 18 : 14,
-},
- walletBtnOutline: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.5)',
-  paddingHorizontal: isTablet ? wp(4) : wp(4),
-  paddingVertical: isTablet ? hp(1.5) : hp(1),
-  borderRadius: isTablet ? wp(2) : wp(3),
-},
+    marginLeft: wp(2),
+    fontWeight: '600',
+    color: '#6366F1',
+    fontSize: isTablet ? 18 : 14,
+  },
+  walletBtnOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    paddingHorizontal: isTablet ? wp(4) : wp(4),
+    paddingVertical: isTablet ? hp(1.5) : hp(1),
+    borderRadius: isTablet ? wp(2) : wp(3),
+  },
   walletBtnTextOutline: {
     marginLeft: wp(2),
     color: '#fff',

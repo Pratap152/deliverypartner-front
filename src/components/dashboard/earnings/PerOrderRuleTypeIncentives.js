@@ -8,7 +8,7 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import DeviceInfo from "react-native-device-info";
 
-const PerOrderRuleTypeIncentives = ({ title, status, perOrderAmount, maxOrders, maxReward }) => {
+const PerOrderRuleTypeIncentives = ({ title, status, perOrderAmount, ordersCompleted, maxOrders, maxReward }) => {
     const { width } = useWindowDimensions();
     const isTablet = DeviceInfo.isTablet();
     const styles = createStyles(isTablet, width);
@@ -29,6 +29,11 @@ const PerOrderRuleTypeIncentives = ({ title, status, perOrderAmount, maxOrders, 
                 <Text style={styles.cardLabel}>Reward Per Order</Text>
                 <Text style={styles.cardValue}>₹{perOrderAmount}</Text>
             </LinearGradient>
+
+            <View style={styles.content}>
+                <Text style={styles.contentLabel}>Completed Orders</Text>
+                <Text style={styles.contentValue}>{ordersCompleted}</Text>
+            </View>
 
             <View style={styles.content}>
                 <Text style={styles.contentLabel}>Maximum Orders</Text>

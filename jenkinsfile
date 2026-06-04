@@ -2,9 +2,10 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(
-            numToKeepStr: '8',
-            artifactNumToKeepStr: '3'
+            numToKeepStr: '5',
+            artifactNumToKeepStr: '2'
         ))
+        skipDefaultCheckout(true)
     }
 
     agent {
@@ -17,6 +18,7 @@ pipeline {
     environment {
         AWS_BUCKET = "deliverypartner"
         APK_NAME = "rider-app-${BUILD_NUMBER}.apk"
+        GRADLE_USER_HOME = "/root/.gradle"
         GRADLE_OPTS = "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
     }
 
@@ -28,21 +30,28 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'merge-final-dev', url: 'https://github.com/Pratap152/rider-app.git'
+                git branch: 'merge-final-dev',
+                url: 'https://github.com/Pratap152/rider-app.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
-                npm install --prefer-offline --no-audit --progress=false
+                npm ci --prefer-offline --no-audit
                 '''
             }
         }
 
-        stage('Fix Gradle Permission') {
+        stage('Prepare React Native') {
             steps {
-                sh 'chmod +x android/gradlew'
+                sh '''
+                chmod +x android/gradlew
+                
+                cd android
+                ./gradlew generateCodegenArtifactsFromSchema
+                cd ..
+                '''
             }
         }
 
@@ -83,26 +92,11 @@ pipeline {
             }
         }
 
-        stage('Cleanup Workspace') {
+        stage('Archive Artifact') {
             steps {
-                sh '''
-                rm -rf node_modules
-                rm -rf android/.gradle
-                rm -rf android/build
-                '''
+                archiveArtifacts artifacts: '*.apk', fingerprint: true
             }
         }
-
-        stage('Docker Cleanup') {
-            steps {
-                sh '''
-                docker container prune -f
-                docker image prune -f
-                docker volume prune -f
-                '''
-            }
-        }
-
     }
 
     post {

@@ -49,7 +49,7 @@ const HybridRuleTypeIncentives = ({ title, status, ordersCompleted, minOrders, r
                         progressColor="#192A51"
                     />
                 </View>
-                <Text style={styles.progressPercent}>{Math.round((ordersCompleted / minOrders) * 100)}%</Text>
+                <Text style={styles.progressPercent}>{Math.min(Math.round((ordersCompleted / minOrders) * 100), 100)}%</Text>
             </View>
         </View>
     );

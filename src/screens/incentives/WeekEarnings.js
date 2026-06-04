@@ -119,6 +119,7 @@ const WeekEarnings = ({ route, navigation }) => {
             title={title}
             status={status}
             perOrderAmount={task.rewardPerOrder}
+            ordersCompleted={progressTask.progress.completedOrders}
             maxOrders={task.maxOrders}
             maxReward={task.maxEarning}
             styles={styles}
@@ -224,6 +225,7 @@ const WeekEarnings = ({ route, navigation }) => {
             title={title}
             status={status}
             perOrderAmount={perOrderAmount}
+            ordersCompleted={ordersCompleted}
             maxOrders={maxOrders}
             maxReward={maxReward}
             styles={styles}
