@@ -18,6 +18,7 @@ import HybridRuleTypeIncentives from "../../components/dashboard/earnings/Hybrid
 import PerOrderRuleTypeIncentives from "../../components/dashboard/earnings/PerOrderRuleTypeIncentives";
 
 import WeeklyMissionProgress from '../../components/dashboard/earnings/WeeklyMissionProgress';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const WeekEarnings = ({ route, navigation }) => {
   const { width } = useWindowDimensions();
@@ -142,7 +143,7 @@ const WeekEarnings = ({ route, navigation }) => {
         end={{ x: 1, y: 1 }}
         style={styles.heroHeader}
       >
-        <View style={styles.headerTop}>
+        <SafeAreaView style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons
               name="arrow-back"
@@ -150,9 +151,9 @@ const WeekEarnings = ({ route, navigation }) => {
               color="#FFF"
             />
           </TouchableOpacity>
-        </View>
 
-        <Text style={styles.heroTitle}>{title}</Text>
+          <Text style={styles.heroTitle}>{title}</Text>
+        </SafeAreaView>
 
         <View style={styles.rewardPill}>
           <Ionicons
@@ -297,7 +298,6 @@ const createStyles = (isTablet, width) => {
     },
 
     heroHeader: {
-      paddingTop: isTablet ? 55 : 35,
       paddingBottom: isTablet ? 45 : 30,
       paddingHorizontal: isTablet ? 34 : 20,
       borderBottomLeftRadius: isTablet ? 36 : 26,
@@ -308,14 +308,14 @@ const createStyles = (isTablet, width) => {
       width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
+      gap:15,
       marginBottom: isTablet ? 28 : 18,
     },
 
     heroTitle: {
-      fontSize: isTablet ? 38 : 26,
-      fontWeight: '800',
+      fontSize: isTablet ? 38 : 24,
+      fontWeight: '700',
       color: '#FFF',
-      marginBottom: 14,
       lineHeight: isTablet ? 48 : 34,
     },
 

@@ -16,6 +16,7 @@ import { BackHandler } from 'react-native';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 
@@ -203,7 +204,7 @@ const KitSelectionScreen = ({ navigation }) => {
   const buttonConfig = getButtonConfig();
 
   return (
-    <View
+    <SafeAreaView
       style={[
         styles.container,
         {
@@ -387,7 +388,7 @@ const KitSelectionScreen = ({ navigation }) => {
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  </View>
+  </SafeAreaView>
   );
 };
 
@@ -403,7 +404,6 @@ const getStyles = (isTablet) =>
     fontSize: isTablet ? 42 : 28,
     fontWeight: "700", 
     marginBottom: 8,
-    marginTop: 10,
     textAlign: "center",
     color: "#1E293B",
     letterSpacing: 0.5,

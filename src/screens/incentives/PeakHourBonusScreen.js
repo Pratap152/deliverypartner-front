@@ -15,6 +15,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import SlabRuleTypeIncentives from "../../components/dashboard/earnings/SlabRuleTypeIncentives";
 import FixedTargetRuleTypeIncentives from "../../components/dashboard/earnings/FixedTargetRuleTypeIncentives";
 import HybridRuleTypeIncentives from "../../components/dashboard/earnings/HybridRuleTypeIncentives";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const PeakHourBonusScreen = ({ route, navigation }) => {
   const { width } = useWindowDimensions();
@@ -76,7 +77,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
         end={{ x: 1, y: 1 }}
         style={styles.heroHeader}
       >
-        <View style={styles.headerTop}>
+        <SafeAreaView style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons
               name="arrow-back"
@@ -84,9 +85,9 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
               color="#FFF"
             />
           </TouchableOpacity>
-        </View>
 
         <Text style={styles.heroTitle}>{title}</Text>
+      </SafeAreaView>
 
         <View style={styles.rewardPill}>
           <Ionicons
@@ -181,8 +182,7 @@ const createStyles = (isTablet, width) => {
     },
 
     heroHeader: {
-      paddingTop: isTablet ? 40 : 25,
-      paddingBottom: isTablet ? 45 : 30,
+      paddingBottom: isTablet ? 55 : 40,
       paddingHorizontal: isTablet ? 35 : 20,
       borderBottomLeftRadius: isTablet ? 36 : 24,
       borderBottomRightRadius: isTablet ? 36 : 24,
@@ -190,16 +190,15 @@ const createStyles = (isTablet, width) => {
 
     headerTop: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      gap:15,
       alignItems: "center",
       marginBottom: isTablet ? 30 : 18,
     },
 
     heroTitle: {
-      fontSize: isTablet ? 34 : 26,
-      fontWeight: "800",
+      fontSize: isTablet ? 34 : 24,
+      fontWeight: "700",
       color: "#FFF",
-      marginBottom: 6,
     },
 
     rewardPill: {

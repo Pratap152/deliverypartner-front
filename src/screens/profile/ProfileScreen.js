@@ -116,10 +116,10 @@ export default function ProfileScreen({ navigation }) {
   const selfieUri = getSelfieUri(profile?.selfie);
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root}>
       <StatusBar backgroundColor="#13ACBE" barStyle="light-content" />
 
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
           {/* Header */}
           <View style={styles.header}>
@@ -594,8 +594,8 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 const isTablet = DeviceInfo.isTablet();
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#FFFFFF',
     fontSize: wp('6.4%'),
-    fontWeight: '600',
+    fontWeight: '700',
   },
 
   profileCard: {

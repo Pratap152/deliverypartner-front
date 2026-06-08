@@ -278,7 +278,7 @@ export default function PaymentsScreen({ route }) {
                     }}
                 />
               ) : (
-                <Text style={{ fontSize: isTablet ? 24 : 16, fontWeight: '600', color: COLORS.textPrimary }}>
+                <Text style={{ fontSize: isTablet ? 24 : 20, fontWeight: '600', color: COLORS.textPrimary }}>
                   {item.label}
                 </Text>
               )}
@@ -392,7 +392,6 @@ const getStyles = (width, height,isTablet) =>
     container: {
       flex: 1,
       paddingHorizontal: width * 0.05,
-      paddingTop: height * 0.022,
     },
     content: { flex: 1, marginTop: height * 0.035 },
     card: {
@@ -447,7 +446,7 @@ const getStyles = (width, height,isTablet) =>
     },
     headerTitle: {
       textAlign: 'center',
-      fontSize: isTablet ? 38 : 18,
+      fontSize: isTablet ? 38 : 28,
       fontWeight: '700',
       color: COLORS.textPrimary,
     },
