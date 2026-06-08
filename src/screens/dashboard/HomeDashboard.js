@@ -47,7 +47,7 @@ if (refreshing) return null;
         {/* ONLINE / OFFLINE TOGGLE */}
         <SwipeOnlineToggle
           isOnline={isOnline}
-          isLoading={refreshing}
+          isLoading={isLoading}
           onSwipeOnline={goOnline}
           onSwipeOffline={goOffline}
         />
