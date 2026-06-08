@@ -36,14 +36,16 @@ const SwipeOnlineToggle = ({
     isLoadingRef.current = isLoading;
   }, [isLoading]);
 
-useEffect(() => {
-  const resetStatus = async () => {
-    await onSwipeOffline();
-    await onSwipeOnline();
-  };
+// useEffect(() => {
+//   const resetStatus = async () => {
+//     if (!isOnline) return;
 
-  resetStatus();
-}, []);
+//     await onSwipeOffline();
+//     await onSwipeOnline();
+//   };
+
+//   resetStatus();
+// }, []);
  
   // Sync animation with actual isOnline state
   useEffect(() => {
