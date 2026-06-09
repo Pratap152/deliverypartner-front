@@ -6,8 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {
@@ -16,9 +16,10 @@ import {
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
 
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { useOrderHistory } from '../../hooks/useOrderHistory';
 import EmptyState from '../../components/order/EmptyState';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -28,7 +29,7 @@ const FILTERS = [
 ];
 
 const OrderHistory = ({ navigation }) => {
-  const [selectedFilter, setSelectedFilter] = useState('weekly');
+  const [selectedFilter, setSelectedFilter] = useState('today');
   const [filterLoading, setFilterLoading] = useState(false);
 
   const {
@@ -41,70 +42,173 @@ const OrderHistory = ({ navigation }) => {
     onRefresh,
   } = useOrderHistory(selectedFilter);
 
-  /*  FILTER CHANGE  */
   const changeFilter = useCallback(
     value => {
       if (value === selectedFilter) return;
-      setFilterLoading(true); // Show loader immediately
+
+      setFilterLoading(true);
       setSelectedFilter(value);
     },
     [selectedFilter],
   );
 
-  /* STOP LOADER WHEN DATA ARRIVES */
   useEffect(() => {
     if (!loading) {
       setFilterLoading(false);
     }
   }, [loading]);
 
-  /*  RENDER ITEM  */
-  const renderOrder = useCallback(
-    ({ item }) => (
-      <View style={styles.orderCard}>
-        <View style={styles.rowBetween}>
-          <Text style={styles.restaurant}>{item.orderId}</Text>
-          <Text style={styles.earning}>₹{item.earning}</Text>
+  const renderOrder = ({ item }) => (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      style={styles.orderCard}
+      onPress={() =>
+        navigation.navigate('OrderHistoryDetails', {
+          order: item,
+        })
+      }
+    >
+      {/* TOP SECTION */}
+      <View style={styles.topRow}>
+        <View style={styles.restaurantSection}>
+          <View style={styles.restaurantDot} />
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.restaurantName}>
+              {item.vendorShopName}
+            </Text>
+
+            <Text style={styles.orderId}>
+              Order ID: {item.orderId}
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.orderId}>{item.restaurantName}</Text>
+        <View style={styles.earningSection}>
+          <Text style={styles.earning}>
+            ₹{Number(item.earning).toFixed(2)}
+          </Text>
 
-        <Text style={styles.metaText}>
-          {item.customerName} → {item.area}
-        </Text>
-
-        <View style={styles.rowBetween}>
-          <View style={styles.row}>
-            <Text style={styles.metaSmall}>{item.distance} km</Text>
-            <View style={styles.starRow}>
-              <Ionicons name="star" size={14} color="#F5A623" />
-              <Text style={styles.metaSmall}>{item.rating}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.metaSmall}>{item.time}</Text>
+          {item.credited && (
+            <Text style={styles.earnedText}>
+              EARNED
+            </Text>
+          )}
         </View>
-
-        {item.tip ? (
-          <View style={styles.tipRow}>
-            <Text style={styles.tipLabel}>Customer Tip</Text>
-            <Text style={styles.tipValue}>+₹{item.tip}</Text>
-          </View>
-        ) : null}
       </View>
-    ),
-    [],
+
+      {/* USER */}
+      <View style={styles.userRow}>
+        <Ionicons
+          name="person-outline"
+          size={18}
+          color="#00A63E"
+        />
+
+        <Text style={styles.userText}>
+          {item.userName}
+        </Text>
+      </View>
+
+      {/* LOCATION */}
+      <View style={styles.locationRatingRow}>
+        <View style={styles.locationRow}>
+          <Ionicons
+            name="location-outline"
+            size={18}
+            color="#00A63E"
+          />
+
+          <Text
+            numberOfLines={1}
+            style={styles.locationText}
+          >
+            {item.deliveredAddress}
+          </Text>
+        </View>
+
+        <View style={styles.ratingContainer}>
+          <Ionicons
+            name="star"
+            size={16}
+            color="#F59E0B"
+          />
+          <Text style={styles.ratingText}>
+            {Number(item.rating || 0).toFixed(1)}
+          </Text>
+        </View>
+      </View>
+
+      {/* DATE TIME DISTANCE */}
+      <View style={styles.dateTimeContainer}>
+        <View style={styles.dateItem}>
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color="#00A63E"
+          />
+          <Text style={styles.infoText}>
+            {item.date}
+          </Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.dateItem}>
+          <Ionicons
+            name="time-outline"
+            size={16}
+            color="#00A63E"
+          />
+          <Text style={styles.infoText}>
+            {item.time}
+          </Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.dateItem}>
+          <Ionicons
+            name="navigate-outline"
+            size={16}
+            color="#00A63E"
+          />
+          <Text style={styles.infoText}>
+            {item.distance}km
+          </Text>
+        </View>
+      </View>
+
+      {/* TIP */}
+      {item.tip > 0 && (
+        <View style={styles.tipContainer}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons
+              name="gift-outline"
+              size={20}
+              color="#3A8D4D"
+            />
+
+            <Text style={styles.tipLabel}>
+              Customer TIP
+            </Text>
+          </View>
+
+          <Text style={styles.tipValue}>
+            ₹{item.tip}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 
-  const handleEndReached = () => {
-    if (!loadingMore && !refreshing && orders.length > 0) {
-      loadMore();
-    }
-  };
-
-  /*  EMPTY STATE  */
   const EmptyComponent = () => (
-    <EmptyState 
+    <EmptyState
       icon="receipt-outline"
       title="No Orders Yet"
       message="Your delivery history will appear here once you complete your first order."
@@ -118,11 +222,21 @@ const OrderHistory = ({ navigation }) => {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} />
+          <Ionicons
+            name="arrow-back"
+            size={rf(2.6)}
+            color="#111827"
+          />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Order History</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>
+          Order History
+        </Text>
+
+        <Image
+          source={require('../../assets/profile/HelpcenterIcon.png')}
+          style={styles.robotIcon}
+        />
       </View>
 
       {/* FILTERS */}
@@ -132,14 +246,16 @@ const OrderHistory = ({ navigation }) => {
             key={item.value}
             style={[
               styles.filterChip,
-              selectedFilter === item.value && styles.filterChipActive,
+              selectedFilter === item.value &&
+              styles.filterChipActive,
             ]}
             onPress={() => changeFilter(item.value)}
           >
             <Text
               style={[
                 styles.filterText,
-                selectedFilter === item.value && styles.filterTextActive,
+                selectedFilter === item.value &&
+                styles.filterTextActive,
               ]}
             >
               {item.label}
@@ -151,59 +267,59 @@ const OrderHistory = ({ navigation }) => {
       {/* SUMMARY */}
       <View style={styles.summaryGrid}>
         <SummaryCard
+          icon="bag-handle-outline"
           label="Total Orders"
           value={summary.totalOrders}
-          bgColor="#DCFCE7"
-          textColor="#166534"
+          bgColor="#FF690014"
+          iconColor="#FF6900"
         />
+
         <SummaryCard
+          icon="logo-usd"
           label="Total Earnings"
           value={`₹${summary.totalEarnings}`}
-          bgColor="#FFE4D5"
-          textColor="#9A3412"
+          bgColor="#00C95014"
+          iconColor="#00C950"
         />
+
         <SummaryCard
+          icon="star"
           label="Average Rating"
           value={summary.rating}
-          bgColor="#FEF3C7"
-          textColor="#92400E"
+          bgColor="#F0B10014"
+          iconColor="#F0B100"
         />
+
         <SummaryCard
-          label="KM Traveled"
+          icon="navigate-circle-outline"
+          label="KM Travelled"
           value={summary.km}
-          bgColor="#DBEAFE"
-          textColor="#1E40AF"
+          bgColor="#2B7FFF14"
+          iconColor="#2B7FFF"
         />
       </View>
 
-      {/* FILTER LOADER */}
       <FlatList
         data={orders}
-        keyExtractor={item => item.orderId}
+        keyExtractor={item => item.id}
         renderItem={renderOrder}
         refreshing={refreshing}
         onRefresh={onRefresh}
-        onEndReached={handleEndReached}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={!loading ? EmptyComponent : null}
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator style={{ marginVertical: 20 }} />
+            <ActivityIndicator
+              style={{ marginVertical: 20 }}
+            />
           ) : null
         }
       />
 
       {filterLoading && (
-        <View
-          style={{
-            ...StyleSheet.absoluteFillObject,
-            backgroundColor: 'rgba(255,255,255,0.6)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 999,
-          }}
-        >
+        <View style={styles.overlay}>
           <ActivityIndicator size="large" />
         </View>
       )}
@@ -211,39 +327,54 @@ const OrderHistory = ({ navigation }) => {
   );
 };
 
-/*  SUMMARY CARD  */
-const SummaryCard = ({ label, value, bgColor, textColor }) => (
-  <View style={[styles.summaryCard, { backgroundColor: bgColor }]}>
-    <Text style={[styles.summaryValue, { color: textColor }]}>{value}</Text>
-    <Text style={[styles.summaryLabel, { color: textColor }]}>{label}</Text>
+const SummaryCard = ({
+  icon,
+  label,
+  value,
+  bgColor,
+  iconColor,
+}) => (
+  <View
+    style={[
+      styles.summaryCard,
+      { backgroundColor: bgColor },
+    ]}
+  >
+    <Ionicons
+      name={icon}
+      size={18}
+      color={iconColor}
+    />
+
+    <Text style={styles.summaryValue}>
+      {value}
+    </Text>
+
+    <Text style={styles.summaryLabel}>
+      {label}
+    </Text>
   </View>
 );
-
 export default OrderHistory;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: rw(4),
-  },
-
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: rh(2),
   },
 
   headerTitle: {
-    fontSize: rf(2.4),
-    fontWeight: '600',
+    fontSize: rf(2.2),
+    fontWeight: '700',
+    color: '#111827',
   },
 
   filterRow: {
@@ -252,24 +383,24 @@ const styles = StyleSheet.create({
   },
 
   filterChip: {
+    backgroundColor: '#F3F4F6',
     paddingHorizontal: rw(4),
     paddingVertical: rh(0.8),
-    borderRadius: 20,
-    backgroundColor: '#F1F3F5',
+    borderRadius: 8,
     marginRight: rw(2),
   },
 
   filterChipActive: {
-    backgroundColor: '#19A7CE',
+    backgroundColor: '#1E3A8A',
   },
 
   filterText: {
-    fontSize: rf(1.6),
-    color: '#555',
+    color: '#6B7280',
+    fontSize: rf(1.5),
   },
 
   filterTextActive: {
-    color: '#fff',
+    color: '#FFF',
     fontWeight: '600',
   },
 
@@ -277,99 +408,225 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: rh(2),
+    marginBottom: rh(1.5),
   },
 
   summaryCard: {
     width: '48%',
-    borderRadius: 10,
-    padding: rw(4),
-    marginBottom: rh(1.5),
+    padding: rw(3.5),
+    borderRadius: 12,
+    marginBottom: rh(1.2),
   },
 
   summaryValue: {
-    fontSize: rf(2.6),
-    fontWeight: 'bold',
+    fontSize: rf(2.3),
+    fontWeight: '700',
+    color: '#111827',
   },
 
   summaryLabel: {
-    fontSize: rf(1.6),
-    marginTop: rh(0.5),
+    marginTop: 4,
+    fontSize: rf(1.4),
+    color: '#6B7280',
   },
 
   orderCard: {
-    borderRadius: 12,
-    padding: rw(4),
-    marginBottom: rh(1.5),
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+  backgroundColor: '#FFFFFF',
+  borderRadius: 20,
+  padding: rw(4),
+  marginBottom: rh(1.8),
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.06,
+  shadowRadius: 8,
+  elevation: 3,
+},
+
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 
-  restaurant: {
-    fontSize: rf(2),
-    fontWeight: '600',
+  restaurantSection: {
+    flexDirection: 'row',
+    flex: 1,
   },
 
-  earning: {
-    fontSize: rf(2),
-    fontWeight: '600',
-    color: '#1BA672',
+  restaurantDot: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#F7EAE5',
+    marginRight: 12,
+  },
+
+  restaurantName: {
+    fontSize: rf(1.95),
+    fontWeight: '700',
+    color: '#1F2937',
   },
 
   orderId: {
+    marginTop: 2,
+    fontSize: rf(1.25),
+    color: '#475569',
+  },
+
+  earningSection: {
+    alignItems: 'flex-end',
+  },
+
+  earning: {
+    fontSize: rf(1.8),
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+
+  earnedText: {
+    marginTop: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: '#DDF5E5',
+    color: '#2E8B57',
+    fontSize: rf(1.1),
+    fontWeight: '700',
+  },
+
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: rh(0.8),
+  },
+
+  userText: {
+    marginLeft: 6,
+    color: '#475569',
     fontSize: rf(1.4),
-    color: '#888',
-    marginVertical: rh(0.5),
   },
 
-  metaText: {
+  locationText: {
+    marginLeft: 6,
+    color: '#475569',
     fontSize: rf(1.4),
-    color: '#555',
+    flexShrink: 1,
   },
 
-  metaSmall: {
-    fontSize: rf(1.3),
-    color: '#555',
+  bottomInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: rh(1.3),
   },
 
-  rowBetween: {
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  infoText: {
+    marginLeft: 4,
+    color: '#64748B',
+    fontSize: rf(1.15),
+  },
+  tipContainer: {
+    marginTop: rh(1),
+    paddingTop: rh(1),
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  tipLabel: {
+    color: '#64748B',
+    fontSize: rf(1.4),
+  },
+
+  tipValue: {
+    color: '#16A34A',
+    fontWeight: '700',
+    fontSize: rf(1.5),
+  },
+
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.5)',
+  },
+  robotIcon: {
+    width: rw(6),
+    height: rw(6),
+    resizeMode: 'contain',
+  },
+
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 50,
+  },
+
+  ratingText: {
+    marginLeft: 4,
+    fontSize: rf(1.8),
+    fontWeight: '600',
+    color: '#111827',
+  },
+
+  dateTimeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderRadius: 16,
+
+    paddingVertical: rh(1),
+    paddingHorizontal: rw(2),
+
+    marginTop: rh(1.4),
+
+    backgroundColor: '#FFFFFF',
+  },
+
+  dateItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  divider: {
+    width: 1,
+    height: 28,
+    backgroundColor: '#E6E6E6',
+  },
+  locationRatingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: rh(0.4),
   },
 
-  row: {
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: rw(2),
   },
 
-  starRow: {
+  ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: rw(2),
   },
 
-  tipRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: rh(1),
-  },
-
-  tipLabel: {
-    fontSize: rf(1.4),
-    color: '#777',
-  },
-
-  tipValue: {
-    fontSize: rf(1.4),
-    color: '#1BA672',
+  ratingText: {
+    marginLeft: 4,
+    fontSize: rf(1.9),
     fontWeight: '600',
-  },
-
-  emptyText: {
-    textAlign: 'center',
-    marginTop: rh(5),
-    color: '#777',
-    fontSize: rf(1.8),
+    color: '#111827',
   },
 });
