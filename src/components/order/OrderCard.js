@@ -32,7 +32,7 @@ const OrderCard = ({
                     </View>
                 </View>
 
-                <Text style={styles.price}>₹{price}</Text>
+                <Text style={styles.price}>₹{Math.round(price)}</Text>
             </View>
 
             <View style={styles.routeContainer}>
