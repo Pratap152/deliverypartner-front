@@ -8,18 +8,10 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
-import {
-  responsiveWidth,
-  responsiveHeight,
-  responsiveFontSize,
-} from 'react-native-responsive-dimensions';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import Header from '../../components/common/Header';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import apiClient from '../../services/ApiClient';
 import DeviceInfo from 'react-native-device-info';

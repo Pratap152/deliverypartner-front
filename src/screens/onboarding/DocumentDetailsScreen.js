@@ -24,6 +24,7 @@ import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DocumentDetailsScreen = ({ navigation }) => {
     const dispatch = useDispatch();
@@ -262,12 +263,12 @@ const DocumentDetailsScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
 
             {/* SCROLLABLE CONTENT */}
             <ScrollView
                 contentContainerStyle={{
-                    padding: responsiveWidth(5),
+                    paddingHorizontal: responsiveWidth(5),
                     paddingBottom: 140
                 }}
                 showsVerticalScrollIndicator={false}
@@ -356,7 +357,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
                 />
             </View>
 
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -367,13 +368,13 @@ const styles = StyleSheet.create({
         fontSize: responsiveFontSize(3),
         fontWeight: '700',
         textAlign: 'center',
-        marginVertical: responsiveHeight(2),
+        marginBottom:15
     },
     sideHeading: {
         marginTop: 10,
         marginBottom: 10,
         fontSize: wp(4),
-        fontWeight: '400',
+        fontWeight: '600',
     },
     input: {
         borderWidth: 1,
@@ -458,8 +459,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 15,
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
         borderColor: '#eee'
     }
 });
