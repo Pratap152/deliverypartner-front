@@ -8,18 +8,10 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
-import {
-  responsiveWidth,
-  responsiveHeight,
-  responsiveFontSize,
-} from 'react-native-responsive-dimensions';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import Header from '../../components/common/Header';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import apiClient from '../../services/ApiClient';
 import DeviceInfo from 'react-native-device-info';
@@ -124,13 +116,6 @@ const PanUploadScreen = ({ navigation }) => {
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
           <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.replace('DocumentVerifyScreen')
-            }
-          >
-            <Icon name="arrow-back" size={22} color="#000" />
-          </TouchableOpacity>
 
           <Text style={styles.headerTitle}>PAN card details</Text>
         </View>
@@ -246,7 +231,6 @@ const PanUploadScreen = ({ navigation }) => {
 
 export default PanUploadScreen;
 
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   screenWrapper: {
@@ -260,7 +244,6 @@ const styles = StyleSheet.create({
     maxWidth: containerMaxWidth,
     backgroundColor: '#fff',
     paddingHorizontal: horizontalPadding,
-    paddingTop: 20,
     paddingBottom: 20,
   },
   title: { fontSize: titleFont, fontWeight: '700', color: '#000' },
@@ -271,11 +254,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: responsiveFontSize(2.6),
-    fontWeight: '600',
-    marginRight: 30,
+    flex:1,
+    fontSize: isTablet ? 34 : 26,
+    fontWeight: '700',
+    textAlign:'center',
   },
   input: {
     borderWidth: 1,

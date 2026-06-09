@@ -6,6 +6,7 @@ import {
 } from 'react-native-responsive-screen';
 import { TABS } from '../../../utils/constants/slotConstants';
 import { Dimensions } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 
  const { width } = Dimensions.get('window');
@@ -13,7 +14,7 @@ import { Dimensions } from 'react-native';
 
 export default function SlotBookingHeader({ activeTab, onTabChange, navigation}) {
     return (
-        <View style={styles.header}>
+        <SafeAreaView style={styles.header}>
             {/* Header Top Row */}
             <View style={styles.headerTop}>
                 <Text style={styles.headerTitle}>My Slots</Text>
@@ -62,14 +63,13 @@ export default function SlotBookingHeader({ activeTab, onTabChange, navigation})
                     </TouchableOpacity>
                 </ScrollView>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     header: {
     backgroundColor: '#4C4CFF',
-    paddingTop: isTablet ? hp(5) : hp(3),
     paddingBottom: isTablet ? hp(3) : hp(2),
     paddingHorizontal: isTablet ? 28 : 16,
     borderBottomLeftRadius: isTablet ? 34 : 24,

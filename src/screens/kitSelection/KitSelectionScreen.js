@@ -13,9 +13,11 @@ import {
 import KitHeader from "../../components/kit/KitHeader";
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
 import { BackHandler } from 'react-native';
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 
@@ -203,7 +205,7 @@ const KitSelectionScreen = ({ navigation }) => {
   const buttonConfig = getButtonConfig();
 
   return (
-    <View
+    <SafeAreaView
       style={[
         styles.container,
         {
@@ -214,8 +216,19 @@ const KitSelectionScreen = ({ navigation }) => {
         },
       ]}
     >
-     <Text style={styles.title}>Kit Selection</Text>
-      
+      <View style={{flexDirection:'row',justifyContent: 'center',alignItems: 'center',position: 'relative',marginBottom:20
+                    }}>
+        <TouchableOpacity onPress={() => navigation.goBack()}
+                        style={{ position: 'absolute',left: 0,}}>
+                  <Ionicons
+                    name="arrow-back"
+                    size={isTablet ? 34 : 24}
+                    color="#000"
+                  />
+        </TouchableOpacity>
+        <Text style={styles.title}>Kit Selection</Text>
+      </View>
+    
       <KitHeader />
 
       {/* Segmented Control for Delivery Mode */}
@@ -387,7 +400,7 @@ const KitSelectionScreen = ({ navigation }) => {
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  </View>
+  </SafeAreaView>
   );
 };
 
@@ -403,7 +416,6 @@ const getStyles = (isTablet) =>
     fontSize: isTablet ? 42 : 28,
     fontWeight: "700", 
     marginBottom: 8,
-    marginTop: 10,
     textAlign: "center",
     color: "#1E293B",
     letterSpacing: 0.5,

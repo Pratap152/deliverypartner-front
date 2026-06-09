@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const isTablet = DeviceInfo.isTablet();
 const H_PADDING = isTablet ? 40 : 20;
@@ -58,7 +59,7 @@ export default function SelectCityScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.screenWrapper}>
+    <SafeAreaView style={styles.screenWrapper}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -142,7 +143,7 @@ export default function SelectCityScreen({ navigation }) {
             <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -158,7 +159,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: CONTENT_MAX_WIDTH,
     paddingHorizontal: H_PADDING,
-    paddingTop: 40,
   },
 
   header: {
@@ -169,9 +169,10 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: titleFont,
-    fontWeight: '600',
-    color: '#000',
+    flex:1,
+    fontSize: isTablet ? 34 : 26,
+    fontWeight: '700',
+    textAlign:'center'
   },
 
   searchContainer: {

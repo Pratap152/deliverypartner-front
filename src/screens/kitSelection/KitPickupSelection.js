@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { BackHandler } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const KitPickupSelection = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
@@ -116,109 +117,112 @@ const styles = getStyles(isTablet);
 
 
   return (
-    <ScrollView
-        style={styles.container}
-        contentContainerStyle={{
-          paddingHorizontal: isTablet ? width * 0.1 : width * 0.05,
-          alignSelf: 'center',
-          width: '100%',
-          maxWidth: isTablet ? 900 : '100%',
-        }}
-      >
-      <Text style={styles.title}>Kit Selection</Text>
-      <KitHeader />
+    <SafeAreaView
+        style={styles.container}>
+        <Text style={styles.title}>Kit Selection</Text>
+      <ScrollView
+          style={styles.container}
+          contentContainerStyle={{
+            paddingHorizontal: isTablet ? width * 0.1 : width * 0.05,
+            alignSelf: 'center',
+            width: '100%',
+            maxWidth: isTablet ? 900 : '100%',
+          }}
+        >
+        <KitHeader />
 
-      {displayData && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {deliveryMode === 'online' ? '📍 Delivery Address' : '📍 Pickup Location'}
+        {displayData && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {deliveryMode === 'online' ? '📍 Delivery Address' : '📍 Pickup Location'}
+            </Text>
+
+            <TouchableOpacity style={[styles.card, styles.cardSelected]}>
+              <View style={styles.row}>
+                <View style={[styles.radioOuter, styles.radioOuterActive]}>
+                  <View style={styles.radioInner} />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.name}>
+                    {displayData.zone?.name || displayData.name || displayData.storeName}
+                  </Text>
+
+                  <Text style={styles.address}>
+                    {deliveryMode === 'online'
+                      ? `${displayData.address}, ${displayData.pincode}`
+                      : `${displayData.addressLine1}${
+                          displayData.addressLine2 ? `, ${displayData.addressLine2}` : ''
+                        }, ${displayData.city}, ${displayData.state} - ${displayData.pincode}`}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.infoCard}>
+              <Text style={styles.infoIcon}>{deliveryMode === 'online' ? '🚚' : '🏪'}</Text>
+              <Text style={styles.infoText}>
+                {deliveryMode === 'online'
+                  ? 'We will deliver your kit as soon as possible to the selected address.'
+                  : 'You can pick your kit from the selected zone by providing related user details.'}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.promoCard}>
+          <View style={styles.promoIconContainer}>
+            <Text style={styles.promoIcon}>{isFree ? '🎁' : '🛒'}</Text>
+          </View>
+
+          <Text style={styles.promoTitle}>
+            {isFree ? 'Congratulations!' : responseMessage || 'Kit Selected!'}
           </Text>
 
-          <TouchableOpacity style={[styles.card, styles.cardSelected]}>
-            <View style={styles.row}>
-              <View style={[styles.radioOuter, styles.radioOuterActive]}>
-                <View style={styles.radioInner} />
-              </View>
+          <Text style={styles.promoSubtitle}>
+            {isFree ? "You're eligible for a FREE Kit" : 'Your kit is ready to order'}
+          </Text>
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name}>
-                  {displayData.zone?.name || displayData.name || displayData.storeName}
-                </Text>
+          <Text style={styles.promoDescription}>
+            {isFree
+              ? 'Limited to first 100 users. Get your exclusive delivery partner kit at no cost!'
+              : 'Complete your purchase to receive your delivery partner kit.'}
+          </Text>
 
-                <Text style={styles.address}>
-                  {deliveryMode === 'online'
-                    ? `${displayData.address}, ${displayData.pincode}`
-                    : `${displayData.addressLine1}${
-                        displayData.addressLine2 ? `, ${displayData.addressLine2}` : ''
-                      }, ${displayData.city}, ${displayData.state} - ${displayData.pincode}`}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.infoCard}>
-            <Text style={styles.infoIcon}>{deliveryMode === 'online' ? '🚚' : '🏪'}</Text>
-            <Text style={styles.infoText}>
-              {deliveryMode === 'online'
-                ? 'We will deliver your kit as soon as possible to the selected address.'
-                : 'You can pick your kit from the selected zone by providing related user details.'}
-            </Text>
+          <View style={[styles.promoBadge, !isFree && { backgroundColor: '#F59E0B' }]}>
+            <Text style={styles.promoBadgeText}>{isFree ? '100% FREE' : 'PAID KIT'}</Text>
           </View>
         </View>
-      )}
 
-      <View style={styles.promoCard}>
-        <View style={styles.promoIconContainer}>
-          <Text style={styles.promoIcon}>{isFree ? '🎁' : '🛒'}</Text>
-        </View>
+        {!displayData && (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>📦</Text>
+            <Text style={styles.emptyText}>
+              No delivery information available.{'\n'}
+              Please go back and select your delivery method.
+            </Text>
+          </View>
+        )}
 
-        <Text style={styles.promoTitle}>
-          {isFree ? 'Congratulations!' : responseMessage || 'Kit Selected!'}
-        </Text>
-
-        <Text style={styles.promoSubtitle}>
-          {isFree ? "You're eligible for a FREE Kit" : 'Your kit is ready to order'}
-        </Text>
-
-        <Text style={styles.promoDescription}>
-          {isFree
-            ? 'Limited to first 100 users. Get your exclusive delivery partner kit at no cost!'
-            : 'Complete your purchase to receive your delivery partner kit.'}
-        </Text>
-
-        <View style={[styles.promoBadge, !isFree && { backgroundColor: '#F59E0B' }]}>
-          <Text style={styles.promoBadgeText}>{isFree ? '100% FREE' : 'PAID KIT'}</Text>
-        </View>
-      </View>
-
-      {!displayData && (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📦</Text>
-          <Text style={styles.emptyText}>
-            No delivery information available.{'\n'}
-            Please go back and select your delivery method.
-          </Text>
-        </View>
-      )}
-
-      {isFree ? (
-        <TouchableOpacity
-          style={[styles.submitBtn, !displayData && styles.submitBtnDisabled]}
-          onPress={handleSubmit}
-          disabled={!displayData}
-        >
-          <Text style={styles.submitText}>Submit</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={[styles.payBtn, !displayData && styles.submitBtnDisabled]}
-          onPress={handleProceedToPayment}
-          disabled={!displayData}
-        >
-          <Text style={styles.submitText}>Proceed to Payment</Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+        {isFree ? (
+          <TouchableOpacity
+            style={[styles.submitBtn, !displayData && styles.submitBtnDisabled]}
+            onPress={handleSubmit}
+            disabled={!displayData}
+          >
+            <Text style={styles.submitText}>Submit</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.payBtn, !displayData && styles.submitBtnDisabled]}
+            onPress={handleProceedToPayment}
+            disabled={!displayData}
+          >
+            <Text style={styles.submitText}>Proceed to Payment</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -232,7 +236,6 @@ const getStyles = (isTablet) =>
     fontSize: isTablet ? 38 : 28,
     fontWeight: '700',
     marginBottom: 16,
-    marginTop: 10,
     textAlign: 'center',
     color: '#1E293B',
     letterSpacing: 0.5,

@@ -32,7 +32,7 @@ const DocumentVerificationScreen = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // 🔁 Always fetch latest status when screen is focused
+  //  Always fetch latest status when screen is focused
   useFocusEffect(
     useCallback(() => {
       fetchOnboardingStatus();
@@ -67,8 +67,6 @@ const DocumentVerificationScreen = () => {
     Object.values(verifiedDocuments).every(Boolean);
 
   const handleSubmit = () => {
-    // ✅ DO NOT decide next screen here
-    // Let Splash decide using onboardingStage
     navigation.replace('Splash');
   };
 
@@ -76,7 +74,7 @@ const DocumentVerificationScreen = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
-          <Header text="Document Verification" />
+          <Text style={styles.headerTitle}> Document Verification </Text>
 
         <View style={{ flex: 1, justifyContent: 'space-between' }}>
           <View style={styles.content}>
@@ -136,9 +134,13 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     maxWidth: containerMaxWidth,
-    paddingVertical: 16,
     paddingHorizontal: horizontalPadding,
     backgroundColor: COLORS.white,
+  },
+  headerTitle:{
+    fontSize: isTablet ? 34 : 26,
+    fontWeight: '700',
+    textAlign:'center'
   },
 
   content: {

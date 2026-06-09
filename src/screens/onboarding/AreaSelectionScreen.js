@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const isTablet = DeviceInfo.isTablet();
 const H_PADDING = isTablet ? 40 : 20;
@@ -92,15 +93,11 @@ export default function AreaSelectionScreen({ route, navigation }) {
   }
 
   return (
-    <View style={styles.screenWrapper}>
+    <SafeAreaView style={styles.screenWrapper}>
       <View style={styles.container}>
 
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back" size={isTablet ? 28 : 22} color="#000" />
-          </TouchableOpacity>
-
           <Text style={styles.headerTitle}>{city} - Select Pincode</Text>
 
           <View style={{ width: isTablet ? 28 : 22 }} />
@@ -169,7 +166,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
       </TouchableOpacity>
 
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -185,7 +182,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: CONTENT_MAX_WIDTH,
     paddingHorizontal: H_PADDING,
-    paddingTop: isTablet ? 50 : 20,
   },
 
   header: {
@@ -196,9 +192,8 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: isTablet ? 22 : 18,
-    fontWeight: '600',
-    color: '#000',
+    fontSize: isTablet ? 26 : 22,
+    fontWeight: '700',
     flex: 1,
     textAlign: 'center',
   },

@@ -26,6 +26,7 @@ import { formatMoney } from '../../utils/formatMoney';
 import { dashboardCache } from '../../hooks/useEarningsDashboard';
 import useIncentives from '../../hooks/useIncentives';
 import { Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const { width } = Dimensions.get('window');
@@ -88,7 +89,7 @@ export default function EarningsScreen({ navigation }) {
         colors={['#065F46', '#10B981', '#34D399']}
         start={{ x: 0, y: 1 }}
         end={{ x: 1, y: 0 }}>
-        <View style={styles.topBar}>
+        <SafeAreaView style={styles.topBar}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}>
             <Ionicons
@@ -117,7 +118,7 @@ export default function EarningsScreen({ navigation }) {
                 style={styles.chatIcon} />
             </TouchableOpacity>
           </View>
-        </View>
+        </SafeAreaView>
 
         <TouchableOpacity
           style={styles.dailyCard}
@@ -347,10 +348,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    paddingVertical: hp(4),
-    paddingHorizontal: wp(5)
-  },
   heading: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -359,7 +356,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#fff',
     fontSize: isTablet ? 34 : wp(6),
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
     marginLeft: wp(2),
   },
@@ -371,7 +368,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: isTablet ? hp(2) : hp(3),
     paddingHorizontal: isTablet ? wp(4) : wp(3),
   },
   topBarIcons: {

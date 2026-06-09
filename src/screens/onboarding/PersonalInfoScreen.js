@@ -17,6 +17,7 @@ import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
 import PrimaryButton from '../../components/common/PrimaryButton';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 
@@ -178,7 +179,7 @@ export default function PersonalInfoScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.formWrapper}>
+        <SafeAreaView style={styles.formWrapper}>
           <View style={styles.headerContainer}>
             <Text style={styles.headerTitle}>
               Personal Information
@@ -297,7 +298,7 @@ export default function PersonalInfoScreen({ navigation }) {
               disabled={submitting}
             />
           </View>
-        </View>
+        </SafeAreaView>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -327,7 +328,6 @@ const createStyles = (isTablet, width) => {
     formWrapper: {
       width: formWidth,
       paddingHorizontal: isTablet ? 20 : 24,
-      paddingTop: isTablet ? 50 : 36,
     },
 
     headerContainer: {

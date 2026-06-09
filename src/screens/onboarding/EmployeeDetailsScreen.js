@@ -3,11 +3,14 @@ import {View, Text, TextInput, TouchableOpacity,KeyboardAvoidingView, ScrollView
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import DeviceInfo from 'react-native-device-info';
 
 import RadioButton from '../../components/common/RadioButton';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import useEmployeeDetails from '../../hooks/useEmployeeDetails';
 
+
+const isTablet = DeviceInfo.isTablet();
 
 export default function EmployeeDetailsScreen({navigation}) {
   const {
@@ -24,7 +27,7 @@ export default function EmployeeDetailsScreen({navigation}) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
         <View style={{ marginTop: hp('5%'), alignItems: 'center' }}>
-          <Text style={{ fontSize: wp('5%'), fontWeight: '700' }}>Employee Details</Text>
+          <Text style={{fontSize: isTablet ? 34 : 26, fontWeight: '700' }}>Employee Details</Text>
         </View>
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: hp('6%') }} 
                     keyboardShouldPersistTaps="handled">
