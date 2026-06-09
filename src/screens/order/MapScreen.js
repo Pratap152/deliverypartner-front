@@ -858,12 +858,12 @@ const MapScreen = ({ route, navigation }) => {
     const targetName = useMemo(() => {
 
         if (!orderDetails) return '';
+        console.log(" checking orderDetails", orderDetails, "addressLine", orderDetails?.deliveryAddress?.addressLine)
 
         return isPickup
             ? orderDetails.vendorShopName
             : (
-                orderDetails.deliveryAddress?.name ||
-                'Customer Location'
+                orderDetails?.deliveryAddress?.addressLine
             );
 
     }, [orderDetails, isPickup]);
