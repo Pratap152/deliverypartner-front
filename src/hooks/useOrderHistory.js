@@ -106,21 +106,48 @@ export const useOrderHistory = (filter) => {
 
       const mapped = list.map((item, i) => ({
         id: `${item.orderId}-${pageNo}-${i}`,
-        orderId: item.orderId,
-        restaurantName: item.items?.[0]?.itemName ?? 'Order',
 
-        // ✅ FIXED: use riderEarning
+        orderId: item.orderId,
+
+        // Restaurant Name
+        vendorShopName: item.vendorShopName,
+
+        // Customer Name
+        userName: item.userName,
+
+        // Delivery Address
+        deliveredAddress: item.deliveredAddress,
+
+        // Earnings
         earning: item.pricing?.riderEarning ?? 0,
 
+        // Earned Status
+        credited:
+          item.pricing?.earningBreakup?.credited ?? false,
+
+        // Customer Tip
+        tip:
+          item.pricing?.earningBreakup?.tips ?? 0,
+
+        // Distance
         distance: item.distanceTravelled ?? 0,
+
+        // Rating
         rating: item.rating ?? 0,
+
+        // Date
+        date: new Date(item.deliveredAt).toLocaleDateString(
+          'en-GB'
+        ),
+
+        // Time
         time: new Date(item.deliveredAt).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
         }),
-        customerName: item.pickupAddress,
-        area: item.deliveredAddress,
-        tip: item.customerTip,
+
+        // Keep full order for detail screen later
+        rawData: item,
       }));
 
       setOrders(prev => {
