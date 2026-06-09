@@ -7,7 +7,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import {
   responsiveWidth,
   responsiveHeight,
@@ -24,6 +27,37 @@ const isTablet = DeviceInfo.isTablet();
 const containerMaxWidth = isTablet ? 900 : '100%';
 
 const AadhaarVerificationScreen = () => {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const {
     aadhaar,
     loading,
@@ -41,53 +75,53 @@ const AadhaarVerificationScreen = () => {
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
           <View style={{ alignItems: 'center' }}>
-          <Image
-            source={require('../../assets/aadhaar.png')}
-            style={{
-              width: 110,
-              height: 110,
-            }}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={styles.form}>
-          <View style={{ width: '95%' }}>
-            <Text style={[styles.title, isTablet && { textAlign: 'center' }]}>Fill Aadhar Card Details</Text>
-            <Text style={[styles.description, isTablet && { textAlign: 'center' }]}>
-              Instant Verification of your Aadhar with OTP
-            </Text>
-            <TextInput
-              ref={inputRef}
-              maxLength={14}
-              style={styles.input}
-              value={aadhaar}
-              onChangeText={text => handleOnChange(text)}
-              placeholder="Enter Aadhar Number"
-              keyboardType="number-pad"
-              autoFocus
-              placeholderTextColor={COLORS.black60}
+            <Image
+              source={require('../../assets/aadhaar.png')}
+              style={{
+                width: 110,
+                height: 110,
+              }}
+              resizeMode="contain"
             />
-            {error && <Text style={styles.error}>{error}</Text>}
+          </View>
 
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={!isValid || loading}
-              style={[styles.otpBtn, isValid && styles.active]}
-            >
-              {loading ? (
-                <ActivityIndicator size={'small'} color={'white'} />
-              ) : (
-                <Text
-                  style={[styles.otpBtnText, isValid && styles.activeTextColor]}
-                >
-                  Get OTP
-                </Text>
-              )}
-            </TouchableOpacity>
+          <View style={styles.form}>
+            <View style={{ width: '95%' }}>
+              <Text style={[styles.title, isTablet && { textAlign: 'center' }]}>Fill Aadhar Card Details</Text>
+              <Text style={[styles.description, isTablet && { textAlign: 'center' }]}>
+                Instant Verification of your Aadhar with OTP
+              </Text>
+              <TextInput
+                ref={inputRef}
+                maxLength={14}
+                style={styles.input}
+                value={aadhaar}
+                onChangeText={text => handleOnChange(text)}
+                placeholder="Enter Aadhar Number"
+                keyboardType="number-pad"
+                autoFocus
+                placeholderTextColor={COLORS.black60}
+              />
+              {error && <Text style={styles.error}>{error}</Text>}
+
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={!isValid || loading}
+                style={[styles.otpBtn, isValid && styles.active]}
+              >
+                {loading ? (
+                  <ActivityIndicator size={'small'} color={'white'} />
+                ) : (
+                  <Text
+                    style={[styles.otpBtnText, isValid && styles.activeTextColor]}
+                  >
+                    Get OTP
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
       </View>
     </SafeAreaView>
   );

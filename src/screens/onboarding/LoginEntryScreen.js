@@ -20,7 +20,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 const { width, height } = Dimensions.get('window');
 
@@ -63,6 +66,37 @@ export const sendOTPApi = async (phone) => {
 
 
 const LoginEntryScreen = ({ navigation }) => {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const [mobileNumber, setMobileNumber] = useState('');
   const [isChecked, setIsChecked] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -100,27 +134,27 @@ const LoginEntryScreen = ({ navigation }) => {
     setError(validationMessage);
   };
   const handleSendOTP = async () => {
-  if (error || mobileNumber.length !== 10 || isSending) return;
-  setIsSending(true);
-  setError(""); // reset any previous errors
+    if (error || mobileNumber.length !== 10 || isSending) return;
+    setIsSending(true);
+    setError(""); // reset any previous errors
 
-  const result = await sendOTPApi(mobileNumber);
+    const result = await sendOTPApi(mobileNumber);
     setIsSending(false);
-  if (result.status === 200) {
-    navigation.navigate("LoginVerifyScreen", {
-      phone: mobileNumber,
-    });
-  } 
-  else if (result.status === 400) {
-    setError("Invalid phone number");   // From API
-  } 
-  else {
-    setError("Failed to send OTP. Try again later.");
-  }
-};
+    if (result.status === 200) {
+      navigation.navigate("LoginVerifyScreen", {
+        phone: mobileNumber,
+      });
+    }
+    else if (result.status === 400) {
+      setError("Invalid phone number");   // From API
+    }
+    else {
+      setError("Failed to send OTP. Try again later.");
+    }
+  };
 
 
-const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked || isSending;
+  const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked || isSending;
 
   return (
     <SafeAreaView style={styles.safeArea}>

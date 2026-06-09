@@ -9,8 +9,11 @@ import {
   Keyboard,
   StyleSheet,
   useWindowDimensions,
-  Platform
+  Platform,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DeviceInfo from 'react-native-device-info';
@@ -20,6 +23,37 @@ import PrimaryButton from '../../components/common/PrimaryButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PersonalInfoScreen({ navigation }) {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   // FORM DATA
   const [formData, setFormData] = useState({
     fullName: '',

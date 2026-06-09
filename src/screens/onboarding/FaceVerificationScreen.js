@@ -7,8 +7,10 @@ import {
   Alert,
   StyleSheet,
   ActivityIndicator,
-  useWindowDimensions
+  useWindowDimensions,
+  BackHandler
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 
 import DeviceInfo from 'react-native-device-info';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,6 +22,37 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function FaceVerificationScreen({ navigation, route }) {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const initialUri = route?.params?.photoUri ?? null;
   const [photo, setPhoto] = useState(initialUri);
   const [uploading, setUploading] = useState(false);
