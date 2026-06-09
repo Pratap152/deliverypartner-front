@@ -19,9 +19,6 @@ import apiClient from '../../services/ApiClient';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-
-
 export default function PersonalInfoScreen({ navigation }) {
   // FORM DATA
   const [formData, setFormData] = useState({
@@ -62,37 +59,95 @@ export default function PersonalInfoScreen({ navigation }) {
   };
 
   const handleChange = (field, value) => {
+    // Name max 50 chars and only letters/spaces
+    if (field === 'fullName') {
+      value = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
+    }
+
+    // Mobile numbers only digits and max 10
+    if (field === 'primaryPhone' || field === 'secondaryPhone') {
+      value = value.replace(/[^0-9]/g, '').slice(0, 10);
+    }
+
+    // Email max 100 chars
+    if (field === 'email') {
+      value = value.slice(0, 100).trim();
+    }
+
+    // Referral code max 20 chars
+    if (field === 'referralCode') {
+      value = value.slice(0, 20);
+    }
+
     setFormData(prev => ({ ...prev, [field]: value }));
 
     let error = '';
+
     if (field === 'fullName') error = validateName(value);
     if (field === 'primaryPhone') error = validateMobile(value);
     if (field === 'secondaryPhone') error = validateMobile(value);
     if (field === 'email') error = validateEmail(value);
-    if (field === 'referralCode') error = '';
 
     setErrors(prev => ({ ...prev, [field]: error }));
   };
 
   /* ---------------- VALIDATIONS ---------------- */
 
-  const validateName = v =>
-    !v
-      ? 'Name is required'
-      : /^[A-Za-z\s]{3,}$/.test(v)
-        ? ''
-        : 'Only alphabets allowed';
+  const validateName = v => {
+    if (!v.trim()) return 'Name is required';
 
-  const validateEmail = v =>
-    /^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z]{2,})+$/.test(v) ? '' : 'Invalid email';
+    if (v.trim().length < 3)
+      return 'Name must contain at least 3 characters';
 
-  const validateMobile = v =>
-    /^[6-9]\d{9}$/.test(v) ? '' : 'Enter valid 10-digit number';
+    if (!/^[A-Za-z\s]+$/.test(v))
+      return 'Only alphabets and spaces are allowed';
+
+    return '';
+  };
+
+  const validateEmail = v => {
+    if (!v.trim()) return 'Email is required';
+
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+
+    if (!gmailRegex.test(v.trim()))
+      return 'Please enter a valid Gmail address';
+
+    return '';
+  };
+
+  const validateMobile = v => {
+    if (!v) return 'Mobile number is required';
+
+    if (!/^[6-9]\d{9}$/.test(v))
+      return 'Enter a valid 10-digit mobile number';
+
+    return '';
+  };
 
   const validateForm = () => {
     const newErrors = {
       fullName: validateName(formData.fullName),
-      dob: formData.dob ? '' : 'DOB required',
+      dob: (() => {
+        if (!formData.dob) return 'DOB required';
+
+        const [dd, mm, yyyy] = formData.dob.split('-');
+        const dob = new Date(yyyy, mm - 1, dd);
+
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+
+        const monthDiff = today.getMonth() - dob.getMonth();
+
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < dob.getDate())
+        ) {
+          age--;
+        }
+
+        return age >= 18 ? '' : 'You must be at least 18 years old';
+      })(),
       email: validateEmail(formData.email),
       primaryPhone: validateMobile(formData.primaryPhone),
       secondaryPhone: validateMobile(formData.secondaryPhone),
@@ -117,13 +172,13 @@ export default function PersonalInfoScreen({ navigation }) {
     if (!validateForm()) return;
 
     const payload = {
-      fullName: formData.fullName,
+      fullName: formData.fullName.trim(),
       dob: formatDobForApi(formData.dob),
       gender: formData.gender,
-      primaryPhone: formData.primaryPhone,
-      secondaryPhone: formData.secondaryPhone,
-      email: formData.email,
-      referralCode: formData.referralCode
+      primaryPhone: formData.primaryPhone.trim(),
+      secondaryPhone: formData.secondaryPhone.trim(),
+      email: formData.email.trim(),
+      referralCode: formData.referralCode.trim(),
     };
 
     console.log('submit', payload);
@@ -191,8 +246,9 @@ export default function PersonalInfoScreen({ navigation }) {
             value={formData.fullName}
             onChangeText={t => handleChange('fullName', t)}
             style={styles.input}
-            placeholder='Enter Your Name'
-            placeholderTextColor='darkgrey'
+            placeholder="Enter Your Name"
+            placeholderTextColor="darkgrey"
+            maxLength={50}
           />
           {errors.fullName && <Text style={styles.err}>{errors.fullName}</Text>}
 
@@ -226,6 +282,9 @@ export default function PersonalInfoScreen({ navigation }) {
             onConfirm={handleConfirm}
             onCancel={() => setModalVisible(false)}
           />
+          {errors.dob && (
+            <Text style={styles.err}>{errors.dob}</Text>
+          )}
 
           {/* MOBILE */}
           <Text style={styles.fieldName}>Mobile Number</Text>
@@ -263,8 +322,11 @@ export default function PersonalInfoScreen({ navigation }) {
             value={formData.email}
             onChangeText={t => handleChange('email', t.toLowerCase())}
             style={styles.input}
-            placeholder='Enter Your Email ID'
-            placeholderTextColor='darkgrey'
+            placeholder="Enter Your Email ID"
+            placeholderTextColor="darkgrey"
+            maxLength={100}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
@@ -274,8 +336,9 @@ export default function PersonalInfoScreen({ navigation }) {
             value={formData.referralCode}
             onChangeText={t => handleChange('referralCode', t)}
             style={styles.input}
-            placeholder='Enter Referral Code'
-            placeholderTextColor='darkgrey'
+            placeholder="Enter Referral Code"
+            placeholderTextColor="darkgrey"
+            maxLength={20}
           />
           {errors.referralCode && <Text style={styles.err}>{errors.referralCode}</Text>}
 
@@ -285,7 +348,9 @@ export default function PersonalInfoScreen({ navigation }) {
             <GenderRadio value="male" label="Male" />
             <GenderRadio value="female" label="Female" />
           </View>
-
+          {errors.gender && (
+            <Text style={styles.err}>{errors.gender}</Text>
+          )}
 
           {/* SUBMIT */}
           <View style={styles.buttonContainer}>

@@ -229,8 +229,21 @@ export default function ReferEarn({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.fixedTopBanner}>
+        <View style={styles.backButtonContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color="#0F172A"
+            />
+          </TouchableOpacity>
+        </View>
         <ReferralBanner />
       </View>
+
 
       {/* SCROLLABLE CONTENT */}
       <ScrollView
@@ -354,7 +367,32 @@ const styles = StyleSheet.create({
     zIndex: 10,
     backgroundColor: "#F8FAFC",
   },
+  backButtonContainer: {
+    position: "absolute",
+    top: isTablet ? rh(2) : 26,
+    left: 23,
+    zIndex: 20,
+  },
 
+  backButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.95)",
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    elevation: 5,
+  },
   loader: {
     flex: 1,
     justifyContent: "center",

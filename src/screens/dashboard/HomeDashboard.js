@@ -19,25 +19,25 @@ import { useRider } from "../../context/RiderContext";
 const HomeDashboard = () => {
   const navigation = useNavigation();
   const { isOnline, goOnline, goOffline, isLoading, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
-const [banners, setBanners] = useState([]);
+  const [banners, setBanners] = useState([]);
 
   useEffect(() => {
-  loadHomeData();
-}, []);
+    loadHomeData();
+  }, []);
 
-const loadHomeData = async () => {
-  try {
-    await fetchRiderStatus();
+  const loadHomeData = async () => {
+    try {
+      await fetchRiderStatus();
 
-    const bannerData = await getHomeBanners();
+      const bannerData = await getHomeBanners();
 
-    setBanners(bannerData);
-  } catch (error) {
-    console.log('HOME DATA ERROR:', error);
-  }
-};
+      setBanners(bannerData);
+    } catch (error) {
+      console.log('HOME DATA ERROR:', error);
+    }
+  };
 
-if (refreshing) return null;
+  if (refreshing) return null;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -52,13 +52,12 @@ if (refreshing) return null;
           onSwipeOffline={goOffline}
         />
 
-        {/* Banner carousel only if offline */}
+        {/* Banner carousel visible in offline */}
         {!isOnline && (
           <View style={styles.carouselWrapper}>
             <BannerCarousel data={banners} />
           </View>
-        )}  
-
+        )}
         <Text style={styles.sectionTitle}>Today's Progress</Text>
 
         <View style={styles.statsRow}>
@@ -66,6 +65,12 @@ if (refreshing) return null;
             <StatsCard key={item.id} {...item} isOnline={isOnline} totalOnlineMinutes={totalOnlineMinutes} />
           ))}
         </View>
+         {/* Banner carousel visible in online */}
+        {isOnline && (
+          <View style={styles.carouselWrapper}>
+            <BannerCarousel data={banners} />
+          </View>
+        )}
         <ActiveShiftBanner />
         <PeakHoursBanner />
 
@@ -118,5 +123,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeDashboard;
-  
-

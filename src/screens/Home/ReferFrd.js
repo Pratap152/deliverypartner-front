@@ -11,12 +11,13 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import Toast from 'react-native-toast-message';
 import { Alert } from 'react-native';
 import ReferralBanner from './ReferralBanner';
 import apiClient from "../../services/ApiClient";
 
-function ReferFrd() {
+function ReferFrd({ navigation }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
@@ -46,150 +47,162 @@ function ReferFrd() {
 
   /*  HANDLE SUBMIT */
   const handleConfirm = useCallback(async () => {
-  if (loading) return;
+    if (loading) return;
 
-  if (!name || !phone || !city) {
-    Alert.alert('Error', 'All fields are required');
-    return;
-  }
-
-  const error = validatePhone(phone);
-  if (error) {
-    setPhoneError(error);
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setPhoneError('');
-
-    const response = await apiClient.post('/api/refer/rider/refer', {
-      name,
-      phoneNumber: phone,
-      area: city,
-    });
-
-    const resData = response?.data;
-
-    if (resData?.success) {
-      //  POPUP ALERT (VISIBLE CONFIRMATION)
-      Alert.alert(
-        'Success ',
-        resData.message || 'Rider referred successfully',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setName('');
-              setPhone('');
-              setCity('');
-            },
-          },
-        ]
-      );
-
-    } else {
-      Alert.alert('Failed', resData?.message || 'Something went wrong');
+    if (!name || !phone || !city) {
+      Alert.alert('Error', 'All fields are required');
+      return;
     }
 
-  } catch (err) {
-    console.log('API ERROR:', err?.response?.data || err);
+    const error = validatePhone(phone);
+    if (error) {
+      setPhoneError(error);
+      return;
+    }
 
-    Alert.alert(
-      'Error',
-      err?.response?.data?.message ||
+    try {
+      setLoading(true);
+      setPhoneError('');
+
+      const response = await apiClient.post('/api/refer/rider/refer', {
+        name,
+        phoneNumber: phone,
+        area: city,
+      });
+
+      const resData = response?.data;
+
+      if (resData?.success) {
+        //  POPUP ALERT (VISIBLE CONFIRMATION)
+        Alert.alert(
+          'Success ',
+          resData.message || 'Rider referred successfully',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setName('');
+                setPhone('');
+                setCity('');
+              },
+            },
+          ]
+        );
+
+      } else {
+        Alert.alert('Failed', resData?.message || 'Something went wrong');
+      }
+
+    } catch (err) {
+      console.log('API ERROR:', err?.response?.data || err);
+
+      Alert.alert(
+        'Error',
+        err?.response?.data?.message ||
         'Failed to refer rider. Try again.'
-    );
-  } finally {
-    setLoading(false);
-  }
-}, [name, phone, city, loading]);
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [name, phone, city, loading]);
 
   return (
-  <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
 
-    <View style={styles.fixedTopBanner}>
-      <ReferralBanner />
+      <View style={styles.fixedTopBanner}>
+        <View style={styles.backButtonContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color="#0F172A"
+            />
+          </TouchableOpacity>
+        </View>
+        <ReferralBanner />
+      </View>
+
+      {/* SCROLLABLE CONTENT */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingTop: hp("25%") }
+        ]}
+      >
+
+        {/* Title */}
+        <View style={styles.titleRow}>
+          <View style={styles.line} />
+          <Text style={styles.title}>Refer & Earn</Text>
+          <View style={styles.line} />
+        </View>
+
+        <Text style={styles.sectionSubtitle}>
+          Enter the details below so we can get to know about your Refer
+        </Text>
+
+        <View style={styles.formContainer}>
+          {/* Name */}
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            placeholder="Please enter first name"
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+          />
+
+          {/* Phone */}
+          <Text style={styles.label}>Phone Number</Text>
+          <TextInput
+            placeholder="Please enter Phone Number"
+            keyboardType="number-pad"
+            maxLength={10}
+            style={[
+              styles.input,
+              phoneError ? styles.inputError : null,
+            ]}
+            value={phone}
+            onChangeText={(text) => {
+              const clean = text.replace(/[^0-9]/g, '');
+              setPhone(clean);
+              setPhoneError(clean.length ? validatePhone(clean) : '');
+            }}
+          />
+
+          {phoneError ? (
+            <Text style={styles.errorText}>{phoneError}</Text>
+          ) : null}
+
+          {/* City */}
+          <Text style={styles.label}>Friend's City Name</Text>
+          <TextInput
+            placeholder="Please enter City"
+            style={styles.input}
+            value={city}
+            onChangeText={setCity}
+          />
+
+          {/* Button */}
+          <TouchableOpacity
+            style={[
+              styles.confirmButton,
+              loading ? { opacity: 0.6 } : null,
+            ]}
+            onPress={handleConfirm}
+            disabled={loading}
+          >
+            <Text style={styles.confirmButtonText}>
+              {loading ? 'Submitting...' : 'Confirm'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
     </View>
-
-    {/* SCROLLABLE CONTENT */}
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { paddingTop: hp("25%") } 
-      ]}
-    >
-
-      {/* Title */}
-      <View style={styles.titleRow}>
-        <View style={styles.line} />
-        <Text style={styles.title}>Refer & Earn</Text>
-        <View style={styles.line} />
-      </View>
-
-      <Text style={styles.sectionSubtitle}>
-        Enter the details below so we can get to know about your Refer
-      </Text>
-
-      <View style={styles.formContainer}>
-        {/* Name */}
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          placeholder="Please enter first name"
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-        />
-
-        {/* Phone */}
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput
-          placeholder="Please enter Phone Number"
-          keyboardType="number-pad"
-          maxLength={10}
-          style={[
-            styles.input,
-            phoneError ? styles.inputError : null,
-          ]}
-          value={phone}
-          onChangeText={(text) => {
-            const clean = text.replace(/[^0-9]/g, '');
-            setPhone(clean);
-            setPhoneError(clean.length ? validatePhone(clean) : '');
-          }}
-        />
-
-        {phoneError ? (
-          <Text style={styles.errorText}>{phoneError}</Text>
-        ) : null}
-
-        {/* City */}
-        <Text style={styles.label}>Friend's City Name</Text>
-        <TextInput
-          placeholder="Please enter City"
-          style={styles.input}
-          value={city}
-          onChangeText={setCity}
-        />
-
-        {/* Button */}
-        <TouchableOpacity
-          style={[
-            styles.confirmButton,
-            loading ? { opacity: 0.6 } : null,
-          ]}
-          onPress={handleConfirm}
-          disabled={loading}
-        >
-          <Text style={styles.confirmButtonText}>
-            {loading ? 'Submitting...' : 'Confirm'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-    </ScrollView>
-  </View>
-);
+  );
 }
 
 export default ReferFrd;
@@ -201,18 +214,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingBottom: hp("6%"),
   },
-fixedTopBanner: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 10,
-  backgroundColor: "#fff",
-  shadowColor: "#000",
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-  elevation: 5,
-},
+  fixedTopBanner: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+
+  backButtonContainer: {
+    position: "absolute",
+    top: hp("3%"),
+    left: wp("6%"),
+    zIndex: 20,
+  },
+
+  backButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 21,
+
+    backgroundColor: "rgba(255,255,255,0.95)",
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    elevation: 5,
+  },
   sectionSubtitle: {
     fontSize: wp("3.2%"),
     color: '#6F6F6F',
@@ -225,7 +266,8 @@ fixedTopBanner: {
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: hp("10%"),
+    marginTop: hp("2%"),
+    marginBottom: hp("3%"),
     paddingHorizontal: wp("5%"),
   },
 
