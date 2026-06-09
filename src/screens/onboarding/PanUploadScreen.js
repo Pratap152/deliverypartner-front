@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  BackHandler
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
@@ -33,6 +35,37 @@ const inputFont = isTablet ? 18 : 16;
 const buttonFont = isTablet ? 20 : 20;
 
 const PanUploadScreen = ({ navigation }) => {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const [image, setImage] = useState(null);
   const [panNumber, setPanNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -117,113 +150,113 @@ const PanUploadScreen = ({ navigation }) => {
         <View style={styles.container}>
           <View style={styles.headerRow}>
 
-          <Text style={styles.headerTitle}>PAN card details</Text>
-        </View>
+            <Text style={styles.headerTitle}>PAN card details</Text>
+          </View>
 
-        <View style={{ flex: 1, marginTop: 20 }}>
-          <Text style={styles.subtitle}>
-            Upload clear photo & enter your PAN number.
-          </Text>
+          <View style={{ flex: 1, marginTop: 20 }}>
+            <Text style={styles.subtitle}>
+              Upload clear photo & enter your PAN number.
+            </Text>
 
-          <TextInput
-            placeholder="Enter PAN Number"
-            value={panNumber}
-            onChangeText={text => {
-              const value = text.toUpperCase();
-              setPanNumber(value);
+            <TextInput
+              placeholder="Enter PAN Number"
+              value={panNumber}
+              onChangeText={text => {
+                const value = text.toUpperCase();
+                setPanNumber(value);
 
-              // Validate only when length = 10
-              if (value.length === 10 && !validatePAN(value)) {
-                setPanError('Invalid PAN format');
-              } else {
-                setPanError('');
-              }
-            }}
-            autoCapitalize="characters"
-            maxLength={10}
-            style={styles.input}
-          />
-          {panError ? (
-            <Text style={styles.errorText}>{panError}</Text>
-          ) : null}
-          <Text>PAN format: ABCDE1234F</Text>
+                // Validate only when length = 10
+                if (value.length === 10 && !validatePAN(value)) {
+                  setPanError('Invalid PAN format');
+                } else {
+                  setPanError('');
+                }
+              }}
+              autoCapitalize="characters"
+              maxLength={10}
+              style={styles.input}
+            />
+            {panError ? (
+              <Text style={styles.errorText}>{panError}</Text>
+            ) : null}
+            <Text>PAN format: ABCDE1234F</Text>
 
-          <View style={[isTablet && { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }]}>
-            <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
-            {image ? (
-              <>
-                <Image
-                  source={{ uri: image.uri }}
-                  style={styles.previewImage}
-                />
-                <View style={styles.row}>
-                  <View style={styles.uploadedTag}>
-                    <Text style={styles.uploadedText}>Uploaded ✔</Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={openOptions}
-                    style={styles.reuploadBtn}
-                  >
-                    <Text style={styles.reuploadText}>Re-upload</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            ) : (
-              <>
-                <Image
-                  style={styles.placeholderImg}
-                  source={{
-                    uri: 'https://www.pancardapp.com/blog/wp-content/uploads/2019/04/sample-pan-card.jpg',
-                  }}
-                />
-                <Text style={styles.placeholderText}>
-                  Front side photo of your PAN card with your clear name and
-                  photo
+            <View style={[isTablet && { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }]}>
+              <TouchableOpacity style={styles.uploadBox} onPress={openOptions}>
+                {image ? (
+                  <>
+                    <Image
+                      source={{ uri: image.uri }}
+                      style={styles.previewImage}
+                    />
+                    <View style={styles.row}>
+                      <View style={styles.uploadedTag}>
+                        <Text style={styles.uploadedText}>Uploaded ✔</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={openOptions}
+                        style={styles.reuploadBtn}
+                      >
+                        <Text style={styles.reuploadText}>Re-upload</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      style={styles.placeholderImg}
+                      source={{
+                        uri: 'https://www.pancardapp.com/blog/wp-content/uploads/2019/04/sample-pan-card.jpg',
+                      }}
+                    />
+                    <Text style={styles.placeholderText}>
+                      Front side photo of your PAN card with your clear name and
+                      photo
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.instructionsBox}>
+                <Text style={styles.instructionTitle}>
+                  Make sure your upload is:
                 </Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.instructionsBox}>
-            <Text style={styles.instructionTitle}>
-              Make sure your upload is:
-            </Text>
-            <Text style={styles.instruction}>• Clear and readable</Text>
-            <Text style={styles.instruction}>
-              • Shows your full name + photo
-            </Text>
-            <Text style={styles.instruction}>• Not blurred or cropped</Text>
-              <Text style={styles.instruction}>• Taken in good lighting</Text>
+                <Text style={styles.instruction}>• Clear and readable</Text>
+                <Text style={styles.instruction}>
+                  • Shows your full name + photo
+                </Text>
+                <Text style={styles.instruction}>• Not blurred or cropped</Text>
+                <Text style={styles.instruction}>• Taken in good lighting</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-            <TouchableOpacity
-              style={[
-                styles.submitBtn,
-                (!image || !panNumber || loading) && { opacity: 0.5 },
-              ]}
-              disabled={!image || !panNumber || loading}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.submitText}>
-                {loading ? 'Submitting...' : 'Submit'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+              <TouchableOpacity
+                style={[
+                  styles.submitBtn,
+                  (!image || !panNumber || loading) && { opacity: 0.5 },
+                ]}
+                disabled={!image || !panNumber || loading}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.submitText}>
+                  {loading ? 'Submitting...' : 'Submit'}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          <ActionSheet
-            ref={actionSheetRef}
-            title={'Upload PAN Card'}
-            options={['Capture from Camera', 'Choose from Files', 'Cancel']}
-            cancelButtonIndex={2}
-            onPress={i => {
-              if (i === 0) takePhoto();
-              else if (i === 1) chooseFromGallery();
-            }}
-          />
+            <ActionSheet
+              ref={actionSheetRef}
+              title={'Upload PAN Card'}
+              options={['Capture from Camera', 'Choose from Files', 'Cancel']}
+              cancelButtonIndex={2}
+              onPress={i => {
+                if (i === 0) takePhoto();
+                else if (i === 1) chooseFromGallery();
+              }}
+            />
+          </View>
         </View>
-      </View>
       </View>
     </SafeAreaView>
   );
@@ -254,10 +287,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerTitle: {
-    flex:1,
+    flex: 1,
     fontSize: isTablet ? 34 : 26,
     fontWeight: '700',
-    textAlign:'center',
+    textAlign: 'center',
   },
   input: {
     borderWidth: 1,

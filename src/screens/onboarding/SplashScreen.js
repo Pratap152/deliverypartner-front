@@ -1,9 +1,41 @@
-import React, { useEffect, useRef } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { View, ActivityIndicator, BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import { tokenService } from '../../services/TokenService';
 import { resolveNextScreen } from '../../utils/onboardingFlow';
 
 const SplashScreen = ({ navigation }) => {
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const mounted = useRef(true);
 
   useEffect(() => {

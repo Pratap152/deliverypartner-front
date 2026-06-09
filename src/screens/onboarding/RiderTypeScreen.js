@@ -6,7 +6,10 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 
 import {
   responsiveWidth as rw,
@@ -23,6 +26,37 @@ const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 const RiderTypeScreen = ({ navigation }) => {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const [selectedType, setSelectedType] = useState(null);
   const [loading, setLoading] = useState(false);
 

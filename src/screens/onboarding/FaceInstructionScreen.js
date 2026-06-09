@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions, BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import { launchCamera } from 'react-native-image-picker';
@@ -7,6 +8,36 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function FaceInstructionScreen({ navigation }) {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
 
   const { width, height } = useWindowDimensions();
   const isTablet = DeviceInfo.isTablet();

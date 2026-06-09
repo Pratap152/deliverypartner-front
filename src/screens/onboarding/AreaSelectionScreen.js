@@ -6,7 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 
@@ -18,7 +21,38 @@ const H_PADDING = isTablet ? 40 : 20;
 const CONTENT_MAX_WIDTH = isTablet ? 700 : '100%';
 
 export default function AreaSelectionScreen({ route, navigation }) {
-  const { city } = route.params;  
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
+  const { city } = route.params;
 
   const [allPincodes, setAllPincodes] = useState([]);
   const [pincodeList, setPincodeList] = useState([]);
@@ -163,7 +197,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
           onPress={handleSubmit}
         >
           <Text style={styles.submitButtonText}>Submit</Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
 
       </View>
     </SafeAreaView>
@@ -252,20 +286,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitButton: {
-  width: isTablet ? 600 : '100%',
-  alignSelf: 'center',
-  backgroundColor: '#00B5CC',
-  paddingVertical: isTablet ? 18 : 15,
-  borderRadius: 40,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: 20,
-  marginBottom: 10,
-},
+    width: isTablet ? 600 : '100%',
+    alignSelf: 'center',
+    backgroundColor: '#00B5CC',
+    paddingVertical: isTablet ? 18 : 15,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
 
-submitButtonText: {
-  color: '#fff',
-  fontSize: isTablet ? 22 : 18,
-  fontWeight: '700',
-},
+  submitButtonText: {
+    color: '#fff',
+    fontSize: isTablet ? 22 : 18,
+    fontWeight: '700',
+  },
 });

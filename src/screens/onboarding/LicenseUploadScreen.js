@@ -9,7 +9,9 @@ import {
   TextInput,
   ScrollView,
   Dimensions,
+  BackHandler
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
@@ -45,6 +47,37 @@ const inputFont = isTablet ? 18 : 16;
 const buttonFont = isTablet ? 20 : 18;
 
 const LicenseUploadScreen = ({ navigation }) => {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const [front, setFront] = useState(null);
   const [back, setBack] = useState(null);
   const [dlNumber, setDlNumber] = useState('');

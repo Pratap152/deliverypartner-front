@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, BackHandler, Alert } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -22,6 +22,37 @@ const DOCUMENTS = [
 ];
 
 const DocumentVerificationScreen = () => {
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const navigation = useNavigation();
 
   const [verifiedDocuments, setVerifiedDocuments] = useState({
@@ -76,47 +107,47 @@ const DocumentVerificationScreen = () => {
         <View style={styles.container}>
           <Text style={styles.headerTitle}> Document Verification </Text>
 
-        <View style={{ flex: 1, justifyContent: 'space-between' }}>
-          <View style={styles.content}>
-            <Text style={styles.infoText}>
-              Upload clear photos of the below documents for faster verification
-            </Text>
+          <View style={{ flex: 1, justifyContent: 'space-between' }}>
+            <View style={styles.content}>
+              <Text style={styles.infoText}>
+                Upload clear photos of the below documents for faster verification
+              </Text>
 
-            <View style={styles.btnsContainer}>
-              {DOCUMENTS.map(item => {
-                const isVerified = verifiedDocuments[item.id];
+              <View style={styles.btnsContainer}>
+                {DOCUMENTS.map(item => {
+                  const isVerified = verifiedDocuments[item.id];
 
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    onPress={() => handleSelect(item)}
-                    disabled={isVerified || loading}
-                    style={[styles.btn, isVerified && styles.active]}
-                  >
-                    <Text style={[styles.btnText, isVerified && styles.active]}>
-                      {item.title}
-                    </Text>
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      onPress={() => handleSelect(item)}
+                      disabled={isVerified || loading}
+                      style={[styles.btn, isVerified && styles.active]}
+                    >
+                      <Text style={[styles.btnText, isVerified && styles.active]}>
+                        {item.title}
+                      </Text>
 
-                    <Ionicons
-                      name={isVerified ? 'checkmark' : 'chevron-forward'}
-                      size={20}
-                      color={isVerified ? COLORS.white : COLORS.border}
-                    />
-                  </TouchableOpacity>
-                );
-              })}
+                      <Ionicons
+                        name={isVerified ? 'checkmark' : 'chevron-forward'}
+                        size={20}
+                        color={isVerified ? COLORS.white : COLORS.border}
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={[isTablet && { width: 400, alignSelf: 'center' }]}>
+              <PrimaryButton
+                title="Submit"
+                disabled={!isAllDocumentsVerified || loading}
+                onPress={handleSubmit}
+              />
             </View>
           </View>
-
-          <View style={[isTablet && { width: 400, alignSelf: 'center' }]}>
-            <PrimaryButton
-              title="Submit"
-              disabled={!isAllDocumentsVerified || loading}
-              onPress={handleSubmit}
-            />
-          </View>
         </View>
-      </View>
       </View>
     </SafeAreaView>
   );
@@ -137,10 +168,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: horizontalPadding,
     backgroundColor: COLORS.white,
   },
-  headerTitle:{
+  headerTitle: {
     fontSize: isTablet ? 34 : 26,
     fontWeight: '700',
-    textAlign:'center'
+    textAlign: 'center'
   },
 
   content: {
