@@ -59,7 +59,6 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
-          <Header onBack={() => navigation.goBack()} />
 
           <View style={{ alignItems: 'center' }}>
           <Image
@@ -86,15 +85,6 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
               handlePress={handlePress}
             />
           </View>
-
-          {/* <OtpInput
-            otp={otp}
-            error={error}
-            inputRefs={inputRefs}
-            onChange={handleChange}
-            onKeyPress={handleKeyPress}
-            handlePress={handlePress}
-          /> */}
 
           {error && <Text style={[styles.error, isTablet && { textAlign: 'center' }]}>{error}.</Text>}
           {success && (
@@ -140,7 +130,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     maxWidth: containerMaxWidth,
-    paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: COLORS.white,
   },

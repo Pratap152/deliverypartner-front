@@ -16,6 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { launchCamera } from 'react-native-image-picker';
 
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function FaceVerificationScreen({ navigation, route }) {
@@ -117,7 +118,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
   /* ================= UI ================= */
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         {/* HEADING */}
         <View style={styles.headerContainer}>
@@ -203,7 +204,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -231,7 +232,6 @@ const createStyles = (
       flex: 1,
       width: contentWidth,
       paddingHorizontal: isTablet ? 30 : 24,
-      paddingTop: isTablet ? 50 : 36,
       paddingBottom: isTablet ? 24 : 18,
     },
 

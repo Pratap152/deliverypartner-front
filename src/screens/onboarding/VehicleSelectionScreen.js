@@ -5,22 +5,17 @@ import {
   Pressable,
   Image,
   StyleSheet,
-  TouchableOpacity,
   useWindowDimensions
 } from 'react-native';
-import {
-  responsiveWidth,
-  responsiveHeight,
-  responsiveFontSize,
-} from 'react-native-responsive-dimensions';
+
 import DeviceInfo from 'react-native-device-info';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient'; // interceptor-based api
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const submitVehicleType = async vehicleType => {
   const res = await apiClient.post('/api/rider/vehicle', {
@@ -77,7 +72,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         <View style={styles.headerRow}>
           <Text style={styles.header}>Select Vehicle</Text>
@@ -163,7 +158,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
           </View>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -189,7 +184,6 @@ const createStyles = (isTablet, width) => {
       flex: 1,
       width: contentWidth,
       paddingHorizontal: isTablet ? 30 : 20,
-      paddingTop: isTablet ? 50 : 28,
       paddingBottom: isTablet ? 30 : 20,
     },
 

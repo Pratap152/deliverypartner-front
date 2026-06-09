@@ -105,7 +105,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     maxWidth: containerMaxWidth,
-    paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: COLORS.white,
   },

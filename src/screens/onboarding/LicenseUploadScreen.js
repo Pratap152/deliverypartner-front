@@ -10,87 +10,109 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
- 
+
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
+import {
+  launchCamera,
+  launchImageLibrary,
+} from 'react-native-image-picker';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
-import apiClient from '../../services/ApiClient';
- 
+
 import DeviceInfo from 'react-native-device-info';
- 
+
+import apiClient from '../../services/ApiClient';
+import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
+
 const { width } = Dimensions.get('window');
- 
+
 const isTablet = DeviceInfo.isTablet();
- 
+
 const horizontalPadding = isTablet ? 40 : 20;
 const containerMaxWidth = isTablet ? 900 : '100%';
- 
+
 const uploadCardWidth = isTablet ? '48%' : '100%';
 const uploadCardHeight = isTablet ? 320 : 230;
- 
+
 const previewWidth = isTablet ? 280 : 200;
 const previewHeight = isTablet ? 180 : 120;
- 
-const titleFont = isTablet ? 28 : 22;
-const subtitleFont = isTablet ? 18 : 14;
+
+const titleFont = isTablet ? 34 : 26;
+const subtitleFont = isTablet ? 20 : 16;
 const inputFont = isTablet ? 18 : 16;
 const buttonFont = isTablet ? 20 : 18;
- 
+
 const LicenseUploadScreen = ({ navigation }) => {
   const [front, setFront] = useState(null);
   const [back, setBack] = useState(null);
   const [dlNumber, setDlNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [dlError, setDlError] = useState('');
- 
+
   const actionSheetRef = useRef();
   const selectedBox = useRef(null);
- 
+
   const dispatch = useDispatch();
- 
+
+  // ---------------- OPEN ACTION SHEET ----------------
+
   const openSheet = box => {
     selectedBox.current = box;
     actionSheetRef.current?.show();
   };
- 
+
+  // ---------------- VALIDATIONS ----------------
+
   const validateImage = image => {
-    if (!image) throw new Error('Image not found');
- 
+    if (!image) {
+      throw new Error('Image not found');
+    }
+
     const sizeMB = image.fileSize
       ? image.fileSize / 1024 / 1024
       : 0;
- 
-    if (sizeMB > 5)
+
+    if (sizeMB > 5) {
       throw new Error('File too large (Max 5MB allowed)');
- 
-    const allowed = ['image/jpeg', 'image/png', 'image/jpg'];
- 
-    if (!allowed.includes(image.type))
+    }
+
+    const allowed = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+    ];
+
+    if (!allowed.includes(image.type)) {
       throw new Error(
         'Invalid file format — only JPG or PNG allowed',
       );
+    }
   };
- 
+
   const validateDL = dl => {
     if (!dl) return false;
- 
-    const normalized = dl.replace(/\s+/g, '').toUpperCase();
- 
-    const regex = /^[A-Z]{2}[0-9]{2,3}[0-9]{4}[0-9]{7}$/;
- 
+
+    const normalized = dl
+      .replace(/\s+/g, '')
+      .toUpperCase();
+
+    const regex =
+      /^[A-Z]{2}[0-9]{2,3}[0-9]{4}[0-9]{7}$/;
+
     return regex.test(normalized);
   };
- 
+
+  // ---------------- DL INPUT ----------------
+
   const handleDLChange = text => {
     const value = text.toUpperCase();
- 
+
     setDlNumber(value);
- 
+
     const normalized = value.replace(/\s+/g, '');
- 
+
     if (!normalized) {
       setDlError('DL Number is required');
     } else if (!validateDL(normalized)) {
@@ -99,22 +121,29 @@ const LicenseUploadScreen = ({ navigation }) => {
       setDlError('');
     }
   };
- 
+
+  // ---------------- IMAGE PICK ----------------
+
   const handlePick = response => {
-    if (!response || response.didCancel) return;
- 
+    if (!response || response.didCancel) {
+      return;
+    }
+
     if (response.errorMessage) {
       Alert.alert('Error', response.errorMessage);
       return;
     }
- 
+
     try {
-      const img = response.assets && response.assets[0];
- 
-      if (!img) throw new Error('No image returned');
- 
+      const img =
+        response.assets && response.assets[0];
+
+      if (!img) {
+        throw new Error('No image returned');
+      }
+
       validateImage(img);
- 
+
       if (selectedBox.current === 'front') {
         setFront(img);
       } else if (selectedBox.current === 'back') {
@@ -124,7 +153,7 @@ const LicenseUploadScreen = ({ navigation }) => {
       Alert.alert('Invalid Image', err.message);
     }
   };
- 
+
   const pickCamera = () => {
     launchCamera(
       {
@@ -134,7 +163,7 @@ const LicenseUploadScreen = ({ navigation }) => {
       handlePick,
     );
   };
- 
+
   const pickGallery = () => {
     launchImageLibrary(
       {
@@ -144,7 +173,9 @@ const LicenseUploadScreen = ({ navigation }) => {
       handlePick,
     );
   };
- 
+
+  // ---------------- UPLOAD LICENSE ----------------
+
   const uploadLicense = async () => {
     if (!dlNumber.trim()) {
       Alert.alert(
@@ -153,11 +184,11 @@ const LicenseUploadScreen = ({ navigation }) => {
       );
       return;
     }
- 
+
     const normalizedDL = dlNumber
       .replace(/\s+/g, '')
       .toUpperCase();
- 
+
     if (!validateDL(normalizedDL)) {
       Alert.alert(
         'Invalid DL Number',
@@ -165,7 +196,7 @@ const LicenseUploadScreen = ({ navigation }) => {
       );
       return;
     }
- 
+
     if (!front || !back) {
       Alert.alert(
         'Upload Required',
@@ -173,36 +204,45 @@ const LicenseUploadScreen = ({ navigation }) => {
       );
       return;
     }
- 
+
     try {
       setLoading(true);
- 
+
       const formData = new FormData();
- 
+
       formData.append('dlNumber', normalizedDL);
- 
+
       formData.append('front', {
         uri: front.uri,
-        name: front.fileName || `front_${Date.now()}.jpg`,
+        name:
+          front.fileName ||
+          `front_${Date.now()}.jpg`,
         type: front.type || 'image/jpeg',
       });
- 
+
       formData.append('back', {
         uri: back.uri,
-        name: back.fileName || `back_${Date.now()}.jpg`,
+        name:
+          back.fileName ||
+          `back_${Date.now()}.jpg`,
         type: back.type || 'image/jpeg',
       });
- 
+
       formData.append('documentType', 'DL');
- 
-      await apiClient.post('/api/rider/dl', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+
+      await apiClient.post(
+        '/api/rider/dl',
+        formData,
+        {
+          headers: {
+            'Content-Type':
+              'multipart/form-data',
+          },
         },
-      });
- 
+      );
+
       dispatch(verifyDocument('dl'));
- 
+
       Alert.alert(
         'Success',
         'Driving License submitted for verification.',
@@ -210,13 +250,15 @@ const LicenseUploadScreen = ({ navigation }) => {
           {
             text: 'Next',
             onPress: () =>
-              navigation.replace('SplashScreen'),
+              navigation.replace(
+                'SplashScreen',
+              ),
           },
         ],
       );
     } catch (err) {
       console.log('DL upload error:', err);
- 
+
       Alert.alert(
         'Upload Error',
         'Unable to upload Driving License. Try again.',
@@ -225,98 +267,97 @@ const LicenseUploadScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
- 
+
+  // ---------------- RENDER UPLOAD CARD ----------------
+
   const renderUploadCard = (
     type,
     image,
     placeholderText,
     placeholderImage,
   ) => (
-<TouchableOpacity
+    <TouchableOpacity
       style={styles.uploadBox}
       onPress={() => openSheet(type)}
->
+    >
       {image ? (
-<>
-<Image
+        <>
+          <Image
             source={{ uri: image.uri }}
             style={styles.preview}
           />
- 
+
           <View style={styles.row}>
-<View style={styles.uploadedBadge}>
-<Text style={styles.uploadedText}>
+            <View style={styles.uploadedBadge}>
+              <Text style={styles.uploadedText}>
                 Uploaded ✔
-</Text>
-</View>
- 
+              </Text>
+            </View>
+
             <TouchableOpacity
               style={styles.reuploadBtn}
               onPress={() => openSheet(type)}
->
-<Text style={styles.reuploadText}>
+            >
+              <Text style={styles.reuploadText}>
                 Re-upload
-</Text>
-</TouchableOpacity>
-</View>
-</>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
       ) : (
-<>
-<Image
+        <>
+          <Image
             source={{
               uri: placeholderImage,
             }}
             style={styles.placeholder}
           />
- 
+
           <Text style={styles.placeholderText}>
             {placeholderText}
-</Text>
-</>
+          </Text>
+        </>
       )}
-</TouchableOpacity>
+    </TouchableOpacity>
   );
- 
+
+  // ---------------- UI ----------------
+
   return (
-<SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-<View style={styles.screenWrapper}>
-<View style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: '#fff',
+      }}
+    >
+      <View style={styles.screenWrapper}>
+        <View style={styles.container}>
+
           {/* HEADER */}
-<View style={styles.headerRow}>
-<TouchableOpacity
-              onPress={() =>
-                navigation.replace(
-                  'DocumentVerifyScreen',
-                )
-              }
-              style={styles.backBtn}
->
-<Icon
-                name="arrow-back"
-                size={24}
-                color="#000"
-              />
-</TouchableOpacity>
- 
+
+          <View style={styles.headerRow}>
+
             <View style={styles.titleContainer}>
-<Text style={styles.headerTitle}>
+              <Text style={styles.headerTitle}>
                 Driving Licence Details
-</Text>
-</View>
-</View>
- 
+              </Text>
+            </View>
+          </View>
+
           {/* BODY */}
-<ScrollView
+
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingBottom: 40,
             }}
->
-<Text style={styles.subtitle}>
-              Upload focused photo of your Driving
-              Licence for faster verification
-</Text>
- 
+          >
+            <Text style={styles.subtitle}>
+              Upload focused photo of your
+              Driving Licence for faster
+              verification
+            </Text>
+
             <TextInput
               placeholder="Enter Driving License Number"
               placeholderTextColor="#888"
@@ -325,37 +366,39 @@ const LicenseUploadScreen = ({ navigation }) => {
               onChangeText={handleDLChange}
               autoCapitalize="characters"
             />
- 
+
             {dlError ? (
-<Text style={styles.errorText}>
+              <Text style={styles.errorText}>
                 {dlError}
-</Text>
+              </Text>
             ) : null}
- 
+
             <Text style={styles.helperText}>
               DL format: AP00720249992221
-</Text>
- 
-            {/* RESPONSIVE UPLOAD LAYOUT */}
-<View style={styles.uploadContainer}>
+            </Text>
+
+            {/* UPLOAD SECTION */}
+
+            <View style={styles.uploadContainer}>
               {renderUploadCard(
                 'front',
                 front,
                 'Front side photo of your Licence with your clear name and photo',
                 'https://dummyimage.com/300x200/cccccc/000000&text=Front+Side',
               )}
- 
+
               {renderUploadCard(
                 'back',
                 back,
                 'Back side photo of your Licence with your clear details',
                 'https://dummyimage.com/300x200/cccccc/000000&text=Back+Side',
               )}
-</View>
-</ScrollView>
- 
+            </View>
+          </ScrollView>
+
           {/* SUBMIT BUTTON */}
-<TouchableOpacity
+
+          <TouchableOpacity
             style={[
               styles.submitBtn,
               !(front && back && dlNumber) && {
@@ -363,17 +406,21 @@ const LicenseUploadScreen = ({ navigation }) => {
               },
             ]}
             disabled={
-              !(front && back && dlNumber) || loading
+              !(front && back && dlNumber) ||
+              loading
             }
             onPress={uploadLicense}
->
-<Text style={styles.submitText}>
-              {loading ? 'Submitting...' : 'Submit'}
-</Text>
-</TouchableOpacity>
- 
+          >
+            <Text style={styles.submitText}>
+              {loading
+                ? 'Submitting...'
+                : 'Submit'}
+            </Text>
+          </TouchableOpacity>
+
           {/* ACTION SHEET */}
-<ActionSheet
+
+          <ActionSheet
             ref={actionSheetRef}
             title={'Upload Driving Licence'}
             options={[
@@ -383,63 +430,58 @@ const LicenseUploadScreen = ({ navigation }) => {
             ]}
             cancelButtonIndex={2}
             onPress={index => {
-              if (index === 0) pickCamera();
-              else if (index === 1) pickGallery();
+              if (index === 0) {
+                pickCamera();
+              } else if (index === 1) {
+                pickGallery();
+              }
             }}
           />
-</View>
-</View>
-</SafeAreaView>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
- 
+
 export default LicenseUploadScreen;
- 
+
+// ---------------- STYLES ----------------
+
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: '#fff',
   },
- 
+
   container: {
     flex: 1,
     width: '100%',
     maxWidth: containerMaxWidth,
     paddingHorizontal: horizontalPadding,
-    paddingTop: 20,
     backgroundColor: '#fff',
   },
- 
+
   headerRow: {
-    height: 60,
     justifyContent: 'center',
     marginBottom: 10,
   },
- 
-  backBtn: {
-    position: 'absolute',
-    left: 0,
-    zIndex: 2,
-  },
- 
+
   titleContainer: {
     alignItems: 'center',
   },
- 
+
   headerTitle: {
     fontSize: titleFont,
     fontWeight: '700',
-    color: '#000',
   },
- 
+
   subtitle: {
     fontSize: subtitleFont,
-    color: '#666',
     marginTop: 10,
     lineHeight: isTablet ? 28 : 22,
   },
- 
+
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -449,26 +491,28 @@ const styles = StyleSheet.create({
     fontSize: inputFont,
     color: '#000',
   },
- 
+
   errorText: {
     color: 'red',
     marginTop: 6,
     fontSize: 14,
   },
- 
+
   helperText: {
     marginTop: 8,
     color: '#777',
     fontSize: isTablet ? 15 : 13,
   },
- 
+
   uploadContainer: {
-    flexDirection: isTablet ? 'row' : 'column',
+    flexDirection: isTablet
+      ? 'row'
+      : 'column',
     justifyContent: 'space-between',
     gap: 20,
     marginTop: 20,
   },
- 
+
   uploadBox: {
     width: uploadCardWidth,
     height: uploadCardHeight,
@@ -480,14 +524,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
- 
+
   placeholder: {
     width: previewWidth,
     height: previewHeight,
     resizeMode: 'contain',
     marginBottom: 14,
   },
- 
+
   preview: {
     width: previewWidth,
     height: previewHeight,
@@ -495,14 +539,14 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     marginBottom: 14,
   },
- 
+
   placeholderText: {
     fontSize: isTablet ? 16 : 14,
     color: '#555',
     textAlign: 'center',
     lineHeight: isTablet ? 24 : 20,
   },
- 
+
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -511,20 +555,20 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
- 
+
   uploadedBadge: {
     backgroundColor: '#e8ffe8',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
   },
- 
+
   uploadedText: {
     color: '#1ea93e',
     fontWeight: '700',
     fontSize: isTablet ? 15 : 13,
   },
- 
+
   reuploadBtn: {
     borderWidth: 1,
     borderColor: '#0CBACE',
@@ -532,13 +576,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
- 
+
   reuploadText: {
     color: '#0CBACE',
     fontWeight: '700',
     fontSize: isTablet ? 15 : 13,
   },
- 
+
   submitBtn: {
     backgroundColor: '#0CBACE',
     paddingVertical: isTablet ? 20 : 16,
@@ -546,7 +590,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     alignItems: 'center',
   },
- 
+
   submitText: {
     color: '#fff',
     fontSize: buttonFont,

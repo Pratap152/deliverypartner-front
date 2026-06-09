@@ -3,6 +3,7 @@ import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions } 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import { launchCamera } from 'react-native-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function FaceInstructionScreen({ navigation }) {
@@ -50,7 +51,7 @@ export default function FaceInstructionScreen({ navigation }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         {/* HEADING */}
         <View style={styles.headerContainer}>
@@ -115,7 +116,7 @@ export default function FaceInstructionScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -139,7 +140,6 @@ const createStyles = (isTablet, width, height) => {
       flex: 1,
       width: contentWidth,
       paddingHorizontal: isTablet ? 30 : 24,
-      paddingTop: isTablet ? 50 : 36,
       paddingBottom: isTablet ? 30 : 20,
     },
 
