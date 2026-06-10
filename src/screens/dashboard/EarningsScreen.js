@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -85,6 +86,11 @@ export default function EarningsScreen({ navigation }) {
   const HEADER = (
     <View style={{ backgroundColor: '#F4F6F8' }}>
       {/* GRADIENT */}
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
       <LinearGradient
         colors={['#065F46', '#10B981', '#34D399']}
         start={{ x: 0, y: 1 }}
