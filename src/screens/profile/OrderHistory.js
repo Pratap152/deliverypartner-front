@@ -240,6 +240,7 @@ const OrderHistory = ({ navigation }) => {
       </View>
 
       {/* FILTERS */}
+       <View style={styles.contentContainer}>
       <View style={styles.filterRow}>
         {FILTERS.map(item => (
           <TouchableOpacity
@@ -323,6 +324,7 @@ const OrderHistory = ({ navigation }) => {
           <ActivityIndicator size="large" />
         </View>
       )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -361,21 +363,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: rw(4),
   },
 
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: rh(2),
-  },
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
 
+  paddingHorizontal: rw(4),
+  paddingVertical: rh(2),
+
+  backgroundColor: '#FFFFFF',
+
+  borderBottomWidth: 1,
+  borderBottomColor: '#F1F5F9',
+
+  elevation: 2,
+},
   headerTitle: {
-    fontSize: rf(2.2),
+    fontSize: rf(2.4),
     fontWeight: '700',
     color: '#111827',
   },
+  contentContainer: {
+  flex: 1,
+  paddingHorizontal: rw(4),
+  paddingTop: rh(1.5),
+},
 
   filterRow: {
     flexDirection: 'row',
@@ -396,7 +410,7 @@ const styles = StyleSheet.create({
 
   filterText: {
     color: '#6B7280',
-    fontSize: rf(1.5),
+    fontSize: rf(1.7),
   },
 
   filterTextActive: {
@@ -419,14 +433,14 @@ const styles = StyleSheet.create({
   },
 
   summaryValue: {
-    fontSize: rf(2.3),
+    fontSize: rf(2.5),
     fontWeight: '700',
     color: '#111827',
   },
 
   summaryLabel: {
     marginTop: 4,
-    fontSize: rf(1.4),
+    fontSize: rf(1.6),
     color: '#6B7280',
   },
 
@@ -435,7 +449,7 @@ const styles = StyleSheet.create({
   borderRadius: 20,
   padding: rw(4),
   marginBottom: rh(1.8),
-  shadowColor: '#000',
+  shadowColor: '#474141',
   shadowOffset: {
     width: 0,
     height: 2,
@@ -443,6 +457,8 @@ const styles = StyleSheet.create({
   shadowOpacity: 0.06,
   shadowRadius: 8,
   elevation: 3,
+  borderWidth: 1,
+  borderColor: '#eaeef2',
 },
 
   topRow: {
@@ -464,14 +480,14 @@ const styles = StyleSheet.create({
   },
 
   restaurantName: {
-    fontSize: rf(1.95),
+    fontSize: rf(2.2),
     fontWeight: '700',
     color: '#1F2937',
   },
 
   orderId: {
     marginTop: 2,
-    fontSize: rf(1.25),
+    fontSize: rf(1.55),
     color: '#475569',
   },
 
@@ -480,7 +496,7 @@ const styles = StyleSheet.create({
   },
 
   earning: {
-    fontSize: rf(1.8),
+    fontSize: rf(2.1),
     fontWeight: '700',
     color: '#16A34A',
   },
@@ -492,7 +508,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#DDF5E5',
     color: '#2E8B57',
-    fontSize: rf(1.1),
+    fontSize: rf(1.25),
     fontWeight: '700',
   },
 
@@ -505,13 +521,13 @@ const styles = StyleSheet.create({
   userText: {
     marginLeft: 6,
     color: '#475569',
-    fontSize: rf(1.4),
+    fontSize: rf(1.7),
   },
 
   locationText: {
     marginLeft: 6,
     color: '#475569',
-    fontSize: rf(1.4),
+    fontSize: rf(1.7),
     flexShrink: 1,
   },
 
@@ -529,7 +545,7 @@ const styles = StyleSheet.create({
   infoText: {
     marginLeft: 4,
     color: '#64748B',
-    fontSize: rf(1.15),
+    fontSize: rf(1.60),
   },
   tipContainer: {
     marginTop: rh(1),
@@ -542,13 +558,13 @@ const styles = StyleSheet.create({
 
   tipLabel: {
     color: '#64748B',
-    fontSize: rf(1.4),
+    fontSize: rf(1.7),
   },
 
   tipValue: {
     color: '#16A34A',
     fontWeight: '700',
-    fontSize: rf(1.5),
+    fontSize: rf(1.9),
   },
 
   overlay: {
@@ -571,7 +587,7 @@ const styles = StyleSheet.create({
 
   ratingText: {
     marginLeft: 4,
-    fontSize: rf(1.8),
+    fontSize: rf(2.1),
     fontWeight: '600',
     color: '#111827',
   },

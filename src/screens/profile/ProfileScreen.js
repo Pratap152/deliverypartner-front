@@ -117,10 +117,16 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar backgroundColor="#13ACBE" barStyle="light-content" />
+      {/* <StatusBar backgroundColor="#13ACBE" barStyle="light-content" /> */}
 
       <View style={styles.safeArea}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        <ScrollView
+          bounces={false}
+          alwaysBounceVertical={false}
+          overScrollMode="never"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profile</Text>
@@ -801,9 +807,9 @@ const styles = StyleSheet.create({
     marginRight: wp('3%'),
   },
 
- driverId: {
-  fontSize: isTablet ? wp('2.4%') : 13,
-  color: '#666',
-  marginTop: 4,
-},
+  driverId: {
+    fontSize: isTablet ? wp('2.4%') : 13,
+    color: '#666',
+    marginTop: 4,
+  },
 });
