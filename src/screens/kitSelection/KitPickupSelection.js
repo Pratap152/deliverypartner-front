@@ -17,12 +17,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const KitPickupSelection = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
 
-const isTablet = width >= 768;
+  const isTablet = width >= 768;
 
-const styles = getStyles(isTablet);
+  const styles = getStyles(isTablet);
   const dispatch = useDispatch();
 
-  const { deliveryMode, addressData, selectedZone, apiResponse } = route?.params || {};
+  const { deliveryMode, addressData, selectedZone, apiResponse, source } = route?.params || {};
   
   const isFree =
     deliveryMode === 'online'
@@ -33,6 +33,7 @@ const styles = getStyles(isTablet);
   const displayData = deliveryMode === 'online' ? addressData : selectedZone;
 
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
 
   useEffect(() => {
     if (!currentRiderId) return;
@@ -47,19 +48,38 @@ const styles = getStyles(isTablet);
     }));
   }, [dispatch, currentRiderId, apiResponse, deliveryMode, addressData, selectedZone]);
 
-  const goToHomeTab = () => {
+const goToHomeTab = () => {
+  if (source === 'riderAssets') {
     navigation.reset({
       index: 0,
       routes: [
         {
           name: 'MainTabs',
           params: {
-            screen: 'Home',
+            screen: 'Profile',
+            params: {
+              screen: 'ProfileScreen',
+            },
           },
         },
       ],
     });
-  };
+    return true;
+  }
+
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: 'MainTabs',
+        params: {
+          screen: 'Home',
+        },
+      },
+    ],
+  });
+  return true;
+};
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -111,6 +131,7 @@ const styles = getStyles(isTablet);
       deliveryMode,
       addressData,
       selectedZone,
+      source
     });
   };
     

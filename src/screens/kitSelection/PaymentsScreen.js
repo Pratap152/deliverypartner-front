@@ -60,19 +60,40 @@ export default function PaymentsScreen({ route }) {
   const selectedZone = riderKitData?.selectedZone ?? null;
   const apiResponse = riderKitData?.apiResponse ?? null;
 
+  const { source } = route?.params || {};
+
   const goToHomeTab = () => {
+  if (source === 'riderAssets') {
     navigation.reset({
       index: 0,
       routes: [
         {
           name: 'MainTabs',
           params: {
-            screen: 'Home',
+            screen: 'Profile',
+            params: {
+              screen: 'ProfileScreen',
+            },
           },
         },
       ],
     });
-  };
+    return true;
+  }
+
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: 'MainTabs',
+        params: {
+          screen: 'Home',
+        },
+      },
+    ],
+  });
+  return true;
+};
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -81,7 +102,7 @@ export default function PaymentsScreen({ route }) {
     });
 
     return () => subscription.remove();
-  }, [navigation]);
+  }, [navigation, source]);
     
 
   useEffect(() => {
@@ -212,6 +233,7 @@ export default function PaymentsScreen({ route }) {
       navigation.replace('SuccessScreen', {
             apiResponse: patchResponse.data,
             deliveryMode,
+            source
           });
             
           } catch (err) {
