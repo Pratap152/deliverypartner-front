@@ -43,8 +43,7 @@ export function useKitAddress() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get("/admin/zone-point", {
-        params: { pincode },
+      const response = await apiClient.get("/api/rider/zone-point", {
         headers: { "x-client": "mobile" },
       });
       setData(response.data?.data);
