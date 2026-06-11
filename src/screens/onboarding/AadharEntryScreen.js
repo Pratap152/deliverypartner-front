@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback}from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -29,7 +29,7 @@ const containerMaxWidth = isTablet ? 900 : '100%';
 const AadhaarVerificationScreen = () => {
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const onBackPress = () => {
         Alert.alert(
           "Exit App",
