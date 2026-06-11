@@ -1,409 +1,443 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
+  FlatList,
   ActivityIndicator,
+  Image,
+  TouchableOpacity,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
+
 import apiClient from '../../services/ApiClient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-let CACHE = null;
-
-export default function CashBalanceScreen({ navigation }) {
-  const [data, setData] = useState(CACHE);
-  const [loading, setLoading] = useState(!CACHE);
-  const [showList, setShowList] = useState(false);
+const CashBalanceScreen = ({ navigation }) => {
+  const [loading, setLoading] = useState(true);
+  const [cashData, setCashData] = useState(null);
 
   useEffect(() => {
-    if (CACHE) {
-      setData(CACHE);
-      setLoading(false);
-      setTimeout(() => setShowList(true), 50);
-      return;
-    }
-    fetchCashBalance();
+    getCashBalance();
   }, []);
 
-  const fetchCashBalance = async () => {
+  const getCashBalance = async () => {
     try {
-      const res = await apiClient.get('/api/rider/cashbalance');
-      const apiData = res.data?.data;
+      const response = await apiClient.get('/api/rider/cashbalance');
 
-      const formattedData = {
-        cashSummary: apiData.cashSummary,
-        lastDeposit: {
-          amount: apiData.latestDeposit || 0,
-          date: apiData.latestDeposit
-            ? 'Last deposit recorded'
-            : 'No deposits yet',
-        },
-        pendingOrdersSummary: {
-          count: apiData.pendingOrdersSummary?.pendingOrdersCount || 0,
-          label: 'To be deposited',
-        },
-        cashOrderHistory: apiData.cashOrderHistory || [],
-        rules: apiData.rules,
-      };
-
-      CACHE = formattedData;
-      setData(formattedData);
-
-      setTimeout(() => setShowList(true), 50);
-    } catch (err) {
-      console.log('Cash balance error', err?.response || err);
+      if (response?.data?.success) {
+        setCashData(response.data.data);
+      }
+    } catch (error) {
+      console.log('Cash Balance Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Optimized processing
-  const processed = useMemo(() => {
-    if (!data?.cashOrderHistory) return [];
+  const renderHistoryItem = ({ item }) => {
+    const isPending =
+      item.status?.toUpperCase() === 'PENDING';
 
-    return data.cashOrderHistory.map(item => {
-      const isPending = item.status === 'PENDING';
-      const isPartial = item.status === 'PARTIAL_DEPOSITED';
+    return (
+      <View style={styles.historyCard}>
+        <View style={styles.leftSection}>
+          <View
+            style={[
+              styles.iconCircle,
+              {
+                backgroundColor: isPending
+                  ? '#FFF3E0'
+                  : '#E8F8ED',
+              },
+            ]}>
+            <Ionicons
+              name={
+                isPending
+                  ? 'time-outline'
+                  : 'checkmark-circle'
+              }
+              size={20}
+              color={
+                isPending
+                  ? '#FF8C00'
+                  : '#2E8B57'
+              }
+            />
+          </View>
+        </View>
 
-      let timeText = '';
-      if (item.collectedAt) {
-        timeText =
-          'Collected at ' + new Date(item.collectedAt).toLocaleString();
-      } else if (item.depositedAt) {
-        timeText =
-          'Deposited at ' + new Date(item.depositedAt).toLocaleString();
-      }
+        <View style={styles.middleSection}>
+          <Text style={styles.orderId}>
+            {item.orderId}
+          </Text>
 
-      const displayAmount =
-        isPending || isPartial ? item.pendingAmount : item.totalAmount;
+          <Text style={styles.customerName}>
+            {item.customerName}
+          </Text>
 
-      return {
-        ...item,
-        isPending,
-        isPartial,
-        displayAmount,
-        timeText,
-      };
-    });
-  }, [data]);
+          <Text style={styles.dateText}>
+            {item.depositedAt
+              ? new Date(item.depositedAt).toLocaleString()
+              : item.collectedAt
+                ? new Date(item.collectedAt).toLocaleString()
+                : '-'}
+          </Text>
+        </View>
+
+        <View style={styles.rightSection}>
+          <Text
+            style={[
+              styles.amount,
+              {
+                color: isPending
+                  ? '#FF8C00'
+                  : '#2E8B57',
+              },
+            ]}>
+            ₹{item.totalAmount}
+          </Text>
+
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor: isPending
+                  ? '#FFF3E0'
+                  : '#E8F8ED',
+              },
+            ]}>
+            <Text
+              style={[
+                styles.statusText,
+                {
+                  color: isPending
+                    ? '#FF8C00'
+                    : '#2E8B57',
+                },
+              ]}>
+              {isPending
+                ? 'Pending'
+                : 'Deposited'}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#12B76A" />
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
-  if (!data) return null;
-
-  const hasOrders = data.cashOrderHistory.length > 0;
+  const cashSummary = cashData?.cashSummary;
+  const pendingSummary = cashData?.pendingOrdersSummary;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={rf(2.6)} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Cash Balance</Text>
-        <Image
-          source={require('../../assets/profile/HelpcenterIcon.png')}
-          style={styles.robotIcon}
-        />
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* CASH COLLECTED */}
-        <View style={styles.greenCard}>
-          <View style={styles.row}>
-            <View style={styles.greenIconWrap}>
-              <Ionicons name="wallet-outline" size={rf(2.2)} color="#12B76A" />
-            </View>
-            <Text style={styles.greenLabel}>Cash Collected</Text>
-          </View>
-
-          <Text style={styles.greenAmount}>
-            ₹{data.cashSummary.totalCashCollected}
-          </Text>
-
-          <View style={styles.depositRow}>
-            <Text style={styles.depositText}>Deposit Limit</Text>
-            <Text style={styles.depositAmount}>₹2850</Text>
-          </View>
-        </View>
-
-        {/* INFO CARDS */}
-        <View style={styles.infoRow}>
-          <InfoCard
-            icon="cash-outline"
-            value={`₹${data.lastDeposit.amount}`}
-            title="Last Deposit"
-            subtitle={data.lastDeposit.date}
+          <Ionicons
+            name="arrow-back"
+            size={rf(2.6)}
+            color="#101828"
           />
-          <InfoCard
-            icon="time-outline"
-            value={data.pendingOrdersSummary.count}
-            title="Pending Orders"
-            subtitle={data.pendingOrdersSummary.label}
-          />
-        </View>
-
-        {/* ORDER HISTORY */}
-        <Text style={styles.sectionTitle}>Cash Order History</Text>
-
-        {!showList ? (
-          <ActivityIndicator size="small" color="#12B76A" />
-        ) : hasOrders ? (
-          processed.map((item, index) => (
-            <View key={index} style={styles.orderCard}>
-              <View style={styles.row}>
-                <View
-                  style={[
-                    styles.statusIconWrap,
-                    {
-                      backgroundColor: item.isPending
-                        ? '#FFF4E5'
-                        : item.isPartial
-                        ? '#FEF3F2'
-                        : '#ECFDF3',
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={item.isPending ? 'time-outline' : 'checkmark'}
-                    size={rf(2)}
-                    color={
-                      item.isPending
-                        ? '#F79009'
-                        : item.isPartial
-                        ? '#F04438'
-                        : '#12B76A'
-                    }
-                  />
-                </View>
-
-                <View style={{ marginLeft: rw(3) }}>
-                  <Text style={styles.orderId}>{item.orderId}</Text>
-                  <Text style={styles.orderName}>{item.customerName}</Text>
-                  <Text style={styles.orderTime}>{item.timeText}</Text>
-                </View>
-              </View>
-
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text
-                  style={[
-                    styles.orderAmount,
-                    {
-                      color:
-                        item.isPending || item.isPartial
-                          ? '#F79009'
-                          : '#12B76A',
-                    },
-                  ]}
-                >
-                  ₹{item.displayAmount}
-                </Text>
-
-                {item.isPartial && (
-                  <Text
-                    style={{
-                      fontSize: rf(1.3),
-                      color: '#667085',
-                      marginTop: rh(0.2),
-                    }}
-                  >
-                    Deposited ₹{item.depositedAmount}
-                  </Text>
-                )}
-
-                <View
-                  style={[
-                    styles.statusPill,
-                    {
-                      backgroundColor: item.isPending
-                        ? '#FFF4E5'
-                        : item.isPartial
-                        ? '#FEF3F2'
-                        : '#ECFDF3',
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: item.isPending
-                        ? '#F79009'
-                        : item.isPartial
-                        ? '#F04438'
-                        : '#12B76A',
-                      fontSize: rf(1.3),
-                      fontWeight: '600',
-                    }}
-                  >
-                    {item.isPending
-                      ? 'Pending'
-                      : item.isPartial
-                      ? 'Partially Deposited'
-                      : 'Deposited'}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ))
-        ) : (
-          <Text style={{ textAlign: 'center', color: '#667085' }}>
-            No orders available
-          </Text>
-        )}
-
-        <TouchableOpacity
-          style={[styles.depositNowBtn, !hasOrders && { opacity: 0.5 }]}
-          disabled={!hasOrders}
-        >
-          <Text style={styles.depositNowText}>Deposit Cash Now</Text>
         </TouchableOpacity>
 
-        <Text style={styles.noteText}>
-          Note: {data.rules?.warningMessage}
+        <Text style={styles.headerTitle}>
+          Cash Balance
         </Text>
 
-        <View style={{ height: rh(4) }} />
-      </ScrollView>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('HelpCenterList')
+          }>
+          <Image
+            source={require('../../assets/profile/HelpcenterIcon.png')}
+            style={styles.robotIcon}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={cashData?.cashOrderHistory || []}
+        keyExtractor={(item, index) =>
+          item.orderId + index
+        }
+        ListHeaderComponent={
+          <>
+            {/* Top Card */}
+
+            <View style={styles.topCard}>
+              <Text style={styles.cardLabel}>
+                Cash Collected
+              </Text>
+
+              <Text style={styles.cashAmount}>
+                ₹
+                {cashSummary?.totalCashCollected?.toLocaleString()}
+              </Text>
+
+              <View style={styles.limitContainer}>
+                <Text style={styles.limitText}>
+                  Cash Limit
+                </Text>
+
+                <Text style={styles.limitAmount}>
+                  ₹
+                  {cashSummary?.maxAllowed?.toLocaleString()}
+                </Text>
+              </View>
+            </View>
+
+            {/* Summary Cards */}
+
+            <View style={styles.summaryRow}>
+              <View style={styles.summaryCard}>
+                <Ionicons
+                  name="trending-down-outline"
+                  size={22}
+                  color="#3B82F6"
+                />
+
+                <Text style={styles.summaryValue}>
+                  ₹{cashData?.latestDeposit}
+                </Text>
+
+                <Text style={styles.summaryLabel}>
+                  Last Deposit
+                </Text>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={22}
+                  color='#2E8B57'
+                />
+
+                <Text style={styles.summaryValue}>
+                  {
+                    pendingSummary?.pendingOrdersCount
+                  }
+                </Text>
+
+                <Text style={styles.summaryLabel}>
+                  Pending Orders
+                </Text>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <Ionicons
+                  name="wallet-outline"
+                  size={22}
+                  color="#FF8C00"
+                />
+
+                <Text style={styles.summaryValue}>
+                  ₹
+                  {pendingSummary?.pendingAmount?.toLocaleString()}
+                </Text>
+
+                <Text style={styles.summaryLabel}>
+                  Pending Amount
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.historyTitle}>
+              Cash Order History
+            </Text>
+          </>
+        }
+        renderItem={renderHistoryItem}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
-}
+};
 
-/* SAME COMPONENT */
-const InfoCard = ({ icon, value, title, subtitle }) => (
-  <View style={styles.infoCard}>
-    <View style={styles.infoIconWrap}>
-      <Ionicons name={icon} size={rf(2.1)} color="#12B76A" />
-    </View>
-    <Text style={styles.infoValue}>{value}</Text>
-    <Text style={styles.infoTitle}>{title}</Text>
-    <Text style={styles.infoSub}>{subtitle}</Text>
-  </View>
-);
+export default CashBalanceScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F6F8',
+  },
+
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  topCard: {
+    backgroundColor: '#123A96',
+    margin: rw(4),
+    borderRadius: 12,
+    padding: rw(4),
+  },
+
+  cardLabel: {
+    color: '#FFFFFF',
+    fontSize: rf(1.8),
+    fontWeight: '500',
+  },
+
+  cashAmount: {
+    color: '#FFFFFF',
+    fontSize: rf(3.6),
+    fontWeight: '700',
+    marginTop: rh(0.7),
+  },
+
+  limitContainer: {
+    marginTop: rh(2),
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: rw(3),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  limitText: {
+    fontSize: rf(1.8),
+    color: '#333',
+  },
+
+  limitAmount: {
+    fontSize: rf(2),
+    fontWeight: '700',
+    color: '#333',
+  },
+
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: rw(4),
+  },
+
+  summaryCard: {
+    backgroundColor: '#FFFFFF',
+    width: '31%',
+    borderRadius: 12,
+    paddingVertical: rh(2),
+    paddingHorizontal: rw(2),
+    elevation: 2,
+  },
+
+  summaryValue: {
+    fontSize: rf(2.5),
+    fontWeight: '700',
+    marginTop: rh(1),
+    color: '#101828',
+  },
+
+  summaryLabel: {
+    fontSize: rf(1.5),
+    color: '#667085',
+    marginTop: rh(0.5),
+  },
+
+  historyTitle: {
+    fontSize: rf(2.3),
+    fontWeight: '700',
+    color: '#101828',
+    margin: rw(4),
+  },
+
+  historyCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: rw(4),
+    marginBottom: rh(1),
+    borderRadius: 10,
+    padding: rw(3),
+  },
+
+  leftSection: {
+    marginRight: rw(3),
+    justifyContent: 'center',
+  },
+
+  iconCircle: {
+    height: 34,
+    width: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  middleSection: {
+    flex: 1,
+  },
+
+  orderId: {
+    fontWeight: '700',
+    fontSize: rf(1.95),
+    color: '#101828',
+  },
+
+  customerName: {
+    color: '#667085',
+    marginTop: 3,
+    fontSize: rf(1.6),
+  },
+
+  dateText: {
+    color: '#999',
+    fontSize: rf(1.2),
+    marginTop: 3,
+  },
+
+  rightSection: {
+    alignItems: 'flex-end',
+  },
+
+  amount: {
+    fontWeight: '700',
+    fontSize: rf(2),
+  },
+
+  statusBadge: {
+    marginTop: rh(0.7),
+    paddingHorizontal: rw(2),
+    paddingVertical: rh(0.3),
+    borderRadius: 10,
+  },
+
+  statusText: {
+    fontSize: rf(1.35),
+    fontWeight: '700',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: rw(4),
-    backgroundColor: '#FFF',
     justifyContent: 'space-between',
+    paddingHorizontal: rw(4),
+    paddingVertical: rh(2.2),
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
   },
-  headerTitle: { fontSize: rf(2.2), fontWeight: '600' },
-  robotIcon: { width: rw(7), height: rw(7), resizeMode: 'contain' },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  greenCard: {
-    backgroundColor: '#12B76A',
-    margin: rw(4),
-    padding: rw(5),
-    borderRadius: rw(3),
-  },
-  greenIconWrap: {
-    backgroundColor: '#ECFDF3',
-    padding: rw(2),
-    borderRadius: 50,
-  },
-  greenLabel: {
-    color: '#EFFFF6',
-    marginLeft: rw(2),
-    fontSize: rf(1.7),
-  },
-  greenAmount: {
-    color: '#FFF',
-    fontSize: rf(3.2),
+
+  headerTitle: {
+    fontSize: rf(2.3),
     fontWeight: '700',
-    marginVertical: rh(1),
+    color: '#101828',
   },
-  depositRow: {
-    backgroundColor: '#FFF',
-    padding: rw(4),
-    borderRadius: rw(2),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+
+  robotIcon: {
+    width: rw(7.5),
+    height: rw(7.5),
+    resizeMode: 'contain',
   },
-  depositText: { color: '#667085' },
-  depositAmount: { fontWeight: '700', fontSize: rf(2) },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    margin: rw(4),
-  },
-  infoCard: {
-    width: '48%',
-    backgroundColor: '#FFF',
-    padding: rw(4),
-    borderRadius: rw(3),
-  },
-  infoIconWrap: {
-    backgroundColor: '#ECFDF3',
-    padding: rw(2),
-    borderRadius: 50,
-    alignSelf: 'flex-start',
-  },
-  infoValue: {
-    fontSize: rf(2.2),
-    fontWeight: '700',
-    marginTop: rh(1),
-  },
-  infoTitle: { color: '#667085', marginTop: rh(0.4) },
-  infoSub: { color: '#98A2B3', fontSize: rf(1.4) },
-  sectionTitle: {
-    marginHorizontal: rw(4),
-    marginBottom: rh(1),
-    fontSize: rf(2),
-    fontWeight: '600',
-  },
-  orderCard: {
-    backgroundColor: '#FFF',
-    marginHorizontal: rw(4),
-    marginBottom: rh(1.2),
-    padding: rw(4),
-    borderRadius: rw(3),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statusIconWrap: { padding: rw(2), borderRadius: 50 },
-  orderId: { fontWeight: '600' },
-  orderName: { color: '#667085' },
-  orderTime: { color: '#98A2B3', fontSize: rf(1.3) },
-  orderAmount: { fontSize: rf(1.9), fontWeight: '700' },
-  statusPill: {
-    paddingHorizontal: rw(3),
-    paddingVertical: rh(0.5),
-    borderRadius: 20,
-    marginTop: rh(0.6),
-  },
-  depositNowBtn: {
-    backgroundColor: '#12B76A',
-    margin: rw(4),
-    paddingVertical: rh(1.8),
-    borderRadius: rw(3),
-    alignItems: 'center',
-  },
-  depositNowText: {
-    color: '#FFF',
-    fontSize: rf(2),
-    fontWeight: '600',
-  },
-  noteText: {
-    marginHorizontal: rw(4),
-    color: '#667085',
-    fontSize: rf(1.4),
-    lineHeight: rf(2.1),
-  },
-}); 
+});
