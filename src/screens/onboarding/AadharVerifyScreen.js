@@ -1,4 +1,4 @@
-import React, {useCallback}from 'react';
+import React, {useCallback} from 'react';
 
 import {
   ActivityIndicator,
@@ -12,15 +12,19 @@ import {
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import {
+  responsiveWidth,
+  responsiveHeight,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Header from '../../components/common/Header';
 import OTPInputBox from '../../components/common/OTPInputBox';
 
 import { useDispatch } from 'react-redux';
+import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 
 import { COLORS } from '../../utils/colors';
 import { isOtpFilled } from '../../utils/helpers';
