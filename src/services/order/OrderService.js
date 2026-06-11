@@ -104,6 +104,40 @@ class OrderService {
     }
 
     // ---------------------------
+    // EN ROUTE TO PICKUP
+    // ---------------------------
+    async markEnRouteToPickup(orderId) {
+        try {
+            console.log(`[OrderService] Marking en route to pickup ${orderId}`);
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/en-route-pickup`
+            );
+            console.log("[en-route-pickup response]", response.data);
+            return response.data;
+        } catch (error) {
+            console.error('[markEnRouteToPickup error]', error?.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    // ---------------------------
+    // ARRIVED AT PICKUP
+    // ---------------------------
+    async markArrivedAtPickup(orderId) {
+        try {
+            console.log(`[OrderService] Marking arrived at pickup ${orderId}`);
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/arrived-pickup`
+            );
+            console.log("[arrived-pickup response]", response.data);
+            return response.data;
+        } catch (error) {
+            console.error('[markArrivedAtPickup error]', error?.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    // ---------------------------
     // PICKUP ORDER
     // ---------------------------
     async pickupOrder(orderId) {
@@ -119,6 +153,40 @@ class OrderService {
             return response.data; // { success, message, orderStatus }
         } catch (error) {
             console.error('[pickupOrder error]', error?.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    // ---------------------------
+    // IN TRANSIT
+    // ---------------------------
+    async markInTransit(orderId) {
+        try {
+            console.log(`[OrderService] Marking in transit ${orderId}`);
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/in-transit`
+            );
+            console.log("[in-transit response]", response.data);
+            return response.data;
+        } catch (error) {
+            console.error('[markInTransit error]', error?.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    // ---------------------------
+    // ARRIVED AT DROP
+    // ---------------------------
+    async markArrivedAtDrop(orderId) {
+        try {
+            console.log(`[OrderService] Marking arrived at drop ${orderId}`);
+            const response = await apiClient.patch(
+                `/api/orders/${orderId}/arrived-drop`
+            );
+            console.log("[arrived-drop response]", response.data);
+            return response.data;
+        } catch (error) {
+            console.error('[markArrivedAtDrop error]', error?.response?.data || error.message);
             throw error;
         }
     }
