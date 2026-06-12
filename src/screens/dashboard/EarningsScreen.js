@@ -96,14 +96,6 @@ export default function EarningsScreen({ navigation }) {
         start={{ x: 0, y: 1 }}
         end={{ x: 1, y: 0 }}>
         <SafeAreaView style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}>
-            <Ionicons
-              name='chevron-back-outline'
-              size={isTablet ? 32 : 24}
-              color="#FFF"
-            />
-          </TouchableOpacity>
           <Text style={styles.title}>Earnings</Text>
 
           <View style={styles.topBarIcons}>
