@@ -74,7 +74,7 @@ export default function EarningsScreen({ navigation }) {
     incentives = [],
   } = data;
 
-  console.log("todayEarnings: ", todayEarnings);
+  // console.log("todayEarnings: ", todayEarnings);
 
   const isEligibleForIncentives = todayEarnings?.eligible;
 
