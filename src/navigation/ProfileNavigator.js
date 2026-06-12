@@ -14,6 +14,7 @@ import RewardsScreen from '../screens/profile/Rewards';
 import OrderHistory from '../screens/profile/OrderHistory';
 import OrderHistoryDetails from '../screens/profile/OrderHistoryDetails';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function ProfileNavigator() {

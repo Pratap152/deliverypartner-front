@@ -64,7 +64,7 @@ const OrderHistory = ({ navigation }) => {
       style={styles.orderCard}
       onPress={() =>
         navigation.navigate('OrderHistoryDetails', {
-          order: item,
+          order: item.rawData,
         })
       }
     >
@@ -276,7 +276,7 @@ const OrderHistory = ({ navigation }) => {
         />
 
         <SummaryCard
-          icon="logo-usd"
+          icon="wallet-outline"
           label="Total Earnings"
           value={`₹${summary.totalEarnings}`}
           bgColor="#00C95014"
