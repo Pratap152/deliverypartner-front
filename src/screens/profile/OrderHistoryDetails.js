@@ -18,6 +18,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const OrderHistoryDetails = ({ navigation, route }) => {
   const { order } = route.params;
 
+  const deliveredDate = new Date(order?.deliveredAt);
+
+  const date = deliveredDate.toLocaleDateString();
+
+  const time = deliveredDate.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -59,22 +68,21 @@ const OrderHistoryDetails = ({ navigation, route }) => {
 
             <View style={styles.detailsContainer}>
               <Text style={styles.restaurantName}>
-                {order?.vendorShopName || 'Pizza Place'}
+                {order?.vendorShopName}
               </Text>
 
               <Text style={styles.customerName}>
-                {order?.userName || 'Amit Sharma'}
+                {order?.userName}
               </Text>
 
               <Text style={styles.addressText}>
-                {order?.deliveredAddress ||
-                  'Andheri, West Mumbai'}
+                {order?.deliveredAddress}
               </Text>
             </View>
 
             <View style={styles.amountContainer}>
               <Text style={styles.amountText}>
-                ₹{order?.earning || 105}
+                ₹{order?.pricing?.riderEarning || 0}
               </Text>
 
               <Text style={styles.earnedText}>
@@ -90,7 +98,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
               color="#F59E0B"
             />
             <Text style={styles.ratingText}>
-              {order?.rating || '4.8'}
+              {order?.rating || '0'}
             </Text>
           </View>
 
@@ -103,7 +111,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
               />
 
               <Text style={styles.chipText}>
-                {order?.date || '12-06-2026'}
+                {date}
               </Text>
             </View>
 
@@ -115,7 +123,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
               />
 
               <Text style={styles.chipText}>
-                {order?.time || '01:30 PM'}
+                {time}
               </Text>
             </View>
           </View>
@@ -129,17 +137,17 @@ const OrderHistoryDetails = ({ navigation, route }) => {
         <View style={styles.card}>
           <InfoRow
             label="Base Fare"
-            value={`₹${order?.baseFare || 70}`}
+            value={`₹${order?.pricing?.earningBreakup?.basePay || 0}`}
           />
 
           <InfoRow
             label="Distance Fare"
-            value={`₹${order?.distanceFare || 15}`}
+            value={`₹${order?.pricing?.earningBreakup?.distancePay || 0}`}
           />
 
           <InfoRow
             label="Surge"
-            value={`₹${order?.surge || 0}`}
+            value={`₹${order?.pricing?.earningBreakup?.surgePay || 0}`}
             valueStyle={{
               color: '#EF4444',
             }}
@@ -147,7 +155,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
 
           <InfoRow
             label="Customer Tip"
-            value={`+₹${order?.tip || 20}`}
+            value={`₹${order?.pricing?.earningBreakup?.tips || 0}`}
             valueStyle={{
               color: '#16A34A',
             }}
@@ -157,7 +165,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
 
           <InfoRow
             label="Total Amount"
-            value={`₹${order?.earning || 105}`}
+            value={`₹${order?.pricing?.earningBreakup?.totalEarning || 0}`}
             valueStyle={{
               color: '#16A34A',
               fontWeight: '700',
@@ -174,12 +182,12 @@ const OrderHistoryDetails = ({ navigation, route }) => {
         <View style={styles.card}>
           <InfoRow
             label="Order ID"
-            value={`#${order?.orderId || 1}`}
+            value={`#${order?.orderId || 0}`}
           />
 
           <InfoRow
             label="Distance Travelled"
-            value={`${order?.distance || 3.2} km`}
+           value={`${order?.distanceTravelled || 0} km`}
           />
 
           <InfoRow
@@ -197,7 +205,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
 
           <InfoRow
             label="Credited on"
-            value={`${order?.date || '12-06-26'} ${order?.time || '01:30 PM'}`}
+            value={`${date} ${time}`}
           />
         </View>
       </ScrollView>
