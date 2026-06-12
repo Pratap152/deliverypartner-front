@@ -42,8 +42,18 @@ export default function useEarningsDashboard() {
       mounted.current = true;
     }
     try {
-
-      const daily = await getDailyEarnings();
+      const summaryData = await getEarningsSummary();
+      const daily = {
+        riderType: summaryData?.riderType,
+        baseEarnings: summaryData?.today?.baseEarnings,
+        incentives: summaryData?.today?.incentives,
+        orders: summaryData?.today?.orders,
+        tips: summaryData?.today?.tips,
+        total: summaryData?.today?.total,
+        eligible: summaryData?.target?.eligible,
+        monthlyTarget: summaryData?.target?.monthlyTarget,
+        totalCompletedOrders: summaryData?.target?.completedOrders
+      };
       setData(prev => ({
         ...prev,
         todayEarnings: mapDailyEarnings(daily),
@@ -128,14 +138,16 @@ export default function useEarningsDashboard() {
 
   // DAILY EARNINGS
   const mapDailyEarnings = (res) => {
-    const items = res?.items ?? [];
     return {
-      date: res?.date ?? "",
-      baseEarnings:res?.baseEarnings ?? 0,
+      riderType: res?.riderType,
+      baseEarnings: res?.baseEarnings ?? 0,
       totalEarnings: res?.totalEarnings ?? 0,
-      incentives:res?.incentives ?? 0,
-      orders: items.length,
-      items,
+      incentives: res?.incentives ?? 0,
+      orders: res?.orders,
+      tips: res?.tips,
+      eligible: res?.eligible,
+      monthlyTarget: res?.monthlyTarget,
+      totalCompletedOrders: res?.totalCompletedOrders
     };
   };
 
@@ -161,19 +173,19 @@ export default function useEarningsDashboard() {
         total_orders: 0
       };
     }
-    let chart =[];
-    if(res?.riderType === "INDIVIDUAL_EMPLOYEE") {
-    chart = res.week.map(item => ({
-      label: item.day,
-      value: item.amount,
-      orders: item.orders,
-    }));
+    let chart = [];
+    if (res?.riderType === "INDIVIDUAL_EMPLOYEE") {
+      chart = res.week.map(item => ({
+        label: item.day,
+        value: item.amount,
+        orders: item.orders,
+      }));
     } else {
-    chart = res.week.map(item => ({
-      label: item.day,
-      value: 0,
-      orders: item.orders,
-    }));
+      chart = res.week.map(item => ({
+        label: item.day,
+        value: 0,
+        orders: item.orders,
+      }));
     }
     const total = chart.reduce((sum, d) => sum + (d.value || 0), 0);
     const total_orders = chart.reduce((sum_ord, d) => sum_ord + (d.orders || 0), 0);
