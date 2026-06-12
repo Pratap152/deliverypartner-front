@@ -141,7 +141,7 @@ export default function useEarningsDashboard() {
     return {
       riderType: res?.riderType,
       baseEarnings: res?.baseEarnings ?? 0,
-      totalEarnings: res?.totalEarnings ?? 0,
+      totalEarnings: res?.total ?? 0,
       incentives: res?.incentives ?? 0,
       orders: res?.orders,
       tips: res?.tips,
@@ -174,7 +174,7 @@ export default function useEarningsDashboard() {
       };
     }
     let chart = [];
-    if (res?.riderType === "INDIVIDUAL_EMPLOYEE") {
+    if (res?.riderType === "INDIVIDUAL_EMPLOYEE" || res?.riderType === "ZESTBOT_EMPLOYEE") {
       chart = res.week.map(item => ({
         label: item.day,
         value: item.amount,
