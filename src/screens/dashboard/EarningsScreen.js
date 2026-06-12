@@ -205,7 +205,7 @@ export default function EarningsScreen({ navigation }) {
               height={isTablet ? hp(38) : hp(30)} />
           }
 
-          {(riderType === "ZESTBOT_EMPLOYEE" && todayEarnings?.totalCompletedOrders > todayEarnings?.monthlyTarget) &&
+          {(riderType === "ZESTBOT_EMPLOYEE" && isEligibleForIncentives) &&
             <WeeklyEarningsChart
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
