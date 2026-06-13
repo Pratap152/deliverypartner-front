@@ -125,13 +125,22 @@ export const updateFcmToken = async ({
   if (!fcmToken) return;
 
   try {
-    await apiClient.post('/api/rider/notifications/fcm-token', {
-      fcmToken,
-      
-    });
-    console.log('FCM token sync:');
+    const response = await apiClient.post(
+      '/api/rider/save-fcm-token',
+      {
+        fcmToken,
+      }
+    );
+
+    console.log(
+      'FCM token sync success:',
+      response.data
+    );
   } catch (err) {
-    console.log('FCM token sync failed:', err?.response?.data || err);
+    console.log(
+      'FCM token sync failed:',
+      err?.response?.data || err
+    );
   }
 };
 
