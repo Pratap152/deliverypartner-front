@@ -1,5 +1,4 @@
-import React, { useRef } from 'react';
-import {
+import React, { useRef, useEffect, useCallback } from 'react'; import {
   View,
   Text,
   StyleSheet,
@@ -15,12 +14,20 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-const ITEM_WIDTH = wp('90%');
+const ITEM_WIDTH = wp('88%');
+const ITEM_SPACING = wp('2%');
+const SNAP_WIDTH = ITEM_WIDTH + ITEM_SPACING;
 
 const BannerCarousel = ({ data }) => {
   const navigation = useNavigation();
   const flatListRef = useRef(null);
-  const currentIndex = useRef(0);
+  const currentIndex = useRef(data.length);
+  const timerRef = useRef(null);
+
+  const infiniteData =
+    data?.length > 0
+      ? [...data, ...data, ...data]
+      : [];
 
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
 
@@ -102,6 +109,74 @@ const BannerCarousel = ({ data }) => {
     }
   };
 
+  const startAutoScroll = useCallback(() => {
+    clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      currentIndex.current += 1;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex.current,
+        animated: true,
+      });
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    if (!data?.length) return;
+
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
+        index: data.length,
+        animated: false,
+      });
+    }, 100);
+  }, [data]);
+
+  useEffect(() => {
+    if (!data?.length) return;
+
+    startAutoScroll();
+
+    return () => clearInterval(timerRef.current);
+  }, [data, startAutoScroll]);
+
+  const onScrollBeginDrag = () => {
+    clearInterval(timerRef.current);
+  };
+
+  const onMomentumScrollEnd = event => {
+    const index = Math.round(
+      event.nativeEvent.contentOffset.x / SNAP_WIDTH
+    );
+
+    currentIndex.current = index;
+
+    const total = data.length;
+
+    // Jump to middle copy if reached start copy
+    if (index < total) {
+      currentIndex.current = index + total;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex.current,
+        animated: false,
+      });
+    }
+
+    // Jump to middle copy if reached end copy
+    if (index >= total * 2) {
+      currentIndex.current = index - total;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex.current,
+        animated: false,
+      });
+    }
+
+    startAutoScroll();
+  };
+
   const renderItem = ({ item }) => {
     return (
       <Pressable
@@ -145,17 +220,19 @@ const BannerCarousel = ({ data }) => {
     <View style={styles.wrapper}>
       <FlatList
         ref={flatListRef}
-        data={data}
-        keyExtractor={item => item.id}
+        data={infiniteData}
+        keyExtractor={(_, index) => index.toString()}
         renderItem={renderItem}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        snapToInterval={ITEM_WIDTH}
+        snapToInterval={SNAP_WIDTH}
         decelerationRate="fast"
+        onScrollBeginDrag={onScrollBeginDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
         getItemLayout={(_, index) => ({
-          length: ITEM_WIDTH,
-          offset: ITEM_WIDTH * index,
+          length: SNAP_WIDTH,
+          offset: SNAP_WIDTH * index,
           index,
         })}
       />
@@ -171,7 +248,7 @@ const styles = StyleSheet.create({
   banner: {
     width: ITEM_WIDTH,
     height: hp('18%'),
-    marginHorizontal: wp('2.5%'),
+    marginRight: ITEM_SPACING,
     overflow: 'hidden',
   },
 
