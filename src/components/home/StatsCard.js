@@ -67,35 +67,36 @@ const StatsCard = ({ isActive, totalOnlineMinutes }) => {
   const formatTime = (totalMinutes) => {
     const hrs = Math.floor(totalMinutes / 60);
     const mins = totalMinutes % 60;
-
     return `${hrs}h ${mins < 10 ? '0' : ''}${mins}m`;
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <StatItem
-          icon="trending-up"
-          value={`₹${formatMoney(todayEarnings.totalEarnings ?? 0)}`}
-          label="Earnings"
-          bgColor="#2ECC71" // green
-          screen={EarningsHistoryScreen}
-        />
-        <StatItem
-          icon="time-outline"
-          value={formatTime(minutes)}
-          label="Online"
-          bgColor="#8E7CF3" // purple
-          screen={null}
-        />
-        <StatItem
-          icon="cart-outline"
-         value={todayOrdersCount}
-          label="Orders"
-          bgColor="#FF6FAE" // pink
-          screen={OrderHistory}
-        />
-      </View>
+  <StatItem
+    icon="trending-up"
+    value={`₹${formatMoney(todayEarnings.totalEarnings ?? 0)}`}
+    label="Earnings"
+    bgColor="#2ECC71"
+    screen={EarningsHistoryScreen}
+  />
+
+  <StatItem
+    icon="cash-outline"
+    value={`₹${formatMoney(todayEarnings.tips ?? 0)}`}
+    label="Tips"
+    bgColor="#8E7CF3"
+    screen={null}
+  />
+
+  <StatItem
+    icon="cart-outline"
+    value={todayOrdersCount}
+    label="Orders"
+    bgColor="#FF6FAE"
+    screen={OrderHistory}
+  />
+</View>
     </View>
   );
 };
@@ -114,23 +115,20 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: wp('3%'),
+    justifyContent: 'space-around',
   },
+
   card: {
-    width: wp('28%'),
+    width: wp('27%'),
     backgroundColor: '#FFFFFF',
     borderRadius: wp('4%'),
     paddingVertical: wp('4%'),
+    margin:wp('1%'),
     alignItems: 'center',
-
-    // iOS shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
-
-    // Android shadow
     elevation: 4,
   },
   iconWrapper: {
