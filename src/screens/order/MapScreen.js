@@ -11,7 +11,11 @@ import {
     TouchableOpacity,
     Animated,
     BackHandler,
+    Linking,
 } from 'react-native';
+
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 
 import MapView, {
     PROVIDER_GOOGLE,
@@ -534,6 +538,35 @@ const MapScreen = ({ route, navigation }) => {
     };
 
     // ─────────────────────────────────────────────────────────
+    // OPEN MAPS REDIRECT
+    // ─────────────────────────────────────────────────────────
+
+    const handleOpenMaps = () => {
+
+        if (!targetLocation) {
+            Alert.alert("Error", "Destination coordinates not available");
+            return;
+        }
+
+        const { latitude, longitude } = targetLocation;
+        const label = encodeURIComponent(targetName || (isPickup ? 'Pickup' : 'Drop'));
+
+        const url = Platform.select({
+            ios: `maps:0,0?q=${latitude},${longitude}(${label})`,
+            android: `geo:0,0?q=${latitude},${longitude}(${label})`,
+        });
+
+        const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+
+        Linking.openURL(url).catch(() => {
+            Linking.openURL(webUrl).catch((err) => {
+                console.error('[MapScreen] Failed to open maps URL:', err);
+                Alert.alert("Error", "Could not open Google Maps navigation.");
+            });
+        });
+    };
+
+    // ─────────────────────────────────────────────────────────
     // LOADING STATE
     // ─────────────────────────────────────────────────────────
 
@@ -811,45 +844,49 @@ const MapScreen = ({ route, navigation }) => {
 
                 <View style={styles.dragHandle} />
 
-                <View style={styles.locationRow}>
-
-                    <View style={styles.iconCircle}>
-
-                        <Text style={{ fontSize: 24 }}>
-                            {isPickup ? '🏪' : '🏠'}
-                        </Text>
-
-                    </View>
-
-                    <View style={{
-                        marginLeft: 12,
-                        flex: 1,
-                    }}>
-
-                        <Text style={styles.locationTitle}>
+                <View style={styles.topSection}>
+                    <View style={styles.textDetails}>
+                        <View style={styles.orderTypeRow}>
+                            <Ionicons 
+                                name={isPickup ? "basket-outline" : "home-outline"} 
+                                size={18} 
+                                color="#64748B" 
+                                style={styles.orderTypeIcon} 
+                            />
+                            <Text style={styles.orderTypeText}>
+                                {isPickup ? 'Pickup order' : 'Delivery order'}
+                            </Text>
+                            {routeInfo.duration && (
+                                <View style={styles.etaBadge}>
+                                    <Text style={styles.etaBadgeText}>
+                                        {routeInfo.duration} min
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                        <Text style={styles.locationTitle} numberOfLines={1}>
                             {targetName}
                         </Text>
-
-                        <Text
-                            style={styles.locationAddress}
-                            numberOfLines={2}
-                        >
-                            {targetAddress}
-                        </Text>
-
                     </View>
 
-                    {routeInfo.duration && (
-
-                        <View style={styles.etaBadge}>
-
-                            <Text style={styles.etaBadgeText}>
-                                {routeInfo.duration} min
-                            </Text>
-
-                        </View>
-                    )}
+                    <TouchableOpacity 
+                        style={styles.mapsRedirectButton} 
+                        onPress={handleOpenMaps}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="arrow-redo" size={24} color="#FFFFFF" />
+                        <Text style={styles.mapsRedirectButtonText}>MAPS</Text>
+                    </TouchableOpacity>
                 </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.addressSection}>
+                    <Text style={styles.locationAddress}>
+                        {targetAddress}
+                    </Text>
+                </View>
+
 
                 <TouchableOpacity
                     style={[
@@ -1011,31 +1048,78 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
-    locationRow: {
+    topSection: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 25,
+        marginBottom: 12,
     },
 
-    iconCircle: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#F8FAFC',
-        justifyContent: 'center',
+    textDetails: {
+        flex: 1,
+        marginRight: 12,
+    },
+
+    orderTypeRow: {
+        flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 6,
+    },
+
+    orderTypeIcon: {
+        marginRight: 6,
+    },
+
+    orderTypeText: {
+        fontSize: 14,
+        color: '#64748B',
+        fontWeight: '500',
     },
 
     locationTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#1E293B',
-        marginBottom: 4,
+        lineHeight: 24,
+    },
+
+    mapsRedirectButton: {
+        width: 58,
+        height: 58,
+        backgroundColor: '#1E40AF',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+
+    mapsRedirectButtonText: {
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: 'bold',
+        marginTop: 2,
+        letterSpacing: 0.5,
+    },
+
+    divider: {
+        borderWidth: 0.8,
+        borderColor: '#E2E8F0',
+        borderStyle: 'dashed',
+        marginVertical: 14,
+        height: 0,
+    },
+
+    addressSection: {
+        marginBottom: 20,
     },
 
     locationAddress: {
         fontSize: 14,
-        color: '#64748B',
+        color: '#475569',
         lineHeight: 20,
     },
 
