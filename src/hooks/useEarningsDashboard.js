@@ -136,6 +136,7 @@ export default function useEarningsDashboard() {
     }
   };
 
+  
   // DAILY EARNINGS
   const mapDailyEarnings = (res) => {
     return {
@@ -169,25 +170,18 @@ export default function useEarningsDashboard() {
     if (!Array.isArray(res?.week)) {
       return {
         chart: [],
-        total: 0,
+        total,
         total_orders: 0
       };
     }
-    let chart = [];
-    if (res?.riderType === "INDIVIDUAL_EMPLOYEE" || res?.riderType === "ZESTBOT_EMPLOYEE") {
-      chart = res.week.map(item => ({
+    
+    const chart = res.week.map(item => ({
         label: item.day,
-        value: item.amount,
+        value: item.amount || 0,
         orders: item.orders,
       }));
-    } else {
-      chart = res.week.map(item => ({
-        label: item.day,
-        value: 0,
-        orders: item.orders,
-      }));
-    }
-    const total = chart.reduce((sum, d) => sum + (d.value || 0), 0);
+     
+    const total = chart.reduce((sum, d) => sum + Number(d.value || 0), 0);
     const total_orders = chart.reduce((sum_ord, d) => sum_ord + (d.orders || 0), 0);
     return {
       chart,

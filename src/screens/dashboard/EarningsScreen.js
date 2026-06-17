@@ -178,26 +178,28 @@ export default function EarningsScreen({ navigation }) {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>This Week</Text>
             <Text style={styles.cardValue}>
-              {riderType === 'COMPANY_EMPLOYEE' || (riderType === 'ZESTBOT_EMPLOYEE' && todayEarnings?.totalCompletedOrders <= todayEarnings?.monthlyTarget)
+              {
+              (riderType === 'ZESTBOT_EMPLOYEE' && todayEarnings?.totalCompletedOrders <= todayEarnings?.monthlyTarget)
                 ? formatOrderLabel(weeklyOrders ?? 0)
                 : `₹${formatMoney(weeklyTotal ?? 0)}`
               }
             </Text>
           </View>
+          
           {riderType === "INDIVIDUAL_EMPLOYEE" &&
             <WeeklyEarningsChart
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={isTablet ? hp(38) : hp(30)} />
           }
-
+          
           {riderType === "COMPANY_EMPLOYEE" &&
-            <WeeklyEarningsChartEmployee
+            <WeeklyEarningsChart
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={isTablet ? hp(38) : hp(30)} />
           }
-
+          
           {(riderType === "ZESTBOT_EMPLOYEE" && !isEligibleForIncentives) &&
             <WeeklyEarningsChartEmployee
               data={weeklyBarChart}
