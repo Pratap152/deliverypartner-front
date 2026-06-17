@@ -52,12 +52,12 @@ const HeaderBar = memo(({ onBack, hasJoiningBonus }) => {
       ]}>
       <View style={s.headerRow}>
         <TouchableOpacity onPress={onBack}>
-                    <Ionicons
-                      name="arrow-back"
-                      size={isTablet ? 30 : 24}
-                      color="#FFF"
-                    />
-          </TouchableOpacity>
+          <Ionicons
+            name="arrow-back"
+            size={isTablet ? 30 : 24}
+            color="#FFF"
+          />
+        </TouchableOpacity>
         <Text style={s.headerTitle}>Joining Bonus</Text>
       </View>
     </View>
@@ -331,7 +331,7 @@ const s = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#1F2F67',
+    backgroundColor: '#233B71F7',
     borderBottomLeftRadius: isTablet ? 45 : 30,
     borderBottomRightRadius: isTablet ? 45 : 30,
     paddingHorizontal: isTablet ? 40 : 22,
@@ -346,8 +346,8 @@ const s = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: isTablet ? 28 : 10,
-    gap:20
+    marginTop: isTablet ? 28 : 5,
+    gap: 20
   },
 
   headerTitle: {
@@ -359,6 +359,7 @@ const s = StyleSheet.create({
   fixedTopSection: {
     paddingHorizontal: isTablet ? 35 : 18,
     zIndex: 2,
+    pointerEvents: 'box-none',
   },
 
   taskScrollContent: {
@@ -375,7 +376,7 @@ const s = StyleSheet.create({
     paddingTop: isTablet ? 25 : 10,
     paddingBottom: isTablet ? 25 : 10,
     marginHorizontal: 2,
-    marginTop: isTablet ? -85 : -50,
+    marginTop: isTablet ? -85 : -100,
     zIndex: 100,
     shadowColor: '#000',
     shadowOpacity: 0.12,

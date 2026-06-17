@@ -16,11 +16,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  launchCamera,
-  launchImageLibrary,
-} from 'react-native-image-picker';
-
+import { launchImageLibrary } from 'react-native-image-picker';
+import DocumentScanner from 'react-native-document-scanner-plugin';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import DeviceInfo from 'react-native-device-info';
@@ -187,15 +184,40 @@ const LicenseUploadScreen = ({ navigation }) => {
     }
   };
 
-  const pickCamera = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        quality: 1,
-      },
-      handlePick,
+  const pickCamera = async () => {
+  try {
+    const { scannedImages } =
+      await DocumentScanner.scanDocument({
+        maxNumDocuments: 1,
+        responseType: 'imageFilePath',
+      });
+
+    if (
+      !scannedImages ||
+      scannedImages.length === 0
+    ) {
+      return;
+    }
+
+    const image = {
+      uri: scannedImages[0],
+      fileName: `dl_${Date.now()}.jpg`,
+      type: 'image/jpeg',
+      fileSize: 1024,
+    };
+
+    if (selectedBox.current === 'front') {
+      setFront(image);
+    } else if (selectedBox.current === 'back') {
+      setBack(image);
+    }
+  } catch (error) {
+    console.log(
+      'Document scan error:',
+      error,
     );
-  };
+  }
+};
 
   const pickGallery = () => {
     launchImageLibrary(
