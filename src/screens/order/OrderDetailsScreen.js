@@ -304,7 +304,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             <>
               <OrderAddressCard 
                 title="Pickup Location"
-                name={orderDetails.pickupAddress?.name}
+                name={orderDetails.pickupAddress?.addressLine}
                 address={orderDetails.pickupAddress?.addressLine}
                 iconType="store"
                 theme="green"

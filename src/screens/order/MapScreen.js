@@ -182,7 +182,7 @@ const MapScreen = ({ route, navigation }) => {
         console.log(" checking orderDetails", orderDetails, "addressLine", orderDetails?.deliveryAddress?.addressLine)
 
         return isPickup
-            ? orderDetails.vendorShopName
+            ? orderDetails.pickupAddress?.addressLine
             : (
                 orderDetails?.deliveryAddress?.addressLine
             );
