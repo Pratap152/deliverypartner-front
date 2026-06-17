@@ -10,7 +10,8 @@ import {
   BackHandler
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
+import DocumentScanner from 'react-native-document-scanner-plugin';
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,16 +77,24 @@ const PanUploadScreen = ({ navigation }) => {
 
   const openOptions = () => actionSheetRef.current.show();
 
-  const takePhoto = () => {
-    launchCamera(
-      { mediaType: 'photo', quality: 1, cameraType: 'back' },
-      res => {
-        if (res.didCancel || res.errorCode) return;
-        setImage(res.assets[0]);
-      },
-    );
-  };
+  const takePhoto = async () => {
+  try {
+    const { scannedImages } = await DocumentScanner.scanDocument({
+      maxNumDocuments: 1,
+      responseType: 'imageFilePath',
+    });
 
+    if (scannedImages && scannedImages.length > 0) {
+      setImage({
+        uri: scannedImages[0],
+        type: 'image/jpeg',
+        fileName: 'pan.jpg',
+      });
+    }
+  } catch (error) {
+    console.log('Document scan error:', error);
+  }
+};
   const chooseFromGallery = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 1 }, res => {
       if (res.didCancel || res.errorCode) return;
