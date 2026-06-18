@@ -50,6 +50,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
   const ui = orderUIConfig[status] || {};
 
+  console.log("check",orderDetails)
   useEffect(() => {
     // Disable Android hardware back button
     const backHandler = BackHandler.addEventListener(
@@ -304,7 +305,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             <>
               <OrderAddressCard 
                 title="Pickup Location"
-                name={orderDetails.pickupAddress?.addressLine}
+                name={orderDetails.pickupAddress?.name}
                 address={orderDetails.pickupAddress?.addressLine}
                 iconType="store"
                 theme="green"
