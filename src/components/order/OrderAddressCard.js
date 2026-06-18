@@ -17,6 +17,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
  */
 const OrderAddressCard = ({ title, name, address, iconType = 'home', theme = 'default' }) => {
 
+    console.log("check", name,title,address);
     const getThemeStyles = () => {
         switch (theme) {
             case 'green':

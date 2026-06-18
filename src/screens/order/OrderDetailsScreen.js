@@ -50,6 +50,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
   const ui = orderUIConfig[status] || {};
 
+  console.log("check",orderDetails)
   useEffect(() => {
     // Disable Android hardware back button
     const backHandler = BackHandler.addEventListener(
