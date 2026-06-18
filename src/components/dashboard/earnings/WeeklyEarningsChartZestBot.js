@@ -10,7 +10,7 @@ import { formatMoney } from '../../../utils/formatMoney';
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const PADDING_LEFT   = isTablet ? wp(10) : wp(11);
+const PADDING_LEFT   = wp(10);
 const PADDING_RIGHT  = wp(2);
 const PADDING_TOP    = wp(6);   
 const PADDING_BOTTOM = wp(7);   
@@ -219,7 +219,7 @@ export default function WeeklyEarningsChartZestBot({
         <>
           {/* Section header */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Weekly Incentive Earnings</Text>
+            <Text style={styles.sectionTitle}>Weekly Incentives</Text>
             <View style={[styles.pill, styles.pillGreen]}>
               <Text style={[styles.pillText, styles.pillTextGreen]}>
                 ✓ Target Achieved
