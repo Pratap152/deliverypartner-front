@@ -160,7 +160,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
 
           {item?.weekly_data?.data[0]?.ruleType === "TASK" &&
             <View>
-              <Text style={styles.progressText}>Progress: {weeklyProgressPercentage}%</Text>
+              <Text style={styles.progressText}>Progress: {Math.round(weeklyProgressPercentage)}%</Text>
               <ProgressBar
                 progress={weeklyProgressPercentage}
                 progressColor="#34D399"
