@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { uploadEmployeeDetails } from '../services/EmployeeDetailsService';
-
+import { resolveNextScreen } from '../utils/onboardingFlow';
 
 // Validators
 const validateTextField = (v, label, min, max) => {
@@ -115,7 +115,12 @@ export default function useEmployeeDetails(navigation) {
     setSubmitting(true);
     try {
       await uploadEmployeeDetails(payload);
-      navigation.replace('DocumentDetailsScreen');
+
+const nextScreen = await resolveNextScreen();
+
+console.log('NEXT SCREEN:', nextScreen);
+
+navigation.replace(nextScreen);
       } catch (err) {
       const apiMsg =
         err.response?.data?.message ||
