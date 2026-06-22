@@ -3,14 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import ProgressBar from './ProgressBar';
-import MultiLevelProgressBar from './MultiLevelProgressBar';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function IncentiveCard({ item, weeklyCompletedOrders, dailyCompletedOrders, peakCompletedOrders, weeklyProgressPercentage }) {
   // console.log("ITEMMMM: ", item);
@@ -24,8 +20,6 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
     soft: '#D1FAE5',        // light bg
     border: '#A7F3D0',      // soft border
   };
-
-  const progressColor = GREEN_THEME.primary;
 
   const metaIcons = {
     peak: { label: 'Peak', icon: require('../../../assets/peak.png') },
@@ -45,7 +39,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
             item?.type === 'peak'
               ? '#FFF7ED'
               : item?.type === 'weekly'
-                ? '#E9D4FF'
+                ? '#FAF5FF'
                 : '#EFF6FF',
           borderColor:
             item?.type === 'peak'
@@ -59,7 +53,6 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
 
       <View style={styles.topRow}>
         <View style={styles.left}>
-
           <View
             style={[
               styles.labelChip,
@@ -68,13 +61,11 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
               },
             ]}
           >
-
             <Text style={[styles.chipText, { color: GREEN_THEME.deep }]}>{meta.label}</Text>
           </View>
           <Text style={styles.title}>{item?.title}</Text>
           <Text style={styles.subtitle}>{item?.subtitle}</Text>
         </View>
-
       </View>
 
       {/* Peak: multi-level UI */}
@@ -83,7 +74,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
           {item?.minOrders !== 0 &&
             <View style={{ marginTop: hp(1) }}>
               {/* Normal Slot Progress */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                 <Text style={styles.progressText}>
                   Orders
                 </Text>
@@ -93,24 +84,11 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
               </View>
 
               <ProgressBar
-                progress={
-                  (peakCompletedOrders / item?.minOrders) * 100
-                }
-                progressColor="#34D399"
-
+                progress={(peakCompletedOrders / item?.minOrders) * 100}
+                progressColor="#FFD6A7"
               />
             </View>
           }
-
-          {/* Multi-level progress bar component (existing file) */}
-          {/* <View style={{ marginTop: hp(1) }}>
-            <MultiLevelProgressBar
-              slabs={item?.peak_data.data[0].slots[0].slabs}
-              completedOrders={peakCompletedOrders}
-              height={hp(0.8)}
-              fillColor={GREEN_THEME.primary}
-            />
-          </View> */}
         </>
       )}
 
@@ -120,7 +98,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
         (
           <View style={{ marginTop: hp(1) }}>
             {/* Normal Slot Progress */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
               <Text style={styles.progressText}>
                 Orders
               </Text>
@@ -130,13 +108,9 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
             </View>
 
             <ProgressBar
-              progress={
-                (dailyCompletedOrders / item?.minOrders) * 100
-              }
-              progressColor="#34D399"
-
+              progress={(dailyCompletedOrders / item?.minOrders) * 100}
+              progressColor="#BEDBFF"
             />
-
           </View>
         )}
 
@@ -153,17 +127,17 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
 
               <ProgressBar
                 progress={Math.round((weeklyCompletedOrders / item?.minOrders) * 100)}
-                progressColor={progressColor}
+                progressColor="#E9D4FF"
               />
             </>
           )}
 
           {item?.weekly_data?.data[0]?.ruleType === "TASK" &&
             <View>
-              <Text style={styles.progressText}>Progress: {Math.round(weeklyProgressPercentage)}%</Text>
+              <Text style={[styles.progressText, { marginBottom: 5 }]}>Progress: {Math.round(weeklyProgressPercentage)}%</Text>
               <ProgressBar
                 progress={weeklyProgressPercentage}
-                progressColor="#34D399"
+                progressColor="#E9D4FF"
               />
             </View>
           }
@@ -182,7 +156,6 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
         {item?.type !== 'peak' && (
           <Text style={styles.rewardValue}>{item?.value}</Text>
         )}
-
       </View>
     </View>
   );

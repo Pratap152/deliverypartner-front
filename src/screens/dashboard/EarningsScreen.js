@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -347,7 +348,16 @@ export default function EarningsScreen({ navigation }) {
 
   // UI
   return (
-    <ScrollView style={{ flex: 1 }}>
+    <ScrollView
+    refreshControl={
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        colors={['#2196F3']} // Android
+        tintColor="#2196F3"  // iOS
+      />
+    }
+    style={{ flex: 1 }}>
 
       {HEADER}
 
