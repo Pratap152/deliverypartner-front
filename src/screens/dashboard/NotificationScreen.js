@@ -1,77 +1,139 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  StatusBar,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { markAllRead, clearAll, markRead } from '../../redux/slices/notificationSlice';
-import NotificationCard from '../../components/notifications/NotificationCard';
-import { groupNotificationsByDate } from '../../utils/notificationUtils';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+import apiClient from '../../services/ApiClient';
 import { navigate } from '../../navigation/RootNavigation';
 
+dayjs.extend(relativeTime);
+
 const NotificationsScreen = () => {
-  const dispatch = useDispatch();
-  const notifications = useSelector(state => state.notifications.list);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const grouped = useMemo(
-    () => groupNotificationsByDate(notifications),
-    [notifications]
-  );
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-  const onPressNotification = item => {
-    dispatch(markRead(item.id));
+  const fetchNotifications = async () => {
+    try {
+      const response = await apiClient.get(
+        '/api/notifications/all',
+      );
 
-    // 🔗 Deep link navigation (real-world)
-    if (item.screen) {
-      navigate(item.screen, item.params || {});
+      setNotifications(response?.data?.data || []);
+    } catch (error) {
+      console.log(
+        'Notifications Error:',
+        error?.response?.data || error,
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderSection = ({ title, data }) => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+  const onPressNotification = item => {
+    if (item.screen) {
+      navigate(item.screen);
+    }
+  };
 
-      {data.map(item => (
-        <NotificationCard
-          key={item.id}
-          item={item}
-          onPress={() => onPressNotification(item)}
-        />
-      ))}
-    </View>
-  );
+  const getIconText = type => {
+    if (type?.includes('SLOT')) return '🕒';
+    if (type?.includes('ORDER')) return '📦';
+    if (type?.includes('EARNING')) return '₹';
+    return '🔔';
+  };
 
-  return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Notifications</Text>
-
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => dispatch(markAllRead())}>
-            <Text style={styles.action}>Mark All Read</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => dispatch(clearAll())}>
-            <Text style={styles.action}>Clear All</Text>
-          </TouchableOpacity>
-        </View>
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={styles.card}
+      onPress={() => onPressNotification(item)}
+    >
+      <View style={styles.iconContainer}>
+        <Text style={styles.icon}>
+          {getIconText(item.type)}
+        </Text>
       </View>
 
-      {/* LIST */}
-      <FlatList
-        data={Object.entries(grouped)}
-        keyExtractor={([key]) => key}
-        renderItem={({ item }) =>
-          renderSection({ title: item[0], data: item[1] })
-        }
-        contentContainerStyle={{ paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
+      <View style={styles.content}>
+        <Text style={styles.title}>
+          {item.title}
+        </Text>
+
+        <Text style={styles.body}>
+          {item.body}
+        </Text>
+
+        <Text style={styles.time}>
+          {dayjs(item.createdAt).fromNow()}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#192A51" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+   <SafeAreaView
+  edges={['top']}
+  style={{ flex: 1, backgroundColor: '#192A51' }}
+>
+  <View style={styles.container}>
+      <StatusBar
+        backgroundColor="#192A51"
+        barStyle="light-content"
       />
-    </View>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>
+          Notifications
+        </Text>
+
+        <Text style={styles.headerSubTitle}>
+          Stay updated with your delivery activities
+        </Text>
+      </View>
+
+      {notifications.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>
+            No Notifications
+          </Text>
+
+          <Text style={styles.emptyText}>
+            You're all caught up.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={notifications}
+          keyExtractor={item => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -80,49 +142,99 @@ export default NotificationsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F7F9', // light app background
+    backgroundColor: '#F7F8FA',
   },
 
-  /* ================= HEADER ================= */
-
   header: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    backgroundColor: '#192A51',
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+
+  headerSubTitle: {
+    marginTop: 4,
+    color: '#D7DDEA',
+    fontSize: 13,
+  },
+
+  list: {
+    padding: 16,
+  },
+
+  card: {
+    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E8EC',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 14,
+    marginBottom: 12,
+  },
+
+  iconContainer: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    backgroundColor: '#EEF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  icon: {
+    fontSize: 18,
+  },
+
+  content: {
+    flex: 1,
   },
 
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
   },
 
-  headerActions: {
-    flexDirection: 'row',
+  body: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#6B7280',
+  },
+
+  time: {
     marginTop: 8,
-    gap: 16,
+    fontSize: 12,
+    color: '#9CA3AF',
   },
 
-  action: {
-    fontSize: 14,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  emptyTitle: {
+    fontSize: 18,
     fontWeight: '600',
-    color: '#007AFF', // iOS / delivery blue
+    color: '#111827',
   },
 
-  /* ================= SECTIONS ================= */
-
-  section: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-  },
-
-  sectionTitle: {
+  emptyText: {
+    marginTop: 6,
+    color: '#6B7280',
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280', // muted grey
-    marginBottom: 8,
   },
 });
