@@ -38,6 +38,7 @@
     "react-native": "0.82.1",
     "react-native-actions-sheet": "^10.1.0",
     "react-native-actionsheet": "^2.4.2",
+    "react-native-android-location-enabler": "^3.0.1",
     "react-native-background-geolocation": "^5.1.1",
     "react-native-background-timer": "^2.4.1",
     "react-native-config": "^1.6.1",
