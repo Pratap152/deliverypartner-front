@@ -10,6 +10,7 @@ import StatsCard from "../../components/home/StatsCard";
 import ActiveShiftBanner from "../../components/home/ActiveShiftBanner";
 import PeakHoursBanner from "../../components/home/PeakHoursBanner";
 import WeeklyStatsCard from "../../components/home/WeeklyStatsCard";
+import LocationBlocker from "../../components/home/LocationBlocker";
 import {
   getHomeBanners,
   todayStats,
@@ -17,9 +18,28 @@ import {
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
+import { checkLocationRequirements, requestLocationRequirements, listenAppResume } from '../../utils/locationPermission';
+
 const HomeDashboard = () => {
 
-useFocusEffect(
+  const [locationReady, setLocationReady] = useState(false);
+
+  const validateLocation = async () => {
+    const status = await checkLocationRequirements();
+    setLocationReady(status);
+  };
+
+  useEffect(() => {
+    validateLocation();
+
+    const subscription = listenAppResume(() => {
+      validateLocation();
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
         Alert.alert(
@@ -97,7 +117,7 @@ useFocusEffect(
             <StatsCard key={item.id} {...item} isOnline={isOnline} totalOnlineMinutes={totalOnlineMinutes} />
           ))}
         </View>
-         {/* Banner carousel visible in online */}
+        {/* Banner carousel visible in online */}
         {isOnline && (
           <View style={styles.carouselWrapper}>
             <BannerCarousel data={banners} />
@@ -108,6 +128,16 @@ useFocusEffect(
 
         <WeeklyStatsCard />
       </ScrollView>
+      
+      <LocationBlocker
+        visible={!locationReady}
+        onEnable={async () => {
+          const granted =
+            await requestLocationRequirements();
+
+          setLocationReady(granted);
+        }}
+      />
     </SafeAreaView>
   );
 };
