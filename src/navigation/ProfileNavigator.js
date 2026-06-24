@@ -12,6 +12,9 @@ import BankAC from '../screens/profile/BankAC';
 import SlotHistory from '../screens/profile/SlotHistory';
 import RewardsScreen from '../screens/profile/Rewards';
 import OrderHistory from '../screens/profile/OrderHistory';
+import OrderHistoryDetails from '../screens/profile/OrderHistoryDetails';
+
+
 const Stack = createNativeStackNavigator();
 
 export default function ProfileNavigator() {
@@ -28,6 +31,7 @@ export default function ProfileNavigator() {
       <Stack.Screen name="BankAC" component={BankAC} />
       <Stack.Screen name="SlotHistory" component={SlotHistory} />
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
+      <Stack.Screen name="OrderHistoryDetails" component={OrderHistoryDetails} />
       <Stack.Screen name="RewardsScreen" component={RewardsScreen} />
     </Stack.Navigator>
   );

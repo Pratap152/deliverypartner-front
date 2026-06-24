@@ -19,7 +19,10 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import apiClient from "../../services/ApiClient";
+import DeviceInfo from "react-native-device-info";
 
+
+const isTablet = DeviceInfo.isTablet();
 export default function AddBankDetails() {
   const navigation = useNavigation();
 
@@ -77,6 +80,14 @@ export default function AddBankDetails() {
     >
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
+          <TouchableOpacity onPress={() => navigation.goBack()}
+                            style={{marginTop:15}}>
+            <Ionicons
+              name="arrow-back"
+              size={isTablet ? 34 : 24}
+              color="#000"
+            />
+          </TouchableOpacity>
           <Image
             source={require("../../assets/Bank.png")}
             style={styles.image}

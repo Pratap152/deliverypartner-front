@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +10,7 @@ import StatsCard from "../../components/home/StatsCard";
 import ActiveShiftBanner from "../../components/home/ActiveShiftBanner";
 import PeakHoursBanner from "../../components/home/PeakHoursBanner";
 import WeeklyStatsCard from "../../components/home/WeeklyStatsCard";
+import LocationBlocker from "../../components/home/LocationBlocker";
 import {
   getHomeBanners,
   todayStats,
@@ -16,28 +18,78 @@ import {
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
+import { checkLocationRequirements, requestLocationRequirements, listenAppResume } from '../../utils/locationPermission';
+
 const HomeDashboard = () => {
-  const navigation = useNavigation();
-  const { isOnline, goOnline, goOffline, isLoading, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
-const [banners, setBanners] = useState([]);
+
+  const [locationReady, setLocationReady] = useState(false);
+
+  const validateLocation = async () => {
+    const status = await checkLocationRequirements();
+    setLocationReady(status);
+  };
 
   useEffect(() => {
-  loadHomeData();
-}, []);
+    validateLocation();
 
-const loadHomeData = async () => {
-  try {
-    await fetchRiderStatus();
+    const subscription = listenAppResume(() => {
+      validateLocation();
+    });
 
-    const bannerData = await getHomeBanners();
+    return () => subscription.remove();
+  }, []);
 
-    setBanners(bannerData);
-  } catch (error) {
-    console.log('HOME DATA ERROR:', error);
-  }
-};
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
 
-if (refreshing) return null;
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
+  const navigation = useNavigation();
+  const { isOnline, goOnline, goOffline, isLoading, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
+  const [banners, setBanners] = useState([]);
+
+  useEffect(() => {
+    loadHomeData();
+  }, []);
+
+  const loadHomeData = async () => {
+    try {
+      await fetchRiderStatus();
+
+      const bannerData = await getHomeBanners();
+
+      setBanners(bannerData);
+    } catch (error) {
+      console.log('HOME DATA ERROR:', error);
+    }
+  };
+
+  if (refreshing) return null;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -47,18 +99,17 @@ if (refreshing) return null;
         {/* ONLINE / OFFLINE TOGGLE */}
         <SwipeOnlineToggle
           isOnline={isOnline}
-          isLoading={refreshing}
+          isLoading={isLoading}
           onSwipeOnline={goOnline}
           onSwipeOffline={goOffline}
         />
 
-        {/* Banner carousel only if offline */}
+        {/* Banner carousel visible in offline */}
         {!isOnline && (
           <View style={styles.carouselWrapper}>
             <BannerCarousel data={banners} />
           </View>
-        )}  
-
+        )}
         <Text style={styles.sectionTitle}>Today's Progress</Text>
 
         <View style={styles.statsRow}>
@@ -66,11 +117,27 @@ if (refreshing) return null;
             <StatsCard key={item.id} {...item} isOnline={isOnline} totalOnlineMinutes={totalOnlineMinutes} />
           ))}
         </View>
+        {/* Banner carousel visible in online */}
+        {isOnline && (
+          <View style={styles.carouselWrapper}>
+            <BannerCarousel data={banners} />
+          </View>
+        )}
         <ActiveShiftBanner />
         <PeakHoursBanner />
 
         <WeeklyStatsCard />
       </ScrollView>
+      
+      <LocationBlocker
+        visible={!locationReady}
+        onEnable={async () => {
+          const granted =
+            await requestLocationRequirements();
+
+          setLocationReady(granted);
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -118,5 +185,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeDashboard;
-  
-

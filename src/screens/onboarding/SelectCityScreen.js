@@ -6,10 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const isTablet = DeviceInfo.isTablet();
 const H_PADDING = isTablet ? 40 : 20;
@@ -20,6 +24,37 @@ const cityFont = isTablet ? 18 : 16;
 const iconSize = isTablet ? 24 : 20;
 
 export default function SelectCityScreen({ navigation }) {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const [allCities, setAllCities] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
@@ -58,7 +93,7 @@ export default function SelectCityScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.screenWrapper}>
+    <SafeAreaView style={styles.screenWrapper}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -128,21 +163,21 @@ export default function SelectCityScreen({ navigation }) {
 
         {/* Submit */}
         <TouchableOpacity
-            style={[
-              styles.submitButton,
-              !selectedCity && { opacity: 0.5 },
-            ]}
-            disabled={!selectedCity}
-            onPress={() =>
-              navigation.navigate('AreaSelectionScreen', {
-                city: selectedCity,
-              })
-            }
-          >
-            <Text style={styles.submitButtonText}>Submit</Text>
+          style={[
+            styles.submitButton,
+            !selectedCity && { opacity: 0.5 },
+          ]}
+          disabled={!selectedCity}
+          onPress={() =>
+            navigation.navigate('AreaSelectionScreen', {
+              city: selectedCity,
+            })
+          }
+        >
+          <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -158,7 +193,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: CONTENT_MAX_WIDTH,
     paddingHorizontal: H_PADDING,
-    paddingTop: 40,
   },
 
   header: {
@@ -169,9 +203,10 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: titleFont,
-    fontWeight: '600',
-    color: '#000',
+    flex: 1,
+    fontSize: isTablet ? 34 : 26,
+    fontWeight: '700',
+    textAlign: 'center'
   },
 
   searchContainer: {
@@ -241,21 +276,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
- submitButton: {
-  width: isTablet ? 600 : '100%',
-  alignSelf: 'center',
-  backgroundColor: '#00B5CC',
-  paddingVertical: isTablet ? 18 : 15,
-  borderRadius: 40,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: 20,
-  marginBottom: 10,
-},
+  submitButton: {
+    width: isTablet ? 600 : '100%',
+    alignSelf: 'center',
+    backgroundColor: '#00B5CC',
+    paddingVertical: isTablet ? 18 : 15,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
 
-submitButtonText: {
-  color: '#fff',
-  fontSize: isTablet ? 22 : 18,
-  fontWeight: '700',
-},
+  submitButtonText: {
+    color: '#fff',
+    fontSize: isTablet ? 22 : 18,
+    fontWeight: '700',
+  },
 });

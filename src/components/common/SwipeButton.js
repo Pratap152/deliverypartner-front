@@ -37,7 +37,7 @@ const SwipeButton = ({
                     </>
                 ) : (
                     <Text style={styles.actionButtonText}>
-                        {status === 'EN_ROUTE_TO_DROP' && (
+                        {status === 'RIDER_ARRIVED_AT_DROP' && (
                             orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
                             orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
                             orderDetails?.payment?.mode?.toUpperCase() === 'COD'

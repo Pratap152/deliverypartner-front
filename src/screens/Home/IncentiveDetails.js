@@ -20,7 +20,11 @@ import {
   getWeeklyIncentives,
 } from "../../services/earnings/incentiveService";
 import useIncentives from "../../hooks/useIncentives";
+import { SafeAreaView } from "react-native-safe-area-context";
+import DeviceInfo from 'react-native-device-info';
 
+
+const isTablet = DeviceInfo.isTablet();
 export default function IncentiveDetails({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [peakData, setPeakData] = useState(null);
@@ -178,7 +182,7 @@ export default function IncentiveDetails({ navigation }) {
   /* ================= RENDER ================= */
   if (loading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         {/* HEADER EVEN DURING LOADING */}
         <LinearGradient
           colors={["#6366F1", "#4F46E5"]}
@@ -190,17 +194,16 @@ export default function IncentiveDetails({ navigation }) {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
+            <Ionicons name="arrow-back" size={isTablet ? 30 : 24} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Incentive Details</Text>
-          <View style={{ width: 24 }} />
         </LinearGradient>
 
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#6366F1" />
           <Text style={styles.loadingText}>Loading incentives...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -235,7 +238,7 @@ export default function IncentiveDetails({ navigation }) {
     );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* PURPLE GRADIENT HEADER */}
       <LinearGradient
         colors={["#6366F1", "#4F46E5"]}
@@ -250,7 +253,7 @@ export default function IncentiveDetails({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Incentive Details</Text>
-        <View style={{ width: 24 }} />
+      
       </LinearGradient>
 
       <ScrollView
@@ -464,7 +467,7 @@ export default function IncentiveDetails({ navigation }) {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -479,16 +482,15 @@ const styles = StyleSheet.create({
   headerGradient: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
-    paddingTop: hp(3),
+    gap:10
   },
   backButton: {
     padding: 8,
   },
   headerTitle: {
-    fontSize: wp(5.5),
+    fontSize: wp(6),
     fontWeight: "700",
     color: "#FFF",
   },

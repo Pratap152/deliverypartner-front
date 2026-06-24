@@ -170,8 +170,8 @@ const PersonalDetailsScreen = ({ navigation }) => {
       </View>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
         <ScrollView showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1, paddingBottom: rh('6%') }} 
-                                        keyboardShouldPersistTaps="handled">
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: rh('6%') }}
+          keyboardShouldPersistTaps="handled">
           {/* PROFILE CARD */}
           <View style={styles.profileCard}>
             <TouchableOpacity
@@ -200,13 +200,16 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
             <View style={styles.profileInfo}>
               <Text style={styles.name}>{form.fullName}</Text>
-              <Text style={styles.driverId}>Driver ID: DRV123456</Text>
+
+              <Text style={styles.driverId}>
+                Rider ID: {profile?.partnerId || '—'}
+              </Text>
             </View>
           </View>
 
           {/* BASIC INFO */}
           <Section title="Basic Information">
-            <Label text="Full Name"/>
+            <Label text="Full Name" />
             <Field
               editable={false}
               value={form.fullName}
@@ -359,18 +362,18 @@ const Label = ({ iconName, text }) => (
 
 const Field = ({ editable, isEditing, style, ...props }) => {
   const isDisabled = isEditing && !editable;
-  return( 
+  return (
     <TextInput
-        {...props}
+      {...props}
       editable={isEditing ? editable : false}
       style={[
         styles.input,
-        isEditing && editable && styles.activeInput,   
-        isDisabled && styles.disabledInput,          
-      ]}  
-      />
-    );
-  };
+        isEditing && editable && styles.activeInput,
+        isDisabled && styles.disabledInput,
+      ]}
+    />
+  );
+};
 
 
 const styles = StyleSheet.create({

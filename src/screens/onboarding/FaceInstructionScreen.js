@@ -1,11 +1,43 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions, BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import { launchCamera } from 'react-native-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function FaceInstructionScreen({ navigation }) {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
 
   const { width, height } = useWindowDimensions();
   const isTablet = DeviceInfo.isTablet();
@@ -50,7 +82,7 @@ export default function FaceInstructionScreen({ navigation }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         {/* HEADING */}
         <View style={styles.headerContainer}>
@@ -115,7 +147,7 @@ export default function FaceInstructionScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -139,7 +171,6 @@ const createStyles = (isTablet, width, height) => {
       flex: 1,
       width: contentWidth,
       paddingHorizontal: isTablet ? 30 : 24,
-      paddingTop: isTablet ? 50 : 36,
       paddingBottom: isTablet ? 30 : 20,
     },
 

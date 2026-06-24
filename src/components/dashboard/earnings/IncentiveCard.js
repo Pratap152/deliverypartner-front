@@ -3,20 +3,16 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import ProgressBar from './ProgressBar';
-import MultiLevelProgressBar from './MultiLevelProgressBar';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function IncentiveCard({ item, weeklyCompletedOrders, dailyCompletedOrders, peakCompletedOrders, weeklyProgressPercentage }) {
   // console.log("ITEMMMM: ", item);
-  const isPeak = item.type === 'peak';
-  const isWeekly = item.type === 'weekly';
-  const isDaily = item.type === 'daily';
+  const isPeak = item?.type === 'peak';
+  const isWeekly = item?.type === 'weekly';
+  const isDaily = item?.type === 'daily';
 
   const GREEN_THEME = {
     primary: '#10B981',     // main fill
@@ -25,8 +21,6 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
     border: '#A7F3D0',      // soft border
   };
 
-  const progressColor = GREEN_THEME.primary;
-
   const metaIcons = {
     peak: { label: 'Peak', icon: require('../../../assets/peak.png') },
     weekly: { label: 'Weekly', icon: require('../../../assets/weekly.png') },
@@ -34,7 +28,7 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
     surge: { label: 'Surge', icon: require('../../../assets/surge.png') },
   };
 
-  const meta = metaIcons[item.type] ?? metaIcons.daily;
+  const meta = metaIcons[item?.type] ?? metaIcons.daily;
 
   return (
     <View
@@ -42,145 +36,115 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
         styles.card,
         {
           backgroundColor:
-            item.type === 'peak'
-              ? '#ECFDF5'
-              : item.type === 'weekly'
-                ? '#F0FDF4'
-                : '#F6FFF9',
-          borderColor: GREEN_THEME.border,
+            item?.type === 'peak'
+              ? '#FFF7ED'
+              : item?.type === 'weekly'
+                ? '#FAF5FF'
+                : '#EFF6FF',
+          borderColor:
+            item?.type === 'peak'
+              ? '#FFD6A7'
+              : item?.type === 'weekly'
+                ? '#E9D4FF'
+                : '#BEDBFF',
           borderWidth: 1,
         },
       ]}>
 
-      <View
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: wp(1.5),
-          backgroundColor: GREEN_THEME.primary,
-          borderTopLeftRadius: wp(4),
-          borderBottomLeftRadius: wp(4),
-        }}
-      />
-
       <View style={styles.topRow}>
         <View style={styles.left}>
-
           <View
             style={[
               styles.labelChip,
               {
-                backgroundColor: GREEN_THEME.soft,
-                borderWidth: 1,
-                borderColor: GREEN_THEME.border,
+                backgroundColor: '#FFFFFF',
               },
             ]}
           >
-
             <Text style={[styles.chipText, { color: GREEN_THEME.deep }]}>{meta.label}</Text>
           </View>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.subtitle}>{item.subtitle}</Text>
+          <Text style={styles.title}>{item?.title}</Text>
+          <Text style={styles.subtitle}>{item?.subtitle}</Text>
         </View>
-
       </View>
 
       {/* Peak: multi-level UI */}
-      {(isPeak && !item.emptyData) && (
+      {(isPeak && !item?.emptyData) && (
         <>
-          {item.minOrders !== 0 &&
+          {item?.minOrders !== 0 &&
             <View style={{ marginTop: hp(1) }}>
               {/* Normal Slot Progress */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                 <Text style={styles.progressText}>
                   Orders
                 </Text>
                 <Text style={styles.progressText}>
-                  {peakCompletedOrders}/{item.minOrders}
+                  {peakCompletedOrders}/{item?.minOrders}
                 </Text>
               </View>
 
               <ProgressBar
-                progress={
-                  (peakCompletedOrders / item.minOrders) * 100
-                }
-                progressColor="#34D399"
-
+                progress={(peakCompletedOrders / item?.minOrders) * 100}
+                progressColor="#FFD6A7"
               />
             </View>
           }
-
-          {/* Multi-level progress bar component (existing file) */}
-          {/* <View style={{ marginTop: hp(1) }}>
-            <MultiLevelProgressBar
-              slabs={item.peak_data.data[0].slots[0].slabs}
-              completedOrders={peakCompletedOrders}
-              height={hp(0.8)}
-              fillColor={GREEN_THEME.primary}
-            />
-          </View> */}
         </>
       )}
 
-      {(isDaily && !item.emptyData &&
-        (item.daily_data?.data[0].ruleType !== "TASK" && item.daily_data?.data[0].ruleType !== "PER_ORDER")
+      {(isDaily && !item?.emptyData &&
+        (item?.daily_data?.data[0].ruleType !== "TASK" && item?.daily_data?.data[0].ruleType !== "PER_ORDER")
       ) &&
         (
           <View style={{ marginTop: hp(1) }}>
             {/* Normal Slot Progress */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
               <Text style={styles.progressText}>
                 Orders
               </Text>
               <Text style={styles.progressText}>
-                {dailyCompletedOrders}/{item.minOrders}
+                {dailyCompletedOrders}/{item?.minOrders}
               </Text>
             </View>
 
             <ProgressBar
-              progress={
-                (dailyCompletedOrders / item.minOrders) * 100
-              }
-              progressColor="#34D399"
-
+              progress={(dailyCompletedOrders / item?.minOrders) * 100}
+              progressColor="#BEDBFF"
             />
-
           </View>
         )}
 
       {/* Weekly or fallback single progress bar */}
-      {isWeekly && !item.emptyData && (
+      {isWeekly && !item?.emptyData && (
         <>
-          {(item.minOrders > 0) && (
+          {(item?.minOrders > 0) && (
             <>
               <View style={styles.progressRow}>
                 <Text style={styles.progressText}>
-                  {weeklyCompletedOrders}/{item.minOrders}
+                  {weeklyCompletedOrders}/{item?.minOrders}
                 </Text>
               </View>
 
               <ProgressBar
-                progress={Math.round((weeklyCompletedOrders / item.minOrders) * 100)}
-                progressColor={progressColor}
+                progress={Math.round((weeklyCompletedOrders / item?.minOrders) * 100)}
+                progressColor="#E9D4FF"
               />
             </>
           )}
 
-          {item.weekly_data?.data[0]?.ruleType === "TASK" &&
+          {item?.weekly_data?.data[0]?.ruleType === "TASK" &&
             <View>
-              <Text style={styles.progressText}>Progress: {weeklyProgressPercentage}%</Text>
+              <Text style={[styles.progressText, { marginBottom: 5 }]}>Progress: {Math.round(weeklyProgressPercentage)}%</Text>
               <ProgressBar
                 progress={weeklyProgressPercentage}
-                progressColor="#34D399"
+                progressColor="#E9D4FF"
               />
             </View>
           }
         </>
       )}
       {
-        item.emptyData && (
+        item?.emptyData && (
           <Text>
             Incentives not found, please come back later
           </Text>
@@ -189,10 +153,9 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
 
       {/* reward / CTA */}
       <View style={styles.bottomRow}>
-        {item.type !== 'peak' && (
-          <Text style={styles.rewardValue}>{item.value}</Text>
+        {item?.type !== 'peak' && (
+          <Text style={styles.rewardValue}>{item?.value}</Text>
         )}
-
       </View>
     </View>
   );
@@ -216,7 +179,7 @@ const styles = StyleSheet.create({
   left: { flex: 1, paddingRight: wp(2) },
   right: { width: wp(12), alignItems: 'flex-end' },
   labelChip: { backgroundColor: '#ffffff', paddingHorizontal: wp(2), paddingVertical: hp(0.3), borderRadius: wp(1.5), alignSelf: 'flex-start', marginBottom: hp(0.4) },
-  chipText: { fontSize: wp(3.1), fontWeight: '700' },
+  chipText: { fontSize: 14, fontWeight: '700' },
   title: { fontSize: wp(4.2), fontWeight: '600', color: '#111' },
   subtitle: { fontSize: wp(3.3), color: '#6B7280', marginTop: hp(0.3) },
   icon: { width: wp(8), height: wp(8), resizeMode: 'contain' },

@@ -25,13 +25,14 @@ const OrderQueueModal = ({
 
     const renderItem = ({ item }) => {
         const { data, countdown } = item;
+        console.log("address", data)
         return (
             <OrderCard
                 distance={`${data.distanceKm || 0} kms`}
                 price={data.estimatedEarning || 0}
                 items={data.itemCount || 1}
-                pickup={data.vendorShopName || 'Store Location'}
-                drop={data.dropLocation?.address || data.dropAddress || 'Customer Location'}
+                pickup={data.pickupLocation?.addressLine || 'Store Location'}
+                drop={data.dropLocation?.addressLine}
                 timeLeft={countdown}
                 loading={loading}
                 onAccept={() => onAccept(data.orderId)}

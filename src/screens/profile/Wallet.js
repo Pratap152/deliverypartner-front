@@ -2,418 +2,886 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
- StyleSheet,
+  StyleSheet,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
-
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-
 import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
-
-import DeviceInfo from 'react-native-device-info';
-
+  responsiveWidth as rw,
+  responsiveHeight as rh,
+  responsiveFontSize as rf,
+} from 'react-native-responsive-dimensions';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import LinearGradient from 'react-native-linear-gradient';
 import apiClient from '../../services/ApiClient';
 
-// STATIC DATA (UNCHANGED)
-const WALLET_DATA = {
-  availableBalance: 12450,
-  pendingCodAmount: 850,
-  recentTransactions: [
-    {
-      id: '1',
-      title: 'Weekly Earnings Payout',
-      type: 'CREDIT',
-      amount: 8450,
-      date: '12/15/2024 • 10:30 AM',
-    },
-    {
-      id: '2',
-      title: 'Cash Deposit to HQ',
-      type: 'DEBIT',
-      amount: 2500,
-      date: '12/14/2024 • 08:45 PM',
-    },
-    {
-      id: '3',
-      title: 'Bonus Payment',
-      type: 'CREDIT',
-      amount: 500,
-      date: '12/13/2024 • 06:20 PM',
-    },
-    {
-      id: '4',
-      title: 'Customer Tip',
-      type: 'CREDIT',
-      amount: 150,
-      date: '12/13/2024 • 03:15 PM',
-    },
-  ],
-};
-
-const isTablet = DeviceInfo.isTablet();
-
 export default function WalletScreen({ navigation }) {
-  const [balance, setBalance] = useState(
-    WALLET_DATA.availableBalance,
-  );
+  const [loading, setLoading] = useState(true);
+  const [wallet, setWallet] = useState(null);
+  const [bank, setBank] = useState(null);
+  const [settlement, setSettlement] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [expanded, setExpanded] = useState(false);
+  const [showAllTransactions, setShowAllTransactions] =
+    useState(false);
 
   useEffect(() => {
-    fetchWallet();
+    fetchData();
   }, []);
 
-  const fetchWallet = async () => {
-    try {
-      const res = await apiClient.get('/api/profile/wallet');
+  const fetchData = async () => {
+  try {
+    const walletRes = await apiClient.get(
+      '/api/rider/get/wallet',
+    );
 
-      console.log('Wallet API Response:', res.data);
+    setWallet(walletRes.data.data);
+  } catch (error) {
+    console.log('Wallet Error', error);
+  }
 
-      const apiBalance = res.data?.data?.balance;
+  try {
+    const settlementRes = await apiClient.get(
+      '/api/settlement-breakdown',
+    );
 
-      if (apiBalance !== undefined) {
-        setBalance(Number(apiBalance).toFixed(2));
-      }
-    } catch (err) {
-      console.log('Wallet API Error:', err);
+    setSettlement(settlementRes.data.data);
+  } catch (error) {
+    console.log('Settlement Error', error);
+  }
+
+  try {
+    const bankRes = await apiClient.get(
+      '/api/profile/bank-details',
+    );
+
+    setBank(bankRes.data.data);
+  } catch (error) {
+    console.log('Bank Error', error);
+  }
+
+  try {
+    const transactionRes = await apiClient.get(
+      '/api/wallet/withdrawals',
+    );
+
+    setTransactions(
+      transactionRes.data.data.transactions || [],
+    );
+  } catch (error) {
+    console.log('Transaction Error', error);
+  }
+
+  setLoading(false);
+};
+  const formatCurrency = amount =>
+    `₹${Number(amount || 0).toLocaleString('en-IN')}`;
+  const formatDate = date => {
+    if (!date) {
+      return '--';
     }
+
+    return new Date(date).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+    });
   };
+  const formatDateTime = date => {
+    if (!date) {
+      return '--';
+    }
 
-  const renderItem = ({ item }) => {
-    const isCredit = item.type === 'CREDIT';
-
+    return new Date(date).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+  const isZestbot =
+    wallet?.riderType === 'ZESTBOT_EMPLOYEE';
+  if (loading) {
     return (
-      <View style={styles.txnRow}>
-        <View
-          style={[
-            styles.icon,
-            isCredit ? styles.creditIcon : styles.debitIcon,
-          ]}
-        >
-          <Ionicons
-            name={isCredit ? 'arrow-down' : 'arrow-up'}
-            size={isTablet ? 24 : 18}
-            color={isCredit ? '#0AAE4F' : '#E53935'}
-          />
-        </View>
-
-        <View style={{ flex: 1 }}>
-          <Text
-            style={styles.txnTitle}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item.title}
-          </Text>
-
-          <Text style={styles.txnDate}>
-            {item.date}
-          </Text>
-        </View>
-
-        <Text
-          style={[
-            styles.amount,
-            isCredit ? styles.credit : styles.debit,
-          ]}
-        >
-          {isCredit ? '+' : '-'}₹{item.amount}
-        </Text>
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" />
       </View>
     );
-  };
+  }
+  const displayedTransactions =
+    showAllTransactions
+      ? transactions
+      : transactions.slice(0, 3);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.headerRow}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="arrow-back"
-            size={isTablet ? 34 : 24}
+            size={rf(2.6)}
+            color="#101828"
           />
         </TouchableOpacity>
 
-        <Text style={styles.header}>Wallet</Text>
+        <Text style={styles.headerTitle}>
+          Wallet
+        </Text>
 
-        <Ionicons
-          name="chatbubble-ellipses-outline"
-          size={isTablet ? 30 : 22}
-        />
-      </View>
-
-      {/* Balance Card */}
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceHeader}>
-          <MaterialCommunityIcons
-            name="wallet"
-            size={isTablet ? 30 : 22}
-            color="#FFF"
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('HelpCenterList')
+          }>
+          <Image
+            source={require('../../assets/profile/HelpcenterIcon.png')}
+            style={styles.robotIcon}
           />
-
-          <Text style={styles.label}>
-            Available Balance
-          </Text>
-        </View>
-
-        <Text style={styles.balance}>₹{balance}</Text>
-
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn}>
+        </TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Wallet Card */}
+        <View style={styles.walletContainer}>
+          <LinearGradient
+            colors={['#192A51', "#294484", "#31529D", "#3558AA", '#385FB7']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.walletCard}>
+            <View style={styles.walletTop}>
+              <View>
+                <View style={styles.walletTitleRow}>
+                  <Text style={styles.walletLabel}>
+                    Wallet Balance
+                  </Text>
+                </View>
+                <View style={styles.balanceRow}>
+                  <Text style={styles.walletAmount}>
+                    {formatCurrency(wallet?.totalAmount)}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.walletIconBox}>
+                <Ionicons
+                  name="wallet"
+                  size={34}
+                  color="#355CCB"
+                />
+              </View>
+            </View>
+          </LinearGradient>
+          <View style={styles.infoCard}>
+            {isZestbot ? (
+              <>
+                <View style={styles.infoItem}>
+                  <View style={styles.greenIcon}>
+                    <Ionicons
+                      name="card"
+                      size={18}
+                      color="#2E9B51"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Salary
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {formatCurrency(wallet?.salary)}
+                  </Text>
+                </View>
+                <View style={styles.verticalDivider} />
+                <View style={styles.infoItem}>
+                  <View style={styles.yellowIcon}>
+                    <Ionicons
+                      name="trophy"
+                      size={18}
+                      color="#F6B500"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Incentives
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {formatCurrency(wallet?.incentives)}
+                  </Text>
+                </View>
+                <View style={styles.verticalDivider} />
+                <View style={styles.infoItem}>
+                  <View style={styles.greenIcon}>
+                    <Ionicons
+                      name="cash"
+                      size={18}
+                      color="#2E9B51"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Tips
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {formatCurrency(wallet?.tips)}
+                  </Text>
+                </View>
+                <View style={styles.verticalDivider} />
+                <View style={styles.infoItem}>
+                  <View style={styles.grayIcon}>
+                    <Ionicons
+                      name="calendar"
+                      size={18}
+                      color="#777"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Withdraw Date
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {formatDate(wallet?.withdrawDate)}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.infoItem}>
+                  <View style={styles.greenIcon}>
+                    <Ionicons
+                      name="cash"
+                      size={18}
+                      color="#2E9B51"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Available Balance
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {formatCurrency(wallet?.availableBalance)}
+                  </Text>
+                </View>
+                <View style={styles.verticalDivider} />
+                <View style={styles.infoItem}>
+                  <View style={styles.yellowIcon}>
+                    <Ionicons
+                      name="lock-closed"
+                      size={18}
+                      color="#F6B500"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Balance on Hold
+                  </Text>
+                  <Text style={styles.infoholdValue}>
+                    {formatCurrency(wallet?.holdAmount)}
+                  </Text>
+                </View>
+                <View style={styles.verticalDivider} />
+                <View style={styles.infoItem}>
+                  <View style={styles.grayIcon}>
+                    <Ionicons
+                      name="calendar"
+                      size={18}
+                      color="#777"
+                    />
+                  </View>
+                  <Text style={styles.infoTitle}>
+                    Withdrawal Date
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {formatDate(wallet?.withdrawDate)}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+          <TouchableOpacity
+            style={styles.statementBtn}>
             <Ionicons
-              name="arrow-up-circle-outline"
-              size={isTablet ? 24 : 18}
+              name="document-text-outline"
+              size={22}
+              color="#fff"
             />
-
-            <Text style={styles.actionText}>
-              {' '}
-              Withdraw
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons
-              name="download-outline"
-              size={isTablet ? 24 : 18}
-            />
-
-            <Text style={styles.actionText}>
-              {' '}
+            <Text style={styles.statementText}>
               Statement
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.pendingBox}>
-          <Text style={styles.pendingLabel}>
-            Pending Amount
-          </Text>
+        {/* Settlement */}
+        <TouchableOpacity
+          style={styles.sectionCard}
+          onPress={() => setExpanded(!expanded)}>
 
-          <Text style={styles.pendingAmount}>
-            ₹{WALLET_DATA.pendingCodAmount}
-          </Text>
-        </View>
-      </View>
+          <View style={styles.sectionLeft}>
+            <View style={styles.settlementIcon}>
+              <Text style={styles.rupeeIcon}>₹</Text>
+            </View>
 
-      {/* Quick Actions */}
-      <View style={styles.quickActions}>
-        <View style={styles.quickItem}>
+            <Text style={styles.sectionTitle}>
+              Settlement Breakdown
+            </Text>
+          </View>
+
           <Ionicons
-            name="add-circle"
-            size={isTablet ? 38 : 26}
-            color="#20C997"
+            name={
+              expanded
+                ? 'chevron-up'
+                : 'chevron-down'
+            }
+            size={24}
+            color="#111"
           />
+        </TouchableOpacity>
+        {expanded && (
+          <View style={styles.breakdown}>
+            {!settlement ? (
+              <Text style={styles.emptyText}>
+                No settlement data available
+              </Text>
+            ) : (
+              <>
+                {settlement.riderType ===
+                  'ZESTBOT_EMPLOYEE' ? (
+                  <>
+                    <Row
+                      title="Salary"
+                      value={settlement.salary}
+                    />
+                    <Row
+                      title="Incentives"
+                      value={settlement.incentives}
+                    />
+                    <Row
+                      title="Tips"
+                      value={settlement.tips}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Row
+                      title="Total Withdraw"
+                      value={settlement.totalWithdraw}
+                    />
+                    <Row
+                      title="Tips"
+                      value={settlement.tips}
+                    />
+                  </>
+                )}
+                <Row
+                  title="TDS"
+                  value={`- ${formatCurrency(
+                    settlement.tds,
+                  )}`}
+                  negative
+                />
+                <View style={styles.netBox}>
+                  <Text style={styles.netLabel}>
+                    Net Earnings
+                  </Text>
+                  <Text style={styles.netValue}>
+                    {formatCurrency(
+                      settlement.totalAmount -
+                      settlement.tds,
+                    )}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        )}
 
-          <Text style={styles.quickText}>
-            Add Money
+        {/* Bank */}
+        <>
+          <Text style={styles.bankHeading}>
+            Linked Bank Account
           </Text>
+          <View style={styles.bankCard}>
+            <Ionicons
+              name="wallet"
+              size={24}
+              color="#1E40AF" />
+            <View
+              style={{
+                flex: 1,
+                marginLeft: 12,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <View>
+                <Text style={styles.bankName}>
+                  {bank?.bankName ?? 'No Bank Linked'}
+                </Text>
+                <Text style={styles.accountNumber}>
+                  {bank?.accountNumber
+                    ? `XXXX-${String(bank.accountNumber).slice(-4)}`
+                    : 'Add your bank account'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('BankAC')
+                }>
+                <Text style={styles.manageText}>
+                  {bank ? 'Manage' : 'Add'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </>
+
+        {/* Transactions */}
+        <View style={styles.transactionCard}>
+          <Text style={styles.transactionTitle}>
+            Recent Transactions
+          </Text>
+          <View style={styles.transactionDivider} />
+          {transactions.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No transactions available
+            </Text>
+          ) : (
+            displayedTransactions.map((item, index) => (
+              <View key={item.id}>
+                <View style={styles.transactionRow}>
+                  <View>
+                    <Text style={styles.txnName}>
+                      {item.description}
+                    </Text>
+                    <Text style={styles.txnDate}>
+                      {formatDateTime(item.createdAt)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.amount,
+                      {
+                        color:
+                          item.type === 'CREDIT'
+                            ? '#2E9B51'
+                            : '#E53935',
+                      },
+                    ]}>
+                    {item.type === 'CREDIT' ? '+' : '-'}
+                    {formatCurrency(item.amount)}
+                  </Text>
+                </View>
+                {index !== displayedTransactions.length - 1 && (
+                  <View style={styles.transactionDivider} />
+                )}
+              </View>
+            ))
+          )}
+
         </View>
 
-        <View style={styles.quickItem}>
-          <AntDesign
-            name="bank"
-            size={isTablet ? 38 : 26}
-            color="#4C6EF5"
-          />
-
-          <Text style={styles.quickText}>
-            Bank Link
-          </Text>
-        </View>
-
-        <View style={styles.quickItem}>
-          <Ionicons
-            name="trending-up"
-            size={isTablet ? 38 : 26}
-            color="#845EF7"
-          />
-
-          <Text style={styles.quickText}>
-            Insights
-          </Text>
-        </View>
-      </View>
-
-      {/* Transactions */}
-      <Text style={styles.section}>
-        Recent Transactions
-      </Text>
-
-      <FlatList
-        data={WALLET_DATA.recentTransactions}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: hp('3%'),
-        }}
-      />
+        {transactions.length > 3 && (
+          <TouchableOpacity
+            style={styles.viewAllBtn}
+            onPress={() =>
+              setShowAllTransactions(
+                !showAllTransactions,
+              )
+            }>
+            <Text style={styles.viewAllText}>
+              {showAllTransactions
+                ? 'Show Less'
+                : 'View All Transactions'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
+const Row = ({ title, value, negative }) => (
+  <View style={styles.row}>
+    <Text style={styles.rowTitle}>{title}</Text>
+
+    <Text
+      style={[
+        styles.rowValue,
+        negative && { color: '#E53935' },
+      ]}>
+      {typeof value === 'number'
+        ? `₹${Number(value).toLocaleString('en-IN')}`
+        : value}
+    </Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F6FA',
-    padding: isTablet ? wp('3%') : 16,
   },
 
-  headerRow: {
-    flexDirection: 'row',
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: isTablet ? hp('2.5%') : 16,
   },
 
   header: {
-    fontSize: isTablet ? wp('4%') : 20,
-    fontWeight: '600',
-  },
-
-  balanceCard: {
-    backgroundColor: '#12B5C9',
-    borderRadius: isTablet ? 24 : 16,
-    padding: isTablet ? wp('4%') : 16,
-    marginBottom: isTablet ? hp('2.5%') : 16,
-  },
-
-  balanceHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: rw(4),
+    marginBottom: 9,
+    paddingVertical: rh(2.2),
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
   },
 
-  label: {
-    color: '#EFFFFF',
-    fontSize: isTablet ? wp('2.2%') : 12,
-  },
-
-  balance: {
-    color: '#FFF',
-    fontSize: isTablet ? wp('5.5%') : 28,
+  headerTitle: {
+    fontSize: rf(2.3),
     fontWeight: '700',
-    marginVertical: 8,
+    color: '#101828',
   },
 
-  actionRow: {
-    flexDirection: 'row',
-    marginVertical: isTablet ? hp('2%') : 12,
+  robotIcon: {
+    width: rw(7.5),
+    height: rw(7.5),
+    resizeMode: 'contain',
   },
 
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    paddingVertical: isTablet ? hp('1.3%') : 8,
-    paddingHorizontal: isTablet ? wp('3%') : 16,
-    borderRadius: 20,
-    marginRight: 12,
+  walletCard: {
+    height: 170,
+    borderRadius: 18,
+    paddingTop: 18,
+    paddingHorizontal: 24,
   },
 
-  actionText: {
-    fontWeight: '500',
-    fontSize: isTablet ? wp('2.2%') : 14,
-  },
-
-  pendingBox: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: isTablet ? wp('3%') : 12,
+  walletTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  walletContainer: {
+    marginHorizontal: 16,
+    backgroundColor: '#B6CCFF',
+    borderRadius: 28,
+    paddingBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    elevation: 6,
+    marginBottom: 17,
+  },
+
+  walletTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  transactionDivider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginBottom: 16,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 13,
+  },
+
+  walletIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
     alignItems: 'center',
   },
 
-  pendingLabel: {
-    fontSize: isTablet ? wp('2.3%') : 14,
+  greenIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#D8F5DE',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  pendingAmount: {
+  yellowIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FFF2C6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  grayIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#EFEFEF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  walletLabel: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  walletAmount: {
+    color: '#fff',
+    fontSize: 26,
     fontWeight: '600',
-    fontSize: isTablet ? wp('2.5%') : 15,
   },
 
-  quickActions: {
+  infoCard: {
+    marginHorizontal: 20,
+    marginTop: -65,
+    backgroundColor: '#fff',
+    borderRadius: 22,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: isTablet ? hp('2.5%') : 16,
+    paddingVertical: 18,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    elevation: 8,
   },
 
-  quickItem: {
-    backgroundColor: '#FFF',
-    paddingVertical: isTablet ? hp('2.5%') : 14,
-    borderRadius: 12,
+  infoItem: {
     flex: 1,
     alignItems: 'center',
-    marginHorizontal: 4,
   },
 
-  quickText: {
-    marginTop: 6,
-    fontSize: isTablet ? wp('2.1%') : 12,
-    fontWeight: '500',
+  verticalDivider: {
+    width: 1,
+    height: 55,
+    backgroundColor: '#E7E7E7',
   },
 
-  section: {
-    fontSize: isTablet ? wp('3%') : 16,
-    fontWeight: '600',
-    marginBottom: isTablet ? hp('1.5%') : 8,
+  infoTitle: {
+    fontSize: 11,
+    color: '#555',
+    marginTop: 8,
+    textAlign: 'center',
   },
 
-  txnRow: {
+  infoValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 4,
+    color: '#111',
+  },
+  infoholdValue: {
+    color: "#948989"
+  },
+  statementBtn: {
+    marginTop: 10,
+    marginHorizontal: 16,
+    height: 45,
+    backgroundColor: '#162D68',
+    borderRadius: 13.5,
     flexDirection: 'row',
-    backgroundColor: '#FFF',
-    padding: isTablet ? wp('3%') : 12,
-    borderRadius: 12,
-    marginBottom: isTablet ? hp('1.2%') : 10,
+    justifyContent: 'center',
     alignItems: 'center',
   },
 
-  icon: {
-    width: isTablet ? 52 : 36,
-    height: isTablet ? 52 : 36,
-    borderRadius: isTablet ? 26 : 18,
+  statementText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 18,
+    marginLeft: 10,
+  },
+
+  sectionCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#ddd7d7',
+  },
+
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#111',
+  },
+
+  breakdown: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: -5,
+    marginBottom: 16,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd7d7',
+  },
+  sectionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  settlementIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 21,
+    backgroundColor: '#1E40AF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
 
-  creditIcon: {
-    backgroundColor: '#E6F9F0',
+  rupeeIcon: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
 
-  debitIcon: {
-    backgroundColor: '#FDECEC',
+  rowTitle: {
+    fontSize: 14,
+    color: '#555',
   },
 
-  txnTitle: {
+  rowValue: {
+    fontSize: 14,
     fontWeight: '600',
-    fontSize: isTablet ? wp('2.5%') : 14,
+  },
+
+  netBox: {
+    backgroundColor: '#EAF9EE',
+    padding: 16,
+
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  netLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2E9B51',
+  },
+
+  netValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#2E9B51',
+  },
+
+  bankHeading: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    marginTop: 3,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
+  bankCard: {
+    backgroundColor: '#ECF0FD',
+    marginHorizontal: 16,
+    borderRadius: 14,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd7d7',
+  },
+
+  bankName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+  },
+
+  accountNumber: {
+    marginTop: 4,
+    color: '#666',
+    fontSize: 13,
+  },
+
+  manageText: {
+    color: '#2958FF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
+  transactionCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#ddd7d7',
+  },
+
+  transactionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+
+  transactionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  txnName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111',
   },
 
   txnDate: {
-    fontSize: isTablet ? wp('1.9%') : 12,
+    marginTop: 4,
+    fontSize: 12,
     color: '#777',
-    marginTop: 2,
   },
 
   amount: {
+    fontSize: 16,
     fontWeight: '700',
-    fontSize: isTablet ? wp('2.5%') : 14,
   },
 
-  credit: {
-    color: '#0AAE4F',
+  viewAllBtn: {
+    height: 52,
+    marginHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#162D68',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  debit: {
-    color: '#E53935',
+  viewAllText: {
+    color: '#162D68',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  emptyText: {
+    textAlign: 'center',
+    paddingVertical: 20,
+    color: '#777',
+    fontSize: 14,
   },
 });

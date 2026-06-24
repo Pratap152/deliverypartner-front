@@ -1,4 +1,3 @@
-
 import React, { memo } from 'react';
 import {
   View,
@@ -13,17 +12,13 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import {
-  responsiveFontSize as rf,
-  responsiveHeight as rh,
-  responsiveWidth as rw,
-} from 'react-native-responsive-dimensions';
-import {
   getTaskDescription,
 } from '../../services/JoiningBonusService';
-
 import useJoiningBonus from '../../hooks/useJoiningBonus';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const isTablet = DeviceInfo.isTablet();
+
 const C = {
   bg: '#F3F3F3',
   white: '#FFFFFF',
@@ -38,139 +33,96 @@ const C = {
   upcomingBg: '#F2F2F2',
 };
 
-const HeaderBar = memo(({
-  onBack,
-  hasJoiningBonus,
-}) => (
-  <View
-    style={[
-      s.header,
-      !hasJoiningBonus && s.smallHeader,
-    ]}>
+const HeaderBar = memo(({ onBack, hasJoiningBonus }) => {
+  const insets = useSafeAreaInsets();
 
-    <View style={s.headerRow}>
+  const headerHeight = hasJoiningBonus
+    ? (isTablet ? 320 : 240)
+    : (isTablet ? 100 : 60) + insets.top;
 
-      <TouchableOpacity
-        onPress={onBack}
-        style={s.backBtn}
-        activeOpacity={0.8}>
-
-        <Text style={s.backArrow}>
-          ←
-        </Text>
-      </TouchableOpacity>
-
-      <Text style={s.headerTitle}>
-        Joining Bonus
-      </Text>
-    </View>
-  </View>
-));
-
-const WeeklyProgressCard = memo(
-  ({ summary, totalReward }) => {
-    const totalTasks =
-      summary?.totalTasks || 0;
-
-    const completedTasks =
-      summary?.completedTasks || 0;
-
-    const progressPercent =
-      totalTasks > 0
-        ? Math.round(
-          (completedTasks / totalTasks) * 100
-        )
-        : 0;
-
-    return (
-      <View style={s.progressCard}>
-        <View style={s.progressTopRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.progressTitle}>
-              Weekly Progress
-            </Text>
-
-            <Text style={s.progressSub}>
-              Complete tasks all the week and earn extra rewards !
-            </Text>
-          </View>
-
-          <Image
-            source={require('../../assets/gift.png')}
-            style={s.giftImage}
+  return (
+    <View
+      style={[
+        s.header,
+        {
+          height: headerHeight,
+          paddingTop: insets.top,
+        },
+        !hasJoiningBonus && s.smallHeader,
+      ]}>
+      <View style={s.headerRow}>
+        <TouchableOpacity onPress={onBack}>
+          <Ionicons
+            name="arrow-back"
+            size={isTablet ? 30 : 24}
+            color="#FFF"
           />
-        </View>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Joining Bonus</Text>
+      </View>
+    </View>
+  );
+});
 
-        <View style={s.progressMainRow}>
-          <View style={s.bigProgressBg}>
-            <View
-              style={[
-                s.bigProgressFill,
-                {
-                  width: `${progressPercent}%`,
-                },
-              ]}
-            />
-          </View>
+const WeeklyProgressCard = memo(({ summary, totalReward }) => {
+  const totalTasks = summary?.totalTasks || 0;
+  const completedTasks = summary?.completedTasks || 0;
+  const progressPercent =
+    totalTasks > 0
+      ? Math.round((completedTasks / totalTasks) * 100)
+      : 0;
 
-          <Text style={s.progressPercentTop}>
-            {progressPercent}%
+  return (
+    <View style={s.progressCard}>
+      <View style={s.progressTopRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.progressTitle}>Weekly Progress</Text>
+          <Text style={s.progressSub}>
+            Complete tasks all the week and earn extra rewards !
           </Text>
         </View>
+        <Image
+          source={require('../../assets/gift.png')}
+          style={s.giftImage}
+        />
+      </View>
 
-        <View style={s.progressBottomRow}>
-          <View style={s.progressInfoBox}>
-            <Text style={s.progressLabel}>
-              Tasks Completed
-            </Text>
+      <View style={s.progressMainRow}>
+        <View style={s.bigProgressBg}>
+          <View
+            style={[
+              s.bigProgressFill,
+              { width: `${progressPercent}%` },
+            ]}
+          />
+        </View>
+        <Text style={s.progressPercentTop}>{progressPercent}%</Text>
+      </View>
 
-            <Text style={s.progressValue}>
-              {completedTasks}/{totalTasks}
-            </Text>
-          </View>
-
-          <View style={s.verticalDivider} />
-
-          <View style={s.progressInfoBox}>
-            <Text style={s.progressLabel}>
-              Reward
-            </Text>
-
-            <Text style={s.rewardValue}>
-              ₹{totalReward}
-            </Text>
-          </View>
+      <View style={s.progressBottomRow}>
+        <View style={s.progressInfoBox}>
+          <Text style={s.progressLabel}>Tasks Completed</Text>
+          <Text style={s.progressValue}>
+            {completedTasks}/{totalTasks}
+          </Text>
+        </View>
+        <View style={s.verticalDivider} />
+        <View style={s.progressInfoBox}>
+          <Text style={s.progressLabel}>Reward</Text>
+          <Text style={s.rewardValue}>₹{totalReward}</Text>
         </View>
       </View>
-    );
+    </View>
+  );
+});
 
-  }
-);
 const TaskCard = memo(({ task, progress }) => {
-
   const status = progress?.status;
-
-  const isCompleted =
-    progress?.isCompleted;
-
-  const isRunning =
-    status === 'RUNNING';
-
-  const isMissed =
-    status === 'MISSED';
-
-  const isLocked =
-    status === 'LOCKED';
-
-  const isNotStarted =
-    status === 'NOT_STARTED';
-
-  const progressPercent =
-    progress?.percentage || 0;
-
-
-
-  /* CARD COLORS */
+  const isCompleted = progress?.isCompleted;
+  const isRunning = status === 'RUNNING';
+  const isMissed = status === 'MISSED';
+  const isLocked = status === 'LOCKED';
+  const progressPercent = progress?.percentage || 0;
 
   const cardBg = isCompleted
     ? '#CFF3E4'
@@ -187,8 +139,6 @@ const TaskCard = memo(({ task, progress }) => {
       : isMissed
         ? '#FFC9C9'
         : '#E3E3E3';
-
-  /* STATUS */
 
   const statusText = isCompleted
     ? 'Completed'
@@ -209,136 +159,65 @@ const TaskCard = memo(({ task, progress }) => {
         : '#8E8E8E';
 
   return (
-    <View
-      style={[
-        s.taskCard,
-        {
-          backgroundColor: cardBg,
-        },
-      ]}>
+    <View style={[s.taskCard, { backgroundColor: cardBg }]}>
 
       {/* LEFT SECTION */}
-
-      <View
-        style={[
-          s.daySection,
-          {
-            backgroundColor: leftBg,
-          },
-        ]}>
-
-        <Text style={s.dayLabel}>
-          DAY
-        </Text>
-
-        <Text style={s.dayNumber}>
-          {task.dayNumber}
-        </Text>
-
+      <View style={[s.daySection, { backgroundColor: leftBg }]}>
+        <Text style={s.dayLabel}>DAY</Text>
+        <Text style={s.dayNumber}>{task.dayNumber}</Text>
       </View>
 
       {/* RIGHT SECTION */}
-
       <View style={s.taskRightSection}>
 
         {/* LOCKED OVERLAY */}
-
         {isLocked && (
           <View style={s.upcomingOverlay}>
             <View style={s.upcomingBadge}>
-
               <Ionicons
                 name="lock-closed"
                 size={14}
                 color="#FFF"
                 style={s.lockIcon}
               />
-
-              <Text style={s.upcomingText}>
-                Locked
-              </Text>
-
+              <Text style={s.upcomingText}>Locked</Text>
             </View>
           </View>
         )}
 
-        <View
-          style={{
-            opacity: isLocked ? 0.22 : 1,
-          }}>
+        <View style={{ opacity: isLocked ? 0.22 : 1 }}>
 
           {/* TOP */}
-
           <View style={s.topRow}>
-
             <View style={{ flex: 1 }}>
-
-              <Text style={s.Task}>
-                {getTaskDescription(task)}
-              </Text>
-
+              <Text style={s.Task}>{getTaskDescription(task)}</Text>
             </View>
-
             <View style={{ marginLeft: 10 }}>
-
-              <View
-                style={[
-                  s.statusPill,
-                  {
-                    backgroundColor:
-                      statusColor,
-                  },
-                ]}>
-
-                <Text style={s.statusPillText}>
-                  {statusText}
-                </Text>
-
+              <View style={[s.statusPill, { backgroundColor: statusColor }]}>
+                <Text style={s.statusPillText}>{statusText}</Text>
               </View>
-
               <Text style={s.orderCount}>
-
                 {progress?.current || 0}/
-
                 {progress?.target ||
-
                   task?.target?.orders ||
-
                   task?.maxOrders ||
-
-                  task?.slabs?.[
-                    task.slabs.length - 1
-                  ]?.maxOrders ||
-
+                  task?.slabs?.[task.slabs.length - 1]?.maxOrders ||
                   0}
-
               </Text>
-
             </View>
-
           </View>
 
           {/* PROGRESS */}
-
           <View style={s.progressBottomRow}>
-
             <View style={s.progressTrack}>
-
               <View
                 style={[
                   s.progressFill,
-                  {
-                    width: `${progressPercent}%`,
-                  },
+                  { width: `${progressPercent}%` },
                 ]}
               />
-
             </View>
-
-            <Text style={s.percentText}>
-              {progressPercent}%
-            </Text>
-
+            <Text style={s.percentText}>{progressPercent}%</Text>
           </View>
 
         </View>
@@ -347,9 +226,8 @@ const TaskCard = memo(({ task, progress }) => {
   );
 });
 
-const JoiningBonusScreen = ({
-  navigation,
-}) => {
+const JoiningBonusScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const {
     loading,
     error,
@@ -359,30 +237,18 @@ const JoiningBonusScreen = ({
     load,
   } = useJoiningBonus();
 
-  const totalReward =
-    program?.maxReward || 0;
+  const totalReward = program?.maxReward || 0;
 
   const weeklySummary = {
-    totalTasks:
-      progress?.overallProgress
-        ?.totalDays || 0,
-
-    completedTasks:
-      progress?.overallProgress
-        ?.completedDays || 0,
+    totalTasks: progress?.overallProgress?.totalDays || 0,
+    completedTasks: progress?.overallProgress?.completedDays || 0,
   };
 
   if (loading) {
     return (
       <View style={s.centered}>
-        <ActivityIndicator
-          size="large"
-          color={C.navy}
-        />
-
-        <Text style={s.loadingText}>
-          Loading Joining Bonus...
-        </Text>
+        <ActivityIndicator size="large" color={C.navy} />
+        <Text style={s.loadingText}>Loading Joining Bonus...</Text>
       </View>
     );
   }
@@ -390,27 +256,27 @@ const JoiningBonusScreen = ({
   if (error) {
     return (
       <View style={s.centered}>
-        <Text style={s.errorText}>
-          {error}
-        </Text>
-
-        <TouchableOpacity
-          onPress={load}
-          style={s.retryBtn}>
-          <Text style={s.retryText}>
-            Retry
-          </Text>
+        <Text style={s.errorText}>{error}</Text>
+        <TouchableOpacity onPress={load} style={s.retryBtn}>
+          <Text style={s.retryText}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
   }
-  const hasJoiningBonus =
-    sortedTasks && sortedTasks.length > 0;
+
+  const hasJoiningBonus = sortedTasks && sortedTasks.length > 0;
+
+  // How tall the header actually is (including status bar inset)
+  const headerHeight = hasJoiningBonus
+    ? (isTablet ? 320 : 240)
+    : (isTablet ? 100 : 60) + insets.top;
+
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingBottom: insets.bottom }]}>
       <StatusBar
-        backgroundColor={C.bg}
-        barStyle="dark-content"
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
       />
 
       <HeaderBar
@@ -420,21 +286,18 @@ const JoiningBonusScreen = ({
 
       {hasJoiningBonus ? (
         <>
-          <View style={s.fixedTopSection}>
+          <View style={[s.fixedTopSection, { paddingTop: headerHeight - (isTablet ? 85 : 50) }]}>
             <WeeklyProgressCard
               summary={weeklySummary}
               totalReward={totalReward}
             />
           </View>
 
-          <Text style={s.sectionTitle}>
-            Tasks Unlocked
-          </Text>
+          <Text style={s.sectionTitle}>Tasks Unlocked</Text>
 
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={s.taskScrollContent}>
-
             {sortedTasks.map((task, index) => (
               <TaskCard
                 key={`${task.dayNumber}-${index}`}
@@ -445,22 +308,17 @@ const JoiningBonusScreen = ({
           </ScrollView>
         </>
       ) : (
-        <View style={s.emptyContainer}>
-
-          <Text style={s.emptyTitle}>
-            No Joining Bonus Available
-          </Text>
-
+        <View style={[s.emptyContainer, { marginTop: headerHeight }]}>
+          <Text style={s.emptyTitle}>No Joining Bonus Available</Text>
           <Text style={s.emptySubTitle}>
-            There are currently no active joining
-            bonus programs available for you.
+            There are currently no active joining bonus programs available for you.
           </Text>
-
         </View>
       )}
     </View>
   );
 };
+
 const s = StyleSheet.create({
   container: {
     flex: 1,
@@ -468,53 +326,37 @@ const s = StyleSheet.create({
   },
 
   /* HEADER */
-
   header: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-
-    height: isTablet ? 320 : 240,
-
-    backgroundColor: '#1F2F67',
-
+    backgroundColor: '#233B71F7',
     borderBottomLeftRadius: isTablet ? 45 : 30,
     borderBottomRightRadius: isTablet ? 45 : 30,
-
     paddingHorizontal: isTablet ? 40 : 22,
-
     zIndex: 1,
+  },
+
+  smallHeader: {
+    borderBottomLeftRadius: isTablet ? 30 : 20,
+    borderBottomRightRadius: isTablet ? 30 : 20,
   },
 
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: isTablet ? 28 : 10,
-  },
-
-  backBtn: {
-    width: isTablet ? 50 : 34,
-    height: isTablet ? 50 : 34,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: isTablet ? 24 : 16,
-  },
-
-  backArrow: {
-    color: '#FFFFFF',
-    fontSize: isTablet ? 44 : 30,
-    fontWeight: '300',
+    marginTop: isTablet ? 28 : 5,
+    gap: 20
   },
 
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: isTablet ? 34 : 22,
-    fontWeight: '600',
+    fontSize: isTablet ? 34 : 26,
+    fontWeight: '700',
   },
 
   fixedTopSection: {
-    paddingTop: isTablet ? 170 : 118,
     paddingHorizontal: isTablet ? 35 : 18,
     zIndex: 2,
     pointerEvents: 'box-none',
@@ -527,30 +369,19 @@ const s = StyleSheet.create({
   },
 
   /* WEEKLY CARD */
-
   progressCard: {
     backgroundColor: '#FFFFFF',
-
     borderRadius: isTablet ? 24 : 10,
-
     paddingHorizontal: isTablet ? 35 : 22,
     paddingTop: isTablet ? 25 : 10,
     paddingBottom: isTablet ? 25 : 10,
-
     marginHorizontal: 2,
-
-    marginTop: isTablet ? -85 : -50,
-
+    marginTop: isTablet ? -85 : -100,
     zIndex: 100,
-
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-
+    shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
 
@@ -638,7 +469,6 @@ const s = StyleSheet.create({
   },
 
   /* SECTION TITLE */
-
   sectionTitle: {
     fontSize: isTablet ? 24 : 15,
     fontWeight: '700',
@@ -647,22 +477,16 @@ const s = StyleSheet.create({
   },
 
   /* TASK CARD */
-
   taskCard: {
     flexDirection: 'row',
     borderRadius: isTablet ? 24 : 14,
     overflow: 'hidden',
     marginBottom: isTablet ? 28 : 18,
-    minHeight: isTablet ? 190 : '5%',
-
+    minHeight: isTablet ? 190 : 80,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-
+    shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
 
@@ -753,17 +577,14 @@ const s = StyleSheet.create({
     color: '#111',
   },
 
-  /* UPCOMING */
-
+  /* UPCOMING / LOCKED */
   upcomingOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-
     zIndex: 10,
-
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -771,12 +592,9 @@ const s = StyleSheet.create({
   upcomingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-
     backgroundColor: '#1B2A5B',
-
     paddingHorizontal: isTablet ? 28 : 18,
     paddingVertical: isTablet ? 14 : 8,
-
     borderRadius: isTablet ? 14 : 8,
   },
 
@@ -791,7 +609,6 @@ const s = StyleSheet.create({
   },
 
   /* STATES */
-
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -845,11 +662,6 @@ const s = StyleSheet.create({
     textAlign: 'center',
     lineHeight: isTablet ? 34 : 24,
   },
-
-  smallHeader: {
-    height: isTablet ? 100 : 60,
-    borderBottomLeftRadius: isTablet ? 30 : 20,
-    borderBottomRightRadius: isTablet ? 30 : 20,
-  },
 });
+
 export default JoiningBonusScreen;

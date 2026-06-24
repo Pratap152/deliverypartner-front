@@ -50,6 +50,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
   const ui = orderUIConfig[status] || {};
 
+  console.log("check",orderDetails)
   useEffect(() => {
     // Disable Android hardware back button
     const backHandler = BackHandler.addEventListener(
@@ -89,9 +90,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
         setOrderDetails(data);
 
-        if (route.params?.status === 'EN_ROUTE_TO_DROP' && data.orderStatus === 'PICKED_UP') {
-          setStatus('EN_ROUTE_TO_DROP');
-        } else {
+        if (data.orderStatus) {
           setStatus(data.orderStatus);
         }
       } catch (err) {
@@ -146,7 +145,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
     let target = null;
 
-    if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
+    if (status === 'ASSIGNED' || status === 'RIDER_EN_ROUTE_TO_PICKUP') {
       target = {
         latitude: orderDetails.pickupAddress.lat,
         longitude: orderDetails.pickupAddress.lng,
@@ -188,8 +187,16 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       let res = null;
 
       // 🔥 API CALL BASED ON ACTION
+      if (action.action === 'enRouteToPickup') {
+        res = await orderService.markEnRouteToPickup(orderId);
+      }
+
       if (action.action === 'pickupOrder') {
         res = await orderService.pickupOrder(orderId);
+      }
+
+      if (action.action === 'inTransit') {
+        res = await orderService.markInTransit(orderId);
       }
 
       if (action.action === 'deliverOrder') {
@@ -331,7 +338,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                 theme="blue"
               />
 
-              {status === 'EN_ROUTE_TO_DROP' && (
+              {(status === 'IN_TRANSIT' || status === 'RIDER_ARRIVED_AT_DROP') && (
                 <TouchableOpacity
                   style={styles.chatButton}
                   onPress={() => navigation.navigate('ChatSupportScreen', { 
@@ -358,7 +365,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             items={orderDetails.items}
           />
 
-          {status === 'EN_ROUTE_TO_DROP' && (
+          {status === 'RIDER_ARRIVED_AT_DROP' && (
             orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
             orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
             orderDetails?.payment?.mode?.toUpperCase() === 'COD'

@@ -7,9 +7,14 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Fontisto from 'react-native-vector-icons/Fontisto';
+import { BlurView } from '@react-native-community/blur';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -17,7 +22,7 @@ import {
 
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
-import WeeklyEarningsChartEmployee from '../../components/dashboard/earnings/WeeklyEarningsChartEmployee';
+import WeeklyEarningsChartZestBot from '../../components/dashboard/earnings/WeeklyEarningsChartZestBot';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -26,6 +31,7 @@ import { formatMoney } from '../../utils/formatMoney';
 import { dashboardCache } from '../../hooks/useEarningsDashboard';
 import useIncentives from '../../hooks/useIncentives';
 import { Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const { width } = Dimensions.get('window');
@@ -69,6 +75,9 @@ export default function EarningsScreen({ navigation }) {
     incentives = [],
   } = data;
 
+  // console.log("todayEarnings: ", todayEarnings);
+
+  const isEligibleForIncentives = todayEarnings?.eligible;
 
   const month = earningsSummary.month || {};
 
@@ -84,19 +93,16 @@ export default function EarningsScreen({ navigation }) {
   const HEADER = (
     <View style={{ backgroundColor: '#F4F6F8' }}>
       {/* GRADIENT */}
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
       <LinearGradient
         colors={['#065F46', '#10B981', '#34D399']}
         start={{ x: 0, y: 1 }}
         end={{ x: 1, y: 0 }}>
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}>
-            <Ionicons
-              name='chevron-back-outline'
-              size={isTablet ? 32 : 24}
-              color="#FFF"
-            />
-          </TouchableOpacity>
+        <SafeAreaView style={styles.topBar}>
           <Text style={styles.title}>Earnings</Text>
 
           <View style={styles.topBarIcons}>
@@ -117,7 +123,7 @@ export default function EarningsScreen({ navigation }) {
                 style={styles.chatIcon} />
             </TouchableOpacity>
           </View>
-        </View>
+        </SafeAreaView>
 
         <TouchableOpacity
           style={styles.dailyCard}
@@ -169,28 +175,41 @@ export default function EarningsScreen({ navigation }) {
 
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: CARD_WIDTH, padding: CARD_PADDING }]}>
-        <PremiumPressable onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })} >
+        <PremiumPressable onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>This Week</Text>
             <Text style={styles.cardValue}>
-              {riderType === 'COMPANY_EMPLOYEE'
-                ? formatOrderLabel(weeklyOrders ?? 0)
-                : `₹${formatMoney(weeklyTotal ?? 0)}`}
+              {riderType === 'ZESTBOT_EMPLOYEE'
+                ? (isEligibleForIncentives
+                    ? `₹${formatMoney(weeklyTotal ?? 0)}`
+                    : `${formatOrderLabel(weeklyOrders ?? 0)}`)
+                : `₹${formatMoney(weeklyTotal ?? 0)}`
+              }
             </Text>
           </View>
-          {riderType === "INDIVIDUAL_EMPLOYEE" &&
+      
+          {/* INDIVIDUAL, COMPANY — earnings bar chart only */}
+          {(riderType === 'INDIVIDUAL_EMPLOYEE' || riderType === 'COMPANY_EMPLOYEE') && (
             <WeeklyEarningsChart
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
-              height={isTablet ? hp(38) : hp(30)} />
-          }
-
-          {riderType === "COMPANY_EMPLOYEE" &&
-            <WeeklyEarningsChartEmployee
+              height={isTablet ? hp(38) : hp(30)}
+            />
+          )}
+      
+          {/* ZESTBOT — only after target met */}
+          {riderType === 'ZESTBOT_EMPLOYEE' && (
+            <WeeklyEarningsChartZestBot
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
-              height={isTablet ? hp(38) : hp(30)} />
-          }
+              height={isTablet ? hp(30) : hp(24)}
+              monthlyTarget={todayEarnings?.monthlyTarget}
+              completedOrders={todayEarnings?.totalCompletedOrders}
+              weeklyTotal={weeklyTotal}
+              eligible={todayEarnings?.eligible}
+            />
+          )}
+      
         </PremiumPressable>
       </View>
 
@@ -265,78 +284,109 @@ export default function EarningsScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  const IncentivesCards = ({ item }) => {
+    return (
+      <View>
+        {!item?.emptyData ?
+          <PremiumPressable onPress={() => handleItemPress(item)}>
+            <IncentiveCard
+              item={item}
+              weeklyCompletedOrders={weeklyCompletedOrders}
+              dailyCompletedOrders={dailyCompletedOrders}
+              peakCompletedOrders={peakCompletedOrders}
+              weeklyProgressPercentage={weeklyProgressPercentage}
+            />
+          </PremiumPressable>
+          :
+          <View style={styles.emptyCard}>
+
+            {item?.type === "daily" &&
+              <Text style={styles.emptyTitle}>
+                Daily Incentives Not Available
+              </Text>}
+            {item?.type === "peak" &&
+              <Text style={styles.emptyTitle}>
+                Peak Incentives Not Available
+              </Text>}
+            {item?.type === "weekly" &&
+              <Text style={styles.emptyTitle}>
+                Weekly Incentives Not Available
+              </Text>}
+
+            <Text style={styles.emptySubtitle}>
+              Complete more orders to unlock exciting incentives.
+            </Text>
+          </View>
+        }
+      </View>
+    );
+  }
+
   // NAVIGATIONS TO INCENTIVE PAGES
   const handleItemPress = (item) => {
-    if (item.type === 'peak') {
+    if (item?.type === 'peak') {
       navigation.navigate('PeakHourBonusScreen', { ...item, peakIncentivesProgress });
       return;
     }
-    if (item.type === 'weekly') {
+    if (item?.type === 'weekly') {
       navigation.navigate('WeekEarnings', { ...item, weeklyIncentivesProgress });
       return;
     }
-    if (item.type === 'daily') {
+    if (item?.type === 'daily') {
       navigation.navigate('DailyGuarentee', { ...item, dailyIncentivesProgress });
       return;
     }
   };
 
+  if(loading) {
+    return(
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#1E88E5" />
+      </View>
+    )
+  }
+
   // UI
   return (
-    <View style={{ flex: 1 }}>
-      <FlatList
-        data={incentives}
-        keyExtractor={(item, index) => `${item.title}-${index}`}
-        renderItem={({ item }) =>
-          <View>
-            {!item.emptyData ?
-              <PremiumPressable onPress={() => handleItemPress(item)}>
-                <IncentiveCard
-                  item={item}
-                  weeklyCompletedOrders={weeklyCompletedOrders}
-                  dailyCompletedOrders={dailyCompletedOrders}
-                  peakCompletedOrders={peakCompletedOrders}
-                  weeklyProgressPercentage={weeklyProgressPercentage}
-                />
-              </PremiumPressable>
-              :
-              <View style={styles.emptyCard}>
-
-                {item.type === "daily" &&
-                  <Text style={styles.emptyTitle}>
-                    Daily Incentives Not Available
-                  </Text>}
-                {item.type === "peak" &&
-                  <Text style={styles.emptyTitle}>
-                    Peak Incentives Not Available
-                  </Text>}
-                {item.type === "weekly" &&
-                  <Text style={styles.emptyTitle}>
-                    Weekly Incentives Not Available
-                  </Text>}
-
-                <Text style={styles.emptySubtitle}>
-                  Complete more orders to unlock exciting incentives.
-                </Text>
-              </View>
-            }
-          </View>
-        }
-        ListHeaderComponent={HEADER}
-        ListFooterComponent={FOOTER}
+    <ScrollView
+    refreshControl={
+      <RefreshControl
         refreshing={refreshing}
         onRefresh={onRefresh}
-        showsVerticalScrollIndicator={false}
-        removeClippedSubviews={false} />
+        colors={['#2196F3']} // Android
+        tintColor="#2196F3"  // iOS
+      />
+    }
+    style={{ flex: 1 }}>
 
-      {/* LOADER */}
-      {loading && dashboardCache && (
-        <View style={styles.overlayLoader}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+      {HEADER}
+
+      <View style={styles.incentivesCards}>
+        <View>
+          <IncentivesCards item={incentives[0]} />
+          <IncentivesCards item={incentives[1]} />
+          <IncentivesCards item={incentives[2]} />
         </View>
-      )}
 
-    </View>
+        {(riderType === "ZESTBOT_EMPLOYEE" && !isEligibleForIncentives) && (
+          <View style={styles.overlay}>
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="light"
+              blurAmount={3}
+            />
+
+            <View style={styles.lockContent}>
+              <Image source={require('../../assets/lock.png')} style={styles.lockImage} />
+              <Text style={styles.lockText}>Complete orders to unlock your incentives</Text>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {FOOTER}
+
+    </ScrollView>
 
   );
 }
@@ -347,10 +397,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    paddingVertical: hp(4),
-    paddingHorizontal: wp(5)
-  },
   heading: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -359,7 +405,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#fff',
     fontSize: isTablet ? 34 : wp(6),
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
     marginLeft: wp(2),
   },
@@ -371,7 +417,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: isTablet ? hp(2) : hp(3),
     paddingHorizontal: isTablet ? wp(4) : wp(3),
   },
   topBarIcons: {
@@ -639,5 +684,38 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  incentivesCards: {
+    paddingVertical: 20,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockImage: {
+    height: 100,
+    width: 100,
+  },
+  lockContent: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  lockText: {
+    backgroundColor: '#192A51',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRadius: 10,
   }
 });

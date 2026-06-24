@@ -4,31 +4,26 @@ export const bannerMeta = {
   bank: {
     id: 'bank',
     cta: 'Complete Now',
-    backgroundColor: '#FFE8CC',
   },
 
   kit: {
     id: 'kit',
     cta: 'Claim Now',
-    backgroundColor: '#E8EDFF',
   },
 
   referAndEarn: {
     id: 'refer',
     cta: 'Refer Now',
-    backgroundColor: '#D1FAE5',
   },
 
   dailyIncentive: {
     id: 'incentives',
     cta: 'View Incentives',
-    backgroundColor: '#FEF3C7',
   },
 
   joiningBonus: {
     id: 'joining',
     cta: 'Start Now',
-    backgroundColor: '#E0E7FF',
   },
 };
 
@@ -49,6 +44,7 @@ export const getHomeBanners = async () => {
         ...bannerMeta.bank,
         title: apiData.bank.labelName,
         subtitle: apiData.bank.message,
+        imageUrl: apiData.bank.imageUrl,
       });
     }
 
@@ -61,6 +57,7 @@ export const getHomeBanners = async () => {
         ...bannerMeta.kit,
         title: apiData.kit.labelName,
         subtitle: apiData.kit.message,
+        imageUrl: apiData.kit.imageUrl,
       });
     }
 
@@ -71,6 +68,7 @@ export const getHomeBanners = async () => {
       subtitle:
         apiData?.referAndEarn?.message ||
         'Invite friends and earn rewards',
+       imageUrl: apiData?.referAndEarn?.imageUrl,
     });
 
     // DAILY INCENTIVE -> ALWAYS SHOW
@@ -82,6 +80,7 @@ export const getHomeBanners = async () => {
       subtitle:
         apiData?.dailyIncentive?.message ||
         'Complete orders & earn extra',
+      imageUrl: apiData?.dailyIncentive?.imageUrl,
     });
 
     // JOINING BONUS
@@ -93,6 +92,7 @@ export const getHomeBanners = async () => {
         ...bannerMeta.joiningBonus,
         title: apiData.joiningBonus.labelName,
         subtitle: apiData.joiningBonus.message,
+        imageUrl: apiData.joiningBonus.imageUrl,
       });
     }
 

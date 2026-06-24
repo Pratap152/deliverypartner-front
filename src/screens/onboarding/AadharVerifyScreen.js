@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback}from 'react';
 
 import {
   ActivityIndicator,
@@ -7,21 +7,20 @@ import {
   Text,
   TouchableOpacity,
   View,
+  BackHandler,
+  Alert
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import {
-  responsiveWidth,
-  responsiveHeight,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Header from '../../components/common/Header';
 import OTPInputBox from '../../components/common/OTPInputBox';
 
 import { useDispatch } from 'react-redux';
-import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 
 import { COLORS } from '../../utils/colors';
 import { isOtpFilled } from '../../utils/helpers';
@@ -34,6 +33,37 @@ const containerMaxWidth = isTablet ? 900 : '100%';
 
 const OTP_LENGTH = 6;
 const AadhaarOtpVerificationScreen = ({ route }) => {
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const navigation = useNavigation();
   const aadharNumber = route?.params?.aadharNumber;
 
@@ -59,70 +89,60 @@ const AadhaarOtpVerificationScreen = ({ route }) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
-          <Header onBack={() => navigation.goBack()} />
 
           <View style={{ alignItems: 'center' }}>
-          <Image
-            source={require('../../assets/aadhaar.png')}
-            style={{
-              width: 110,
-              height: 110,
-            }}
-            resizeMode="contain"
-          />
-        </View>
-        <View style={styles.form}>
-          <Text style={[styles.title, isTablet && { textAlign: 'center' }]}>Enter OTP</Text>
-          <Text style={[styles.description, isTablet && { textAlign: 'center' }]}>
-            OTP was sent on your registrated mobile number
-          </Text>
-
-          <View style={[isTablet && { width: '100%', maxWidth: 400 }]}>
-            <OTPInputBox
-              otp={otp}
-              inputRefs={inputRefs}
-              handleChange={handleChange}
-              handleKeyPress={handleKeyPress}
-              handlePress={handlePress}
+            <Image
+              source={require('../../assets/aadhaar.png')}
+              style={{
+                width: 110,
+                height: 110,
+              }}
+              resizeMode="contain"
             />
           </View>
-
-          {/* <OtpInput
-            otp={otp}
-            error={error}
-            inputRefs={inputRefs}
-            onChange={handleChange}
-            onKeyPress={handleKeyPress}
-            handlePress={handlePress}
-          /> */}
-
-          {error && <Text style={[styles.error, isTablet && { textAlign: 'center' }]}>{error}.</Text>}
-          {success && (
-            <Text style={[styles.successText, isTablet && { textAlign: 'center' }]}>
-              {success || 'OTP Verified successfully.'}
+          <View style={styles.form}>
+            <Text style={[styles.title, isTablet && { textAlign: 'center' }]}>Enter OTP</Text>
+            <Text style={[styles.description, isTablet && { textAlign: 'center' }]}>
+              OTP was sent on your registrated mobile number
             </Text>
-          )}
 
-          <TouchableOpacity
-            onPress={() => handleSubmit(aadharNumber, handleOnSuccess)}
-            disabled={!isOtpFilled(otp) || loading}
-            style={[styles.btn, isOtpFilled(otp) && styles.activeBg]}
-          >
-            {loading ? (
-              <ActivityIndicator size={'small'} color={'white'} />
-            ) : (
-              <Text
-                style={[
-                  styles.btnText,
-                  isOtpFilled(otp) && styles.activeTextColor,
-                ]}
-              >
-                Verify OTP
+            <View style={[isTablet && { width: '100%', maxWidth: 400 }]}>
+              <OTPInputBox
+                otp={otp}
+                inputRefs={inputRefs}
+                handleChange={handleChange}
+                handleKeyPress={handleKeyPress}
+                handlePress={handlePress}
+              />
+            </View>
+
+            {error && <Text style={[styles.error, isTablet && { textAlign: 'center' }]}>{error}.</Text>}
+            {success && (
+              <Text style={[styles.successText, isTablet && { textAlign: 'center' }]}>
+                {success || 'OTP Verified successfully.'}
               </Text>
             )}
-          </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleSubmit(aadharNumber, handleOnSuccess)}
+              disabled={!isOtpFilled(otp) || loading}
+              style={[styles.btn, isOtpFilled(otp) && styles.activeBg]}
+            >
+              {loading ? (
+                <ActivityIndicator size={'small'} color={'white'} />
+              ) : (
+                <Text
+                  style={[
+                    styles.btnText,
+                    isOtpFilled(otp) && styles.activeTextColor,
+                  ]}
+                >
+                  Verify OTP
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
       </View>
     </SafeAreaView>
   );
@@ -140,7 +160,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     maxWidth: containerMaxWidth,
-    paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: COLORS.white,
   },

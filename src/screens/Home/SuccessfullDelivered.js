@@ -11,11 +11,14 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useRider } from "../../context/RiderContext";
 
 
 export default function SuccessfullDelivered({ route, navigation }) {
   const { amount, codCollected, orderId, paymentMethod } = route.params || {};
   const roundedAmount = Math.round(amount || 0);
+
+  const { isOnline, goOnline, goOffline, } = useRider();
 
   useEffect(() => {
     // Disable Android hardware back button
@@ -31,6 +34,17 @@ export default function SuccessfullDelivered({ route, navigation }) {
 
     return () => backHandler.remove();
   }, [navigation]);
+
+  useEffect(() => {
+    const refreshStatus = async () => {
+      if (!isOnline) return;
+
+      await goOffline();
+      await goOnline();
+    };
+
+    refreshStatus();
+  }, []);
 
   console.log(' [SuccessfulDelivered] Received params:', {
     amount,

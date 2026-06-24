@@ -7,8 +7,10 @@ import {
   Alert,
   StyleSheet,
   ActivityIndicator,
-  useWindowDimensions
+  useWindowDimensions,
+  BackHandler
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 
 import DeviceInfo from 'react-native-device-info';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,9 +18,41 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { launchCamera } from 'react-native-image-picker';
 
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function FaceVerificationScreen({ navigation, route }) {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const initialUri = route?.params?.photoUri ?? null;
   const [photo, setPhoto] = useState(initialUri);
   const [uploading, setUploading] = useState(false);
@@ -117,7 +151,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
   /* ================= UI ================= */
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         {/* HEADING */}
         <View style={styles.headerContainer}>
@@ -203,7 +237,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -231,7 +265,6 @@ const createStyles = (
       flex: 1,
       width: contentWidth,
       paddingHorizontal: isTablet ? 30 : 24,
-      paddingTop: isTablet ? 50 : 36,
       paddingBottom: isTablet ? 24 : 18,
     },
 

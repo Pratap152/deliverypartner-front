@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import {
   responsiveWidth,
   responsiveHeight,
@@ -16,6 +17,37 @@ const containerMaxWidth = isTablet ? 900 : '100%';
 const POLL_INTERVAL = 8000; // 8 seconds
 
 const ProcessingVerificationScreen = () => {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const navigation = useNavigation();
   const intervalRef = useRef(null);
 

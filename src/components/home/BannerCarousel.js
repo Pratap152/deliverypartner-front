@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
-import {
+import React, { useRef, useEffect, useCallback } from 'react'; import {
   View,
   Text,
   StyleSheet,
   FlatList,
   Pressable,
+  ImageBackground,
+  Image,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -13,12 +14,20 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-const ITEM_WIDTH = wp('90%');
+const ITEM_WIDTH = wp('88%');
+const ITEM_SPACING = wp('2%');
+const SNAP_WIDTH = ITEM_WIDTH + ITEM_SPACING;
 
 const BannerCarousel = ({ data }) => {
   const navigation = useNavigation();
   const flatListRef = useRef(null);
-  const currentIndex = useRef(0);
+  const currentIndex = useRef(data.length);
+  const timerRef = useRef(null);
+
+  const infiniteData =
+    data?.length > 0
+      ? [...data, ...data, ...data]
+      : [];
 
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
 
@@ -100,39 +109,130 @@ const BannerCarousel = ({ data }) => {
     }
   };
 
+  const startAutoScroll = useCallback(() => {
+    clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      currentIndex.current += 1;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex.current,
+        animated: true,
+      });
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    if (!data?.length) return;
+
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
+        index: data.length,
+        animated: false,
+      });
+    }, 100);
+  }, [data]);
+
+  useEffect(() => {
+    if (!data?.length) return;
+
+    startAutoScroll();
+
+    return () => clearInterval(timerRef.current);
+  }, [data, startAutoScroll]);
+
+  const onScrollBeginDrag = () => {
+    clearInterval(timerRef.current);
+  };
+
+  const onMomentumScrollEnd = event => {
+    const index = Math.round(
+      event.nativeEvent.contentOffset.x / SNAP_WIDTH
+    );
+
+    currentIndex.current = index;
+
+    const total = data.length;
+
+    // Jump to middle copy if reached start copy
+    if (index < total) {
+      currentIndex.current = index + total;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex.current,
+        animated: false,
+      });
+    }
+
+    // Jump to middle copy if reached end copy
+    if (index >= total * 2) {
+      currentIndex.current = index - total;
+
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex.current,
+        animated: false,
+      });
+    }
+
+    startAutoScroll();
+  };
+
   const renderItem = ({ item }) => {
     return (
       <Pressable
         onPress={() => handlePress(item)}
-        style={[styles.banner, { backgroundColor: item.backgroundColor }]}
+        style={styles.banner}
       >
-        <View>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.subtitle}>{item.subtitle}</Text>
-        </View>
+        <ImageBackground
+          source={{ uri: item.imageUrl }}
+          style={styles.imageBackground}
+          imageStyle={styles.imageStyle}
+          resizeMode="cover"
+        >
+          <View style={styles.overlay}>
+            <View style={styles.contentContainer}>
+              <Text
+                style={styles.title}
+                numberOfLines={1}
+              >
+                {item.title}
+              </Text>
 
-        <View style={styles.cta}>
-          <Text style={styles.ctaText}>{item.cta}</Text>
-        </View>
+              <Text
+                style={styles.subtitle}
+                numberOfLines={3}
+              >
+                {item.subtitle}
+              </Text>
+            </View>
+
+            <View style={styles.cta}>
+              <Text style={styles.ctaText}>
+                {item.cta}
+              </Text>
+            </View>
+          </View>
+        </ImageBackground>
       </Pressable>
     );
   };
-
   return (
     <View style={styles.wrapper}>
       <FlatList
         ref={flatListRef}
-        data={data}
-        keyExtractor={item => item.id}
+        data={infiniteData}
+        keyExtractor={(_, index) => index.toString()}
         renderItem={renderItem}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        snapToInterval={ITEM_WIDTH}
+        snapToInterval={SNAP_WIDTH}
         decelerationRate="fast"
+        onScrollBeginDrag={onScrollBeginDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
         getItemLayout={(_, index) => ({
-          length: ITEM_WIDTH,
-          offset: ITEM_WIDTH * index,
+          length: SNAP_WIDTH,
+          offset: SNAP_WIDTH * index,
           index,
         })}
       />
@@ -144,35 +244,63 @@ const styles = StyleSheet.create({
   wrapper: {
     marginTop: hp('2%'),
   },
+
   banner: {
     width: ITEM_WIDTH,
-    height: hp('16%'),
-    marginHorizontal: wp('2.5%'),
-    borderRadius: wp('4%'),
-    padding: wp('4%'),
+    height: hp('18%'),
+    marginRight: ITEM_SPACING,
+    overflow: 'hidden',
+  },
+
+  imageBackground: {
+    width: '100%',
+    height: '100%',
+  },
+
+  imageStyle: {
+    borderRadius: wp('5%'),
+    width: '100%',
+    height: '100%',
+  },
+
+  overlay: {
+    flex: 1,
     justifyContent: 'space-between',
+    paddingVertical: hp('2.2%'),
+    paddingHorizontal: wp('5%'),
   },
+
+  contentContainer: {
+    width: '44%',
+  },
+
   title: {
-    fontSize: wp('4.5%'),
-    fontWeight: '700',
-    color: '#000',
+    fontSize: wp('4.2%'),
+    fontWeight: '800',
+    color: '#0B1F35',
+    lineHeight: wp('14%'),
   },
+
   subtitle: {
-    fontSize: wp('3.5%'),
-    marginTop: hp('0.5%'),
-    color: '#000',
+    marginTop: -hp('1.5%'),
+    fontSize: wp('2.8%'),
+    lineHeight: wp('3.8%'),
+    color: '#28292b',
+    fontWeight: '500',
   },
   cta: {
     alignSelf: 'flex-start',
-    backgroundColor: '#000',
-    paddingHorizontal: wp('4%'),
-    paddingVertical: hp('0.6%'),
-    borderRadius: wp('5%'),
+    backgroundColor: '#111827',
+    paddingHorizontal: wp('5%'),
+    paddingVertical: hp('1%'),
+    borderRadius: wp('10%'),
+    marginTop: hp('0.5%'),
   },
+
   ctaText: {
-    color: '#fff',
-    fontSize: wp('3.2%'),
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: wp('3.5%'),
+    fontWeight: '700',
   },
 });
 

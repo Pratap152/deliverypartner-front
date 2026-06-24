@@ -518,7 +518,7 @@ function getBackendWeekNumber(date) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color="#111" />
+          <Ionicons name="arrow-back" size={isTablet ? 30 : 24} color="#111" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{headerTitle}</Text>
         {isOffline && <Text style={{ color: "red", marginLeft: 8 }}>Offline</Text>}
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: isTablet
       ? responsiveFontSize(1.9)
-      : 18,
+      : 24,
 
     fontWeight: "700",
     marginLeft: 8,

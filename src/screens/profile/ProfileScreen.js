@@ -116,11 +116,17 @@ export default function ProfileScreen({ navigation }) {
   const selfieUri = getSelfieUri(profile?.selfie);
 
   return (
-    <View style={styles.root}>
-      <StatusBar backgroundColor="#13ACBE" barStyle="light-content" />
+    <SafeAreaView style={styles.root}>
+      {/* <StatusBar backgroundColor="#13ACBE" barStyle="light-content" /> */}
 
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+      <View style={styles.safeArea}>
+        <ScrollView
+          bounces={false}
+          alwaysBounceVertical={false}
+          overScrollMode="never"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profile</Text>
@@ -594,8 +600,8 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 const isTablet = DeviceInfo.isTablet();
@@ -630,7 +636,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#FFFFFF',
     fontSize: wp('6.4%'),
-    fontWeight: '600',
+    fontWeight: '700',
   },
 
   profileCard: {
@@ -801,9 +807,9 @@ const styles = StyleSheet.create({
     marginRight: wp('3%'),
   },
 
- driverId: {
-  fontSize: isTablet ? wp('2.4%') : 13,
-  color: '#666',
-  marginTop: 4,
-},
+  driverId: {
+    fontSize: isTablet ? wp('2.4%') : 13,
+    color: '#666',
+    marginTop: 4,
+  },
 });

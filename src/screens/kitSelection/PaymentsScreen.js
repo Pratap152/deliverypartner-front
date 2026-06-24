@@ -60,19 +60,40 @@ export default function PaymentsScreen({ route }) {
   const selectedZone = riderKitData?.selectedZone ?? null;
   const apiResponse = riderKitData?.apiResponse ?? null;
 
+  const { source } = route?.params || {};
+
   const goToHomeTab = () => {
+  if (source === 'riderAssets') {
     navigation.reset({
       index: 0,
       routes: [
         {
           name: 'MainTabs',
           params: {
-            screen: 'Home',
+            screen: 'Profile',
+            params: {
+              screen: 'ProfileScreen',
+            },
           },
         },
       ],
     });
-  };
+    return true;
+  }
+
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: 'MainTabs',
+        params: {
+          screen: 'Home',
+        },
+      },
+    ],
+  });
+  return true;
+};
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -81,7 +102,7 @@ export default function PaymentsScreen({ route }) {
     });
 
     return () => subscription.remove();
-  }, [navigation]);
+  }, [navigation, source]);
     
 
   useEffect(() => {
@@ -212,6 +233,7 @@ export default function PaymentsScreen({ route }) {
       navigation.replace('SuccessScreen', {
             apiResponse: patchResponse.data,
             deliveryMode,
+            source
           });
             
           } catch (err) {
@@ -278,7 +300,7 @@ export default function PaymentsScreen({ route }) {
                     }}
                 />
               ) : (
-                <Text style={{ fontSize: isTablet ? 24 : 16, fontWeight: '600', color: COLORS.textPrimary }}>
+                <Text style={{ fontSize: isTablet ? 24 : 20, fontWeight: '600', color: COLORS.textPrimary }}>
                   {item.label}
                 </Text>
               )}
@@ -392,7 +414,6 @@ const getStyles = (width, height,isTablet) =>
     container: {
       flex: 1,
       paddingHorizontal: width * 0.05,
-      paddingTop: height * 0.022,
     },
     content: { flex: 1, marginTop: height * 0.035 },
     card: {
@@ -447,7 +468,7 @@ const getStyles = (width, height,isTablet) =>
     },
     headerTitle: {
       textAlign: 'center',
-      fontSize: isTablet ? 38 : 18,
+      fontSize: isTablet ? 38 : 28,
       fontWeight: '700',
       color: COLORS.textPrimary,
     },

@@ -31,7 +31,7 @@ const SuccessScreen = () => {
   const isTablet = width >= 768;
   const styles = getStyles(isTablet);
 
-  const { apiResponse, deliveryMode, paymentType } = route?.params || {};
+  const { apiResponse, deliveryMode, paymentType, source } = route?.params || {};
 
   const items = Array.isArray(apiResponse?.data) ? apiResponse.data : [];
   const firstItem = items[0];
@@ -66,11 +66,29 @@ const SuccessScreen = () => {
   }, [dispatch, riderId, apiResponse, resolvedDeliveryMode]);
 
   const handleGoHome = () => {
+  if (source === 'riderAssets') {
     navigation.reset({
       index: 0,
-      routes: [{ name: 'MainTabs' }],
+      routes: [
+        {
+          name: 'MainTabs',
+          params: {
+            screen: 'Profile',
+            params: {
+              screen: 'ProfileScreen',
+            },
+          },
+        },
+      ],
     });
-  };
+    return;
+  }
+
+  navigation.reset({
+    index: 0,
+    routes: [{ name: 'MainTabs' }],
+  });
+};
 
   const screenTitle = isPaidFlow
     ? 'Payment completed successfully'
@@ -230,7 +248,9 @@ const SuccessScreen = () => {
         )}
 
         <TouchableOpacity style={styles.primaryButton} onPress={handleGoHome}>
-          <Text style={styles.primaryButtonText}>Go to Home</Text>
+         <Text style={styles.primaryButtonText}>
+          {source === 'riderAssets' ? 'Go to Profile' : 'Go to Home'}
+        </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

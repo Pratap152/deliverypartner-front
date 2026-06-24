@@ -10,8 +10,10 @@ import {
     TouchableOpacity,
     ScrollView,
     PermissionsAndroid,
-    Platform
+    Platform,
+    BackHandler
 } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 import {
     responsiveWidth,
     responsiveHeight,
@@ -24,8 +26,40 @@ import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DocumentDetailsScreen = ({ navigation }) => {
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                Alert.alert(
+                    "Exit App",
+                    "Are you sure you want to exit the app?",
+                    [
+                        {
+                            text: "No",
+                            style: "cancel",
+                        },
+                        {
+                            text: "Yes",
+                            onPress: () => BackHandler.exitApp(),
+                        },
+                    ]
+                );
+
+                return true; // Prevent default behavior
+            };
+
+            const subscription = BackHandler.addEventListener(
+                "hardwareBackPress",
+                onBackPress
+            );
+
+            return () => subscription.remove();
+        }, [])
+    );
+
     const dispatch = useDispatch();
 
     const selectedVehicle = useSelector(state => state.vehicle.selectedVehicle);
@@ -262,12 +296,12 @@ const DocumentDetailsScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
 
             {/* SCROLLABLE CONTENT */}
             <ScrollView
                 contentContainerStyle={{
-                    padding: responsiveWidth(5),
+                    paddingHorizontal: responsiveWidth(5),
                     paddingBottom: 140
                 }}
                 showsVerticalScrollIndicator={false}
@@ -342,7 +376,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
                         </View>
                     )}
                 </View>
-                { photoError && <Text style={styles.error}>{photoError}</Text> }
+                {photoError && <Text style={styles.error}>{photoError}</Text>}
             </ScrollView>
 
             {/* FIXED BUTTON */}
@@ -356,7 +390,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
                 />
             </View>
 
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -367,13 +401,13 @@ const styles = StyleSheet.create({
         fontSize: responsiveFontSize(3),
         fontWeight: '700',
         textAlign: 'center',
-        marginVertical: responsiveHeight(2),
+        marginBottom: 15
     },
     sideHeading: {
         marginTop: 10,
         marginBottom: 10,
         fontSize: wp(4),
-        fontWeight: '400',
+        fontWeight: '600',
     },
     input: {
         borderWidth: 1,
@@ -458,8 +492,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 15,
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
         borderColor: '#eee'
     }
 });

@@ -5,12 +5,12 @@ import {
   bookSlotApi,
   cancelSlotApi,
 } from "../services/slots/slots.service";
-
-
+ 
+ 
 export function formatWeeks(apiWeeks = []) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+ 
   return apiWeeks
     .filter((item) => {
       const itemDate = new Date(item.date);
@@ -23,7 +23,7 @@ export function formatWeeks(apiWeeks = []) {
       day: new Date(item.date).getDate().toString(), // 1, 2
     }));
 }
-
+ 
 export function useSlots() {
   const [weeks, setWeeks] = useState([]);      
   const [slots, setSlots] = useState([]);
@@ -31,20 +31,20 @@ export function useSlots() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(false);
-
+ 
   const clearWeeks = () => setWeeks([]);
   const clearSlots = () => setSlots([]);
-
+ 
   // Load week
   const loadWeeks = async (payload) => {
     console.log("loadWeeks hook entered...payload", payload);
     try {
       setWeeksLoading(true);
       setError(false);
-
+ 
       const weeksRes = await loadWeeksApi(payload);
       console.log("loadWeeksApi exited.....", weeksRes?.data?.data);
-
+ 
       if (weeksRes.data?.success) {
         setWeeks(formatWeeks(weeksRes.data.data));
       } else {
@@ -57,38 +57,38 @@ export function useSlots() {
       setWeeksLoading(false);
     }
   };
-
+ 
   // Load slots
   const loadSlots = async (payload) => {
     console.log("loadSlots hook entered...payload", payload);
     try {
       setSlotsLoading(true);
       setError(false);
-
+ 
       const slotsRes = await loadSlotsApi(payload);
       console.log("loadSlotsApi exited....", slotsRes?.data);
-
+ 
       if (slotsRes.data?.success) {
         const slotDate = slotsRes.data.date; // 2026-02-01
         let filteredSlots = slotsRes.data.data;
-
+ 
         // Only filter by time if the slot date is today
         if (slotDate) {
           const today = new Date();
           const slotDateObj = new Date(slotDate);
-          
+         
           // Compare dates (ignore time component)
           const isToday =
             today.getFullYear() === slotDateObj.getFullYear() &&
             today.getMonth() === slotDateObj.getMonth() &&
             today.getDate() === slotDateObj.getDate();
-
+ 
           if (isToday) {
             // Filter out slots where endTime has already passed
             const currentTime = new Date();
             const currentHours = currentTime.getHours();
             const currentMinutes = currentTime.getMinutes();
-
+ 
             filteredSlots = filteredSlots.filter((slot) => {
               // Parse endTime (format: HH:MM or HH:mm)
               const endTime = slot.endTime;
@@ -118,7 +118,7 @@ export function useSlots() {
       setSlotsLoading(false);
     }
   };
-
+ 
   // Book slot
   const bookSlot = async (payload) => {
     try {
@@ -132,7 +132,7 @@ export function useSlots() {
       setActionLoading(false);
     }
   };
-
+ 
   // Cancel slot
   const cancelSlot = async (payload) => {
     try {
@@ -146,7 +146,7 @@ export function useSlots() {
       setActionLoading(false);
     }
   };
-
+ 
   return {
     weeks,
     slots,
@@ -163,3 +163,4 @@ export function useSlots() {
     clearSlots,
   };
 }
+ 

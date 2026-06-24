@@ -16,11 +16,25 @@ import {
   responsiveFontSize as rf,
 } from "react-native-responsive-dimensions";
 import apiClient from "../../services/ApiClient";
+import { useSelector } from "react-redux";
 
 const RiderAssets = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [assetsData, setAssetsData] = useState([]);
   const [totalAssets, setTotalAssets] = useState(0);
+
+  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+
+  const riderKitData = useSelector(state =>
+    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
+  );
+
+  const kitCompleted = riderKitData?.kitCompleted ?? false;
+  const currentStep = riderKitData?.currentStep ?? null;
+  const apiResponse = riderKitData?.apiResponse ?? null;
+  const deliveryMode = riderKitData?.deliveryMode ?? null;
+  const addressData = riderKitData?.addressData ?? null;
+  const selectedZone = riderKitData?.selectedZone ?? null;
 
   useEffect(() => {
     fetchAssets();
@@ -29,15 +43,69 @@ const RiderAssets = ({ navigation }) => {
   const fetchAssets = async () => {
     try {
       const res = await apiClient.get("/api/kit/rider/assets");
-
       setAssetsData(res?.data?.data || []);
       setTotalAssets(res?.data?.totalAssets || 0);
     } catch (err) {
-      console.log("Assets error", err?.response || err);
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message;
+
+      if (status === 404 && message === "No assets issued to this rider") {
+        setAssetsData([]);
+        setTotalAssets(0);
+      } else {
+        console.log("Assets error", err?.response || err);
+        setAssetsData([]);
+        setTotalAssets(0);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const handleKitPressFromProfile = () => {
+    const source = "riderAssets";
+
+    if (!riderKitData) {
+      navigation.navigate("KitSelectionScreen", { source });
+      return;
+    }
+
+    if (kitCompleted || currentStep === "SuccessScreen") {
+      navigation.navigate("SuccessScreen", {
+        apiResponse,
+        deliveryMode,
+        source,
+      });
+      return;
+    }
+
+    if (currentStep === "PaymentsScreen") {
+      navigation.navigate("PaymentsScreen", { source });
+      return;
+    }
+
+    if (currentStep === "KitPickupSelection") {
+      navigation.navigate("KitPickupSelection", {
+        apiResponse,
+        deliveryMode,
+        addressData,
+        selectedZone,
+        source,
+      });
+      return;
+    }
+
+    navigation.navigate("KitSelectionScreen", { source });
+  };
+
+  const handleBackFromRiderAssets = () => {
+  if (navigation.canGoBack()) {
+    navigation.goBack();
+    return;
+  }
+
+  navigation.navigate('ProfileScreen');
+};
 
   if (loading) {
     return (
@@ -51,9 +119,8 @@ const RiderAssets = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={handleBackFromRiderAssets}>
           <Ionicons name="arrow-back" size={rf(2.6)} color="#101828" />
         </TouchableOpacity>
 
@@ -69,7 +136,6 @@ const RiderAssets = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: rh(4) }}
       >
-        {/* EMPTY FALLBACK UI */}
         {isEmpty ? (
           <View style={styles.emptyWrapper}>
             <View style={styles.illustrationBox}>
@@ -85,9 +151,7 @@ const RiderAssets = ({ navigation }) => {
             </Text>
 
             <View style={styles.infoCard}>
-              <Text style={styles.infoHeading}>
-                How asset collection works
-              </Text>
+              <Text style={styles.infoHeading}>How asset collection works</Text>
 
               <View style={styles.infoItem}>
                 <Text style={styles.bullet}>•</Text>
@@ -122,14 +186,13 @@ const RiderAssets = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.button}
-              onPress={() => navigation.navigate("KitSelectionScreen")}
+              onPress={handleKitPressFromProfile}
             >
               <Text style={styles.buttonText}>Choose Delivery Kit</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <>
-            {/* SUMMARY */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Assets Summary</Text>
 
@@ -141,7 +204,6 @@ const RiderAssets = ({ navigation }) => {
               </View>
             </View>
 
-            {/* LIST */}
             {assetsData?.map((item, index) => (
               <View key={index} style={styles.assetCard}>
                 <View style={styles.assetIcon}>
