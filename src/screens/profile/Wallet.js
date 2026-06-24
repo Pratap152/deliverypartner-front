@@ -33,39 +33,50 @@ export default function WalletScreen({ navigation }) {
   }, []);
 
   const fetchData = async () => {
-    try {
-      const [
-        walletRes,
-        settlementRes,
-        bankRes,
-        transactionRes,
-      ] = await Promise.all([
-        apiClient.get('/api/rider/get/wallet'),
-        apiClient.get('/api/settlement-breakdown'),
-        apiClient.get('/api/profile/bank-details'),
-        apiClient.get('/api/wallet/withdrawals'),
-      ]);
-      console.log(
-        'BANK API RESPONSE =>',
-        JSON.stringify(bankRes.data, null, 2),
-      );
-      setWallet(walletRes.data.data);
-      setSettlement(settlementRes.data.data);
-      setBank(bankRes.data.data);
-      console.log(
-        'BANK STATE =>',
-        JSON.stringify(bankRes.data.data, null, 2),
-      );
-      setTransactions(
-        transactionRes.data.data.transactions || [],
-      );
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const walletRes = await apiClient.get(
+      '/api/rider/get/wallet',
+    );
 
+    setWallet(walletRes.data.data);
+  } catch (error) {
+    console.log('Wallet Error', error);
+  }
+
+  try {
+    const settlementRes = await apiClient.get(
+      '/api/settlement-breakdown',
+    );
+
+    setSettlement(settlementRes.data.data);
+  } catch (error) {
+    console.log('Settlement Error', error);
+  }
+
+  try {
+    const bankRes = await apiClient.get(
+      '/api/profile/bank-details',
+    );
+
+    setBank(bankRes.data.data);
+  } catch (error) {
+    console.log('Bank Error', error);
+  }
+
+  try {
+    const transactionRes = await apiClient.get(
+      '/api/wallet/withdrawals',
+    );
+
+    setTransactions(
+      transactionRes.data.data.transactions || [],
+    );
+  } catch (error) {
+    console.log('Transaction Error', error);
+  }
+
+  setLoading(false);
+};
   const formatCurrency = amount =>
     `₹${Number(amount || 0).toLocaleString('en-IN')}`;
   const formatDate = date => {
