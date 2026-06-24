@@ -109,32 +109,31 @@ export default function WalletScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <Ionicons
-                    name="arrow-back"
-                    size={rf(2.6)}
-                    color="#101828"
-                  />
-                </TouchableOpacity>
-        
-                <Text style={styles.headerTitle}>
-                  Wallet
-                </Text>
-        
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('HelpCenterList')
-                  }>
-                  <Image
-                    source={require('../../assets/profile/HelpcenterIcon.png')}
-                    style={styles.robotIcon}
-                  />
-                </TouchableOpacity>
-              </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons
+            name="arrow-back"
+            size={rf(2.6)}
+            color="#101828"
+          />
+        </TouchableOpacity>
 
+        <Text style={styles.headerTitle}>
+          Wallet
+        </Text>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('HelpCenterList')
+          }>
+          <Image
+            source={require('../../assets/profile/HelpcenterIcon.png')}
+            style={styles.robotIcon}
+          />
+        </TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Wallet Card */}
         <View style={styles.walletContainer}>
           <LinearGradient
@@ -517,7 +516,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: rw(4),
-    marginBottom:9,
+    marginBottom: 9,
     paddingVertical: rh(2.2),
     backgroundColor: '#FFFFFF',
     elevation: 3,
