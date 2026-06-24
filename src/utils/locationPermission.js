@@ -13,16 +13,11 @@ export const checkLocationRequirements = async () => {
       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
     );
 
-    const backgroundGranted = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-    );
-
     const gpsEnabled =
       await DeviceInfo.isLocationEnabled();
 
     return (
       fineGranted &&
-      backgroundGranted &&
       gpsEnabled
     );
   } catch (error) {
@@ -33,16 +28,10 @@ export const checkLocationRequirements = async () => {
 
 export const requestLocationRequirements = async () => {
   try {
-    console.log('Request started');
+    console.log('Requesting fine location');
     const finePermission = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: 'Location Permission',
-        message: 'Please allow location access.',
-        buttonPositive: 'Allow',
-      },
     );
-    console.log('Fine:', finePermission);
 
     if (
       finePermission !== PermissionsAndroid.RESULTS.GRANTED
@@ -50,34 +39,9 @@ export const requestLocationRequirements = async () => {
       return false;
     }
 
-    const backgroundPermission = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-      {
-        title: 'Allow All The Time',
-        message:
-          'Please allow all the time location access.',
-        buttonPositive: 'Allow',
-      },
-    );
-
-    if (
-      backgroundPermission !== PermissionsAndroid.RESULTS.GRANTED
-    ) {
-      Linking.openSettings();
-      return false;
-    }
-
     // GPS
-    try {
-      console.log('Opening GPS dialog');
-
-      await RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
-        interval: 10000,
-        fastInterval: 5000,
-      },
-      );
-      console.log('GPS enabled');
-    } catch (e) {
+    const gpsEnabled = await DeviceInfo.isLocationEnabled();
+    if (!gpsEnabled) {
       Alert.alert(
         'GPS Required',
         'Please enable GPS to continue.',
@@ -93,8 +57,6 @@ export const requestLocationRequirements = async () => {
         ],
         { cancelable: false },
       );
-      console.log('GPS not enabled');
-      return false;
     }
 
     // Final verification
