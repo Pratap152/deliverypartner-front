@@ -13,7 +13,6 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import apiClient from '../../services/ApiClient';
-import { navigate } from '../../navigation/RootNavigation';
 
 dayjs.extend(relativeTime);
 
@@ -42,12 +41,6 @@ const NotificationsScreen = () => {
     }
   };
 
-  const onPressNotification = item => {
-    if (item.screen) {
-      navigate(item.screen);
-    }
-  };
-
   const getIconText = type => {
     if (type?.includes('SLOT')) return '🕒';
     if (type?.includes('ORDER')) return '📦';
@@ -56,11 +49,7 @@ const NotificationsScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      style={styles.card}
-      onPress={() => onPressNotification(item)}
-    >
+    <View style={styles.card}>
       <View style={styles.iconContainer}>
         <Text style={styles.icon}>
           {getIconText(item.type)}
@@ -80,7 +69,7 @@ const NotificationsScreen = () => {
           {dayjs(item.createdAt).fromNow()}
         </Text>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   if (loading) {
@@ -148,6 +137,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#192A51',
     paddingHorizontal: 18,
+    paddingTop: 4,
     paddingVertical: 18,
   },
 
