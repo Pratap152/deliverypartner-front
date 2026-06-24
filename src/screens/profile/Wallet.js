@@ -33,50 +33,50 @@ export default function WalletScreen({ navigation }) {
   }, []);
 
   const fetchData = async () => {
-  try {
-    const walletRes = await apiClient.get(
-      '/api/rider/get/wallet',
-    );
+    try {
+      const walletRes = await apiClient.get(
+        '/api/rider/get/wallet',
+      );
 
-    setWallet(walletRes.data.data);
-  } catch (error) {
-    console.log('Wallet Error', error);
-  }
+      setWallet(walletRes.data.data);
+    } catch (error) {
+      console.log('Wallet Error', error);
+    }
 
-  try {
-    const settlementRes = await apiClient.get(
-      '/api/settlement-breakdown',
-    );
+    try {
+      const settlementRes = await apiClient.get(
+        '/api/settlement-breakdown',
+      );
 
-    setSettlement(settlementRes.data.data);
-  } catch (error) {
-    console.log('Settlement Error', error);
-  }
+      setSettlement(settlementRes.data.data);
+    } catch (error) {
+      console.log('Settlement Error', error);
+    }
 
-  try {
-    const bankRes = await apiClient.get(
-      '/api/profile/bank-details',
-    );
+    try {
+      const bankRes = await apiClient.get(
+        '/api/profile/bank-details',
+      );
 
-    setBank(bankRes.data.data);
-  } catch (error) {
-    console.log('Bank Error', error);
-  }
+      setBank(bankRes.data.data);
+    } catch (error) {
+      console.log('Bank Error', error);
+    }
 
-  try {
-    const transactionRes = await apiClient.get(
-      '/api/wallet/withdrawals',
-    );
+    try {
+      const transactionRes = await apiClient.get(
+        '/api/wallet/withdrawals',
+      );
 
-    setTransactions(
-      transactionRes.data.data.transactions || [],
-    );
-  } catch (error) {
-    console.log('Transaction Error', error);
-  }
+      setTransactions(
+        transactionRes.data.data.transactions || [],
+      );
+    } catch (error) {
+      console.log('Transaction Error', error);
+    }
 
-  setLoading(false);
-};
+    setLoading(false);
+  };
   const formatCurrency = amount =>
     `₹${Number(amount || 0).toLocaleString('en-IN')}`;
   const formatDate = date => {
@@ -335,7 +335,8 @@ export default function WalletScreen({ navigation }) {
           <View style={styles.breakdown}>
             {!settlement ? (
               <Text style={styles.emptyText}>
-                No settlement data available
+                {settlementMessage ||
+                  'No settlement data available'}
               </Text>
             ) : (
               <>
