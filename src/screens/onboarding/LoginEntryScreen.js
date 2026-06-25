@@ -156,7 +156,7 @@ const LoginEntryScreen = ({ navigation }) => {
       barStyle="light-content"
       translucent={false}
     />
-  <SafeAreaView style={styles.safeArea}>
+  <View style={styles.safeArea}>
     
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -244,7 +244,7 @@ const LoginEntryScreen = ({ navigation }) => {
           </View>
         </View>
     </KeyboardAvoidingView>
-  </SafeAreaView>
+  </View>
   </>
 );
 };
@@ -284,7 +284,6 @@ scrollContainer: {
   paddingTop: hp('4%'),
   paddingBottom: hp('8%'),
 },
-  // ================= TEXT =================
   welcomeText: {
     fontSize: hp('4.2%'),
     fontWeight: '700',
@@ -293,8 +292,8 @@ scrollContainer: {
   },
 
   subText: {
-    fontSize: hp('2%'),
-    color: '#3d4147',
+    fontSize: hp('2.2%'),
+    color: '#26292d',
     marginHorizontal: wp('8%'),
     marginTop: hp('1.2%'),
     lineHeight: hp('3%'),
