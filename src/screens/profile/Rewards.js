@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   responsiveWidth as rw,
@@ -76,7 +76,7 @@ const RewardsScreen = ({ navigation }) => {
 
   const { data } = useEarningsDashboard();
   const incentives = data?.incentives || [];
-  
+
 
   useEffect(() => {
     fetchDailyIncentivesProgress();
@@ -119,11 +119,13 @@ const RewardsScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>Rewards</Text>
 
         <TouchableOpacity
+          style={styles.rightIconWrapper}
           onPress={() => navigation.navigate('HelpCenterList')}
         >
-          <Image
-            source={require('../../assets/profile/HelpcenterIcon.png')}
-            style={styles.robotIcon}
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={24}
+            color="#13ACBE"
           />
         </TouchableOpacity>
       </View>

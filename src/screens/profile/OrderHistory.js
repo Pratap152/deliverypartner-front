@@ -233,97 +233,103 @@ const OrderHistory = ({ navigation }) => {
           Order History
         </Text>
 
-        <Image
-          source={require('../../assets/profile/HelpcenterIcon.png')}
-          style={styles.robotIcon}
-        />
+        <TouchableOpacity
+          style={styles.rightIconWrapper}
+          onPress={() => navigation.navigate('HelpCenterList')}
+        >
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={24}
+            color="#294484"
+          />
+        </TouchableOpacity>
       </View>
 
       {/* FILTERS */}
-       <View style={styles.contentContainer}>
-      <View style={styles.filterRow}>
-        {FILTERS.map(item => (
-          <TouchableOpacity
-            key={item.value}
-            style={[
-              styles.filterChip,
-              selectedFilter === item.value &&
-              styles.filterChipActive,
-            ]}
-            onPress={() => changeFilter(item.value)}
-          >
-            <Text
+      <View style={styles.contentContainer}>
+        <View style={styles.filterRow}>
+          {FILTERS.map(item => (
+            <TouchableOpacity
+              key={item.value}
               style={[
-                styles.filterText,
+                styles.filterChip,
                 selectedFilter === item.value &&
-                styles.filterTextActive,
+                styles.filterChipActive,
               ]}
+              onPress={() => changeFilter(item.value)}
             >
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* SUMMARY */}
-      <View style={styles.summaryGrid}>
-        <SummaryCard
-          icon="bag-handle-outline"
-          label="Total Orders"
-          value={summary.totalOrders}
-          bgColor="#FF690014"
-          iconColor="#FF6900"
-        />
-
-        <SummaryCard
-          icon="wallet-outline"
-          label="Total Earnings"
-          value={`₹${summary.totalEarnings}`}
-          bgColor="#00C95014"
-          iconColor="#00C950"
-        />
-
-        <SummaryCard
-          icon="star"
-          label="Average Rating"
-          value={summary.rating}
-          bgColor="#F0B10014"
-          iconColor="#F0B100"
-        />
-
-        <SummaryCard
-          icon="navigate-circle-outline"
-          label="KM Travelled"
-          value={summary.km}
-          bgColor="#2B7FFF14"
-          iconColor="#2B7FFF"
-        />
-      </View>
-
-      <FlatList
-        data={orders}
-        keyExtractor={item => item.id}
-        renderItem={renderOrder}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.4}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={!loading ? EmptyComponent : null}
-        ListFooterComponent={
-          loadingMore ? (
-            <ActivityIndicator
-              style={{ marginVertical: 20 }}
-            />
-          ) : null
-        }
-      />
-
-      {filterLoading && (
-        <View style={styles.overlay}>
-          <ActivityIndicator size="large" />
+              <Text
+                style={[
+                  styles.filterText,
+                  selectedFilter === item.value &&
+                  styles.filterTextActive,
+                ]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      )}
+
+        {/* SUMMARY */}
+        <View style={styles.summaryGrid}>
+          <SummaryCard
+            icon="bag-handle-outline"
+            label="Total Orders"
+            value={summary.totalOrders}
+            bgColor="#FF690014"
+            iconColor="#FF6900"
+          />
+
+          <SummaryCard
+            icon="wallet-outline"
+            label="Total Earnings"
+            value={`₹${summary.totalEarnings}`}
+            bgColor="#00C95014"
+            iconColor="#00C950"
+          />
+
+          <SummaryCard
+            icon="star"
+            label="Average Rating"
+            value={summary.rating}
+            bgColor="#F0B10014"
+            iconColor="#F0B100"
+          />
+
+          <SummaryCard
+            icon="navigate-circle-outline"
+            label="KM Travelled"
+            value={summary.km}
+            bgColor="#2B7FFF14"
+            iconColor="#2B7FFF"
+          />
+        </View>
+
+        <FlatList
+          data={orders}
+          keyExtractor={item => item.id}
+          renderItem={renderOrder}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={!loading ? EmptyComponent : null}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator
+                style={{ marginVertical: 20 }}
+              />
+            ) : null
+          }
+        />
+
+        {filterLoading && (
+          <View style={styles.overlay}>
+            <ActivityIndicator size="large" />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -366,30 +372,30 @@ const styles = StyleSheet.create({
   },
 
   header: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
 
-  paddingHorizontal: rw(4),
-  paddingVertical: rh(2),
+    paddingHorizontal: rw(4),
+    paddingVertical: rh(2),
 
-  backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF',
 
-  borderBottomWidth: 1,
-  borderBottomColor: '#F1F5F9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
 
-  elevation: 2,
-},
+    elevation: 2,
+  },
   headerTitle: {
     fontSize: rf(2.4),
     fontWeight: '700',
     color: '#111827',
   },
   contentContainer: {
-  flex: 1,
-  paddingHorizontal: rw(4),
-  paddingTop: rh(1.5),
-},
+    flex: 1,
+    paddingHorizontal: rw(4),
+    paddingTop: rh(1.5),
+  },
 
   filterRow: {
     flexDirection: 'row',
@@ -445,21 +451,21 @@ const styles = StyleSheet.create({
   },
 
   orderCard: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 20,
-  padding: rw(4),
-  marginBottom: rh(1.8),
-  shadowColor: '#474141',
-  shadowOffset: {
-    width: 0,
-    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: rw(4),
+    marginBottom: rh(1.8),
+    shadowColor: '#474141',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#eaeef2',
   },
-  shadowOpacity: 0.06,
-  shadowRadius: 8,
-  elevation: 3,
-  borderWidth: 1,
-  borderColor: '#eaeef2',
-},
 
   topRow: {
     flexDirection: 'row',

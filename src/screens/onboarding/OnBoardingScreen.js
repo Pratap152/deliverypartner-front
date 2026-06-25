@@ -48,10 +48,6 @@ const slides = [
 
       "Lets start quickly, Its very easy to start and process. We’ll be all there to help you & guide you to start journey with us as a Delivery Boy.",
 
-    leaf: require('../../assets/leaf.png'),
-
-    wave: require("../../assets/waves.png"),
-
     image: require("../../assets/delivery-boy.png"),
 
     bg: require("../../assets/Ellipse.png"),
@@ -70,8 +66,6 @@ const slides = [
 
       "Start your journey with us and begin accepting delivery tasks instantly",
 
-    wave: require("../../assets/waves.png"),
-
     image: require("../../assets/delivery.png"),
 
     bg: require("../../assets/Ellipse2.png"),
@@ -81,7 +75,7 @@ const slides = [
 ];
 
 
-const OnBoardingScreen = ({navigation}) => {
+const OnBoardingScreen = ({ navigation }) => {
 
   const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -96,10 +90,10 @@ const OnBoardingScreen = ({navigation}) => {
   });
 
   return (
-<View style={styles.container}>
+    <View style={styles.container}>
 
       {/* SLIDES */}
-<FlatList
+      <FlatList
 
         data={slides}
 
@@ -118,11 +112,11 @@ const OnBoardingScreen = ({navigation}) => {
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
 
         renderItem={({ item }) => (
-<View style={{ width: wp("100%"), alignItems: "center" }}>
+          <View style={{ width: wp("100%"), alignItems: "center" }}>
 
             {/* TOP IMAGE BACKGROUND */}
-<ImageBackground source={item.bg} style={styles.bgImage}>
-<View style={styles.imgWrap}>
+            <ImageBackground source={item.bg} style={styles.bgImage}>
+              <View style={styles.imgWrap}>
 
                 {/* LEAF */}
 
@@ -133,7 +127,7 @@ const OnBoardingScreen = ({navigation}) => {
                 {item.wave && <Image source={item.wave} style={styles.wave} />}
 
                 {/* MAIN IMAGE */}
-<Image
+                <Image
 
                   source={item.image}
 
@@ -142,29 +136,29 @@ const OnBoardingScreen = ({navigation}) => {
                   resizeMode="contain"
 
                 />
-</View>
-</ImageBackground>
+              </View>
+            </ImageBackground>
 
             {/* TEXT SECTION */}
-<View style={styles.bottom}>
-<Text style={styles.title}>
+            <View style={styles.bottom}>
+              <Text style={styles.title}>
 
                 {item.title} {item.emoji}
-</Text>
-<Text style={styles.title1}>{item.title1}</Text>
-<Text style={styles.description}>{item.description}</Text>
-</View>
-</View>
+              </Text>
+              <Text style={styles.title1}>{item.title1}</Text>
+              <Text style={styles.description}>{item.description}</Text>
+            </View>
+          </View>
 
         )}
 
       />
 
       {/* INDICATORS */}
-<View style={styles.indicatorContainer}>
+      <View style={styles.indicatorContainer}>
 
         {slides.map((_, i) => (
-<View
+          <View
 
             key={i}
 
@@ -185,18 +179,18 @@ const OnBoardingScreen = ({navigation}) => {
           />
 
         ))}
-</View>
+      </View>
 
       {/* BUTTONS */}
 
       {index === 0 ? (
-<TouchableOpacity
+        <TouchableOpacity
 
           style={styles.arrowBtn}
 
           onPress={() => flatListRef.current.scrollToIndex({ index: 1 })}
->
-<Image
+        >
+          <Image
 
             source={require("../../assets/arrow.png")}
 
@@ -205,20 +199,20 @@ const OnBoardingScreen = ({navigation}) => {
             resizeMode="contain"
 
           />
-</TouchableOpacity>
+        </TouchableOpacity>
 
       ) : (
-<TouchableOpacity
+        <TouchableOpacity
 
           style={styles.getStartedBtn}
 
-          onPress={()=>navigation.navigate(LoginEntryScreen)}
->
-<Text style={styles.getStartedText}>Get Started</Text>
-</TouchableOpacity>
+          onPress={() => navigation.navigate(LoginEntryScreen)}
+        >
+          <Text style={styles.getStartedText}>Get Started</Text>
+        </TouchableOpacity>
 
       )}
-</View>
+    </View>
 
   );
 
@@ -380,7 +374,7 @@ const styles = StyleSheet.create({
 
     height: hp("5%"),
 
-    marginBottom:hp('3%')
+    marginBottom: hp('3%')
 
   },
 
