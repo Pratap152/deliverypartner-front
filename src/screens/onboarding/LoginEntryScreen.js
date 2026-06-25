@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import BGImage from '../../assets/Ellipse.png';
-import vega_partner from '../../assets/vega_partner.png';
 import WEBSITE_URL from "../../utils/host";
 import axios from "axios";
 import {
@@ -13,24 +11,19 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ImageBackground,
   StyleSheet,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   BackHandler,
-  Alert
+  Alert,
+  StatusBar
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-const { width, height } = Dimensions.get('window');
 
-const CURVE_TOP = '#FFFFFFF5';
-const CURVE_BOTTOM = '#CDF5E7';
-const BUTTON_BLUE = '#00B5CC';
-
+const BUTTON_BLUE = '#192A51';
 export const sendOTPApi = async (phone) => {
   console.log("📤 Sending OTP to:", phone);
 
@@ -157,189 +150,240 @@ const LoginEntryScreen = ({ navigation }) => {
   const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked || isSending;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        enabled={true}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+    <>
+    <StatusBar
+      backgroundColor="#192A51"
+      barStyle="light-content"
+      translucent={false}
+    />
+  <SafeAreaView style={styles.safeArea}>
+    
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Image
+            source={require('../../assets/zestbot.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
-          <ImageBackground source={BGImage} style={styles.bgImage}>
-            <View style={styles.imgWrap}>
-              {/* MAIN IMAGE */}
-              <Image
-                source={vega_partner}
-                style={styles.mainImage}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.tagline}>Be a Zest bot Partner</Text>
-            <Text style={styles.title}>Earn a stable daily income</Text>
-          </ImageBackground>
-          <View style={styles.container}>
-            <View style={styles.contentArea}>
-              <Text style={styles.inputLabel}>Enter Mobile Number</Text>
+        {/* WHITE CURVE CARD */}
+        <View style={styles.curveContainer}>
+          <Text style={styles.welcomeText}>
+            Welcome Back
+          </Text>
 
-              <TextInput
-                style={[styles.input, error ? { borderColor: "red" } : {}]}
-                value={mobileNumber}
-                onChangeText={handleMobileNumberChange}
-                placeholder="e.g. 98765 43210"
-                placeholderTextColor="#999"        // ⭐ FIX ADDED
-                keyboardType="numeric"
-                maxLength={10}
-              />
+          <Text style={styles.subText}>
+            Be a Zest bot Partner
+            {"\n"}
+            Earn a stable daily income
+          </Text>
 
-              {/* ERROR MESSAGE */}
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <View style={styles.contentArea}>
+            <Text style={styles.inputLabel}>
+              Enter Mobile Number
+            </Text>
 
-              {/* TERMS CHECKBOX */}
-              <View style={styles.checkboxContainer}>
-                <TouchableOpacity
-                  onPress={() => setIsChecked(!isChecked)}
-                  style={styles.customCheckbox}
-                >
-                  {isChecked && <Text style={styles.checkMark}>✓</Text>}
-                </TouchableOpacity>
+            <TextInput
+              style={[
+                styles.input,
+                error ? { borderWidth: 1, borderColor: "red" } : {}
+              ]}
+              value={mobileNumber}
+              onChangeText={handleMobileNumberChange}
+              placeholder="e.g. 98765 43210"
+              placeholderTextColor="#999"
+              keyboardType="numeric"
+              maxLength={10}
+            />
 
-                <Text style={styles.termsText}>
-                  By signing up I agree to the{' '}
-                  <Text style={styles.linkText}>Terms of use</Text> and{' '}
-                  <Text style={styles.linkText}>Privacy Policy.</Text>
-                </Text>
-              </View>
+            {error ? (
+              <Text style={styles.errorText}>
+                {error}
+              </Text>
+            ) : null}
 
-              {/* SEND OTP BUTTON */}
+            <View style={styles.checkboxContainer}>
               <TouchableOpacity
-                style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
-                onPress={handleSendOTP}
-                disabled={isButtonDisabled}
+                onPress={() => setIsChecked(!isChecked)}
+                style={styles.customCheckbox}
               >
-                <Text style={styles.buttonText}>{isSending ? "Sending..." : "Send OTP"}</Text>
+                {isChecked && (
+                  <Text style={styles.checkMark}>✓</Text>
+                )}
               </TouchableOpacity>
 
+              <Text style={styles.termsText}>
+                By signing up I agree to the{" "}
+                <Text style={styles.linkText}>
+                  Terms of use
+                </Text>{" "}
+                and{" "}
+                <Text style={styles.linkText}>
+                  Privacy Policy.
+                </Text>
+              </Text>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-};
 
-// --------------------------- STYLES ---------------------------
+            <TouchableOpacity
+              style={[
+                styles.button,
+                isButtonDisabled && styles.buttonDisabled,
+              ]}
+              onPress={handleSendOTP}
+              disabled={isButtonDisabled}
+            >
+              <Text style={styles.buttonText}>
+                {isSending ? "Sending..." : "Send OTP"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+  </>
+);
+};
+export default LoginEntryScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: CURVE_BOTTOM },
-  container: { flex: 1, backgroundColor: CURVE_BOTTOM },
+  safeArea: {
+  flex: 1,
+  backgroundColor: '#FFFFFF',
+},
+scrollContainer: {
+  flexGrow: 1,
+},
 
-
-  bgImage: {
-    width: wp("100%"),
-    height: hp("62%"),
-    alignItems: "center",
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
 
-  imgWrap: {
-    width: wp("100%"),
-    alignItems: "center",
+  header: {
+  height: hp('48%'),
+  backgroundColor: '#192A51',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+  logo: {
+    width: wp('90%'),
+    height: hp('28%'),
   },
 
-  mainImage: {
-    width: wp("86%"),
-    height: hp("30%"),
-    marginTop: hp("15%"),
-  },
-  contentArea: { paddingHorizontal: 30, marginTop: 10 },
-
-  tagline: {
-    fontWeight: '600',
-    fontSize: 16,
-    marginBottom: 5,
-    marginRight: 140,
-  },
-
-  title: {
+  curveContainer: {
+  flex: 1,
+  backgroundColor: '#FFFFFF',
+  marginTop: -100,
+  borderTopRightRadius: 100,
+  paddingTop: hp('4%'),
+  paddingBottom: hp('8%'),
+},
+  // ================= TEXT =================
+  welcomeText: {
+    fontSize: hp('4.2%'),
     fontWeight: '700',
-    fontSize: 25,
-    marginBottom: 25,
-    marginRight: 30,
-    marginLeft: 30,
-    marginTop: 9,
+    color: '#1B2238',
+    marginHorizontal: wp('8%'),
+  },
+
+  subText: {
+    fontSize: hp('2%'),
+    color: '#3d4147',
+    marginHorizontal: wp('8%'),
+    marginTop: hp('1.2%'),
+    lineHeight: hp('3%'),
+    marginBottom: hp('2%'),
+  },
+  contentArea: {
+    paddingHorizontal: wp('8%'),
+    marginTop: hp('2%'),
   },
 
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 6,
-    marginTop: 25,
+    fontWeight: '600',
+    color: '#1B2238',
+    marginBottom: 8,
   },
 
   input: {
-    height: 52,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1.3,
-    borderColor: '#A5A5A5',
-    paddingHorizontal: 15,
-    fontSize: 18,
-    color: 'black',   // ⭐ visible in dark mode
-    marginBottom: 6,
-    marginTop: 18,
+    height: 56,
+    backgroundColor: '#F2F4FA',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#000',
+    marginBottom: 25,
   },
 
   errorText: {
-    color: "red",
-    fontSize: 14,
-    marginBottom: 12,
+    color: 'red',
+    fontSize: 13,
+    marginTop: -18,
+    marginBottom: 18,
   },
 
+  // ================= CHECKBOX =================
   checkboxContainer: {
     flexDirection: 'row',
-    marginBottom: 30,
+    alignItems: 'flex-start',
+    marginTop: 10,
+    marginBottom: 35,
   },
 
   customCheckbox: {
     width: 22,
     height: 22,
     borderWidth: 1.5,
-    borderColor: BUTTON_BLUE,
+    borderColor: '#192A51',
     borderRadius: 5,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 2,
   },
 
-  checkMark: { color: BUTTON_BLUE, fontSize: 16, fontWeight: 'bold' },
+  checkMark: {
+    color: '#192A51',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 
-  termsText: { flex: 1, fontSize: 14, lineHeight: 18 },
+  termsText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 22,
+  },
 
-  linkText: { color: BUTTON_BLUE, fontWeight: '600' },
+  linkText: {
+    color: '#192A51',
+    fontWeight: '600',
+  },
 
+  // ================= BUTTON =================
   button: {
-    backgroundColor: BUTTON_BLUE,
-    height: 52,
+    backgroundColor: '#192A51',
+    height: 58,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 30,
-    marginBottom: 20,
-    elevation: 3,
+    marginTop: 5,
   },
 
   buttonDisabled: {
     backgroundColor: '#A2A2A2',
-    elevation: 0,
   },
 
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
   },
 });
-
-export default LoginEntryScreen;
