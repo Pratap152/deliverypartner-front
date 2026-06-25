@@ -15,6 +15,7 @@ import {
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {
   widthPercentageToDP as wp,
@@ -137,14 +138,18 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.profileRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatar}>
-                  <Image
-                    source={
-                      selfieUri
-                        ? { uri: selfieUri }
-                        : require('../../assets/profile/profileicon.png')
-                    }
-                    style={styles.avatarImage}
-                  />
+                  {selfieUri ? (
+                    <Image
+                      source={{ uri: selfieUri }}
+                      style={styles.avatarImage}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="person"
+                      size={40}
+                      color="#13ACBE"
+                    />
+                  )}
                 </View>
               </View>
 
@@ -215,9 +220,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('PersonalDetails')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/personal.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="person-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -261,9 +267,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('RiderAssets')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Rider.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="bicycle-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -300,9 +307,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('Documents')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Documents.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="document-text-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -344,9 +352,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('Wallet')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Wallet.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="wallet-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -383,9 +392,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('CashBalance')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Cash.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="cash-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -422,9 +432,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('BankAC')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Bank.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="card-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -466,11 +477,11 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('RewardsScreen')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Rewards.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="gift-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
-
                 <View
                   style={{
                     flex: 1,
@@ -512,9 +523,10 @@ export default function ProfileScreen({ navigation }) {
               activeOpacity={0.7}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Order.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="receipt-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -551,9 +563,10 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('SlotHistory')}
             >
               <View style={styles.listLeft}>
-                <Image
-                  source={require('../../assets/profile/Slot.png')}
-                  style={styles.icon}
+                <Ionicons
+                  name="calendar-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
                 />
 
                 <View
@@ -591,11 +604,12 @@ export default function ProfileScreen({ navigation }) {
             activeOpacity={0.7}
           >
             <View style={styles.logoutContent}>
-              <Image
-                source={require('../../assets/profile/Logout.png')}
-                style={styles.logoutIcon}
+              <Ionicons
+                name="log-out-outline"
+                size={wp('5.5%')}
+                color="#FFFFFF"
+                style={{ marginRight: wp('2%') }}
               />
-
               <Text style={styles.logoutText}>Logout</Text>
             </View>
           </TouchableOpacity>

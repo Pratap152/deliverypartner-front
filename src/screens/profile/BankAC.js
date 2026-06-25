@@ -177,10 +177,6 @@ const BankAC = ({ navigation }) => {
             {/* BANK DETAILS */}
             <View style={styles.detailsContainer}>
               <View style={styles.accountHeader}>
-                <Image
-                  source={require('../../assets/profile/BankIcon.png')}
-                  style={styles.accountIcon}
-                />
 
                 <Text style={styles.accountHeaderText}>
                   Bank Account Information

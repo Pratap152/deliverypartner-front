@@ -4,13 +4,10 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
 const OrderHeader = ({ orderId, statusText, icon, onIconPress }) => {
-  const iconSource =
-    icon === 'call'
-      ? require('../../assets/call.png')
-      : require('../../assets/help.png');
 
   return (
     <View style={styles.container}>
@@ -20,7 +17,11 @@ const OrderHeader = ({ orderId, statusText, icon, onIconPress }) => {
       </View>
 
       <TouchableOpacity style={styles.iconWrapper} onPress={onIconPress}>
-        <Image source={iconSource} style={styles.icon} />
+        <Ionicons
+          name={icon === 'call' ? 'call-outline' : 'headset-outline'}
+          size={wp('5.5%')}
+          color={icon === 'call' ? '#16A34A' : '#2563EB'}
+        />
       </TouchableOpacity>
     </View>
   );

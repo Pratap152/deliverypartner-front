@@ -24,6 +24,8 @@ export default function WalletScreen({ navigation }) {
   const [bank, setBank] = useState(null);
   const [settlement, setSettlement] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [settlementMessage, setSettlementMessage] =
+    useState('');
   const [expanded, setExpanded] = useState(false);
   const [showAllTransactions, setShowAllTransactions] =
     useState(false);
@@ -48,11 +50,28 @@ export default function WalletScreen({ navigation }) {
         '/api/settlement-breakdown',
       );
 
-      setSettlement(settlementRes.data.data);
+      if (settlementRes.data.success) {
+        setSettlement(settlementRes.data.data);
+        setSettlementMessage('');
+      } else {
+        setSettlement(null);
+        setSettlementMessage(
+          settlementRes.data.message,
+        );
+      }
     } catch (error) {
-      console.log('Settlement Error', error);
-    }
+      console.log(
+        'Settlement Error =>',
+        error.response?.data,
+      );
 
+      setSettlement(null);
+
+      setSettlementMessage(
+        error.response?.data?.message ||
+        'Unable to load settlement details',
+      );
+    }
     try {
       const bankRes = await apiClient.get(
         '/api/profile/bank-details',
@@ -135,12 +154,13 @@ export default function WalletScreen({ navigation }) {
         </Text>
 
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('HelpCenterList')
-          }>
-          <Image
-            source={require('../../assets/profile/HelpcenterIcon.png')}
-            style={styles.robotIcon}
+          style={styles.rightIconWrapper}
+          onPress={() => navigation.navigate('HelpCenterList')}
+        >
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={24}
+            color="#294484"
           />
         </TouchableOpacity>
       </View>

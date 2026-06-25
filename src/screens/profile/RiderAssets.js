@@ -126,10 +126,16 @@ const RiderAssets = ({ navigation }) => {
 
         <Text style={styles.headerTitle}>Rider Assets</Text>
 
-        <Image
-          source={require("../../assets/profile/HelpcenterIcon.png")}
-          style={styles.robotIcon}
-        />
+        <TouchableOpacity
+                    style={styles.rightIconWrapper}
+                    onPress={() => navigation.navigate('HelpCenterList')}
+                  >
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={24}
+                      color="#13ACBE"
+                    />
+                  </TouchableOpacity>
       </View>
 
       <ScrollView

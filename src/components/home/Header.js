@@ -148,15 +148,18 @@ const Header = () => {
             style={styles.profileWrapper}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Image
-              source={
-                selfieUri
-                  ? { uri: selfieUri }
-                  : require('../../assets/profile/profileicon.png')
-              }
-
-              style={styles.profileIcon}
-            />
+            {selfieUri ? (
+              <Image
+                source={{ uri: selfieUri }}
+                style={styles.profileIcon}
+              />
+            ) : (
+              <Ionicons
+                name="person-circle-outline"
+                size={42}
+                color="#13ACBE"
+              />
+            )}
           </TouchableOpacity>
 
           <Text style={styles.name}>
@@ -169,9 +172,10 @@ const Header = () => {
             style={styles.rightIconWrapper}
             onPress={onLocationPress}
           >
-            <Image
-              source={require('../../assets/Location.png')}
-              style={styles.rightIcons}
+            <Ionicons
+              name="location-outline"
+              size={wp('6.5%')}
+              color="#2563EB"
             />
           </TouchableOpacity>
 
@@ -179,9 +183,10 @@ const Header = () => {
             style={styles.rightIconWrapper}
             onPress={() => navigation.navigate('HelpCenterList')}
           >
-            <Image
-              source={require('../../assets/help.png')}
-              style={styles.rightIcon}
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={wp('6%')}
+              color="#2563EB"
             />
           </TouchableOpacity>
         </View>

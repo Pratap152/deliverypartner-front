@@ -116,11 +116,15 @@ export default function EarningsScreen({ navigation }) {
                 color="#FFFFFF"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}
-              onPress={() => navigation.navigate('HelpCenterList')}>
-              <Image
-                source={require('../../assets/chat.png')}
-                style={styles.chatIcon} />
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => navigation.navigate('HelpCenterList')}
+            >
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={24}
+                color="#ffff"
+              />
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -181,13 +185,13 @@ export default function EarningsScreen({ navigation }) {
             <Text style={styles.cardValue}>
               {riderType === 'ZESTBOT_EMPLOYEE'
                 ? (isEligibleForIncentives
-                    ? `₹${formatMoney(weeklyTotal ?? 0)}`
-                    : `${formatOrderLabel(weeklyOrders ?? 0)}`)
+                  ? `₹${formatMoney(weeklyTotal ?? 0)}`
+                  : `${formatOrderLabel(weeklyOrders ?? 0)}`)
                 : `₹${formatMoney(weeklyTotal ?? 0)}`
               }
             </Text>
           </View>
-      
+
           {/* INDIVIDUAL, COMPANY — earnings bar chart only */}
           {(riderType === 'INDIVIDUAL_EMPLOYEE' || riderType === 'COMPANY_EMPLOYEE') && (
             <WeeklyEarningsChart
@@ -196,7 +200,7 @@ export default function EarningsScreen({ navigation }) {
               height={isTablet ? hp(38) : hp(30)}
             />
           )}
-      
+
           {/* ZESTBOT — only after target met */}
           {riderType === 'ZESTBOT_EMPLOYEE' && (
             <WeeklyEarningsChartZestBot
@@ -209,7 +213,7 @@ export default function EarningsScreen({ navigation }) {
               eligible={todayEarnings?.eligible}
             />
           )}
-      
+
         </PremiumPressable>
       </View>
 
@@ -338,8 +342,8 @@ export default function EarningsScreen({ navigation }) {
     }
   };
 
-  if(loading) {
-    return(
+  if (loading) {
+    return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#1E88E5" />
       </View>
@@ -349,15 +353,15 @@ export default function EarningsScreen({ navigation }) {
   // UI
   return (
     <ScrollView
-    refreshControl={
-      <RefreshControl
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        colors={['#2196F3']} // Android
-        tintColor="#2196F3"  // iOS
-      />
-    }
-    style={{ flex: 1 }}>
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#2196F3']} // Android
+          tintColor="#2196F3"  // iOS
+        />
+      }
+      style={{ flex: 1 }}>
 
       {HEADER}
 
