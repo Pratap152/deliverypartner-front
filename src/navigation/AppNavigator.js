@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator';
 
+import Splash from '../screens/onboarding/Splash';
 import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
 import LoginEntryScreen from '../screens/onboarding/LoginEntryScreen';
 import LoginVerifyScreen from '../screens/onboarding/LoginVerifyScreen';
@@ -68,8 +69,9 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="SplashScreen"
+      initialRouteName="Splash"
     >
+      <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
       <Stack.Screen name="LoginEntryScreen" component={LoginEntryScreen} />
