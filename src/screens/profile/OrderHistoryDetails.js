@@ -49,10 +49,16 @@ const OrderHistoryDetails = ({ navigation, route }) => {
           </Text>
         </View>
 
-        <Image
-          source={require('../../assets/profile/HelpcenterIcon.png')}
-          style={styles.robotIcon}
-        />
+        <TouchableOpacity
+          style={styles.rightIconWrapper}
+          onPress={() => navigation.navigate('HelpCenterList')}
+        >
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={24}
+            color="#294484"
+          />
+        </TouchableOpacity>
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -187,7 +193,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
 
           <InfoRow
             label="Distance Travelled"
-           value={`${order?.distanceTravelled || 0} km`}
+            value={`${order?.distanceTravelled || 0} km`}
           />
 
           <InfoRow

@@ -5,6 +5,7 @@ import {
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { TABS } from '../../../utils/constants/slotConstants';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,11 +25,13 @@ export default function SlotBookingHeader({ activeTab, onTabChange, navigation }
             <View style={styles.headerTop}>
                 <Text style={styles.headerTitle}>My Slots</Text>
                 <TouchableOpacity
-                    onPress={() => navigation.navigate('HelpCenterList')}>
-                    <Image
-                        source={require('../../../assets/chat.png')}
-                        style={styles.chat_icon}
-                        resizeMode="contain"
+                    style={styles.iconBtn}
+                    onPress={() => navigation.navigate('HelpCenterList')}
+                >
+                    <Ionicons
+                        name="chatbubble-ellipses-outline"
+                        size={24}
+                        color="#ffff"
                     />
                 </TouchableOpacity>
             </View>
@@ -127,3 +130,5 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 });
+
+

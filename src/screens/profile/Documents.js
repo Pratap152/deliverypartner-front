@@ -196,12 +196,16 @@ const DocumentsScreen = ({ navigation }) => {
 
         <Text style={styles.headerTitle}>Documents</Text>
 
-        <TouchableOpacity>
-          <Image
-            source={require('../../assets/profile/HelpcenterIcon.png')}
-            style={styles.robotIcon}
-          />
-        </TouchableOpacity>
+        <TouchableOpacity
+                            style={styles.rightIconWrapper}
+                            onPress={() => navigation.navigate('HelpCenterList')}
+                          >
+                            <Ionicons
+                              name="chatbubble-ellipses-outline"
+                              size={24}
+                              color="#13ACBE"
+                            />
+                          </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>

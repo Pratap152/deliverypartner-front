@@ -18,14 +18,17 @@ export default function SlotHistory() {
       onPress={() => navigation.navigate('SlotHistoryScreen')}
       style={styles.slots_history} >
       <View style={styles.iconWrapper}>
-        <Image source={require('../../assets/slot.png')}
-          style={styles.slot_img} />
+        <Ionicons
+          name="time-outline"
+          size={isTablet ? 28 : 22}
+          color="#4C4CFF"
+        />
       </View>
 
       <Text style={styles.historyText}>
-          View Slots History
-        </Text>
-     <Ionicons
+        View Slots History
+      </Text>
+      <Ionicons
         name='chevron-forward-outline'
         size={isTablet ? 28 : 20}
         color='#4C4CFF'
@@ -53,12 +56,12 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
 
     paddingHorizontal: isTablet ? 22 : 16,
-},
- slot_img: {
+  },
+  slot_img: {
     height: isTablet ? 34 : hp(3),
     width: isTablet ? 34 : wp(7),
-},
-iconWrapper: {
+  },
+  iconWrapper: {
     borderRadius: isTablet ? 16 : wp(2),
     backgroundColor: '#F1F5F9',
 
@@ -69,8 +72,8 @@ iconWrapper: {
     justifyContent: 'center',
 
     marginRight: isTablet ? 24 : 16,
-},
-historyText: {
+  },
+  historyText: {
     flex: 1,
 
     fontSize: isTablet ? 24 : wp(4),
@@ -80,7 +83,7 @@ historyText: {
     color: 'grey',
 
     marginLeft: isTablet ? 4 : 0,
-},
+  },
 });
 
 

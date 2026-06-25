@@ -154,12 +154,13 @@ export default function WalletScreen({ navigation }) {
         </Text>
 
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('HelpCenterList')
-          }>
-          <Image
-            source={require('../../assets/profile/HelpcenterIcon.png')}
-            style={styles.robotIcon}
+          style={styles.rightIconWrapper}
+          onPress={() => navigation.navigate('HelpCenterList')}
+        >
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={24}
+            color="#294484"
           />
         </TouchableOpacity>
       </View>

@@ -326,10 +326,14 @@ const SlotHistory = ({ navigation }) => {
           <Ionicons name="arrow-back" size={rf(2.6)} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Slot History</Text>
-        <TouchableOpacity>
-          <Image
-            source={require('../../assets/profile/HelpcenterIcon.png')}
-            style={styles.robotIcon}
+        <TouchableOpacity
+          style={styles.rightIconWrapper}
+          onPress={() => navigation.navigate('HelpCenterList')}
+        >
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={24}
+            color="#13ACBE"
           />
         </TouchableOpacity>
       </View>
@@ -368,22 +372,26 @@ const SlotHistory = ({ navigation }) => {
 
         <View style={styles.summaryRow}>
           <View style={[styles.summaryBox, styles.green]}>
-            <Image
-              source={require('../../assets/profile/SSlots.png')}
-              style={styles.summaryIcon}
-            />
-            <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
-            <Text style={styles.summaryLabel}>Slots Completed</Text>
-          </View>
+  <Ionicons
+    name="calendar-outline"
+    size={28}
+    color="#22C55E"
+    style={styles.summaryIcon}
+  />
+  <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
+  <Text style={styles.summaryLabel}>Slots Completed</Text>
+</View>
 
-          <View style={[styles.summaryBox, styles.orange]}>
-            <Image
-              source={require('../../assets/profile/SEarnings.png')}
-              style={styles.summaryIcon}
-            />
-            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
-            <Text style={styles.summaryLabel}>Total Earnings</Text>
-          </View>
+<View style={[styles.summaryBox, styles.orange]}>
+  <Ionicons
+    name="wallet-outline"
+    size={28}
+    color="#F97316"
+    style={styles.summaryIcon}
+  />
+  <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
+  <Text style={styles.summaryLabel}>Total Earnings</Text>
+</View>
         </View>
       </View>
 
