@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions, BackHandler, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, Image, StyleSheet, useWindowDimensions, BackHandler, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
@@ -43,7 +43,28 @@ export default function FaceInstructionScreen({ navigation }) {
   const isTablet = DeviceInfo.isTablet();
   const styles = createStyles(isTablet, width, height);
 
+  const requestCameraPermission = async () => {
+    if (Platform.OS !== 'android') return true;
+
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        title: 'Camera Permission',
+        message: 'App needs camera permission to take photos.',
+        buttonPositive: 'OK',
+      },
+    );
+
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  };
+
   const openCamera = async () => {
+    const hasPermission = await requestCameraPermission();
+
+    if (!hasPermission) {
+      return;
+    }
+
     const options = {
       mediaType: 'photo',
       cameraType: 'front',
