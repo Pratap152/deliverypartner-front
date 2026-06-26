@@ -13,7 +13,7 @@ import { tokenService } from '../../services/TokenService';
 import apiClient from '../../services/ApiClient';
 
 const COLORS = {
-  primary: '#16C2D5',
+  primary: "#1F3365",
   textDark: '#444',
   textLight: '#777',
   border: '#A5A5A5',
