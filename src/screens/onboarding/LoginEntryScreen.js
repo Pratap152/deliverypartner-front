@@ -18,7 +18,10 @@ import {
   Platform,
   BackHandler,
   Alert,
-  StatusBar
+  StatusBar,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -151,101 +154,105 @@ const LoginEntryScreen = ({ navigation }) => {
 
   return (
     <>
-    <StatusBar
-      backgroundColor="#192A51"
-      barStyle="light-content"
-      translucent={false}
-    />
+  <StatusBar
+    backgroundColor="#192A51"
+    barStyle="light-content"
+    translucent={false}
+  />
+
   <View style={styles.safeArea}>
-    
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Image
-            source={require('../../assets/zestbot.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Image
+              source={require('../../assets/zestbot.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
-        {/* WHITE CURVE CARD */}
-        <View style={styles.curveContainer}>
-          <Text style={styles.welcomeText}>
-            Welcome Back
-          </Text>
-
-          <Text style={styles.subText}>
-            Be a Zest bot Partner
-            {"\n"}
-            Earn a stable daily income
-          </Text>
-
-          <View style={styles.contentArea}>
-            <Text style={styles.inputLabel}>
-              Enter Mobile Number
+          {/* WHITE CURVE CARD */}
+          <View style={styles.curveContainer}>
+            <Text style={styles.welcomeText}>
+              Welcome
             </Text>
 
-            <TextInput
-              style={[
-                styles.input,
-                error ? { borderWidth: 1, borderColor: "red" } : {}
-              ]}
-              value={mobileNumber}
-              onChangeText={handleMobileNumberChange}
-              placeholder="e.g. 98765 43210"
-              placeholderTextColor="#999"
-              keyboardType="numeric"
-              maxLength={10}
-            />
+            <Text style={styles.subText}>
+              Be a Zest bot Partner
+              {"\n"}
+              Earn a stable daily income
+            </Text>
 
-            {error ? (
-              <Text style={styles.errorText}>
-                {error}
+            <View style={styles.contentArea}>
+              <Text style={styles.inputLabel}>
+                Enter Mobile Number
               </Text>
-            ) : null}
 
-            <View style={styles.checkboxContainer}>
-              <TouchableOpacity
-                onPress={() => setIsChecked(!isChecked)}
-                style={styles.customCheckbox}
-              >
-                {isChecked && (
-                  <Text style={styles.checkMark}>✓</Text>
-                )}
-              </TouchableOpacity>
+              <TextInput
+                style={[
+                  styles.input,
+                  error ? { borderWidth: 1, borderColor: 'red' } : {},
+                ]}
+                value={mobileNumber}
+                onChangeText={handleMobileNumberChange}
+                placeholder="e.g. 98765 43210"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={10}
+              />
 
-              <Text style={styles.termsText}>
-                By signing up I agree to the{" "}
-                <Text style={styles.linkText}>
-                  Terms of use
-                </Text>{" "}
-                and{" "}
-                <Text style={styles.linkText}>
-                  Privacy Policy.
+              {error ? (
+                <Text style={styles.errorText}>
+                  {error}
                 </Text>
-              </Text>
-            </View>
+              ) : null}
 
-            <TouchableOpacity
-              style={[
-                styles.button,
-                isButtonDisabled && styles.buttonDisabled,
-              ]}
-              onPress={handleSendOTP}
-              disabled={isButtonDisabled}
-            >
-              <Text style={styles.buttonText}>
-                {isSending ? "Sending..." : "Send OTP"}
-              </Text>
-            </TouchableOpacity>
+              <View style={styles.checkboxContainer}>
+                <TouchableOpacity
+                  onPress={() => setIsChecked(!isChecked)}
+                  style={styles.customCheckbox}
+                >
+                  {isChecked && (
+                    <Text style={styles.checkMark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+
+                <Text style={styles.termsText}>
+                  By signing up I agree to the{' '}
+                  <Text style={styles.linkText}>Terms of use</Text> and{' '}
+                  <Text style={styles.linkText}>Privacy Policy.</Text>
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  isButtonDisabled && styles.buttonDisabled,
+                ]}
+                onPress={handleSendOTP}
+                disabled={isButtonDisabled}
+              >
+                <Text style={styles.buttonText}>
+                  {isSending ? 'Sending...' : 'Send OTP'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   </View>
-  </>
+</>
 );
 };
 export default LoginEntryScreen;
