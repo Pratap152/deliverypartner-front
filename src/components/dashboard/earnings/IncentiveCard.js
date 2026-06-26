@@ -62,26 +62,34 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
               },
             ]}
           >
-            <Text style={[styles.chipText, { color: GREEN_THEME.deep }]}>{meta.label}</Text>
+            <Text style={[styles.chipText, {
+              color: item?.type === 'peak'
+                ? '#F54900'
+                : item?.type === 'weekly'
+                  ? '#9810FA'
+                  : '#155DFC'
+            }]}>{meta.label}</Text>
           </View>
           <Text style={styles.title}>{item?.title}</Text>
           <Text style={styles.subtitle}>{item?.subtitle}</Text>
         </View>
-        {
-          isWeekly && (
-            <Image source={require('../../../assets/weekly.png')} />
-          )
-        }
-        {
-          isDaily && (
-            <Image source={require('../../../assets/daily.png')} />
-          )
-        }
-        {
-          isPeak && (
-            <Image source={require('../../../assets/peak.png')} />
-          )
-        }
+        <View style={styles.right}>
+          {
+            isWeekly && (
+              <Image source={require('../../../assets/weekly.png')} style={styles.icon} />
+            )
+          }
+          {
+            isDaily && (
+              <Image source={require('../../../assets/daily.png')} style={styles.icon} />
+            )
+          }
+          {
+            isPeak && (
+              <Image source={require('../../../assets/peak.png')} style={styles.icon} />
+            )
+          }
+        </View>
       </View>
 
       {/* Peak: multi-level UI */}
@@ -193,7 +201,7 @@ const styles = StyleSheet.create({
   },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   left: { flex: 1, paddingRight: wp(2) },
-  right: { width: wp(12), alignItems: 'flex-end' },
+  right: { backgroundColor: '#FFF', padding: 10, borderRadius: 15 },
   labelChip: { backgroundColor: '#ffffff', paddingHorizontal: wp(2), paddingVertical: hp(0.3), borderRadius: wp(1.5), alignSelf: 'flex-start', marginBottom: hp(0.4) },
   chipText: { fontSize: 14, fontWeight: '700' },
   title: { fontSize: wp(4.2), fontWeight: '600', color: '#111' },

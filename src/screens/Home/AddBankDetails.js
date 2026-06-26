@@ -89,7 +89,7 @@ export default function AddBankDetails() {
             />
           </TouchableOpacity>
           <Image
-            source={require("../../assets/Bank.png")}
+            source={require("../../assets/Bank.jpg")}
             style={styles.image}
             resizeMode="contain"
           />
