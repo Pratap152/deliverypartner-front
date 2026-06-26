@@ -69,7 +69,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, statusBarStyle: 'light' }}
-      initialRouteName="Splash"
+      initialRouteName="SplashScreen"
     >
       <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
