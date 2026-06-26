@@ -86,7 +86,7 @@ const AppContent = () => {
       FCMService.listenForegroundMessages(async msg => {
         await NotificationService.show(msg);
 
-        dispatch(addNotification(normalize(msg)));
+        dispatch(addNotification((msg)));
       });
 
       /* ---------------- OPEN FROM BACKGROUND (UNCHANGED) ---------------- */

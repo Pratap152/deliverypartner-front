@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Platform,
+  Image,
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import ProgressBar from './ProgressBar';
@@ -66,6 +67,21 @@ export default function IncentiveCard({ item, weeklyCompletedOrders, dailyComple
           <Text style={styles.title}>{item?.title}</Text>
           <Text style={styles.subtitle}>{item?.subtitle}</Text>
         </View>
+        {
+          isWeekly && (
+            <Image source={require('../../../assets/weekly.png')} />
+          )
+        }
+        {
+          isDaily && (
+            <Image source={require('../../../assets/daily.png')} />
+          )
+        }
+        {
+          isPeak && (
+            <Image source={require('../../../assets/peak.png')} />
+          )
+        }
       </View>
 
       {/* Peak: multi-level UI */}

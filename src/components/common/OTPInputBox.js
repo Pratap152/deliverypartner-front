@@ -44,7 +44,7 @@ const OTPInputBox = ({
           textAlign="center"
           textAlignVertical="center"
           placeholderTextColor="#999"
-          selectionColor="#16C2D5"
+          selectionColor="#1F3365"
         />
       ))}
     </View>
@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
   },
 
   otpBoxFilled: {
-    borderColor: "#16C2D5",
-    backgroundColor: "#E8FCFF",
+    borderColor:"#1F3365",
+    backgroundColor: '#F2F4FA',
   },
 });
 
