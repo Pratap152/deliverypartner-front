@@ -29,7 +29,7 @@ const slides = [
     subtitle: 'Start Now',
     description:
       'Lets Start deliveries and Earn Together and Grow together for the Better Future.',
-    image: require('../../assets/onboarding_2.png'),
+    image: require('../../assets/onboarding2.jpeg'),
   },
 ];
 

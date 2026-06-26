@@ -124,7 +124,7 @@ export default function FaceInstructionScreen({ navigation }) {
           {/* IMAGE */}
           <View style={styles.imageContainer}>
             <Image
-              source={require('../../../src/assets/selfie.png')}
+              source={require('../../../src/assets/selfie.jpg')}
               style={styles.selfieImage}
             />
           </View>
