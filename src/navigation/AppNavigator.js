@@ -58,6 +58,7 @@ import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
 import ReferFrd from '../screens/Home/ReferFrd';
 import WalletScreen from '../screens/profile/Wallet';
+import BankAC from '../screens/profile/BankAC';
 import ReferEarn from '../screens/Home/ReferEarn';
 import JoiningBonusScreen from '../screens/joiningBonus/JoiningBonusScreen';
 
@@ -126,6 +127,7 @@ const AppNavigator = () => {
 
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
       <Stack.Screen name="Wallet" component={WalletScreen} />
+      <Stack.Screen name="BankAC" component={BankAC} />
       <Stack.Screen name='ReferEarn' component={ReferEarn}/>
       <Stack.Screen name="JoiningBonusScreen" component={JoiningBonusScreen} />
     </Stack.Navigator>

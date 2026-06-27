@@ -5,6 +5,7 @@ import EarningsHistoryScreen from '../screens/earnings/EarningsHistoryScreen';
 import WeekEarnings from '../screens/incentives/WeekEarnings';
 import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
+import BankAC from '../screens/profile/BankAC';
 
 
 const Stack = createNativeStackNavigator();
@@ -14,6 +15,7 @@ export default function EarningsNavigator() {
             <Stack.Screen name="EarningsScreen" component={EarningsScreen} />
             <Stack.Screen name="EarningsHistoryScreen" component={EarningsHistoryScreen} />
             <Stack.Screen name="WeekEarnings" component={WeekEarnings} />
+            <Stack.Screen name="BankAC" component={BankAC} />
             <Stack.Screen name="DailyGuarentee" component={DailyGuarentee} />
             <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} /> 
         </Stack.Navigator>
