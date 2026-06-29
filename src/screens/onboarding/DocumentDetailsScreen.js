@@ -341,7 +341,15 @@ const DocumentDetailsScreen = ({ navigation }) => {
                     <Text style={[styles.text, localSelected === 'bike' && styles.selectedText]}>
                         Bike / Scooty
                     </Text>
-                    {localSelected === 'bike' && <Ionicons name="checkmark" size={20} color="#fff" />}
+                    {localSelected === 'bike' &&
+                        <View style={styles.checkContainer}>
+                            <Ionicons
+                                name="checkmark"
+                                size={22}
+                                color="#192A51"
+                            />
+                        </View>
+                    }
                 </Pressable>
 
                 <Pressable
@@ -352,7 +360,15 @@ const DocumentDetailsScreen = ({ navigation }) => {
                     <Text style={[styles.text, localSelected === 'ev' && styles.selectedText]}>
                         EV Vehicle
                     </Text>
-                    {localSelected === 'ev' && <Ionicons name="checkmark" size={20} color="#fff" />}
+                    {localSelected === 'ev' &&
+                        <View style={styles.checkContainer}>
+                            <Ionicons
+                                name="checkmark"
+                                size={22}
+                                color="#192A51"
+                            />
+                        </View>
+                    }
                 </Pressable>
 
                 <Text style={styles.sideHeading}>Upload Selfie</Text>
@@ -385,7 +401,7 @@ const DocumentDetailsScreen = ({ navigation }) => {
                     title={loading ? 'Submitting...' : 'Submit'}
                     onPress={handleSubmit}
                     disabled={loading}
-                    bgColor="#00B5CC"
+                    bgColor="#192A51"
                     textColor="#fff"
                 />
             </View>
@@ -438,13 +454,12 @@ const styles = StyleSheet.create({
         padding: responsiveWidth(4),
         marginBottom: responsiveHeight(2),
         borderWidth: 1.5,
-        borderColor: '#73d1df',
+        borderColor: '#D1D5DB',
         borderRadius: responsiveWidth(3),
-        backgroundColor: '#fff',
     },
     selectedCard: {
-        backgroundColor: '#00B5CC',
-        borderColor: '#00B5CC',
+        backgroundColor: '#DFE9FF',
+        borderColor: '#192A51',
     },
     image: {
         width: responsiveWidth(20),
@@ -454,18 +469,26 @@ const styles = StyleSheet.create({
     text: {
         fontSize: responsiveFontSize(2.1),
         fontWeight: '400',
-        color: '#000',
+        color: '#000000',
         marginLeft: responsiveWidth(3),
         flex: 1,
     },
     selectedText: {
-        color: '#fff',
+        color: '#000000',
+    },
+    checkContainer: {
+      width: 34,
+      height: 34,
+      borderRadius: 999,
+      backgroundColor: '#FFFFFF',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     uploadCard: {
         marginTop: 5,
         marginBottom: 5,
         alignItems: 'center',
-        borderColor: '#dcd3d1',
+        borderColor: '#DCD3D1',
         borderWidth: 1,
         borderRadius: 10,
         paddingVertical: 30,
@@ -474,7 +497,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 50,
         paddingVertical: 10,
         borderRadius: 10,
-        backgroundColor: '#00B5CC',
+        backgroundColor: '#192A51',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -492,6 +515,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 15,
-        borderColor: '#eee'
+        borderColor: '#EEE'
     }
 });
