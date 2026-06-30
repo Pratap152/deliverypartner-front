@@ -134,7 +134,7 @@ export default function FaceInstructionScreen({ navigation }) {
                   <Ionicons
                     name="checkmark-circle"
                     size={isTablet ? 28 : 20}
-                    color="#00B5CC"
+                    color='#1F3365'
                   />
                   <Text style={styles.instructionText}> {text}</Text>
                 </View>
@@ -269,7 +269,7 @@ const createStyles = (isTablet, width, height) => {
     },
 
     button: {
-      backgroundColor: '#00B5CC',
+      backgroundColor:'#1F3365',
       borderRadius: isTablet ? 22 : 18,
       paddingVertical: isTablet ? 20 : 16,
       flexDirection: 'row',

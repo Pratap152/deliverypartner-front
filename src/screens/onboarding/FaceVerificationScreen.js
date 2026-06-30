@@ -227,7 +227,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
             <Ionicons
               name="camera-reverse-outline"
               size={isTablet ? 28 : 22}
-              color="#00B5CC"
+              color='#1F3365'
             />
 
             <Text
@@ -333,7 +333,7 @@ const createStyles = (
     },
 
     uploadBtn: {
-      backgroundColor: '#00B5CC',
+      backgroundColor: '#1F3365',
       paddingVertical: isTablet ? 20 : 16,
       borderRadius: isTablet ? 20 : 16,
       flexDirection: 'row',
@@ -351,7 +351,7 @@ const createStyles = (
     retakeBtn: {
       marginTop: isTablet ? 18 : 14,
       backgroundColor: '#fff',
-      borderColor: '#00B5CC',
+      borderColor: '#1F3365',
       borderWidth: 1.5,
       paddingVertical: isTablet ? 20 : 16,
       borderRadius: isTablet ? 20 : 16,
@@ -363,7 +363,7 @@ const createStyles = (
     retakeText: {
       marginLeft: 10,
       fontSize: isTablet ? 22 : 17,
-      color: '#00B5CC',
+      color: '#1F3365',
       fontWeight: '700',
     },
   });

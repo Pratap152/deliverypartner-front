@@ -172,7 +172,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
                 <Icon
                   name="location-outline"
                   size={isTablet ? 24 : 20}
-                  color={selectedPincode === code ? '#fff' : '#00A8E8'}
+                  color={selectedPincode === code ? '#fff' :'#1F3365'}
                 />
                 <Text
                   style={[
@@ -266,19 +266,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: isTablet ? 16 : 12,
     borderWidth: 1.5,
-    borderColor: '#00A8E8',
+    borderColor: '#1F3365',
     borderRadius: 10,
     marginVertical: isTablet ? 8 : 5,
   },
 
   citySelected: {
-    backgroundColor: '#00A8E8',
+    backgroundColor: '#1F3365',
   },
 
   cityText: {
     marginLeft: 10,
     fontSize: isTablet ? 18 : 16,
-    color: '#00A8E8',
+    color: '#1F3365',
   },
 
   cityTextSelected: {
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   submitButton: {
     width: isTablet ? 600 : '100%',
     alignSelf: 'center',
-    backgroundColor: '#00B5CC',
+    backgroundColor: '#1F3365',
     paddingVertical: isTablet ? 18 : 15,
     borderRadius: 40,
     alignItems: 'center',
