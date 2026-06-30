@@ -124,7 +124,9 @@ const RiderTypeScreen = ({ navigation }) => {
         <View
           style={[
             styles.radioOuter,
-            isSelected && { borderColor: COLORS.primary },
+            isSelected && {
+              borderColor: '#1F3365',
+            },
           ]}
         >
           {isSelected && <View style={styles.radioInner} />}
@@ -146,7 +148,7 @@ const RiderTypeScreen = ({ navigation }) => {
         <View style={styles.waveContainer}>
           <Svg height={rh(100)} width="100%" viewBox="50 80 100 170">
             <Path
-              fill="#e0f9f8"
+              fill='#F2F4FA'
               d="M0,150C200,80,900,220,720,170C1040,140,1240,200,1440,180V320H0Z"
             />
           </Svg>
@@ -225,25 +227,25 @@ const styles = StyleSheet.create({
     paddingVertical: rh(1.5),
     paddingHorizontal: rw(4),
     borderRadius: rw(4),
-    backgroundColor: COLORS.white,
+    backgroundColor: '#FFFFFF',
     marginBottom: rh(1.2),
   },
 
   cardSelected: {
-    backgroundColor: '#DFF5F8',
+    backgroundColor: '#F2F4FA',   // Light navy background
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: '#1F3365',
   },
 
   cardTitle: {
     fontSize: isTablet ? rf(2.3) : rf(2.1),
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: '#1B2238',
   },
 
   cardDescription: {
     fontSize: isTablet ? rf(2.0) : rf(1.8),
-    color: COLORS.textSecondary,
+    color: '#6B7280',
     marginTop: rh(0.5),
   },
 
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
     height: isTablet ? rw(3.5) : rw(5),
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: COLORS.border,
+    borderColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -261,7 +263,7 @@ const styles = StyleSheet.create({
     width: isTablet ? rw(1.8) : rw(2.5),
     height: isTablet ? rw(1.8) : rw(2.5),
     borderRadius: 999,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#1F3365',
   },
 
   button: {
@@ -269,14 +271,14 @@ const styles = StyleSheet.create({
     bottom: rh(5),
     left: isTablet ? rw(15) : rw(5),
     right: isTablet ? rw(15) : rw(5),
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#1F3365',
     paddingVertical: rh(2),
     borderRadius: rw(8),
     alignItems: 'center',
   },
 
   buttonText: {
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontSize: rf(2.2),
     fontWeight: '600',
   },

@@ -242,7 +242,7 @@ buttonWrapper: {
 submitButton: {
   width: isTablet ? 700 : '100%',
   alignSelf: 'center',
-  backgroundColor: '#00B5CC',
+  backgroundColor:"#1F3365",
   paddingVertical: isTablet ? 18 : 15,
   borderRadius: 40,
   alignItems: 'center',

@@ -9,7 +9,7 @@ import {
 const PrimaryButton = ({
   title,
   onPress,
-  bgColor = '#00B5CC',
+  bgColor ='#1F3365',
   textColor = '#fff',
   width = responsiveWidth(90),
   loading = false,

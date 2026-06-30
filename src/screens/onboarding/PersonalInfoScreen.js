@@ -251,7 +251,7 @@ export default function PersonalInfoScreen({ navigation }) {
         <Ionicons
           name={selected ? 'radio-button-on' : 'radio-button-off'}
           size={isTablet ? 28 : 22}
-          color={selected ? '#00B5CC' : '#9CA3AF'}
+          color={selected ? '#1F3365' : '#9CA3AF'}
         />
         <Text style={styles.genderText}>{label}</Text>
       </TouchableOpacity>
@@ -391,7 +391,7 @@ export default function PersonalInfoScreen({ navigation }) {
             <PrimaryButton
               title="Submit"
               onPress={handleSubmit}
-              bgColor="#00B5CC"
+              bgColor='#1F3365'
               textColor="#fff"
               loading={submitting}
               disabled={submitting}

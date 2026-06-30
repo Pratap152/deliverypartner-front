@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   },
 
   submitBtn: {
-    backgroundColor: '#00B5CC',
+    backgroundColor: '#1F3365',
     paddingVertical: isTablet ? 20 : 15,
     borderRadius: 30,
     justifyContent: 'center',
@@ -403,14 +403,14 @@ const styles = StyleSheet.create({
 
   reuploadBtn: {
     borderWidth: 1,
-    borderColor: '#0CBACE',
+    borderColor: '#1F3365',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
 
   reuploadText: {
-    color: '#0CBACE',
+    color: '#1F3365',
     fontWeight: '700',
   },
 });

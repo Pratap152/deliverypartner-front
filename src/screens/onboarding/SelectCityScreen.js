@@ -146,7 +146,7 @@ export default function SelectCityScreen({ navigation }) {
                 <Icon
                   name="home-outline"
                   size={iconSize}
-                  color={selectedCity === city ? '#fff' : '#00A8E8'}
+                  color={selectedCity === city ? '#fff' : '#1F3365'}
                 />
                 <Text
                   style={[
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#00A8E8',
+    borderColor: '#1F3365',
     borderRadius: 12,
     paddingVertical: isTablet ? 16 : 12,
     paddingHorizontal: isTablet ? 20 : 15,
@@ -263,13 +263,13 @@ const styles = StyleSheet.create({
   },
 
   citySelected: {
-    backgroundColor: '#00A8E8',
+    backgroundColor:'#1F3365',
   },
 
   cityText: {
     marginLeft: 10,
     fontSize: cityFont,
-    color: '#00A8E8',
+    color: '#1F3365',
   },
 
   cityTextSelected: {
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   submitButton: {
     width: isTablet ? 600 : '100%',
     alignSelf: 'center',
-    backgroundColor: '#00B5CC',
+    backgroundColor:'#1F3365',
     paddingVertical: isTablet ? 18 : 15,
     borderRadius: 40,
     alignItems: 'center',

@@ -619,27 +619,27 @@ const styles = StyleSheet.create({
   },
 
   uploadedText: {
-    color: '#1ea93e',
+    color: '#097c24c8',
     fontWeight: '700',
     fontSize: isTablet ? 15 : 13,
   },
 
   reuploadBtn: {
     borderWidth: 1,
-    borderColor: '#0CBACE',
+    borderColor: '#1F3365',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
   },
 
   reuploadText: {
-    color: '#0CBACE',
+    color: '#1F3365',
     fontWeight: '700',
     fontSize: isTablet ? 15 : 13,
   },
 
   submitBtn: {
-    backgroundColor: '#0CBACE',
+    backgroundColor:'#1F3365',
     paddingVertical: isTablet ? 20 : 16,
     borderRadius: 40,
     marginVertical: 15,
