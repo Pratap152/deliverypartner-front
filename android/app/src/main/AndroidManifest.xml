@@ -24,9 +24,11 @@
 
     <!-- Background location (ONLY if live tracking when app closed) -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
+    
     <!-- Required for foreground location service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
     <uses-feature android:name="android.hardware.location.gps" />
 
     <!-- ================= APP ================= -->
@@ -57,7 +59,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAt59NjjnVtI5PfvhkQKFDLeBFfCTW-mxg" />
-
+        <service
+            android:name=".LocationForegroundService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
     </application>
 
 </manifest>

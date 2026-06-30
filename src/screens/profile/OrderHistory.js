@@ -6,7 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
+  Dimensions
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -20,6 +20,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useOrderHistory } from '../../hooks/useOrderHistory';
 import EmptyState from '../../components/order/EmptyState';
+
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -101,7 +106,7 @@ const OrderHistory = ({ navigation }) => {
       <View style={styles.userRow}>
         <Ionicons
           name="person-outline"
-          size={18}
+          size={isTablet ? 24 : 18}
           color="#00A63E"
         />
 
@@ -115,7 +120,7 @@ const OrderHistory = ({ navigation }) => {
         <View style={styles.locationRow}>
           <Ionicons
             name="location-outline"
-            size={18}
+            size={isTablet ? 24 : 18}
             color="#00A63E"
           />
 
@@ -130,7 +135,7 @@ const OrderHistory = ({ navigation }) => {
         <View style={styles.ratingContainer}>
           <Ionicons
             name="star"
-            size={16}
+            size={isTablet ? 22 : 16}
             color="#F59E0B"
           />
           <Text style={styles.ratingText}>
@@ -144,7 +149,7 @@ const OrderHistory = ({ navigation }) => {
         <View style={styles.dateItem}>
           <Ionicons
             name="calendar-outline"
-            size={16}
+            size={isTablet ? 22 : 16}
             color="#00A63E"
           />
           <Text style={styles.infoText}>
@@ -157,7 +162,7 @@ const OrderHistory = ({ navigation }) => {
         <View style={styles.dateItem}>
           <Ionicons
             name="time-outline"
-            size={16}
+            size={isTablet ? 22 : 16}
             color="#00A63E"
           />
           <Text style={styles.infoText}>
@@ -170,7 +175,7 @@ const OrderHistory = ({ navigation }) => {
         <View style={styles.dateItem}>
           <Ionicons
             name="navigate-outline"
-            size={16}
+            size={isTablet ? 22 : 16}
             color="#00A63E"
           />
           <Text style={styles.infoText}>
@@ -190,7 +195,7 @@ const OrderHistory = ({ navigation }) => {
           >
             <Ionicons
               name="gift-outline"
-              size={20}
+              size={isTablet ? 28 : 20}
               color="#3A8D4D"
             />
 
@@ -239,7 +244,7 @@ const OrderHistory = ({ navigation }) => {
         >
           <Ionicons
             name="chatbubble-ellipses-outline"
-            size={24}
+            size={isTablet ? 34 : 24}
             color="#294484"
           />
         </TouchableOpacity>
@@ -350,7 +355,7 @@ const SummaryCard = ({
   >
     <Ionicons
       name={icon}
-      size={18}
+      size={isTablet ? 28 : 18}
       color={iconColor}
     />
 
@@ -478,12 +483,12 @@ const styles = StyleSheet.create({
   },
 
   restaurantDot: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#F7EAE5',
-    marginRight: 12,
-  },
+  width: isTablet ? 56 : 42,
+  height: isTablet ? 56 : 42,
+  borderRadius: isTablet ? 28 : 21,
+  backgroundColor: '#F7EAE5',
+  marginRight: isTablet ? 16 : 12,
+},
 
   restaurantName: {
     fontSize: rf(2.2),

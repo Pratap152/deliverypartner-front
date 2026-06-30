@@ -6,13 +6,11 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  ActivityIndicator,
   Modal,
   Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackHandler } from 'react-native';
-import Geolocation from "@react-native-community/geolocation";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { orderUIConfig } from '../../config/orderUIConfig';
 import {
@@ -30,6 +28,8 @@ import EmptyState from '../../components/order/EmptyState';
 import { orderService } from '../../services/order/OrderService';
 import CustomerNotResponding from '../Home/CustomerNotResponding';
 import SwipeButton from '../../components/common/SwipeButton';
+import { useGPS } from '../../context/GPSContext';
+
 
 const OrderDetailsScreen = ({ route, navigation }) => {
 
@@ -40,17 +40,18 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [riderLocation, setRiderLocation] = useState(null);
   const [distanceToTarget, setDistanceToTarget] = useState(null);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-  const mapRef = useRef(null);
   const [deliveryResult, setDeliveryResult] = useState(null);
   const [buttonLoading, setButtonLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('CASH'); // 'CASH' or 'ONLINE'
+  const [paymentMethod, setPaymentMethod] = useState('CASH'); 
 
   const ui = orderUIConfig[status] || {};
 
+  const { location } = useGPS();
+
   console.log("check",orderDetails)
+
   useEffect(() => {
     // Disable Android hardware back button
     const backHandler = BackHandler.addEventListener(
@@ -72,9 +73,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     }
   }, [route.params?.status]);
 
-  /**
-   * Fetch order details
-   */
+  //Fetch order details
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -104,67 +103,32 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     fetchOrderDetails();
   }, [orderId]);
 
-  /**
-   * Track Rider Location
-   */
+ 
   useEffect(() => {
-    const watchId = Geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setRiderLocation({ latitude, longitude });
-
-        // Calculate Distance logic
-        if (orderDetails) {
-          let target = null;
-          if (status === 'ASSIGNED' || status === 'EN_ROUTE_TO_PICKUP') {
-            target = { latitude: orderDetails.pickupAddress.lat, longitude: orderDetails.pickupAddress.lng };
-          } else { // All other statuses (ORDER_PICKED_UP, ON_WAY_TO_DROP, AT_DROP, etc.) target delivery
-            target = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
-          }
-
-          if (target) {
-            const dist = getDistance(
-              { latitude, longitude },
-              target
-            );
-            setDistanceToTarget(dist); // in meters
-          }
-        }
-      },
-      (error) => console.log(error),
-      { enableHighAccuracy: true, distanceFilter: 10 }
-    );
-    return () => Geolocation.clearWatch(watchId);
-  }, [orderDetails, status]);
-
-  /**
-   * Map Logic
-   */
-  const handleStartNavigation = () => {
-    if (!riderLocation || !orderDetails) return;
-
-    let target = null;
-
-    if (status === 'ASSIGNED' || status === 'RIDER_EN_ROUTE_TO_PICKUP') {
-      target = {
-        latitude: orderDetails.pickupAddress.lat,
-        longitude: orderDetails.pickupAddress.lng,
+    if(!location || !orderDetails){
+    return;
+    }
+    let target;
+    if(status==="ASSIGNED" || status==="EN_ROUTE_TO_PICKUP"){
+      target={
+      latitude:orderDetails.pickupAddress.lat,
+      longitude:orderDetails.pickupAddress.lng
       };
     } else {
-      target = {
-        latitude: orderDetails.deliveryAddress.lat,
-        longitude: orderDetails.deliveryAddress.lng,
-      };
-    }
+      target={
+      latitude:orderDetails.deliveryAddress.lat,
+      longitude:orderDetails.deliveryAddress.lng
+    };
+  }
+    const distance=getDistance(location,target);
+    setDistanceToTarget(distance);
+    },[
+      location,
+      status,
+      orderDetails
+    ]);
 
-    if (mapRef.current && target) {
-      mapRef.current.fitToCoordinates([riderLocation, target]);
-    }
-  };
-
-  /**
-   * Button action (previously swipe action)
-   */
+  //  Button action
   const handleAction = async () => {
     const action = ui.bottomButtons?.[0];
     if (!action) return;
@@ -172,7 +136,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     try {
       setButtonLoading(true);
 
-      // 🔥 NAVIGATION
+      // NAVIGATION
       if (action.navigateTo) {
         navigation.navigate(action.navigateTo, {
           orderId,
@@ -186,7 +150,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
       let res = null;
 
-      // 🔥 API CALL BASED ON ACTION
+      // API CALL BASED ON ACTION
       if (action.action === 'enRouteToPickup') {
         res = await orderService.markEnRouteToPickup(orderId);
       }
@@ -229,13 +193,13 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         return;
       }
 
-      // 🔥 REFETCH ORDER (BEST PRACTICE)
+      //REFETCH ORDER (BEST PRACTICE)
       const updated = await orderService.getOrderDetails(orderId);
 
       setOrderDetails(updated);
       setStatus(updated.orderStatus);
 
-      // 🔥 DELIVERY SUCCESS FLOW
+      //DELIVERY SUCCESS FLOW
       if (updated.orderStatus === 'DELIVERED') {
         setDeliveryResult(res);
       }
@@ -249,7 +213,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   };
 
   /**
-   * Navigate action (Using existing button for "Navigate 📍")
+   * Navigate action (Using existing button for "Navigate ")
    */
   const handleNavigateMap = () => {
     handleStartNavigation();
@@ -288,8 +252,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const isPickupPhase =
     status === 'ASSIGNED' ||
     status === 'EN_ROUTE_TO_PICKUP';
-  /* ------------------ MAIN UI ------------------ */
 
+  /* MAIN UI */
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: ui.bottomButtons && ui.bottomButtons.length > 0 ? 100 : 20 }}>
@@ -421,22 +385,10 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                 </View>
               </View>
             )}
-          {/* Secondary Buttons (e.g., Customer Not Responding) */}
+          {/* Secondary Buttons (Customer Not Responding) */}
           {!isPickupPhase && ui.secondaryButtons && ui.secondaryButtons.length > 0 && (
             <View style={{ marginTop: 10, marginBottom: 30 }}>
               {ui.secondaryButtons.map((button, index) => (
-                // <TouchableOpacity
-                //   key={index}
-                //   style={styles.secondaryButton}
-                //   onPress={() => {
-                //     if (button.action === 'openModal') {
-                //       setShowCustomerModal(true);
-                //     }
-                //   }}
-                // >
-                //   <Text style={styles.secondaryButtonText}>{button.label}</Text>
-                //   <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
-                // </TouchableOpacity>
                 <TouchableOpacity
                   key={index}
                   style={styles.customerIssueButton}
@@ -482,7 +434,6 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                     color="#F7931E"
                   />
                 </TouchableOpacity>
-
               ))}
             </View>
           )}

@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,6 +16,11 @@ import {
 } from 'react-native-responsive-dimensions';
 import useIncentives from '../../hooks/useIncentives';
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
+
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const REWARD_SECTIONS = [
   {
@@ -124,7 +129,7 @@ const RewardsScreen = ({ navigation }) => {
         >
           <Ionicons
             name="chatbubble-ellipses-outline"
-            size={24}
+            size={isTablet ? 34 : 24}
             color="#13ACBE"
           />
         </TouchableOpacity>
