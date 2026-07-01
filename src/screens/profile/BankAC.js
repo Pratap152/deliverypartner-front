@@ -119,11 +119,14 @@ const BankAC = ({ navigation }) => {
     status === 'VERIFIED'
       ? '#00A63E'
       : status === 'PENDING'
-      ? '#FFA500'
-      : '#FF3B30';
+        ? '#FFA500'
+        : '#FF3B30';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top']}
+    >
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
           {/* HEADER */}

@@ -6,7 +6,7 @@ import {
   responsiveHeight,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DeviceInfo from 'react-native-device-info';
 
 import SlotsNavigator from './SlotsNavigator';
@@ -20,28 +20,35 @@ const Tab = createBottomTabNavigator();
 const isTablet = DeviceInfo.isTablet();
 
 const BottomTabNavigator = () => {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarHideOnKeyboard: true,
 
-        tabBarActiveTintColor: '#0CBACE',
+        tabBarActiveTintColor:"#3558AA" ,
         tabBarInactiveTintColor: '#9CA3AF',
 
         tabBarLabelPosition: 'below-icon',
 
         tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+
           height: isTablet
-            ? responsiveHeight(7)
-            : responsiveHeight(8),
+            ? responsiveHeight(7) + insets.bottom
+            : responsiveHeight(7.3) + insets.bottom,
 
-          paddingBottom: isTablet
-            ? responsiveHeight(0.5)
-            : responsiveHeight(0.8),
+          paddingTop: 3,
 
-          paddingTop: isTablet
-            ? responsiveHeight(0.2)
-            : responsiveHeight(0.5),
+          paddingBottom: Math.max(insets.bottom, 6),
+
+          borderTopWidth: 0,
+
+          elevation: 8,
+
+          shadowOpacity: 0,
         },
 
         tabBarItemStyle: {
