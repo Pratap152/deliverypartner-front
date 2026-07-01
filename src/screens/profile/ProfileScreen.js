@@ -117,8 +117,10 @@ export default function ProfileScreen({ navigation }) {
   const selfieUri = getSelfieUri(profile?.selfie);
 
   return (
-    <SafeAreaView style={styles.root}>
-      {/* <StatusBar backgroundColor="#13ACBE" barStyle="light-content" /> */}
+    <SafeAreaView
+      style={styles.root}
+      edges={['top']}
+    >
 
       <View style={styles.safeArea}>
         <ScrollView

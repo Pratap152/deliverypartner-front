@@ -9,6 +9,10 @@ import {
   Animated,
 } from "react-native";
 import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
@@ -34,7 +38,7 @@ const slides = [
 ];
 
 const OnBoardingScreen = ({ navigation }) => {
-
+  const insets = useSafeAreaInsets();
   const scrollX = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef(null);
   const [index, setIndex] = useState(0);
@@ -44,7 +48,10 @@ const OnBoardingScreen = ({ navigation }) => {
   });
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['bottom']}
+    >
 
       {/* SLIDES */}
       <FlatList
@@ -93,7 +100,14 @@ const OnBoardingScreen = ({ navigation }) => {
 
       />
 
-      <View style={styles.bottomWrapper}>
+      <View
+        style={[
+          styles.bottomWrapper,
+          {
+            bottom: insets.bottom + hp('3%'),
+          },
+        ]}
+      >
         {index === 0 ? (
           <>
             <View style={styles.pagination}>
@@ -144,7 +158,7 @@ const OnBoardingScreen = ({ navigation }) => {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </SafeAreaView>
 
   );
 
@@ -165,7 +179,7 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
-    height: hp('66%'),
+    height: hp('62%'),
     overflow: 'hidden',
     borderBottomRightRadius: wp('50%'),
   },
@@ -203,7 +217,6 @@ const styles = StyleSheet.create({
 
   bottomWrapper: {
     position: 'absolute',
-    bottom: hp('7%'),
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -225,6 +238,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
+     marginTop: -5,
   },
 
   dot: {
