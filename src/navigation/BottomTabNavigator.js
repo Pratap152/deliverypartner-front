@@ -28,7 +28,7 @@ const BottomTabNavigator = () => {
         headerShown: false,
         tabBarHideOnKeyboard: true,
 
-        tabBarActiveTintColor:"#3558AA" ,
+        tabBarActiveTintColor: '#3558AA',
         tabBarInactiveTintColor: '#9CA3AF',
 
         tabBarLabelPosition: 'below-icon',

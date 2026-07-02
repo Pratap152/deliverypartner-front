@@ -1,3 +1,4 @@
+
 import React, { memo } from 'react';
 import {
   View,
@@ -9,10 +10,16 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import DeviceInfo from 'react-native-device-info';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window');
+const isTablet = DeviceInfo.isTablet();
 
 const DEFAULT_ITEMS = [
   { id: 'order', title: 'Order earning issue', icon: 'cash-outline', bg: '#E8F4FF', iconColor: '#2F8CFF' },
@@ -89,52 +96,56 @@ const HelpCenterList = ({ navigation, items = DEFAULT_ITEMS, headerTitle = 'Deli
 };
 
 export default memo(HelpCenterList);
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
+
   container: {
-    paddingHorizontal: 18,
-    paddingBottom: 40,
+    paddingHorizontal: isTablet ? wp('4%') : 18,
+    paddingBottom: isTablet ? hp('5%') : 40,
   },
+
   headerTitle: {
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: isTablet ? wp('3.2%') : 18,
     fontWeight: '700',
-    marginTop: 18,
-    color: '#111827', // dark text
+    marginTop: isTablet ? hp('2%') : 18,
+    color: '#111827',
   },
+
   illustrationWrap: {
-    marginTop: 50,
+    marginTop: isTablet ? hp('4%') : 50,
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: isTablet ? hp('2%') : 8,
   },
+
   illustrationImage: {
-    width: width * 0.8,
-    height: 160,
+    width: isTablet ? wp('45%') : width * 0.8,
+    height: isTablet ? hp('24%') : 160,
   },
 
   sectionTitle: {
-    marginTop: 30,
-    fontSize: 18,
+    marginTop: isTablet ? hp('3%') : 30,
+    fontSize: isTablet ? wp('2.8%') : 18,
     color: '#111827',
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: isTablet ? hp('1.5%') : 12,
   },
 
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    // subtle shadow for iOS
+    borderRadius: isTablet ? 18 : 12,
+    paddingVertical: isTablet ? hp('1.2%') : 6,
+    paddingHorizontal: isTablet ? wp('2%') : 8,
     shadowColor: '#000',
     shadowOpacity: 0.03,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    // elevation for Android
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
     elevation: 2,
     borderWidth: 1,
     borderColor: '#F0F4F8',
@@ -143,9 +154,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 6,
     justifyContent: 'space-between',
+    paddingVertical: isTablet ? hp('2%') : 14,
+    paddingHorizontal: isTablet ? wp('1.5%') : 6,
   },
 
   left: {
@@ -155,12 +166,12 @@ const styles = StyleSheet.create({
   },
 
   iconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: isTablet ? wp('6%') : 44,
+    height: isTablet ? wp('6%') : 44,
+    borderRadius: isTablet ? wp('1.2%') : 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: isTablet ? wp('2%') : 12,
   },
 
   textWrap: {
@@ -170,22 +181,22 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 15,
+    fontSize: isTablet ? wp('2.2%') : 15,
     color: '#0F172A',
     fontWeight: '600',
     flexShrink: 1,
   },
 
   badge: {
-    marginLeft: 8,
+    marginLeft: isTablet ? wp('1%') : 8,
     backgroundColor: '#FEEFEF',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: isTablet ? wp('1%') : 8,
+    paddingVertical: isTablet ? hp('0.3%') : 2,
     borderRadius: 12,
   },
 
   badgeText: {
-    fontSize: 11,
+    fontSize: isTablet ? wp('1.5%') : 11,
     color: '#FF6B6B',
     fontWeight: '600',
   },
@@ -193,15 +204,15 @@ const styles = StyleSheet.create({
   right: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: isTablet ? wp('1.5%') : 8,
   },
 
   badgeDot: {
-    width: 8,
-    height: 8,
+    width: isTablet ? wp('0.8%') : 8,
+    height: isTablet ? wp('0.8%') : 8,
     borderRadius: 8,
     backgroundColor: '#FF5C5C',
-    marginRight: 10,
+    marginRight: isTablet ? wp('1.5%') : 10,
   },
 
   separator: {
