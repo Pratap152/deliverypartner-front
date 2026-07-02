@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  activeFilterTab: { backgroundColor: '#12B5CB' },
+  activeFilterTab: { backgroundColor: '#3558AA' },
 
   filterText: {
     fontSize: rf(1.6),
@@ -510,20 +510,20 @@ const styles = StyleSheet.create({
     padding: rw(4),
   },
 
-  green: { backgroundColor: '#00A63E' },
-  orange: { backgroundColor: '#F54900' },
+  green: { backgroundColor: '#DDF5E5', },
+  orange: { backgroundColor: '#F7EAE5', },
 
   summaryIcon: { resizeMode: 'contain' },
 
   summaryValue: {
-    color: '#FFFFFF',
+    color: '#090b09',
     fontSize: rf(2.6),
     fontWeight: 'bold',
     marginTop: rh(0.5),
   },
 
   summaryLabel: {
-    color: '#FFFFFF',
+    color: '#090b09',
     marginTop: rh(0.5),
     fontSize: rf(1.6),
   },
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   todayText: {
     fontSize: rf(1.8),
     fontWeight: '600',
-    color: '#12B5CB',
+    color: '#3558AA',
   },
 
   dateHeaderRight: {

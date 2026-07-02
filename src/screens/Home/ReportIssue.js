@@ -8,7 +8,7 @@ import {
   Alert,
   ScrollView,
   Modal,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
@@ -45,6 +45,23 @@ export default function ReportIssue({ route, navigation }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const handleClose = () => {
+    Alert.alert(
+      "Cancel Reporting?",
+      "Customer responded? Your entered details will be discarded.",
+      [
+        {
+          text: "Continue Editing",
+          style: "cancel",
+        },
+        {
+          text: "Yes, Go Back",
+          style: "destructive",
+          onPress: () => navigation.goBack(),
+        },
+      ]
+    );
+  };
   const handleSubmit = async () => {
     if (!selectedReason || submitting) return;
 
@@ -101,6 +118,13 @@ export default function ReportIssue({ route, navigation }) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.header}>
+          <View />
+
+          <TouchableOpacity onPress={handleClose}>
+            <Ionicons name="close" size={26} color="#666" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.title}>Report an Issue</Text>
         <Text style={styles.subtitle}>
           Give detailed information about the issue
@@ -209,7 +233,12 @@ const styles = StyleSheet.create({
     paddingTop: hp("2.5%"),
     paddingBottom: hp("18%"),
   },
-
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp("2%"),
+  },
   title: {
     fontSize: wp("6%"),
     fontWeight: "900",
