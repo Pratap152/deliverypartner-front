@@ -13,7 +13,7 @@ import SlotHistory from '../screens/profile/SlotHistory';
 import RewardsScreen from '../screens/profile/Rewards';
 import OrderHistory from '../screens/profile/OrderHistory';
 import OrderHistoryDetails from '../screens/profile/OrderHistoryDetails';
-
+import AboutScreen from '../screens/profile/AboutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +33,7 @@ export default function ProfileNavigator() {
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
       <Stack.Screen name="OrderHistoryDetails" component={OrderHistoryDetails} />
       <Stack.Screen name="RewardsScreen" component={RewardsScreen} />
+      <Stack.Screen name="AboutScreen" component={AboutScreen} />
     </Stack.Navigator>
   );
 }
