@@ -52,6 +52,14 @@ export default function AboutScreen({ navigation }) {
         }
     };
 
+    const openWebsite = () => {
+        Linking.openURL('https://www.zestbot.in/');
+    };
+
+    const openEmail = () => {
+        Linking.openURL('mailto:rider@zestbot.in');
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             {/* Header */}
@@ -138,8 +146,11 @@ export default function AboutScreen({ navigation }) {
                         Contact Us
                     </Text>
 
-                    <View style={styles.contactRow}>
-                        <View style={styles.contactIcon}>
+                    <TouchableOpacity
+                        style={styles.contactRow}
+                        activeOpacity={0.7}
+                        onPress={openEmail}
+                    >                        <View style={styles.contactIcon}>
                             <Ionicons
                                 name="mail-outline"
                                 size={20}
@@ -152,15 +163,19 @@ export default function AboutScreen({ navigation }) {
                                 Email
                             </Text>
 
-                            <Text style={styles.contactValue}>
-                                support@zestbot.ai
+                            <Text style={[styles.contactValue, styles.linkText]}>
+                                rider@zestbot.in
                             </Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
 
                     <View style={styles.divider} />
 
-                    <View style={styles.contactRow}>
+                    <TouchableOpacity
+                        style={styles.contactRow}
+                        activeOpacity={0.7}
+                        onPress={openWebsite}
+                    >
                         <View style={styles.contactIcon}>
                             <Ionicons
                                 name="globe-outline"
@@ -174,11 +189,11 @@ export default function AboutScreen({ navigation }) {
                                 Website
                             </Text>
 
-                            <Text style={styles.contactValue}>
-                                www.zestbot.ai
+                            <Text style={[styles.contactValue, styles.linkText]}>
+                                https://www.zestbot.in/
                             </Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Description */}
@@ -396,8 +411,12 @@ const styles = StyleSheet.create({
 
     contactValue: {
         fontSize: isTablet ? wp('2.3%') : wp('4%'),
-        color: '#222222',
+        color: '#1F3365',
         fontWeight: '600',
+    },
+    linkText: {
+        color: '#1F3365',
+        textDecorationLine: 'underline',
     },
     description: {
         marginTop: hp('0.5%'),
