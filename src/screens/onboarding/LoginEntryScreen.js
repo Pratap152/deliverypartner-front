@@ -188,7 +188,7 @@ const LoginEntryScreen = ({ navigation }) => {
             </Text>
 
             <Text style={styles.subText}>
-              Be a Zest bot Partner
+              Be a ZestBot Partner
               {"\n"}
               Earn a stable daily income
             </Text>
