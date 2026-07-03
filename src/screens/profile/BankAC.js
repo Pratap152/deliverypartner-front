@@ -160,7 +160,7 @@ const BankAC = ({ navigation }) => {
                 onPress={toggleTooltip}
                 style={styles.infoRow}
               >
-                <Icon name="info-outline" size={22} color="#1976D2" />
+                <Icon name="info-outline" size={22} color="#192A51" />
 
                 <Text style={styles.infoText}>Secure Information</Text>
               </TouchableOpacity>
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
 
   editText: {
-    color: '#1976D2',
+    color: '#192A51',
     fontWeight: '600',
   },
 
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
 
   infoText: {
     marginLeft: 6,
-    color: '#1976D2',
+    color: '#192A51',
     fontWeight: '500',
   },
 

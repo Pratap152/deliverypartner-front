@@ -150,7 +150,8 @@ export default function AboutScreen({ navigation }) {
                         style={styles.contactRow}
                         activeOpacity={0.7}
                         onPress={openEmail}
-                    >                        <View style={styles.contactIcon}>
+                    >
+                        <View style={styles.contactIcon}>
                             <Ionicons
                                 name="mail-outline"
                                 size={20}
