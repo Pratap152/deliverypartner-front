@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
+import PdfViewerScreen from '../screens/Home/PdfViewerScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
@@ -22,6 +23,11 @@ function HomeNavigator() {
         <>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
+                <Stack.Screen name="PdfViewerScreen" component={PdfViewerScreen}
+                    options={({ route }) => ({
+                        title: route.params.title,
+                    })}
+                />
                 <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
                 <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
                 <Stack.Screen name="SuccessfullDelivered" component={SuccessfullDelivered} />
@@ -29,7 +35,7 @@ function HomeNavigator() {
 
                 <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
                 <Stack.Screen name="SlotBookingScreen" component={SlotBookingScreen} />
-                <Stack.Screen name="SlotHistoryScreen" component={SlotHistoryScreen}/>
+                <Stack.Screen name="SlotHistoryScreen" component={SlotHistoryScreen} />
                 <Stack.Screen name="SlotHistory" component={SlotHistory} />
                 <Stack.Screen name="OrderHistory" component={OrderHistory} />
                 <Stack.Screen name="OrderHistoryDetails" component={OrderHistoryDetails} />
