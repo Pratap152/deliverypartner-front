@@ -336,7 +336,7 @@ const SlotHistory = ({ navigation }) => {
           <Ionicons
             name="chatbubble-ellipses-outline"
             size={24}
-            color="#13ACBE"
+            color="#192A51"
           />
         </TouchableOpacity>
       </View>
