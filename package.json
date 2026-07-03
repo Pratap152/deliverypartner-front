@@ -59,6 +59,7 @@
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-pdf": "^7.0.4",
+    "react-native-month-year-picker": "^1.9.0",
     "react-native-permissions": "^5.4.4",
     "react-native-reanimated": "~4.3.0",
     "react-native-responsive-dimensions": "^3.1.1",

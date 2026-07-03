@@ -13,6 +13,7 @@ import EarningsHistoryScreen from '../screens/earnings/EarningsHistoryScreen';
 import SlotHistory from '../screens/profile/SlotHistory';
 import OrderHistory from '../screens/profile/OrderHistory';
 import OrderHistoryDetails from '../screens/profile/OrderHistoryDetails';
+import Tips from "../screens/Home/Tips"
 import SlotBookingScreen from "../screens/dashboard/SlotBookingScreen";
 import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
@@ -40,6 +41,7 @@ function HomeNavigator() {
                 <Stack.Screen name="OrderHistory" component={OrderHistory} />
                 <Stack.Screen name="OrderHistoryDetails" component={OrderHistoryDetails} />
                 <Stack.Screen name="EarningsHistoryScreen" component={EarningsHistoryScreen} />
+                <Stack.Screen name="Tips" component={Tips} />
                 <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
 
                 <Stack.Screen name='MapScreen' component={MapScreen} options={{
