@@ -81,7 +81,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         setLoading(true);
         setError(null);
         const data = await orderService.getOrderDetails(orderId);
-        
+
         if (!data) {
           setError('Order information not found');
           return;
@@ -234,7 +234,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   if (error || !orderDetails) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <EmptyState 
+        <EmptyState
           title="Order Not Found"
           message={error || "We couldn't retrieve the details for this order."}
           icon="alert-circle-outline"
@@ -267,14 +267,14 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
           {isPickupPhase ? (
             <>
-              <OrderAddressCard 
+              <OrderAddressCard
                 title="Pickup Location"
                 name={orderDetails.pickupAddress?.name}
                 address={orderDetails.pickupAddress?.addressLine}
                 iconType="store"
                 theme="green"
               />
-              <OrderAddressCard 
+              <OrderAddressCard
                 title="Drop Location"
                 name={orderDetails.deliveryAddress?.name}
                 address={orderDetails.deliveryAddress?.addressLine}
@@ -286,7 +286,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
             <View style={styles.deliverToCard}>
               <View style={styles.deliverHeader}>
                 <View style={styles.deliverIconContainer}>
-                   <Ionicons name="person-outline" size={wp('6%')} color="#4F46E5" />
+                  <Ionicons name="person-outline" size={wp('6%')} color="#4F46E5" />
                 </View>
                 <View style={styles.deliverTitleContainer}>
                   <Text style={styles.deliverTitle}>DELIVER TO</Text>
@@ -294,7 +294,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                 </View>
               </View>
 
-              <OrderAddressCard 
+              <OrderAddressCard
                 title="Delivery Address"
                 name={orderDetails.deliveryAddress?.name}
                 address={orderDetails.deliveryAddress?.addressLine}
@@ -305,7 +305,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               {(status === 'IN_TRANSIT' || status === 'RIDER_ARRIVED_AT_DROP') && (
                 <TouchableOpacity
                   style={styles.chatButton}
-                  onPress={() => navigation.navigate('ChatSupportScreen', { 
+                  onPress={() => navigation.navigate('ChatSupportScreen', {
                     orderId: orderDetails.orderId,
                     customerName: orderDetails.deliveryAddress?.name
                   })}
@@ -395,16 +395,16 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                   activeOpacity={0.85}
                   onPress={async () => {
                     if (button.action === 'rejectOrder') {
-                          try {
-                            setButtonLoading(true);
-                            await orderService.rejectOrder(orderId);
-                            navigation.goBack();
-                          } catch (err) {
-                            Alert.alert("Error", "Failed to reject order");
-                          } finally {
-                            setButtonLoading(false);
-                          }
-                        }
+                      try {
+                        setButtonLoading(true);
+                        await orderService.rejectOrder(orderId);
+                        navigation.goBack();
+                      } catch (err) {
+                        Alert.alert("Error", "Failed to reject order");
+                      } finally {
+                        setButtonLoading(false);
+                      }
+                    }
 
                     if (button.action === 'openCancelModal') {
                       setShowCustomerModal(true);
@@ -467,7 +467,10 @@ const OrderDetailsScreen = ({ route, navigation }) => {
               }}
               onMarkIssuePress={() => {
                 setShowCustomerModal(false);
-                navigation.navigate('ReportIssue', { orderId });
+                navigation.navigate("ReportIssue", { orderId });
+              }}
+              onClose={() => {
+                setShowCustomerModal(false);
               }}
             />
           </View>
@@ -592,13 +595,13 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   navigateBtn: {
-    backgroundColor: '#00C4B4',
+    backgroundColor: '#1F3365',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: hp('2.2%'),
     borderRadius: wp('14%'),
     width: '100%',
-    shadowColor: '#00C4B4',
+    shadowColor: '#1F3365',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 14,
@@ -627,13 +630,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   bottomStandardBtn: {
-    backgroundColor: '#00C4B4',
+    backgroundColor: '#1F3365',
     paddingVertical: hp('2.2%'),
     borderRadius: wp('14%'),
     alignItems: 'center',
     marginTop: 'auto',
     marginBottom: hp('3%'),
-    shadowColor: '#00C4B4',
+    shadowColor: '#1F3365',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 14,
@@ -1230,14 +1233,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   chatButton: {
-    backgroundColor: '#3730A3',
+    backgroundColor: '#3558AA',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: hp('1.5%'),
     borderRadius: wp('3%'),
     marginTop: hp('2%'),
-    shadowColor: '#3730A3',
+    shadowColor: '#1F3365',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

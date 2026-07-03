@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity,Linking} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -13,10 +13,11 @@ export default function CustomerNotResponding({
   duration = 120,
   onCallPress,
   onMarkIssuePress,
+  onClose,
 }) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
-   useEffect(() => {
+  useEffect(() => {
     setTimeLeft(duration);
 
     const timer = setInterval(() => {
@@ -49,8 +50,23 @@ export default function CustomerNotResponding({
     <View style={styles.container}>
 
       <View style={styles.header}>
-        <Ionicons name="warning-outline" size={18} color="#F7931E" />
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.titleContainer}>
+          <Ionicons
+            name="warning-outline"
+            size={18}
+            color="#F7931E"
+          />
+          <Text style={styles.title}>{title}</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => {
+            console.log("Close clicked");
+            onClose && onClose();
+          }}
+        >
+          <Ionicons name="close" size={24} color="#666" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.circleBox}>
@@ -64,7 +80,7 @@ export default function CustomerNotResponding({
             strokeWidth={STROKE}
           />
           <Circle
-            stroke="#00B5C8"
+            stroke="#3558AA"
             fill="none"
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -82,7 +98,7 @@ export default function CustomerNotResponding({
       <Text style={styles.subText}>Wait for {duration} Seconds</Text>
 
       {/* Buttons */}
-    {/* Call Button */}
+      {/* Call Button */}
       <TouchableOpacity
         style={[styles.callBtn, isDisabled && styles.disabledBtn]}
         disabled={isDisabled}
@@ -114,9 +130,16 @@ const styles = StyleSheet.create({
   },
 
   header: {
+    width: "90%",
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 30,
+  },
+
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   title: {
@@ -160,9 +183,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
   },
-disabledBtn: {
-  opacity: 0.4,
-},
+  disabledBtn: {
+    opacity: 0.4,
+  },
 
   btnText: {
     color: "#fff",

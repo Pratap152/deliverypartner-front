@@ -122,7 +122,10 @@ const RiderAssets = ({ navigation }) => {
   const isEmpty = !assetsData || assetsData.length === 0;
 
   return (
-    <SafeAreaView style={styles.container}>
+     <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackFromRiderAssets}>
           <Ionicons name="arrow-back" size={rf(2.6)} color="#101828" />

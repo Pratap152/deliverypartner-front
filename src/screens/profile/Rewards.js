@@ -114,8 +114,10 @@ const RewardsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+ <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={rf(2.6)} />

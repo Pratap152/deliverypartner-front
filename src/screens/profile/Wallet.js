@@ -118,7 +118,10 @@ export default function WalletScreen({ navigation }) {
   // ─── PHONE ────────────────────────────────────────────────────────────────
   if (!isTablet) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>

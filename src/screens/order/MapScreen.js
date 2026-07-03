@@ -285,7 +285,7 @@ const MapScreen = ({ route, navigation }) => {
                 );
 
             } else {
-                
+
                 await orderService.markArrivedAtDrop(orderId);
 
                 navigation.replace(
@@ -595,11 +595,11 @@ const MapScreen = ({ route, navigation }) => {
                 <View style={styles.topSection}>
                     <View style={styles.textDetails}>
                         <View style={styles.orderTypeRow}>
-                            <Ionicons 
-                                name={isPickup ? "basket-outline" : "home-outline"} 
-                                size={18} 
-                                color="#64748B" 
-                                style={styles.orderTypeIcon} 
+                            <Ionicons
+                                name={isPickup ? "basket-outline" : "home-outline"}
+                                size={18}
+                                color="#64748B"
+                                style={styles.orderTypeIcon}
                             />
                             <Text style={styles.orderTypeText}>
                                 {isPickup ? 'Pickup order' : 'Delivery order'}
@@ -617,8 +617,8 @@ const MapScreen = ({ route, navigation }) => {
                         </Text>
                     </View>
 
-                    <TouchableOpacity 
-                        style={styles.mapsRedirectButton} 
+                    <TouchableOpacity
+                        style={styles.mapsRedirectButton}
                         onPress={handleOpenMaps}
                         activeOpacity={0.8}
                     >
@@ -823,7 +823,7 @@ const styles = StyleSheet.create({
     mapsRedirectButton: {
         width: 58,
         height: 58,
-        backgroundColor: '#1E40AF',
+        backgroundColor: '#1F3365',
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
@@ -875,7 +875,7 @@ const styles = StyleSheet.create({
     },
 
     actionButton: {
-        backgroundColor: '#00C4B4',
+        backgroundColor: '#1F3365',
         paddingVertical: 18,
         borderRadius: 16,
         alignItems: 'center',

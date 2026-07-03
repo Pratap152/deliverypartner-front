@@ -139,7 +139,10 @@ const CashBalanceScreen = ({ navigation }) => {
   const pendingSummary = cashData?.pendingOrdersSummary;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons

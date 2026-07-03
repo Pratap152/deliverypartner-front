@@ -92,7 +92,10 @@ const HomeDashboard = () => {
   if (refreshing) return null;
 
   return (
-    <SafeAreaView style={styles.safe}>
+   <SafeAreaView
+    style={styles.safe}
+    edges={['top']}
+>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <Header />
 
