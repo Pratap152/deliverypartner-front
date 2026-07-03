@@ -319,8 +319,11 @@ const SlotHistory = ({ navigation }) => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+    <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >      
+    {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={rf(2.6)} />
@@ -333,7 +336,7 @@ const SlotHistory = ({ navigation }) => {
           <Ionicons
             name="chatbubble-ellipses-outline"
             size={24}
-            color="#13ACBE"
+            color="#192A51"
           />
         </TouchableOpacity>
       </View>
@@ -372,26 +375,26 @@ const SlotHistory = ({ navigation }) => {
 
         <View style={styles.summaryRow}>
           <View style={[styles.summaryBox, styles.green]}>
-  <Ionicons
-    name="calendar-outline"
-    size={28}
-    color="#22C55E"
-    style={styles.summaryIcon}
-  />
-  <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
-  <Text style={styles.summaryLabel}>Slots Completed</Text>
-</View>
+            <Ionicons
+              name="calendar-outline"
+              size={28}
+              color="#22C55E"
+              style={styles.summaryIcon}
+            />
+            <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
+            <Text style={styles.summaryLabel}>Slots Completed</Text>
+          </View>
 
-<View style={[styles.summaryBox, styles.orange]}>
-  <Ionicons
-    name="wallet-outline"
-    size={28}
-    color="#F97316"
-    style={styles.summaryIcon}
-  />
-  <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
-  <Text style={styles.summaryLabel}>Total Earnings</Text>
-</View>
+          <View style={[styles.summaryBox, styles.orange]}>
+            <Ionicons
+              name="wallet-outline"
+              size={28}
+              color="#F97316"
+              style={styles.summaryIcon}
+            />
+            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
+            <Text style={styles.summaryLabel}>Total Earnings</Text>
+          </View>
         </View>
       </View>
 
@@ -485,7 +488,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  activeFilterTab: { backgroundColor: '#12B5CB' },
+  activeFilterTab: { backgroundColor: '#3558AA' },
 
   filterText: {
     fontSize: rf(1.6),
@@ -507,20 +510,20 @@ const styles = StyleSheet.create({
     padding: rw(4),
   },
 
-  green: { backgroundColor: '#00A63E' },
-  orange: { backgroundColor: '#F54900' },
+  green: { backgroundColor: '#DDF5E5', },
+  orange: { backgroundColor: '#F7EAE5', },
 
   summaryIcon: { resizeMode: 'contain' },
 
   summaryValue: {
-    color: '#FFFFFF',
+    color: '#090b09',
     fontSize: rf(2.6),
     fontWeight: 'bold',
     marginTop: rh(0.5),
   },
 
   summaryLabel: {
-    color: '#FFFFFF',
+    color: '#090b09',
     marginTop: rh(0.5),
     fontSize: rf(1.6),
   },
@@ -535,7 +538,7 @@ const styles = StyleSheet.create({
   todayText: {
     fontSize: rf(1.8),
     fontWeight: '600',
-    color: '#12B5CB',
+    color: '#3558AA',
   },
 
   dateHeaderRight: {

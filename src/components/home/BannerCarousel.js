@@ -13,9 +13,12 @@ import {
 } from 'react-native-responsive-screen';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import DeviceInfo from 'react-native-device-info';
 
-const ITEM_WIDTH = wp('88%');
-const ITEM_SPACING = wp('2%');
+const isTablet = DeviceInfo.isTablet();
+
+const ITEM_WIDTH = isTablet ? wp('88%') : wp('88%');
+const ITEM_SPACING = isTablet ? wp('1.5%') : wp('2%');
 const SNAP_WIDTH = ITEM_WIDTH + ITEM_SPACING;
 
 const BannerCarousel = ({ data }) => {
@@ -235,6 +238,9 @@ const BannerCarousel = ({ data }) => {
           offset: SNAP_WIDTH * index,
           index,
         })}
+        contentContainerStyle={{
+          paddingHorizontal: isTablet ? wp('4%') : 0,
+        }}
       />
     </View>
   );
@@ -247,7 +253,7 @@ const styles = StyleSheet.create({
 
   banner: {
     width: ITEM_WIDTH,
-    height: hp('18%'),
+    height: isTablet ? hp('22%') : hp('18%'),
     marginRight: ITEM_SPACING,
     overflow: 'hidden',
   },
@@ -266,40 +272,40 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingVertical: hp('2.2%'),
-    paddingHorizontal: wp('5%'),
+    paddingVertical: isTablet ? hp('1.5%') : hp('2.2%'),
+    paddingHorizontal: isTablet ? wp('4%') : wp('5%'),
   },
 
   contentContainer: {
-    width: '44%',
+    width: isTablet ? '30%' : '44%',
+    marginTop: isTablet ? hp('4%') : 0,
   },
 
   title: {
-    fontSize: wp('4.2%'),
+    fontSize: isTablet ? wp('3%') : wp('4.2%'),
     fontWeight: '800',
     color: '#0B1F35',
-    lineHeight: wp('14%'),
+    lineHeight: isTablet ? hp('2.8%') : wp('14%'),
   },
 
   subtitle: {
-    marginTop: -hp('1.5%'),
-    fontSize: wp('2.8%'),
-    lineHeight: wp('3.8%'),
+    marginTop: isTablet ? hp('0.5%') : -hp('1.5%'),
+    fontSize: isTablet ? wp('2.5') : wp('2.8%'),
+    lineHeight: isTablet ? hp('2.2%') : wp('3.8%'),
     color: '#28292b',
     fontWeight: '500',
   },
   cta: {
     alignSelf: 'flex-start',
     backgroundColor: '#111827',
-    paddingHorizontal: wp('5%'),
-    paddingVertical: hp('1%'),
+    paddingHorizontal: isTablet ? wp('2.2%') : wp('5%'),
+    paddingVertical: isTablet ? hp('0.6%') : hp('1%'),
     borderRadius: wp('10%'),
-    marginTop: hp('0.5%'),
+    marginBottom: isTablet ? hp('0.5%') : 0,
   },
-
   ctaText: {
     color: '#FFFFFF',
-    fontSize: wp('3.5%'),
+    fontSize: isTablet ? wp('2.5%') : wp('3.5%'),
     fontWeight: '700',
   },
 });

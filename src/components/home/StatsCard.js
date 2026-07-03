@@ -10,6 +10,7 @@ import OrderHistory from '../../screens/profile/OrderHistory';
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import { formatMoney } from '../../utils/formatMoney';
 import EarningsHistoryScreen from '../../screens/earnings/EarningsHistoryScreen';
+import Tips from '../../screens/Home/Tips';
 import useTodayOrdersCount from '../../hooks/useTodayOrdersCount';
 import apiClient from '../../services/ApiClient';
 
@@ -82,12 +83,12 @@ const StatsCard = ({ isActive, totalOnlineMinutes }) => {
   />
 
   <StatItem
-    icon="cash-outline"
-    value={`₹${formatMoney(todayEarnings.tips ?? 0)}`}
-    label="Tips"
-    bgColor="#8E7CF3"
-    screen={null}
-  />
+  icon="cash-outline"
+  value={`₹${formatMoney(todayEarnings.tips ?? 0)}`}
+  label="Tips"
+  bgColor="#8E7CF3"
+  screen={Tips}
+/>
 
   <StatItem
     icon="cart-outline"

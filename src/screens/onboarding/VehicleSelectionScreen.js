@@ -20,10 +20,20 @@ import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient'; // interceptor-based api
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const submitVehicleType = async vehicleType => {
-  const res = await apiClient.post('/api/rider/vehicle', {
-    type: vehicleType,
-  });
+const submitVehicleType = async (vehicleType, evOwn) => {
+  let payload;
+  if (vehicleType === 'ev') {
+    payload = {
+      type: vehicleType,
+      ownershipType: evOwn, // Include EV ownership type if EV is selected
+    };
+  } else {
+    payload = {
+      type: vehicleType,
+    };
+  }
+  console.log('Submitting vehicle type:', payload);
+  const res = await apiClient.post('/api/rider/vehicle', payload);
   return res.data;
 };
 
@@ -64,6 +74,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
   const selectedVehicle = useSelector(state => state.vehicle.selectedVehicle);
 
   const [localSelected, setLocalSelected] = useState(null);
+  const [evOwn, setEvOwn] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const { width } = useWindowDimensions();
@@ -71,17 +82,26 @@ const VehicleSelectionScreen = ({ navigation }) => {
   const styles = createStyles(isTablet, width);
 
   const handleSelect = type => {
+    if (type === 'bike') {
+      setEvOwn(null); // Reset EV type if bike is selected
+    }
     setLocalSelected(type);
     dispatch(setSelectedVehicle(type));
   };
 
+  const handleEvTypeSelect = type => {
+    setEvOwn(type);
+  }
+
   const handleSubmit = async () => {
     if (!selectedVehicle || loading) return;
+
+    if (selectedVehicle === 'ev' && !evOwn) return;
 
     try {
       setLoading(true);
 
-      await submitVehicleType(selectedVehicle);
+      await submitVehicleType(selectedVehicle, evOwn);
 
       //  ALWAYS go through Splash
       navigation.replace('SplashScreen');
@@ -104,6 +124,17 @@ const VehicleSelectionScreen = ({ navigation }) => {
       image: require('../../assets/Ev.png'),
     },
   ];
+
+  const evTypes = [
+    {
+      key: 'OWN',
+      label: 'Own EV',
+    },
+    {
+      key: 'RENTED',
+      label: 'Company Provided EV',
+    },
+  ]
 
   return (
     <SafeAreaView style={styles.container}>
@@ -151,18 +182,6 @@ const VehicleSelectionScreen = ({ navigation }) => {
                   >
                     {vehicle.label}
                   </Text>
-
-                  <Text
-                    style={[
-                      styles.description,
-                      isSelected &&
-                      styles.selectedDescription,
-                    ]}
-                  >
-                    {vehicle.key === 'bike'
-                      ? 'Petrol vehicle for delivery'
-                      : 'Electric vehicle for delivery'}
-                  </Text>
                 </View>
 
                 {/* CHECK */}
@@ -171,13 +190,57 @@ const VehicleSelectionScreen = ({ navigation }) => {
                     <Ionicons
                       name="checkmark"
                       size={isTablet ? 30 : 22}
-                      color="#00B5CC"
+                      color="#192A51"
                     />
                   </View>
                 )}
               </Pressable>
             );
           })}
+          {
+            selectedVehicle === 'ev' && (
+              <View style={[styles.cardsContainer, { marginTop: 20 }]}>
+                {evTypes.map(evType => {
+                  const selectedEVType = evOwn === evType.key;
+
+                  return (
+                    <Pressable
+                      key={evType.key}
+                      style={[
+                        styles.evCard,
+                        selectedEVType &&
+                        styles.selectedCard,
+                      ]}
+                      onPress={() =>
+                        handleEvTypeSelect(evType.key)
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.text,
+                          selectedEVType &&
+                          styles.selectedText,
+                        ]}
+                      >
+                        {evType.label}
+                      </Text>
+
+                      {/* CHECK */}
+                      {selectedEVType && (
+                        <View style={styles.checkContainer}>
+                          <Ionicons
+                            name="checkmark"
+                            size={isTablet ? 30 : 22}
+                            color="#192A51"
+                          />
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )
+          }
         </View>
 
         {localSelected && (
@@ -186,7 +249,7 @@ const VehicleSelectionScreen = ({ navigation }) => {
               title={loading ? 'Submitting...' : 'Submit'}
               onPress={handleSubmit}
               disabled={loading}
-              bgColor="#00B5CC"
+              bgColor="#192A51"
               textColor="#fff"
             />
           </View>
@@ -268,9 +331,25 @@ const createStyles = (isTablet, width) => {
       elevation: 2,
     },
 
+    evCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1.5,
+      borderColor: '#D1D5DB',
+      borderRadius: isTablet ? 24 : 18,
+      paddingHorizontal: isTablet ? 24 : 18,
+      paddingVertical: isTablet ? 22 : 16,
+      shadowColor: '#000',
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+
     selectedCard: {
-      backgroundColor: '#00B5CC',
-      borderColor: '#00B5CC',
+      backgroundColor: '#DFE9FF',
+      borderColor: '#192A51',
     },
 
     image: {
@@ -287,11 +366,11 @@ const createStyles = (isTablet, width) => {
     text: {
       fontSize: isTablet ? 24 : 18,
       fontWeight: '700',
-      color: '#111827',
+      color: '#000000',
     },
 
     selectedText: {
-      color: '#fff',
+      color: '#000000',
     },
 
     description: {
@@ -302,14 +381,14 @@ const createStyles = (isTablet, width) => {
     },
 
     selectedDescription: {
-      color: '#E0F7FA',
+      color: '#000000',
     },
 
     checkContainer: {
       width: isTablet ? 44 : 34,
       height: isTablet ? 44 : 34,
       borderRadius: 999,
-      backgroundColor: '#fff',
+      backgroundColor: '#FFFFFF',
       justifyContent: 'center',
       alignItems: 'center',
     },

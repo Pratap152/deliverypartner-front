@@ -117,8 +117,10 @@ export default function ProfileScreen({ navigation }) {
   const selfieUri = getSelfieUri(profile?.selfie);
 
   return (
-    <SafeAreaView style={styles.root}>
-      {/* <StatusBar backgroundColor="#13ACBE" barStyle="light-content" /> */}
+    <SafeAreaView
+      style={styles.root}
+      edges={['top']}
+    >
 
       <View style={styles.safeArea}>
         <ScrollView
@@ -598,6 +600,51 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
+          {/* APP SETTINGS */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>APP SETTINGS</Text>
+
+            <TouchableOpacity
+              style={styles.listItemReduced}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('AboutScreen')}
+            >
+              <View style={styles.listLeft}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
+                />
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    About
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    App version, privacy policy & support
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.arrow}>›</Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             onPress={onLogoutPress}
             style={styles.logoutButton}
@@ -687,12 +734,6 @@ const styles = StyleSheet.create({
     fontSize: wp('4.8%'),
     fontWeight: '600',
     color: '#222',
-  },
-
-  partnerId: {
-    fontSize: wp('3.5%'),
-    color: '#777',
-    marginTop: hp('0.3%'),
   },
 
   activeBadge: {

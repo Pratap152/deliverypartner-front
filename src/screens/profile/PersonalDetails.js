@@ -126,7 +126,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
   if (loading && !profile) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#00B2C9" />
+        <ActivityIndicator size="large" color="#192A51" />
       </View>
     );
   }
@@ -136,7 +136,10 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const selfieUri = getSelfieUri(form.selfie);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -398,7 +401,7 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: rf(2),
     fontWeight: '600',
-    color: '#00B2C9',
+    color: '#192A51',
   },
 
   profileCard: {
@@ -477,7 +480,7 @@ const styles = StyleSheet.create({
   },
 
   activeInput: {
-    borderColor: '#00B2C9',
+    borderColor: '#192A51',
     backgroundColor: '#FFFFFF',
   },
 
@@ -491,7 +494,7 @@ const styles = StyleSheet.create({
   rowInput: { width: '48%' },
 
   saveButton: {
-    backgroundColor: '#00B2C9',
+    backgroundColor: '#192A51',
     marginHorizontal: rw(4),
     marginTop: rh(2.5),
     paddingVertical: rh(1.8),
@@ -544,7 +547,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#00B2C9',
+    backgroundColor: '#192A51',
     width: rw(6),
     height: rw(6),
     borderRadius: rw(3),
@@ -568,6 +571,6 @@ const styles = StyleSheet.create({
   },
   avatarEditing: {
     borderWidth: 4,
-    borderColor: '#00B2C9',
+    borderColor: '#192A51',
   },
 });

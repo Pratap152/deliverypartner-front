@@ -109,7 +109,10 @@ const RewardsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top']}
+    >
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -125,7 +128,7 @@ const RewardsScreen = ({ navigation }) => {
           <Ionicons
             name="chatbubble-ellipses-outline"
             size={24}
-            color="#13ACBE"
+            color="#192A51"
           />
         </TouchableOpacity>
       </View>

@@ -58,7 +58,6 @@ export default function PersonalInfoScreen({ navigation }) {
   const [formData, setFormData] = useState({
     fullName: '',
     dob: '',
-    primaryPhone: '',
     secondaryPhone: '',
     email: '',
     gender: '',
@@ -99,7 +98,7 @@ export default function PersonalInfoScreen({ navigation }) {
     }
 
     // Mobile numbers only digits and max 10
-    if (field === 'primaryPhone' || field === 'secondaryPhone') {
+    if (field === 'secondaryPhone') {
       value = value.replace(/[^0-9]/g, '').slice(0, 10);
     }
 
@@ -118,7 +117,6 @@ export default function PersonalInfoScreen({ navigation }) {
     let error = '';
 
     if (field === 'fullName') error = validateName(value);
-    if (field === 'primaryPhone') error = validateMobile(value);
     if (field === 'secondaryPhone') error = validateMobile(value);
     if (field === 'email') error = validateEmail(value);
 
@@ -183,18 +181,9 @@ export default function PersonalInfoScreen({ navigation }) {
         return age >= 18 ? '' : 'You must be at least 18 years old';
       })(),
       email: validateEmail(formData.email),
-      primaryPhone: validateMobile(formData.primaryPhone),
       secondaryPhone: validateMobile(formData.secondaryPhone),
       gender: formData.gender ? '' : 'Gender required',
     };
-
-    if (
-      formData.primaryPhone &&
-      formData.secondaryPhone &&
-      formData.primaryPhone === formData.secondaryPhone
-    ) {
-      newErrors.secondaryPhone = 'Numbers must be different';
-    }
 
     setErrors(newErrors);
     return Object.values(newErrors).every(e => !e);
@@ -209,16 +198,15 @@ export default function PersonalInfoScreen({ navigation }) {
       fullName: formData.fullName.trim(),
       dob: formatDobForApi(formData.dob),
       gender: formData.gender,
-      primaryPhone: formData.primaryPhone.trim(),
       secondaryPhone: formData.secondaryPhone.trim(),
       email: formData.email.trim(),
       referralCode: formData.referralCode.trim(),
     };
 
     console.log('submit', payload);
-    setSubmitting(true);
 
     try {
+      setSubmitting(true);
       const res = await apiClient.post('/api/rider/personal-info', payload);
 
       console.log('STATUS:', res.status);
@@ -251,7 +239,7 @@ export default function PersonalInfoScreen({ navigation }) {
         <Ionicons
           name={selected ? 'radio-button-on' : 'radio-button-off'}
           size={isTablet ? 28 : 22}
-          color={selected ? '#00B5CC' : '#9CA3AF'}
+          color={selected ? '#1F3365' : '#9CA3AF'}
         />
         <Text style={styles.genderText}>{label}</Text>
       </TouchableOpacity>
@@ -320,21 +308,6 @@ export default function PersonalInfoScreen({ navigation }) {
             <Text style={styles.err}>{errors.dob}</Text>
           )}
 
-          {/* MOBILE */}
-          <Text style={styles.fieldName}>Mobile Number</Text>
-          <TextInput
-            keyboardType="number-pad"
-            value={formData.primaryPhone}
-            onChangeText={t => handleChange('primaryPhone', t)}
-            style={styles.input}
-            placeholder='Enter Your Mobile No.'
-            placeholderTextColor='darkgrey'
-            maxLength={10}
-          />
-          {errors.primaryPhone && (
-            <Text style={styles.err}>{errors.primaryPhone}</Text>
-          )}
-
           {/* ALT MOBILE */}
           <Text style={styles.fieldName}>Alternative Mobile Number</Text>
           <TextInput
@@ -391,7 +364,7 @@ export default function PersonalInfoScreen({ navigation }) {
             <PrimaryButton
               title="Submit"
               onPress={handleSubmit}
-              bgColor="#00B5CC"
+              bgColor='#1F3365'
               textColor="#fff"
               loading={submitting}
               disabled={submitting}

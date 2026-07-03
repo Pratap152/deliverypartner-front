@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -8,14 +9,19 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
 
 dayjs.extend(relativeTime);
-
+const isTablet = DeviceInfo.isTablet();
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,44 +89,44 @@ const NotificationsScreen = () => {
   }
 
   return (
-   <SafeAreaView
-  edges={['top']}
-  style={{ flex: 1, backgroundColor: '#192A51' }}
->
-  <View style={styles.container}>
-      <StatusBar
-        backgroundColor="#192A51"
-        barStyle="light-content"
-      />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          Notifications
-        </Text>
-
-        <Text style={styles.headerSubTitle}>
-          Stay updated with your delivery activities
-        </Text>
-      </View>
-
-      {notifications.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>
-            No Notifications
+    <SafeAreaView
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: '#192A51' }}
+    >
+      <View style={styles.container}>
+        <StatusBar
+          backgroundColor="#192A51"
+          barStyle="light-content"
+        />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>
+            Notifications
           </Text>
 
-          <Text style={styles.emptyText}>
-            You're all caught up.
+          <Text style={styles.headerSubTitle}>
+            Stay updated with your delivery activities
           </Text>
         </View>
-      ) : (
-        <FlatList
-          data={notifications}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+
+        {notifications.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>
+              No Notifications
+            </Text>
+
+            <Text style={styles.emptyText}>
+              You're all caught up.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            keyExtractor={item => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -136,49 +142,50 @@ const styles = StyleSheet.create({
 
   header: {
     backgroundColor: '#192A51',
-    paddingHorizontal: 18,
-    paddingTop: 4,
-    paddingVertical: 18,
+    paddingHorizontal: isTablet ? wp('4%') : 18,
+    paddingTop: isTablet ? hp('1%') : 4,
+    paddingVertical: isTablet ? hp('2.5%') : 18,
   },
 
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: isTablet ? wp('3.2%') : 22,
     fontWeight: '700',
   },
 
   headerSubTitle: {
-    marginTop: 4,
+    marginTop: isTablet ? hp('0.6%') : 4,
     color: '#D7DDEA',
-    fontSize: 13,
+    fontSize: isTablet ? wp('2%') : 13,
   },
 
   list: {
-    padding: 16,
+    padding: isTablet ? wp('3%') : 16,
   },
 
   card: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: isTablet ? 18 : 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    padding: 14,
-    marginBottom: 12,
+    padding: isTablet ? wp('2.8%') : 14,
+    marginBottom: isTablet ? hp('1.8%') : 12,
+    alignItems: 'center',
   },
 
   iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
+    width: isTablet ? wp('6%') : 42,
+    height: isTablet ? wp('6%') : 42,
+    borderRadius: isTablet ? wp('1.4%') : 10,
     backgroundColor: '#EEF4FF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: isTablet ? wp('2.5%') : 12,
   },
 
   icon: {
-    fontSize: 18,
+    fontSize: isTablet ? wp('2.5%') : 18,
   },
 
   content: {
@@ -186,21 +193,21 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 15,
+    fontSize: isTablet ? wp('2.5%') : 15,
     fontWeight: '600',
     color: '#111827',
   },
 
   body: {
-    marginTop: 4,
-    fontSize: 13,
-    lineHeight: 18,
+    marginTop: isTablet ? hp('0.5%') : 4,
+    fontSize: isTablet ? wp('2%') : 13,
+    lineHeight: isTablet ? hp('2.6%') : 18,
     color: '#6B7280',
   },
 
   time: {
-    marginTop: 8,
-    fontSize: 12,
+    marginTop: isTablet ? hp('0.8%') : 8,
+    fontSize: isTablet ? wp('1.8%') : 12,
     color: '#9CA3AF',
   },
 
@@ -217,14 +224,14 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    fontSize: 18,
+    fontSize: isTablet ? wp('3%') : 18,
     fontWeight: '600',
     color: '#111827',
   },
 
   emptyText: {
-    marginTop: 6,
+    marginTop: isTablet ? hp('0.8%') : 6,
     color: '#6B7280',
-    fontSize: 14,
+    fontSize: isTablet ? wp('2%') : 14,
   },
 });

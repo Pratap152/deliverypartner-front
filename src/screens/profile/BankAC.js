@@ -119,11 +119,14 @@ const BankAC = ({ navigation }) => {
     status === 'VERIFIED'
       ? '#00A63E'
       : status === 'PENDING'
-      ? '#FFA500'
-      : '#FF3B30';
+        ? '#FFA500'
+        : '#FF3B30';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top']}
+    >
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
           {/* HEADER */}
@@ -157,7 +160,7 @@ const BankAC = ({ navigation }) => {
                 onPress={toggleTooltip}
                 style={styles.infoRow}
               >
-                <Icon name="info-outline" size={22} color="#1976D2" />
+                <Icon name="info-outline" size={22} color="#192A51" />
 
                 <Text style={styles.infoText}>Secure Information</Text>
               </TouchableOpacity>
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
   },
 
   editText: {
-    color: '#1976D2',
+    color: '#192A51',
     fontWeight: '600',
   },
 
@@ -386,7 +389,7 @@ const styles = StyleSheet.create({
 
   infoText: {
     marginLeft: 6,
-    color: '#1976D2',
+    color: '#192A51',
     fontWeight: '500',
   },
 

@@ -28,7 +28,7 @@ class GpsService {
 
     // 2. Ready the plugin
     const state = await BackgroundGeolocation.ready({
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+      desiredAccuracy: BackgroundGeolocation.DesiredAccuracy.High,
       distanceFilter: 1, // update every 1 meters
       stopTimeout: 5, // keep tracking for 5 minutes after stopping
       debug: false,
@@ -37,6 +37,14 @@ class GpsService {
       startOnBoot: true,
       // We do not use the built-in HTTP sync because we rely on our apiClient for Auth tokens
       autoSync: false,
+
+      backgroundPermissionRationale: {
+        title: "Allow background location",
+        message:
+          "ZestBot Rider needs your location even when the app is closed to track active deliveries and provide live order updates.",
+        positiveAction: "Change to Allow all the time",
+        negativeAction: "Cancel",
+      },
     });
 
     console.log('[GpsService] BackgroundGeolocation ready. Enabled:', state.enabled);
