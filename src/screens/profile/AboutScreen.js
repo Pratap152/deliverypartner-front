@@ -153,7 +153,7 @@ export default function AboutScreen({ navigation }) {
                             </Text>
 
                             <Text style={styles.contactValue}>
-                                support@zestbot.ai
+                                rider@zestbot.in
                             </Text>
                         </View>
                     </View>
@@ -175,7 +175,7 @@ export default function AboutScreen({ navigation }) {
                             </Text>
 
                             <Text style={styles.contactValue}>
-                                www.zestbot.ai
+                                https://www.zestbot.in/
                             </Text>
                         </View>
                     </View>
