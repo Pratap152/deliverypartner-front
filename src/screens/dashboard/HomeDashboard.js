@@ -5,12 +5,14 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
+import apiClient from '../../services/ApiClient';
 import Header from "../../components/home/Header";
 import StatsCard from "../../components/home/StatsCard";
 import ActiveShiftBanner from "../../components/home/ActiveShiftBanner";
 import PeakHoursBanner from "../../components/home/PeakHoursBanner";
 import WeeklyStatsCard from "../../components/home/WeeklyStatsCard";
 import LocationBlocker from "../../components/home/LocationBlocker";
+import TermsAgreementModal from "../../components/home/TermsAgreementModal";
 import {
   getHomeBanners,
   todayStats,
@@ -21,6 +23,69 @@ import { useRider } from "../../context/RiderContext";
 import { checkLocationRequirements, requestLocationRequirements, listenAppResume } from '../../utils/locationPermission';
 
 const HomeDashboard = () => {
+
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [loadingAgreement, setLoadingAgreement] = useState(false);
+
+  useEffect(() => {
+    checkAgreementStatus();
+  }, []);
+
+  const checkAgreementStatus = async () => {
+    try {
+      const response = await apiClient.get('/api/rider/consent');
+      console.log('Agreement status response:', response.data);
+
+      if (
+        response.data.data.deliveryPartnerAgreementAccepted === false ||
+        response.data.data.operationsPolicyAccepted === false ||
+        response.data.data.privacyPolicyAccepted === false ||
+        response.data.data.informationConfirmed === false ||
+        response.data.data.electronicConsentAccepted === false
+      ) {
+        console.log('User has not accepted all agreements. Showing modal.');
+        setShowTermsModal(true);
+      }
+      else {
+        console.log('User has accepted all agreements. Not showing modal.');
+        setShowTermsModal(false);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    checkAgreementStatus();
+  }, []);
+
+  const handleAcceptTerms = async () => {
+    try {
+      setLoadingAgreement(true);
+
+      const payload = {
+        "deliveryPartnerAgreementAccepted": true,
+        "operationsPolicyAccepted": true,
+        "privacyPolicyAccepted": true,
+        "informationConfirmed": true,
+        "electronicConsentAccepted": true
+      };
+
+      console.log(payload);
+
+      const response = await apiClient.put('/api/rider/consent', payload);
+      console.log('Agreement acceptance response:', response.data);
+
+      if (response?.status === 200) {
+        setShowTermsModal(false);
+      }
+
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingAgreement(false);
+    }
+  };
 
   const [locationReady, setLocationReady] = useState(false);
 
@@ -92,10 +157,10 @@ const HomeDashboard = () => {
   if (refreshing) return null;
 
   return (
-   <SafeAreaView
-    style={styles.safe}
-    edges={['top']}
->
+    <SafeAreaView
+      style={styles.safe}
+      edges={['top']}
+    >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <Header />
 
@@ -131,7 +196,7 @@ const HomeDashboard = () => {
 
         <WeeklyStatsCard />
       </ScrollView>
-      
+
       <LocationBlocker
         visible={!locationReady}
         onEnable={async () => {
@@ -140,6 +205,12 @@ const HomeDashboard = () => {
 
           setLocationReady(granted);
         }}
+      />
+
+      <TermsAgreementModal
+        visible={showTermsModal}
+        loading={loadingAgreement}
+        onAccept={handleAcceptTerms}
       />
     </SafeAreaView>
   );

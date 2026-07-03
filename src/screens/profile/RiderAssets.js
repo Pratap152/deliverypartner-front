@@ -114,7 +114,7 @@ const RiderAssets = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#00B2C9" />
+        <ActivityIndicator size="large" color="#192A51" />
       </View>
     );
   }
@@ -140,7 +140,7 @@ const RiderAssets = ({ navigation }) => {
                     <Ionicons
                       name="chatbubble-ellipses-outline"
                       size={isTablet ? 34 : 24}
-                      color="#13ACBE"
+                      color="#192A51"
                     />
                   </TouchableOpacity>
       </View>
@@ -152,7 +152,7 @@ const RiderAssets = ({ navigation }) => {
         {isEmpty ? (
           <View style={styles.emptyWrapper}>
             <View style={styles.illustrationBox}>
-              <Ionicons name="cube-outline" size={rf(8)} color="#13ACBE" />
+              <Ionicons name="cube-outline" size={rf(8)} color="#192A51" />
             </View>
 
             <Text style={styles.emptyTitle}>No Rider Assets Found</Text>
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
 
   /* SUMMARY */
   summaryCard: {
-    backgroundColor: "#13ACBE",
+    backgroundColor: "#192A51",
     marginHorizontal: rw(4),
     marginTop: rh(2),
     borderRadius: rw(4),
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
 
   /* BUTTON */
   button: {
-    backgroundColor: "#13ACBE",
+    backgroundColor: "#192A51",
     marginHorizontal: rw(6),
     marginTop: rh(3),
     paddingVertical: rh(1.8),

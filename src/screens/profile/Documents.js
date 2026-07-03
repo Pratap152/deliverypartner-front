@@ -170,7 +170,7 @@ const DocumentsScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#00B2C9" />
+        <ActivityIndicator size="large" color="#192A51" />
       </View>
     );
   }
@@ -207,7 +207,7 @@ const DocumentsScreen = ({ navigation }) => {
                             <Ionicons
                               name="chatbubble-ellipses-outline"
                               size={isTablet? 34 : 24}
-                              color="#13ACBE"
+                              color="#192A51"
                             />
                           </TouchableOpacity>
       </View>
@@ -344,7 +344,7 @@ const DocumentsScreen = ({ navigation }) => {
             useNativeDriver
             onSwipeDown={() => setPreviewImages([])}
             loadingRender={() => (
-              <ActivityIndicator size="large" color="#00B2C9" />
+              <ActivityIndicator size="large" color="#192A51" />
             )}
           />
 
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#00B2C9',
+    backgroundColor: '#192A51',
     borderRadius: rw(6),
     paddingVertical: rh(1),
     marginLeft: rw(2),

@@ -130,7 +130,7 @@ const CashBalanceScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#192A51" />
       </View>
     );
   }

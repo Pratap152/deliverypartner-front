@@ -132,7 +132,7 @@ const RewardsScreen = ({ navigation }) => {
           <Ionicons
             name="chatbubble-ellipses-outline"
             size={isTablet ? 34 : 24}
-            color="#13ACBE"
+            color="#192A51"
           />
         </TouchableOpacity>
       </View>
