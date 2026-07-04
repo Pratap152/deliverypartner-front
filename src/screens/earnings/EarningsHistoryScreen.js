@@ -133,6 +133,29 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     bootstrap();
   }, []);
 
+  function getOrdinalSuffix(day) {
+  if (day > 3 && day < 21) return "th";
+
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+function formatPrettyDate(dateString) {
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = date.toLocaleString("en-US", { month: "short" });
+
+  return `${month} ${day}${getOrdinalSuffix(day)}`;
+}
+
   const bootstrap = async () => {
     Analytics.track("earnings_screen_open", { mode });
     setInitialLoading(true)
@@ -382,7 +405,7 @@ function getBackendWeekNumber(date) {
         Analytics.track("earnings_open_week_selector");
         setWeekModal(true);
       }} />
-      <Dropdown label={selectedDay ? `Day: ${selectedDay}` : "Pick Day"} onPress={() => {
+      <Dropdown Dropdown label={selectedDay ? `Day: ${formatPrettyDate(selectedDay)}` : "Pick Day"} onPress={() => {
         Analytics.track("earnings_open_day_picker");
         setCalendarVisible(true);
       }} />
@@ -405,7 +428,7 @@ function getBackendWeekNumber(date) {
         }
         renderItem={({ item }) => (
           <Row
-            title={`${item.day} (${item.date})`}
+            title={`${item.day} (${formatPrettyDate(item.date)})`}
             subtitle={`${item.orders || 0} orders`}
             right={`₹${formatMoney(item.amount) || 0}`}
             onPress={() => {
