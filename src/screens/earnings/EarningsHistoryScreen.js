@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import NetInfo from "@react-native-community/netinfo";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { formatMoney } from '../../utils/formatMoney';
-import { EarningsNewAPI } from "../../api/api";
+import { EarningsNewAPI } from '../../services/earnings/earningsHistoryService';
 import { EarningsCache } from "../../utils/earningsCache";
 import { Analytics } from "../../utils/analytics";
 import SelectModal from "../../components/dashboard/earnings/SelectModal";
@@ -67,10 +67,18 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     return [now, now - 1, now - 2];
   }, []);
 
-  const weeks = useMemo(
-  () => getWeeksOfYear_BackendCompatible(selectedYear),
-  [selectedYear]
-);
+  const weeks = useMemo(() => {
+  const allWeeks = getWeeksOfYear_BackendCompatible(selectedYear);
+  const now = new Date();
+
+  if (selectedYear === now.getFullYear()) {
+    return allWeeks
+      .filter((item) => item.week <= getBackendWeekNumber(now))
+      .reverse();
+  }
+
+  return allWeeks.reverse();
+}, [selectedYear]);
 
   // NETWORK 
   useEffect(() => {
@@ -550,7 +558,6 @@ function getBackendWeekNumber(date) {
           `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
         }
         selectedValue={selectedWeek}
-        isItemDisabled={(item) => item.isFuture}
         isItemHighlighted={(item) => item.week === currentWeekNumber}
         onClose={() => setWeekModal(false)}
         onSelect={(item) => {

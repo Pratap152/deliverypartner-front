@@ -1,4 +1,4 @@
-import apiClient from "../services/ApiClient";
+import apiClient from '../ApiClient';
 
 export const EarningsNewAPI = {
   getToday: async () => {
