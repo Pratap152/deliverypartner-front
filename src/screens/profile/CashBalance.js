@@ -5,8 +5,8 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  Image,
   TouchableOpacity,
+  Dimensions
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +17,11 @@ import {
 } from 'react-native-responsive-dimensions';
 
 import apiClient from '../../services/ApiClient';
+
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const CashBalanceScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
@@ -57,18 +62,9 @@ const CashBalanceScreen = ({ navigation }) => {
               },
             ]}>
             <Ionicons
-              name={
-                isPending
-                  ? 'time-outline'
-                  : 'checkmark-circle'
-              }
-              size={20}
-              color={
-                isPending
-                  ? '#FF8C00'
-                  : '#2E8B57'
-              }
-            />
+              name={isPending ? 'time-outline' : 'checkmark-circle'}
+              size={isTablet ? 28 : 20}
+              color={isPending ? '#FF8C00' : '#2E8B57'}/>
           </View>
         </View>
 
@@ -166,7 +162,7 @@ const CashBalanceScreen = ({ navigation }) => {
         >
           <Ionicons
             name="chatbubble-ellipses-outline"
-            size={24}
+            size={isTablet ? 34 : 24}
             color="#294484"
           />
         </TouchableOpacity>
@@ -209,7 +205,7 @@ const CashBalanceScreen = ({ navigation }) => {
               <View style={styles.summaryCard}>
                 <Ionicons
                   name="trending-down-outline"
-                  size={22}
+                  size={isTablet ? 32 : 22}
                   color="#3B82F6"
                 />
 
@@ -225,7 +221,7 @@ const CashBalanceScreen = ({ navigation }) => {
               <View style={styles.summaryCard}>
                 <Ionicons
                   name="checkmark-circle-outline"
-                  size={22}
+                  size={isTablet ? 32 : 22}
                   color='#2E8B57'
                 />
 
@@ -243,7 +239,7 @@ const CashBalanceScreen = ({ navigation }) => {
               <View style={styles.summaryCard}>
                 <Ionicons
                   name="wallet-outline"
-                  size={22}
+                  size={isTablet ? 32 : 22}
                   color="#FF8C00"
                 />
 
@@ -374,12 +370,12 @@ const styles = StyleSheet.create({
   },
 
   iconCircle: {
-    height: 34,
-    width: 34,
-    borderRadius: 17,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  height: isTablet ? 50 : 34,
+  width: isTablet ? 50 : 34,
+  borderRadius: isTablet ? 25 : 17,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 
   middleSection: {
     flex: 1,

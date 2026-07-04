@@ -1,95 +1,84 @@
 import apiClient from '../ApiClient';
-import BackgroundGeolocation from 'react-native-background-geolocation';
+import Geolocation from '@react-native-community/geolocation';
+import { Platform } from 'react-native';
+import { NativeModules } from 'react-native';
+
+const { LocationService } = NativeModules;
 
 class GpsService {
-  /**
-   * Initialize background geolocation listener and configuration.
-   * This should be called once when the app starts.
-   */
-  async initializeTracking() {
-    // 1. Listen to location events
-    BackgroundGeolocation.onLocation(
-      async (location) => {
-        const { coords } = location;
-        
-        await this.updateRiderLocation({
+  watchId = null;
+
+  initializeTracking(setLocation) {
+    this.setLocation = setLocation;
+
+    Geolocation.setRNConfiguration({
+      skipPermissionRequests: true,
+      authorizationLevel: 'always',
+      locationProvider: 'playServices',
+    });
+  }
+
+  async startTracking() {
+    // Prevent creating multiple location watchers.
+    if (this.watchId !== null) return;
+
+    if (Platform.OS === 'android') {
+      LocationService.startService();
+    }
+
+    this.watchId = Geolocation.watchPosition(
+      async position => {
+        const coords = position.coords;
+
+        const location = {
           isEnabled: true,
           latitude: coords.latitude,
           longitude: coords.longitude,
           accuracy: coords.accuracy || 0,
-          heading: coords.heading || 0,
           speed: coords.speed || 0,
-        });
+          heading: coords.heading || 0,
+        };
+
+        this.setLocation?.(location);
+
+        await this.updateRiderLocation(location);
       },
-      (error) => {
-        console.warn('[GpsService] BackgroundGeolocation error:', error);
+
+      error => {
+        // Ignore temporary GPS unavailable errors.
+        if (error.code === 2) return;
+
+        console.error('[GpsService]', error);
+      },
+
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 5,
+        interval: 5000,
+        fastestInterval: 3000,
       }
     );
-
-    // 2. Ready the plugin
-    const state = await BackgroundGeolocation.ready({
-      desiredAccuracy: BackgroundGeolocation.DesiredAccuracy.High,
-      distanceFilter: 1, // update every 1 meters
-      stopTimeout: 5, // keep tracking for 5 minutes after stopping
-      debug: false,
-      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
-      stopOnTerminate: false, // keep tracking even if the app is killed
-      startOnBoot: true,
-      // We do not use the built-in HTTP sync because we rely on our apiClient for Auth tokens
-      autoSync: false,
-
-      backgroundPermissionRationale: {
-        title: "Allow background location",
-        message:
-          "ZestBot Rider needs your location even when the app is closed to track active deliveries and provide live order updates.",
-        positiveAction: "Change to Allow all the time",
-        negativeAction: "Cancel",
-      },
-    });
-
-    console.log('[GpsService] BackgroundGeolocation ready. Enabled:', state.enabled);
   }
 
-  /**
-   * Start tracking manually
-   */
-  async startTracking() {
-    const state = await BackgroundGeolocation.getState();
-    if (!state.enabled) {
-      await BackgroundGeolocation.start();
-      console.log('[GpsService] Tracking started');
+  async stopTracking() {
+    if (this.watchId !== null) {
+      Geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+    }
+
+    if (Platform.OS === 'android') {
+      LocationService.stopService();
     }
   }
 
-  /**
-   * Stop tracking manually
-   */
-  async stopTracking() {
-    await BackgroundGeolocation.stop();
-    console.log('[GpsService] Tracking stopped');
-  }
-
-  /**
-   * Update the rider's GPS location on the backend
-   * @param {Object} locationData
-   */
   async updateRiderLocation(locationData) {
     try {
-      console.log('[GpsService] Updating location:', locationData);
-      const response = await apiClient.put('/api/rider-gps/update-gps', locationData);
-      console.log('[GpsService] Update location response:', response.data);
-      return response.data;
-    
-    } catch (error) {
-      // Safely log the error, preventing huge HTML blobs from taking over the console
-      console.log('[GpsService] Error updating location:', error?.response?.data || error.message);
-      const errorMessage =
-        typeof error?.response?.data === 'string' && error.response.data.includes('<!DOCTYPE html>')
-          ? `HTML Error Page: ${error.message} (HTTP ${error.response.status})`
-          : error?.response?.data || error.message;
-
-      console.warn('[GpsService] Error updating location:', errorMessage);
-      return null;
+      await apiClient.put('/api/rider-gps/update-gps', locationData);
+    } catch (e) {
+      console.error(
+        '[GpsService] Failed to update rider location',
+        e.response?.data || e.message
+      );
     }
   }
 }

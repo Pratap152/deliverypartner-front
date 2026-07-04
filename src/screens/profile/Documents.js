@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Image,
   Modal,
+  Dimensions
 } from 'react-native';
 import {
   responsiveWidth as rw,
@@ -23,7 +23,11 @@ import ImageResizer from '@bam.tech/react-native-image-resizer';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-/*  HELPERS  */
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
+
 const formatTitle = key =>
   key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
 
@@ -202,7 +206,7 @@ const DocumentsScreen = ({ navigation }) => {
                           >
                             <Ionicons
                               name="chatbubble-ellipses-outline"
-                              size={24}
+                              size={isTablet? 34 : 24}
                               color="#192A51"
                             />
                           </TouchableOpacity>

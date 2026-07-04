@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
+  Dimensions
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
@@ -14,6 +14,10 @@ import {
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const OrderHistoryDetails = ({ navigation, route }) => {
   const { order } = route.params;
@@ -55,7 +59,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
         >
           <Ionicons
             name="chatbubble-ellipses-outline"
-            size={24}
+            size={isTablet ? 34 : 24}
             color="#294484"
           />
         </TouchableOpacity>
@@ -100,7 +104,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
           <View style={styles.ratingContainer}>
             <Ionicons
               name="star"
-              size={15}
+              size={isTablet ? 22 : 15}
               color="#F59E0B"
             />
             <Text style={styles.ratingText}>
@@ -112,7 +116,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
             <View style={styles.chip}>
               <Ionicons
                 name="calendar-outline"
-                size={14}
+                size={isTablet ? 22 : 14}
                 color="#22C55E"
               />
 
@@ -124,7 +128,7 @@ const OrderHistoryDetails = ({ navigation, route }) => {
             <View style={styles.chip}>
               <Ionicons
                 name="time-outline"
-                size={14}
+                size={isTablet ? 22 : 14}
                 color='#16A34A'
               />
 
@@ -292,12 +296,12 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#F4E4DD',
-    marginRight: 12,
-  },
+  width: isTablet ? 56 : 42,
+  height: isTablet ? 56 : 42,
+  borderRadius: isTablet ? 28 : 21,
+  backgroundColor: '#F4E4DD',
+  marginRight: isTablet ? 16 : 12,
+},
 
   detailsContainer: {
     flex: 1,

@@ -27,6 +27,8 @@ import { tokenService } from "../services/TokenService";
 import OrderQueueModal from "../components/order/OrderQueueModal";
  
 import { WEBSOCKET_URL } from "../utils/host";
+
+import { gpsService } from "../services/gps/GpsService";
  
 const RiderContext = createContext();
  
@@ -119,6 +121,24 @@ export const RiderProvider = ({ children }) => {
     }
  
   }, [isOnline]);
+
+
+
+  useEffect(() => {
+    const syncTracking = async () => {
+      try {
+        if (actuallyOnline) {
+          await gpsService.startTracking();
+        } else {
+          await gpsService.stopTracking();
+        }
+      } catch (e) {
+        console.log('[GpsService sync error]', e);
+      }
+    };
+
+    syncTracking();
+  }, [actuallyOnline]);
  
   /** ---------------------------
  

@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import NetInfo from "@react-native-community/netinfo";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { formatMoney } from '../../utils/formatMoney';
-import { EarningsNewAPI } from "../../api/api";
+import { EarningsNewAPI } from '../../services/earnings/earningsHistoryService';
 import { EarningsCache } from "../../utils/earningsCache";
 import { Analytics } from "../../utils/analytics";
 import SelectModal from "../../components/dashboard/earnings/SelectModal";
@@ -67,10 +67,18 @@ export default function EarningsHistoryScreen({ navigation, route }) {
     return [now, now - 1, now - 2];
   }, []);
 
-  const weeks = useMemo(
-  () => getWeeksOfYear_BackendCompatible(selectedYear),
-  [selectedYear]
-);
+  const weeks = useMemo(() => {
+  const allWeeks = getWeeksOfYear_BackendCompatible(selectedYear);
+  const now = new Date();
+
+  if (selectedYear === now.getFullYear()) {
+    return allWeeks
+      .filter((item) => item.week <= getBackendWeekNumber(now))
+      .reverse();
+  }
+
+  return allWeeks.reverse();
+}, [selectedYear]);
 
   // NETWORK 
   useEffect(() => {
@@ -124,6 +132,29 @@ export default function EarningsHistoryScreen({ navigation, route }) {
   useEffect(() => {
     bootstrap();
   }, []);
+
+  function getOrdinalSuffix(day) {
+  if (day > 3 && day < 21) return "th";
+
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+function formatPrettyDate(dateString) {
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = date.toLocaleString("en-US", { month: "short" });
+
+  return `${month} ${day}${getOrdinalSuffix(day)}`;
+}
 
   const bootstrap = async () => {
     Analytics.track("earnings_screen_open", { mode });
@@ -374,7 +405,7 @@ function getBackendWeekNumber(date) {
         Analytics.track("earnings_open_week_selector");
         setWeekModal(true);
       }} />
-      <Dropdown label={selectedDay ? `Day: ${selectedDay}` : "Pick Day"} onPress={() => {
+      <Dropdown Dropdown label={selectedDay ? `Day: ${formatPrettyDate(selectedDay)}` : "Pick Day"} onPress={() => {
         Analytics.track("earnings_open_day_picker");
         setCalendarVisible(true);
       }} />
@@ -397,7 +428,7 @@ function getBackendWeekNumber(date) {
         }
         renderItem={({ item }) => (
           <Row
-            title={`${item.day} (${item.date})`}
+            title={`${item.day} (${formatPrettyDate(item.date)})`}
             subtitle={`${item.orders || 0} orders`}
             right={`₹${formatMoney(item.amount) || 0}`}
             onPress={() => {
@@ -550,7 +581,6 @@ function getBackendWeekNumber(date) {
           `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
         }
         selectedValue={selectedWeek}
-        isItemDisabled={(item) => item.isFuture}
         isItemHighlighted={(item) => item.week === currentWeekNumber}
         onClose={() => setWeekModal(false)}
         onSelect={(item) => {
