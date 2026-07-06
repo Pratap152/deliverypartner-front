@@ -17,8 +17,9 @@ import MonthPicker from 'react-native-month-year-picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import OrderHistory from '../profile/OrderHistory';
 import apiClient from '../../services/ApiClient';
+import DeviceInfo from 'react-native-device-info';
 
-
+const isTablet = DeviceInfo.isTablet();
 const Tips = () => {
     const navigation = useNavigation();
   const [overview, setOverview] = useState({
@@ -254,7 +255,7 @@ const formatListDate = (date) => {
         <View style={[styles.card, { backgroundColor: '#FFF8EF' }]}>
           <Text style={styles.title}>Tipped Orders</Text>
           <Text style={styles.value}>
-            {overview.tippedOrders} Orders
+            ₹{overview.tippedOrders}
           </Text>
         </View>
 
@@ -369,11 +370,12 @@ const formatListDate = (date) => {
 
 
 <DateTimePickerModal
-    isVisible={showDatePicker}
-    mode="date"
-    date={selectedDate}
-    onConfirm={handleConfirm}
-    onCancel={() => setShowDatePicker(false)}
+  isVisible={showDatePicker}
+  mode="date"
+  date={selectedDate}
+  maximumDate={new Date()}   // Add this
+  onConfirm={handleConfirm}
+  onCancel={() => setShowDatePicker(false)}
 />
 <View style={styles.summaryCard}>
 
@@ -479,18 +481,32 @@ const formatListDate = (date) => {
 
 {showMonthPicker && (
   <MonthPicker
-    value={selectedMonth}
-    locale="en"
-    onChange={(event, newDate) => {
-      setShowMonthPicker(false);
+  value={selectedMonth}
+  locale="en"
+  maxDate={new Date()}      // Add this
+  onChange={(event, newDate) => {
+  setShowMonthPicker(false);
 
-      if (newDate) {
-        setSelectedMonth(newDate);
-        fetchMonthlySummary(newDate);
-        fetchDailyTipsList(newDate);
-      }
-    }}
-  />
+  if (!newDate) return;
+
+  const today = new Date();
+
+  // Don't allow future month/year
+  if (
+    newDate.getFullYear() > today.getFullYear() ||
+    (
+      newDate.getFullYear() === today.getFullYear() &&
+      newDate.getMonth() > today.getMonth()
+    )
+  ) {
+    return;
+  }
+
+  setSelectedMonth(newDate);
+  fetchMonthlySummary(newDate);
+  fetchDailyTipsList(newDate);
+}}
+/>
 )}
 <View style={styles.listContainer}>
 
@@ -603,11 +619,10 @@ header: {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between',
-  paddingHorizontal: wp('4%'),
-  paddingVertical: wp('3.4%'),
+  paddingHorizontal: isTablet ? 28 : wp('4%'),
+  paddingVertical: isTablet ? 20 : wp('3.4%'),
   backgroundColor: '#FFFFFF',
   elevation: 2,
-
   shadowColor: '#000',
   shadowOpacity: 0.05,
   shadowRadius: 4,
@@ -618,54 +633,58 @@ header: {
 },
 
 headerTitle: {
-  fontSize: wp('4.8%'),
+  fontSize: isTablet ? 28 : wp('4.8%'),
   fontWeight: '700',
   color: '#101828',
 },
 
 rightIconWrapper: {
-  width: 44,
-  height: 44,
-  borderRadius: 12,
+  width: isTablet ? 56 : 44,
+  height: isTablet ? 56 : 44,
+  borderRadius: isTablet ? 16 : 12,
   backgroundColor: '#E8F9FC',
   justifyContent: 'center',
   alignItems: 'center',
 },
-  cardsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    margin:5
-  },
 
-  card: {
-    width: '48%',
-    borderRadius: 14,
-    paddingVertical: wp('4%'),
-    paddingHorizontal: wp('4%'),
-    marginBottom: wp('3%'),
-  },
+cardsContainer: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  margin: isTablet ? 12 : 5,
+},
 
-  title: {
-    fontSize: wp('4%'),
-    color: '#555',
-    marginBottom: wp('2%'),
-  },
+card: {
+  width: '48%',
+  borderRadius: isTablet ? 22 : 14,
+  paddingVertical: isTablet ? 28 : wp('4%'),
+  paddingHorizontal: isTablet ? 24 : wp('4%'),
+  marginBottom: isTablet ? 18 : wp('3%'),
+},
+
+title: {
+  fontSize: isTablet ? 22 : wp('4%'),
+  color: '#555',
+  marginBottom: isTablet ? 10 : wp('2%'),
+},
+
+value: {
+  fontSize: isTablet ? 30 : wp('4.8%'),
+  fontWeight: '700',
+  color: '#111',
+},
+
 noDataText: {
   textAlign: 'center',
-  paddingVertical: 30,
-  fontSize: 16,
+  paddingVertical: isTablet ? 40 : 30,
+  fontSize: isTablet ? 22 : 16,
   color: '#777',
 },
-  value: {
-    fontSize: wp('4.8%'),
-    fontWeight: '700',
-    color: '#111',
-  },
-  summaryCard: {
+
+summaryCard: {
   backgroundColor: '#fff',
-  borderRadius: 18,
-  marginTop: 7,
+  borderRadius: isTablet ? 22 : 18,
+  marginTop: isTablet ? 15 : 7,
   borderWidth: 1,
   borderColor: '#ECECEC',
   overflow: 'hidden',
@@ -675,7 +694,7 @@ summaryHeader: {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: 14,
+  padding: isTablet ? 22 : 14,
 },
 
 leftHeader: {
@@ -684,17 +703,17 @@ leftHeader: {
 },
 
 iconCircle: {
-  width: 42,
-  height: 42,
-  borderRadius: 21,
+  width: isTablet ? 58 : 42,
+  height: isTablet ? 58 : 42,
+  borderRadius: isTablet ? 29 : 21,
   backgroundColor: '#EDF9F0',
   justifyContent: 'center',
   alignItems: 'center',
-  marginRight: 12,
+  marginRight: isTablet ? 18 : 12,
 },
 
 summaryTitle: {
-  fontSize: 15,
+  fontSize: isTablet ? 24 : 15,
   fontWeight: '600',
   color: '#111',
 },
@@ -708,36 +727,36 @@ dateRow: {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  paddingHorizontal: 18,
-  paddingVertical: 12,
+  paddingHorizontal: isTablet ? 28 : 18,
+  paddingVertical: isTablet ? 18 : 12,
 },
 
 dateChip: {
   flexDirection: 'row',
   alignItems: 'center',
   backgroundColor: '#EEF0FF',
-  paddingHorizontal: 14,
-  paddingVertical: 10,
-  borderRadius: 14,
+  paddingHorizontal: isTablet ? 18 : 14,
+  paddingVertical: isTablet ? 14 : 10,
+  borderRadius: isTablet ? 16 : 14,
 },
 
 dateText: {
   color: '#5B65F2',
   fontWeight: '600',
-  fontSize: 16,
+  fontSize: isTablet ? 20 : 16,
   marginRight: 8,
 },
 
 summaryText: {
   color: '#8E8E8E',
-  fontSize: 16,
+  fontSize: isTablet ? 20 : 16,
 },
 
 row: {
   flexDirection: 'row',
   justifyContent: 'space-between',
-  paddingHorizontal: 18,
-  paddingVertical: 14,
+  paddingHorizontal: isTablet ? 28 : 18,
+  paddingVertical: isTablet ? 18 : 14,
   borderTopWidth: 1,
   borderTopColor: '#F2F2F2',
 },
@@ -746,46 +765,50 @@ totalContainer: {
   flexDirection: 'row',
   justifyContent: 'space-between',
   backgroundColor: '#EEF9F2',
-  padding: 18,
+  padding: isTablet ? 24 : 18,
 },
 
 totalLabel: {
   color: '#2F8D46',
-  fontSize: 15,
+  fontSize: isTablet ? 22 : 15,
   fontWeight: '700',
 },
 
 totalValue: {
   color: '#2F8D46',
-  fontSize: 18,
+  fontSize: isTablet ? 24 : 18,
   fontWeight: '700',
 },
+
 listContainer: {
-  marginTop: 10,
+  marginTop: isTablet ? 18 : 10,
 },
 
 listHeader: {
-  marginBottom: 8,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: isTablet ? 16 : 10,
 },
 
 listTitle: {
-  fontSize: 15,
+  fontSize: isTablet ? 24 : 15,
   fontWeight: '600',
   color: '#111',
-  marginLeft:20,
+  marginLeft: isTablet ? 28 : 20,
 },
 
 table: {
   borderWidth: 1,
   borderColor: '#ECECEC',
-  borderRadius: 18,
+  borderRadius: isTablet ? 22 : 18,
   overflow: 'hidden',
 },
 
 tableHeader: {
   flexDirection: 'row',
   backgroundColor: '#EEF0FF',
-  paddingVertical: 14,
+  paddingVertical: isTablet ? 18 : 14,
 },
 
 headerCell: {
@@ -793,71 +816,65 @@ headerCell: {
   textAlign: 'center',
   color: '#5B65F2',
   fontWeight: '700',
-  fontSize: 16,
+  fontSize: isTablet ? 22 : 16,
 },
 
 tableRow: {
   flexDirection: 'row',
   borderTopWidth: 1,
   borderTopColor: '#F1F1F1',
-  paddingVertical: 16,
+  paddingVertical: isTablet ? 20 : 16,
 },
 
 cell: {
   flex: 1,
   textAlign: 'center',
   color: '#222',
-  fontSize: 15,
+  fontSize: isTablet ? 20 : 15,
 },
 
 viewMoreButton: {
   alignSelf: 'center',
-  marginTop: 15,
+  marginTop: isTablet ? 20 : 15,
 },
 
 viewMoreText: {
   color: '#5B65F2',
   fontWeight: '700',
-  fontSize: 16,
+  fontSize: isTablet ? 20 : 16,
 },
+
 monthChip: {
   flexDirection: 'row',
   alignItems: 'center',
   backgroundColor: '#EEF0FF',
-  paddingHorizontal: 12,
-  paddingVertical: 8,
-  borderRadius: 12,
-  marginRight:20,
+  paddingHorizontal: isTablet ? 18 : 12,
+  paddingVertical: isTablet ? 12 : 8,
+  borderRadius: isTablet ? 16 : 12,
+  marginRight: isTablet ? 28 : 20,
 },
 
 monthChipText: {
   color: '#5B65F2',
   fontWeight: '600',
   marginRight: 6,
+  fontSize: isTablet ? 20 : 16,
 },
 
-listHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 10,
-},
 tipDetailsButton: {
-  marginTop: 20,
-  marginBottom: 10,
-  margin:20,
+  marginTop: isTablet ? 28 : 20,
+  marginBottom: isTablet ? 20 : 10,
+  marginHorizontal: isTablet ? 30 : 20,
   backgroundColor: '#3558AA',
-  borderRadius: 14,
-  height: 54,
-  flexDirection: 'row',
+  borderRadius: isTablet ? 18 : 14,
+  height: isTablet ? 68 : 54,
   justifyContent: 'center',
   alignItems: 'center',
 },
 
 tipDetailsButtonText: {
   color: '#FFFFFF',
-  fontSize: 16,
+  fontSize: isTablet ? 22 : 16,
   fontWeight: '700',
-  marginRight: 8,
 },
 });
