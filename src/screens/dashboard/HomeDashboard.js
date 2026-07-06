@@ -16,7 +16,7 @@ import TermsAgreementModal from "../../components/home/TermsAgreementModal";
 import {
   getHomeBanners,
   todayStats,
-} from "../../components/home/data/home.mock";
+} from "../../components/home/data/BannerApi";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
