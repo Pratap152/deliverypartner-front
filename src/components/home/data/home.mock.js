@@ -35,64 +35,70 @@ export const getHomeBanners = async () => {
 
     const banners = [];
 
-    // BANK
-    if (
-      apiData?.bank?.isAvailable &&
-      !apiData?.bank?.isCompleted
-    ) {
-      banners.push({
-        ...bannerMeta.bank,
-        title: apiData.bank.labelName,
-        subtitle: apiData.bank.message,
-        imageUrl: apiData.bank.imageUrl,
-      });
-    }
+    // CTA defaults
+    const defaultCTA = {
+      bank: 'Complete Now',
+      kit: 'Claim Now',
+      joiningBonus: 'Start Now',
+      referAndEarn: 'Refer Now',
+      dailyIncentive: 'View Incentives',
+      promotional: 'Know More',
+    };
 
-    // KIT
-    if (
-      apiData?.kit?.isAvailable &&
-      !apiData?.kit?.isCompleted
-    ) {
-      banners.push({
-        ...bannerMeta.kit,
-        title: apiData.kit.labelName,
-        subtitle: apiData.kit.message,
-        imageUrl: apiData.kit.imageUrl,
-      });
-    }
+    // Navigation ids
+    const navigationIds = {
+      bank: 'bank',
+      kit: 'kit',
+      joiningBonus: 'joining',
+      referAndEarn: 'refer',
+      dailyIncentive: 'incentives',
+    };
 
-    // REFER & EARN -> ALWAYS SHOW
-    banners.push({
-      ...bannerMeta.referAndEarn,
-      title: apiData?.referAndEarn?.labelName || 'Refer & Earn',
-      subtitle:
-        apiData?.referAndEarn?.message ||
-        'Invite friends and earn rewards',
-       imageUrl: apiData?.referAndEarn?.imageUrl,
+    /**
+     * ALL NORMAL BANNERS
+     * Whatever backend sends automatically comes here.
+     */
+
+    Object.entries(apiData).forEach(([key, value]) => {
+      if (key === 'promotionalBanners') return;
+
+      if (!value || typeof value !== 'object') return;
+
+      if (!value.isAvailable) return;
+
+      banners.push({
+        id: navigationIds[key] || key,
+        type: key,
+        title: value.labelName,
+        subtitle: value.message,
+        imageUrl: value.imageUrl,
+        cta: defaultCTA[key] || 'Know More',
+
+        // Entire backend response if needed later
+        data: value,
+      });
     });
 
-    // DAILY INCENTIVE -> ALWAYS SHOW
-    banners.push({
-      ...bannerMeta.dailyIncentive,
-      title:
-        apiData?.dailyIncentive?.labelName ||
-        'Daily Incentives',
-      subtitle:
-        apiData?.dailyIncentive?.message ||
-        'Complete orders & earn extra',
-      imageUrl: apiData?.dailyIncentive?.imageUrl,
-    });
+    /**
+     * PROMOTIONAL BANNERS
+     * Backend can send 1,5,10,100 banners.
+     * All will appear automatically.
+     */
 
-    // JOINING BONUS
-    if (
-      apiData?.joiningBonus?.isAvailable &&
-      !apiData?.joiningBonus?.isCompleted
-    ) {
-      banners.push({
-        ...bannerMeta.joiningBonus,
-        title: apiData.joiningBonus.labelName,
-        subtitle: apiData.joiningBonus.message,
-        imageUrl: apiData.joiningBonus.imageUrl,
+    if (Array.isArray(apiData.promotionalBanners)) {
+      apiData.promotionalBanners.forEach(item => {
+        if (!item.isAvailable) return;
+
+        banners.push({
+          id: item.id,
+          type: 'promotional',
+          promoType: item.type,
+          title: item.labelName,
+          subtitle: item.message,
+          imageUrl: item.imageUrl,
+          cta: 'Know More',
+          data: item,
+        });
       });
     }
 
