@@ -113,14 +113,9 @@ const BannerCarousel = ({ data }) => {
       break;
 
     case 'promotional':
-      // future navigation
-      console.log(item);
-
-      // Example:
-      // if(item.promoType==="EV"){
-      //    navigation.navigate("EVScreen")
-      // }
-
+      if(item.promoType==="EV"){
+         navigation.navigate("EVScreen")
+      }
       break;
 
     default:
