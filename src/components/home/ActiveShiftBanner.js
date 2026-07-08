@@ -93,14 +93,14 @@ const ActiveShiftBanner = () => {
       subtitleSuffix: ' (Ongoing)',
       info: slot?.incentiveText || 'Go online and earn more',
       background: styles.active,
-      onPress: () => navigation.navigate(SlotBookingScreen),
+      onPress: () => navigation.navigate('SlotBooking'),
     },
     UPCOMING: {
       title: 'Next Shift',
       subtitleSuffix: ' (Upcoming)',
       info: 'Upcoming shift — wait until it becomes active',
       background: styles.active,
-      onPress: () => Alert.alert('No Active Slot', 'Currently no active slot'),
+      onPress: () => navigation.navigate('SlotBooking'),
     },
     NONE: {
       title: 'Shift',
