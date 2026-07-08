@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   BackHandler,
-  Alert
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -59,10 +60,13 @@ export default function AreaSelectionScreen({ route, navigation }) {
   const [selectedPincode, setSelectedPincode] = useState('');
   const [searchText, setSearchText] = useState('');
   const [errors, setErrors] = useState('');
+  const [loading, setLoading] = useState(true);
 
   /* FETCH PINCODES */
   useEffect(() => {
     async function fetchPincodes() {
+      setLoading(true);
+
       try {
         const response = await apiClient.get(
           `/api/location/areas?city=${city}`,
@@ -82,6 +86,8 @@ export default function AreaSelectionScreen({ route, navigation }) {
       } catch (err) {
         console.log('Error fetching pincodes:', err);
         setErrors(err.message);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -154,7 +160,11 @@ export default function AreaSelectionScreen({ route, navigation }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
         >
-          {pincodeList.length === 0 ? (
+          {loading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#1F3365" />
+            </View>
+          ) : pincodeList.length === 0 ? (
             <Text style={styles.emptyText}>No pincodes found</Text>
           ) : (
             pincodeList.map(code => (
@@ -172,7 +182,7 @@ export default function AreaSelectionScreen({ route, navigation }) {
                 <Icon
                   name="location-outline"
                   size={isTablet ? 24 : 20}
-                  color={selectedPincode === code ? '#fff' :'#1F3365'}
+                  color={selectedPincode === code ? '#fff' : '#1F3365'}
                 />
                 <Text
                   style={[
@@ -217,7 +227,11 @@ const styles = StyleSheet.create({
     maxWidth: CONTENT_MAX_WIDTH,
     paddingHorizontal: H_PADDING,
   },
-
+  loaderContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

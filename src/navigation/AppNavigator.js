@@ -19,6 +19,7 @@ import AadharEntryScreen from '../screens/onboarding/AadharEntryScreen';
 import AadharVerifyScreen from '../screens/onboarding/AadharVerifyScreen';
 import PanUploadScreen from '../screens/onboarding/PanUploadScreen';
 import LicenseUploadScreen from '../screens/onboarding/LicenseUploadScreen';
+import PreviewScreen from '../screens/onboarding/PreviewScreen'
 import ProcessingVerificationScreen from '../screens/onboarding/ProcessingVerificationScreen';
 import SelectCityScreen from '../screens/onboarding/SelectCityScreen';
 import AreaSelectionScreen from '../screens/onboarding/AreaSelectionScreen';
@@ -93,6 +94,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AadharVerifyScreen" component={AadharVerifyScreen} />
       <Stack.Screen name="PanUploadScreen" component={PanUploadScreen} />
       <Stack.Screen name="LicenseUploadScreen" component={LicenseUploadScreen} />
+      <Stack.Screen name="PreviewScreen" component={PreviewScreen} />
       <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
 
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />

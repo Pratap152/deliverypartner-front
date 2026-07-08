@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
 
   button: {
     position: 'absolute',
-    bottom: rh(5),
+    bottom: rh(6),
     left: isTablet ? rw(15) : rw(5),
     right: isTablet ? rw(15) : rw(5),
     backgroundColor: '#1F3365',
