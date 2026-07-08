@@ -39,7 +39,7 @@ import { getEarningsSummary } from '../../services/earnings/earningsService';
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const Header = ({ todayEarnings, riderType }) => {
+const Header = ({ todayEarnings, riderType, navigation }) => {
   return (
     <View>
       <StatusBar
@@ -410,12 +410,14 @@ export default function EarningsScreen({ navigation }) {
         <Header
           todayEarnings={todayEarnings}
           riderType={riderType}
+          navigation={navigation}
         />}
 
       {riderType !== "INDIVIDUAL_EMPLOYEE" &&
         <Header
           todayEarnings={monthlyEarningsData}
           riderType={riderType}
+          navigation={navigation}
         />}
 
       <Graph
