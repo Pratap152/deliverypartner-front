@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import WeekSelector from './WeekSelector';
 import SlotFilters from './SlotFilters';
 import SlotCard from './SlotCard';
@@ -25,6 +25,14 @@ export default function SlotsList({
     loading = false,
     onRefresh,
 }) {
+    if(loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#4C4CFF" />
+            </View>
+        )
+    }
+
     const renderSlotCard = ({ item }) => {
         const selectable = isSlotSelectable(item, filter);
         const selected = isSlotSelected(item.slotId);
