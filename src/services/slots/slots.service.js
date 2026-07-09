@@ -45,3 +45,8 @@ export const bookSlotApi = async (payload) => {
 export const cancelSlotApi = async (bookingId) => {
   return apiClient.delete(`/api/slots/cancel/${bookingId}`);
 };
+
+//Zestbot slots
+export const fetchZestbotSlots = async () => {
+  return apiClient.get(`/api/rider/zestbot/my-shift`);
+};

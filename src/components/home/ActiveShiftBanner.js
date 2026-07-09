@@ -28,10 +28,20 @@ const ActiveShiftBanner = () => {
   const navigation = useNavigation();
   const [slot, setSlot] = useState(null);
   const [delayMinutes, setDelayMinutes] = useState(0);
+  const [response, setResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const riderType = response?.riderType;
+  const shiftType = response?.data?.shiftType;
+  const startTime = response?.data?.startTime;
+  const endTime = response?.data?.endTime;
+  const shiftState = response?.data?.shiftState;
 
   const fetchSlot = useCallback(async () => {
     try {
+      setLoading(true);
       const { data } = await apiClient.get('/api/slots/current');
+      setResponse(data);
       if (data?.success && data?.data?.slot) {
         setSlot(data.data.slot);
         setDelayMinutes(data.data.delayMinutes || 0);
@@ -43,8 +53,12 @@ const ActiveShiftBanner = () => {
       console.error('Failed to fetch slot:', error);
       setSlot(null);
       setDelayMinutes(0);
+    } finally {
+      setLoading(false);
     }
   }, []);
+
+  // console.log('ActiveShiftBanner response:', response);
 
   useEffect(() => {
     fetchSlot();
@@ -52,26 +66,41 @@ const ActiveShiftBanner = () => {
     return () => clearInterval(interval);
   }, [fetchSlot]);
 
+  const getDurationInHours = (startTime, endTime) => {
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    let start = startHour * 60 + startMinute;
+    let end = endHour * 60 + endMinute;
+
+    // Handle overnight duration (e.g., 22:00 -> 06:00)
+    if (end < start) {
+      end += 24 * 60;
+    }
+
+    return (end - start) / 60;
+  };
+
   const slotState = !slot
-    ? 'NONE'
+    ? shiftState === 'RUNNING' ? 'ACTIVE' : 'UPCOMING'
     : slot.status === 'ACTIVE'
-    ? 'ACTIVE'
-    : 'UPCOMING';
+      ? 'ACTIVE'
+      : 'UPCOMING';
 
   const uiConfig = {
     ACTIVE: {
       title: 'Active Shift',
-      subtitleSuffix: '',
+      subtitleSuffix: ' (Ongoing)',
       info: slot?.incentiveText || 'Go online and earn more',
       background: styles.active,
-      onPress: () => navigation.navigate(SlotBookingScreen),
+      onPress: () => navigation.navigate('SlotBooking'),
     },
     UPCOMING: {
       title: 'Next Shift',
       subtitleSuffix: ' (Upcoming)',
       info: 'Upcoming shift — wait until it becomes active',
-      background: styles.inactive,
-      onPress: () => Alert.alert('No Active Slot', 'Currently no active slot'),
+      background: styles.active,
+      onPress: () => navigation.navigate('SlotBooking'),
     },
     NONE: {
       title: 'Shift',
@@ -84,7 +113,7 @@ const ActiveShiftBanner = () => {
 
   const config = uiConfig[slotState];
 
-  return (
+  const IndividualEmployee = (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={config.onPress}
@@ -122,6 +151,38 @@ const ActiveShiftBanner = () => {
         </View>
       )}
     </TouchableOpacity>
+  );
+
+  const OtherRiderType = (
+    <TouchableOpacity style={[styles.container, config.background]} onPress={config.onPress}>
+      <Text style={styles.title}>{config.title}</Text>
+
+      {startTime && endTime ? (
+        <View>
+          <Text style={styles.subtitle}>
+            {formatTime(startTime)} - {formatTime(endTime)}
+            {config.subtitleSuffix}
+          </Text>
+          <Text style={styles.meta}>
+            Duration: {getDurationInHours(startTime, endTime)} hrs
+          </Text>
+          <Text style={styles.info}>{config.info}</Text>
+        </View>
+      ) : (
+        <View>
+          <Text style={styles.subtitle}>No shift today</Text>
+          <Text style={styles.info}>{config.info}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  return (
+    <View>
+      {riderType === 'INDIVIDUAL_EMPLOYEE' && IndividualEmployee}
+      {riderType !== 'INDIVIDUAL_EMPLOYEE' && OtherRiderType}
+
+    </View>
   );
 };
 

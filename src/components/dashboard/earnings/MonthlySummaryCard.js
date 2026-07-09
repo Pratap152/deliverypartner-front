@@ -5,18 +5,18 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import SummaryItem from './SummaryItem'; 
 import { formatMoney } from '../../../utils/formatMoney';
 
-export default function MonthlySummaryCard({ summary, onPress }) {
+export default function MonthlySummaryCard({ summary, onPress, riderType }) {
   return (
     <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.wrapper}>
       <LinearGradient colors={['#047D4D', '#23B484']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.card}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>This Month</Text>
+            <Text style={styles.headerTitle}>{riderType === 'INDIVIDUAL_EMPLOYEE' ? "This Month" : "Today"}</Text>
             <Text style={styles.headerSub}>Summary </Text>
           </View>
           <View style={styles.totalBox}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₹{formatMoney(summary.earnings)}</Text>
+            <Text style={styles.totalValue}>₹{formatMoney(summary.total)}</Text>
           </View>
         </View>
 

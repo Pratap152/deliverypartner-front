@@ -1,11 +1,12 @@
 // hooks/useRider.js
 import { useState } from 'react';
-import { getWeeklyIncentivesProgress, getDailyIncentivesProgress, getPeakIncentivesProgress } from '../services/earnings/incentiveService';
+import { getWeeklyIncentivesProgress, getDailyIncentivesProgress, getPeakIncentivesProgress, getRiderIncentivesTarget } from '../services/earnings/incentiveService';
 
 const useIncentives = () => {
   const [weeklyIncentivesProgress, setWeeklyIncentivesProgress] = useState(null);
   const [dailyIncentivesProgress, setDailyIncentivesProgress] = useState(null);
   const [peakIncentivesProgress, setPeakIncentivesProgress] = useState(null);
+  const [riderIncentivesTarget, setRiderIncentivesTarget] = useState(null);
   const [load, setLoad] = useState(false);
 
   const fetchWeeklyIncentivesProgress = async () => {
@@ -51,14 +52,30 @@ const useIncentives = () => {
     }
   };
 
+  const fetchRiderIncentivesTarget = async () => {
+    try {
+      setLoad(true);
+      const res = await getRiderIncentivesTarget();
+      if(res.data) {
+      setRiderIncentivesTarget(res.data);
+      } else {
+        setRiderIncentivesTarget({emptyData: true})
+      }
+    } finally {
+      setLoad(false);
+    }
+  };
+
   return {
     weeklyIncentivesProgress,
     dailyIncentivesProgress,
     peakIncentivesProgress,
+    riderIncentivesTarget,
     load,
     fetchWeeklyIncentivesProgress,
     fetchDailyIncentivesProgress,
     fetchPeakIncentivesProgress,
+    fetchRiderIncentivesTarget,
   };
 };
 

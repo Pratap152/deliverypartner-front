@@ -4,6 +4,7 @@ import {
   loadWeeksApi,
   bookSlotApi,
   cancelSlotApi,
+  fetchZestbotSlots
 } from "../services/slots/slots.service";
  
  
@@ -30,6 +31,7 @@ export function useSlots() {
   const [weeksLoading, setWeeksLoading] = useState(false);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [zestbotSlotsLoading, setZestbotSlotsLoading] = useState(false);
   const [error, setError] = useState(false);
  
   const clearWeeks = () => setWeeks([]);
@@ -146,12 +148,25 @@ export function useSlots() {
       setActionLoading(false);
     }
   };
- 
+
+  const fetchZestbotSlotsDetails = async () => {
+    try {
+      setZestbotSlotsLoading(true);
+      const res = await fetchZestbotSlots();
+      return res.data;
+    } catch (err) {
+      return false;
+    } finally {
+      setZestbotSlotsLoading(false);
+    }
+  }
+
   return {
     weeks,
     slots,
     weeksLoading,
     slotsLoading,
+    zestbotSlotsLoading,
     loading: weeksLoading || slotsLoading,
     actionLoading,
     error,
@@ -161,6 +176,7 @@ export function useSlots() {
     cancelSlot,
     clearWeeks,
     clearSlots,
+    fetchZestbotSlotsDetails,
   };
 }
  

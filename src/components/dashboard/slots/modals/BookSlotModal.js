@@ -6,7 +6,7 @@ import SlotDetailsCard from '../SlotDetailsCard';
 
 
 
-export default function BookSlotModal({ visible, slots, date: selectedDateStr, onClose, onConfirm }) {
+export default function BookSlotModal({ visible, slots, date: selectedDateStr, onClose, onConfirm, loading }) {
   return (
     <SlotModalWrapper
       visible={visible}
@@ -18,6 +18,7 @@ export default function BookSlotModal({ visible, slots, date: selectedDateStr, o
       onPrimaryPress={onConfirm}
       secondaryButtonText="Cancel"
       onSecondaryPress={onClose}
+      loading={loading}
     >
       {/* --- SLOTS LIST --- */}
       {slots.map((slot, index) => (

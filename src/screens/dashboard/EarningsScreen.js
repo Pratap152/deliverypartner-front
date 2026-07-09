@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -32,67 +32,16 @@ import { dashboardCache } from '../../hooks/useEarningsDashboard';
 import useIncentives from '../../hooks/useIncentives';
 import { Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+import { getEarningsSummary } from '../../services/earnings/earningsService';
 
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-export default function EarningsScreen({ navigation }) {
-  const { data, loading, refreshing, onRefresh } = useEarningsDashboard();
-  const { weeklyIncentivesProgress, dailyIncentivesProgress, peakIncentivesProgress, load, fetchWeeklyIncentivesProgress, fetchDailyIncentivesProgress, fetchPeakIncentivesProgress } = useIncentives();
-
-  useEffect(() => {
-    fetchWeeklyIncentivesProgress();
-    fetchDailyIncentivesProgress();
-    fetchPeakIncentivesProgress();
-  }, []);
-
-  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
-  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
-  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
-
-  const completedDays =
-    weeklyIncentivesProgress?.overallProgress
-      ?.completedDays || 0;
-
-  const totalDays =
-    weeklyIncentivesProgress?.overallProgress
-      ?.totalDays || 0;
-
-  const weeklyProgressPercentage =
-    totalDays > 0
-      ? (completedDays / totalDays) * 100
-      : 0;
-
-  const {
-    todayEarnings = {},
-    earningsSummary = {},
-    weeklyBarChart = [],
-    riderType = "",
-    weeklyTotal = 0,
-    weeklyOrders = 0,
-    wallet = {},
-    incentives = [],
-  } = data;
-
-  // console.log("todayEarnings: ", todayEarnings);
-
-  const isEligibleForIncentives = todayEarnings?.eligible;
-
-  const month = earningsSummary.month || {};
-
-  const CARD_WIDTH = isTablet ? wp(97) : wp(95);
-  const CARD_PADDING = wp(4);
-
-  const formatOrderLabel = count => {
-    return `${count} ${count === 1 ? 'order' : 'orders'}`;
-  };
-
-
-  /* HEADER */
-  const HEADER = (
-    <View style={{ backgroundColor: '#F4F6F8' }}>
-      {/* GRADIENT */}
+const Header = ({ todayEarnings, riderType, navigation }) => {
+  return (
+    <View>
       <StatusBar
         translucent
         backgroundColor="transparent"
@@ -135,9 +84,9 @@ export default function EarningsScreen({ navigation }) {
           activeOpacity={0.7}>
           <View style={styles.dailyTopRow}>
             <View>
-              <Text style={styles.dailyLabel}>Today's Earnings</Text>
+              <Text style={styles.dailyLabel}>{riderType === 'INDIVIDUAL_EMPLOYEE' ? "Today's Earnings" : "Monthly Earnings"}</Text>
               <Text style={styles.dailyTotal}>
-                ₹{formatMoney(todayEarnings.totalEarnings ?? 0)}
+                ₹{formatMoney(todayEarnings?.total ?? 0)}
               </Text>
             </View>
 
@@ -151,32 +100,54 @@ export default function EarningsScreen({ navigation }) {
           <View style={styles.dailyStatsRow}>
             <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>
-                ₹{formatMoney(todayEarnings.baseEarnings ?? 0)}
+                ₹{formatMoney(todayEarnings?.baseEarnings ?? 0)}
               </Text>
               <Text style={styles.statLabel}>Base Earnings</Text>
             </View>
 
             <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>₹{formatMoney(todayEarnings.incentives ?? 0)}</Text>
+              <Text style={styles.statValue}>₹{formatMoney(todayEarnings?.incentives ?? 0)}</Text>
               <Text style={styles.statLabel}>Incentives</Text>
             </View>
 
             <View style={styles.dailyStatItem}>
               <Text style={styles.statValue}>
-                {todayEarnings.orders ?? 0}
+                {todayEarnings?.orders ?? 0}
               </Text>
               <Text style={styles.statLabel}>Orders</Text>
             </View>
 
             <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>₹{formatMoney(todayEarnings.tips ?? 0)}</Text>
+              <Text style={styles.statValue}>₹{formatMoney(todayEarnings?.tips ?? 0)}</Text>
               <Text style={styles.statLabel}>Tips</Text>
             </View>
 
           </View>
         </TouchableOpacity>
       </LinearGradient>
+    </View>
+  )
+}
 
+const Graph = (
+  {
+    todayEarnings,
+    navigation,
+    CARD_WIDTH,
+    CARD_PADDING,
+    riderType,
+    isEligibleForIncentives,
+    weeklyTotal,
+    weeklyBarChart,
+    wallet
+  }) => {
+
+  const formatOrderLabel = count => {
+    return `${count} ${count === 1 ? 'order' : 'orders'}`;
+  };
+
+  return (
+    <View style={{ backgroundColor: '#F4F6F8' }}>
       {/* WEEKLY CARD */}
       <View style={[styles.card, { width: CARD_WIDTH, padding: CARD_PADDING }]}>
         <PremiumPressable onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })}>
@@ -276,17 +247,88 @@ export default function EarningsScreen({ navigation }) {
           </View>
         </LinearGradient>
       </TouchableOpacity>
-
-      <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
     </View>
   );
+};
 
-  /*  FOOTER */
-  const FOOTER = (
+const Footer = (month, riderType) => {
+  return (
     <TouchableOpacity style={{ marginBottom: hp(4) }} >
-      <MonthlySummaryCard summary={month} />
+      <MonthlySummaryCard summary={month} riderType={riderType} />
     </TouchableOpacity>
   );
+};
+
+export default function EarningsScreen({ navigation }) {
+  // const riderTypeFromRedux = useSelector((state) => state.profile.data?.riderType?.trim());
+  const { data, loading, refreshing, onRefresh } = useEarningsDashboard();
+  const { weeklyIncentivesProgress, dailyIncentivesProgress, peakIncentivesProgress, load, fetchWeeklyIncentivesProgress, fetchDailyIncentivesProgress, fetchPeakIncentivesProgress } = useIncentives();
+  const { riderIncentivesTarget, fetchRiderIncentivesTarget } = useIncentives();
+  const [earningsDataLoading, setEarningsDataLoading] = useState(false);
+  const [earningsData, setEarningsData] = useState(null);
+  const [todayEarningsData, setTodayEarningsData] = useState(null);
+  const [monthlyEarningsData, setMonthlyEarningsData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setEarningsDataLoading(true);
+        const summaryData = await getEarningsSummary();
+        setEarningsData(summaryData);
+        setMonthlyEarningsData(summaryData?.month);
+        setTodayEarningsData(summaryData?.today);
+        console.log('Fetched earnings summary:', summaryData);
+      } catch (error) {
+        console.error('Error fetching earnings summary:', error);
+      } finally {
+        setEarningsDataLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    fetchWeeklyIncentivesProgress();
+    fetchDailyIncentivesProgress();
+    fetchPeakIncentivesProgress();
+    fetchRiderIncentivesTarget();
+  }, []);
+
+  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
+  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
+  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
+
+  const completedDays =
+    weeklyIncentivesProgress?.overallProgress
+      ?.completedDays || 0;
+
+  const totalDays =
+    weeklyIncentivesProgress?.overallProgress
+      ?.totalDays || 0;
+
+  const weeklyProgressPercentage =
+    totalDays > 0
+      ? (completedDays / totalDays) * 100
+      : 0;
+
+  const {
+    todayEarnings = {},
+    earningsSummary = {},
+    weeklyBarChart = [],
+    riderType = "",
+    weeklyTotal = 0,
+    weeklyOrders = 0,
+    wallet = {},
+    incentives = [],
+  } = data;
+
+  // console.log("todayEarnings: ", todayEarnings);
+
+  const isEligibleForIncentives = todayEarnings?.eligible;
+
+  const CARD_WIDTH = isTablet ? wp(97) : wp(95);
+  const CARD_PADDING = wp(4);
 
   const IncentivesCards = ({ item }) => {
     return (
@@ -342,7 +384,7 @@ export default function EarningsScreen({ navigation }) {
     }
   };
 
-  if (loading) {
+  if (load || loading || earningsDataLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#1E88E5" />
@@ -363,32 +405,88 @@ export default function EarningsScreen({ navigation }) {
       }
       style={{ flex: 1 }}>
 
-      {HEADER}
 
-      <View style={styles.incentivesCards}>
+      {riderType === "INDIVIDUAL_EMPLOYEE" &&
+        <Header
+          todayEarnings={todayEarnings}
+          riderType={riderType}
+          navigation={navigation}
+        />}
+
+      {riderType !== "INDIVIDUAL_EMPLOYEE" &&
+        <Header
+          todayEarnings={monthlyEarningsData}
+          riderType={riderType}
+          navigation={navigation}
+        />}
+
+      <Graph
+        todayEarnings={todayEarnings}
+        navigation={navigation}
+        CARD_WIDTH={CARD_WIDTH}
+        CARD_PADDING={CARD_PADDING}
+        riderType={riderType}
+        isEligibleForIncentives={isEligibleForIncentives}
+        weeklyTotal={weeklyTotal}
+        weeklyBarChart={weeklyBarChart}
+        wallet={wallet}
+      />
+
+      {riderType === "INDIVIDUAL_EMPLOYEE" &&
         <View>
-          <IncentivesCards item={incentives[0]} />
-          <IncentivesCards item={incentives[1]} />
-          <IncentivesCards item={incentives[2]} />
-        </View>
-
-        {(riderType === "ZESTBOT_EMPLOYEE" && !isEligibleForIncentives) && (
-          <View style={styles.overlay}>
-            <BlurView
-              style={StyleSheet.absoluteFill}
-              blurType="light"
-              blurAmount={3}
-            />
-
-            <View style={styles.lockContent}>
-              <Image source={require('../../assets/lock.png')} style={styles.lockImage} />
-              <Text style={styles.lockText}>Complete orders to unlock your incentives</Text>
-            </View>
+          <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
+          <View style={styles.incentivesCards}>
+            <IncentivesCards item={incentives[0]} />
+            <IncentivesCards item={incentives[1]} />
+            <IncentivesCards item={incentives[2]} />
           </View>
-        )}
-      </View>
+        </View>
+      }
 
-      {FOOTER}
+      {riderType !== "INDIVIDUAL_EMPLOYEE" &&
+        <View>
+          <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
+          <View style={styles.slabsContainer}>
+            {riderIncentivesTarget?.slabs?.map((item, index) => {
+              const colors = [
+                '#E8F5E9', // Light Green
+                '#E3F2FD', // Light Blue
+                '#FFF3E0', // Light Orange
+                '#F3E5F5', // Light Purple
+              ];
+
+              return (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.slabCard,
+                    { backgroundColor: colors[index % colors.length] },
+                  ]}>
+                  <View>
+                    <Text style={styles.ordersLabel}>Monthly Orders</Text>
+                    <Text style={styles.ordersText}>
+                      {item.toOrders
+                        ? `${item.fromOrders} - ${item.toOrders}`
+                        : `${item.fromOrders}+`}
+                    </Text>
+                  </View>
+
+                  <View style={styles.rewardContainer}>
+                    <Text style={styles.rewardLabel}>Reward</Text>
+                    <Text style={styles.rewardText}>
+                      ₹{item.amountPerOrder}
+                    </Text>
+                    <Text style={styles.perOrder}>per order</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>}
+
+      {riderType === "INDIVIDUAL_EMPLOYEE" && <Footer month={monthlyEarningsData} riderType={riderType} />}
+
+      {riderType !== "INDIVIDUAL_EMPLOYEE" && <Footer month={todayEarningsData} riderType={riderType} />}
 
     </ScrollView>
 
@@ -551,7 +649,54 @@ const styles = StyleSheet.create({
       height: 2,
     },
   },
+  slabsContainer: {
+    marginTop: 12,
+    marginHorizontal: 15,
+  },
 
+  slabCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    marginBottom: 12,
+    elevation: 2,
+  },
+
+  ordersLabel: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+
+  ordersText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+
+  rewardContainer: {
+    alignItems: 'center',
+  },
+
+  rewardLabel: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+
+  rewardText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#16A34A',
+  },
+
+  perOrder: {
+    fontSize: 16,
+    color: '#374151',
+    marginTop: 2,
+  },
   emptyIconContainer: {
     width: 70,
     height: 70,

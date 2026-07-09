@@ -5,7 +5,7 @@ import SlotModalWrapper from './SlotModalWrapper';
 import SlotDetailsCard from '../SlotDetailsCard';
 
 
-export default function CancelSlotModal({ visible, slot, date, onClose, onConfirm }) {
+export default function CancelSlotModal({ visible, slot, date, onClose, onConfirm, loading }) {
   if (!slot) return null;
 
   return (
@@ -19,6 +19,7 @@ export default function CancelSlotModal({ visible, slot, date, onClose, onConfir
       onPrimaryPress={onConfirm}
       secondaryButtonText="Don't Cancel"
       onSecondaryPress={onClose}
+      loading={loading}
     >
       {/* --- SLOT INFO --- */}
       <SlotDetailsCard slot={slot} selectedDate={date} />

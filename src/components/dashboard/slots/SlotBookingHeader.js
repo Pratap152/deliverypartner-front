@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -8,12 +8,14 @@ import { TABS } from '../../../utils/constants/slotConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-export default function SlotBookingHeader({ activeTab, onTabChange, navigation }) {
+export default function SlotBookingHeader({ activeTab, onTabChange, loading }) {
+    const navigation = useNavigation();
     return (
         <SafeAreaView style={styles.header}>
             <StatusBar
@@ -38,38 +40,45 @@ export default function SlotBookingHeader({ activeTab, onTabChange, navigation }
 
             {/* Tab Container */}
             <View style={styles.tabContainer}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContent}
-                >
-                    <TouchableOpacity
-                        style={[styles.tab, activeTab === TABS.CURRENT && styles.activeTab]}
-                        onPress={() => onTabChange(TABS.CURRENT)}
-                    >
-                        <Text style={[styles.tabText, activeTab === TABS.CURRENT && styles.activeTabText]}>
-                            Current Week
-                        </Text>
-                    </TouchableOpacity>
+                {loading ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 10 }}>
+                        <ActivityIndicator size="small" color="#FFF" />
+                    </View>
+                ) :
+                    (
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.scrollContent}
+                        >
+                            <TouchableOpacity
+                                style={[styles.tab, activeTab === TABS.CURRENT && styles.activeTab]}
+                                onPress={() => onTabChange(TABS.CURRENT)}
+                            >
+                                <Text style={[styles.tabText, activeTab === TABS.CURRENT && styles.activeTabText]}>
+                                    Current Week
+                                </Text>
+                            </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.tab, activeTab === TABS.NEXT && styles.activeTab]}
-                        onPress={() => onTabChange(TABS.NEXT)}
-                    >
-                        <Text style={[styles.tabText, activeTab === TABS.NEXT && styles.activeTabText]}>
-                            Next Week
-                        </Text>
-                    </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.tab, activeTab === TABS.NEXT && styles.activeTab]}
+                                onPress={() => onTabChange(TABS.NEXT)}
+                            >
+                                <Text style={[styles.tabText, activeTab === TABS.NEXT && styles.activeTabText]}>
+                                    Next Week
+                                </Text>
+                            </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.tab, activeTab === TABS.UPCOMING && styles.activeTab]}
-                        onPress={() => onTabChange(TABS.UPCOMING)}
-                    >
-                        <Text style={[styles.tabText, activeTab === TABS.UPCOMING && styles.activeTabText]}>
-                            Upcoming Week
-                        </Text>
-                    </TouchableOpacity>
-                </ScrollView>
+                            <TouchableOpacity
+                                style={[styles.tab, activeTab === TABS.UPCOMING && styles.activeTab]}
+                                onPress={() => onTabChange(TABS.UPCOMING)}
+                            >
+                                <Text style={[styles.tabText, activeTab === TABS.UPCOMING && styles.activeTabText]}>
+                                    Upcoming Week
+                                </Text>
+                            </TouchableOpacity>
+                        </ScrollView>
+                    )}
             </View>
         </SafeAreaView>
     );
@@ -104,7 +113,7 @@ const styles = StyleSheet.create({
 
         borderRadius: isTablet ? 20 : 12,
 
-        padding: isTablet ? 6 : 4,
+        padding: isTablet ? 8 : 6,
 
         alignSelf: isTablet ? 'center' : 'stretch',
 
@@ -115,7 +124,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: isTablet ? 36 : 16,
         alignItems: 'center',
         borderRadius: isTablet ? 18 : 10,
-        marginRight: 8,
+        // marginRight: 8,
     },
     activeTab: {
         backgroundColor: '#FFF',
