@@ -7,16 +7,20 @@ import {
   Image,
   View,
   TouchableOpacity,
+  Alert,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import PreviewCard from '../../components/onboarding/AppPermissions/PreviewCard';
 import {
   getOnboardingPreview,
   confirmOnboardingDetails,
 } from '../../services/onboardingPreviewApi';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { Alert } from 'react-native';
 
 const PreviewScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -25,6 +29,36 @@ const PreviewScreen = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const navigation = useNavigation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "Exit App",
+          "Are you sure you want to exit the app?",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
 
   useEffect(() => {
     fetchPreview();
@@ -96,7 +130,7 @@ const PreviewScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
       >
 
         <Text style={styles.heading}>Review Profile</Text>
@@ -284,6 +318,11 @@ const PreviewScreen = () => {
                 title="Selfie"
                 icon="camera-outline"
                 status="Verified"
+                onEdit={() =>
+                  navigation.navigate('FaceVerificationScreen', {
+                    fromPreview: true,
+                  })
+                }
               >
                 <Image
                   source={{ uri: data.selfie.url }}
@@ -489,20 +528,19 @@ const PreviewScreen = () => {
             )}
           </>
         )}
+      </ScrollView>
 
+
+      <View style={styles.bottomContainer}>
         <TouchableOpacity
           style={styles.checkboxRow}
           activeOpacity={0.8}
           onPress={() => setConfirmed(!confirmed)}
         >
           <Ionicons
-            name={
-              confirmed
-                ? 'checkbox'
-                : 'square-outline'
-            }
+            name={confirmed ? 'checkbox' : 'square-outline'}
             size={24}
-            color='#1F3365'
+            color="#1F3365"
           />
 
           <Text style={styles.checkboxText}>
@@ -524,8 +562,8 @@ const PreviewScreen = () => {
               : 'Submit Application'}
           </Text>
         </TouchableOpacity>
+      </View>
 
-      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -544,9 +582,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  content: {
+  scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 180,
   },
 
   heading: {
@@ -597,8 +635,7 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 24,
+    marginBottom: 16,
   },
 
   checkboxText: {
@@ -613,7 +650,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
   },
 
   disabledButton: {
@@ -629,5 +665,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  bottomContainer: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
 });

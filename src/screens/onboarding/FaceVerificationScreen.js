@@ -61,6 +61,8 @@ export default function FaceVerificationScreen({ navigation, route }) {
   const isTablet = DeviceInfo.isTablet();
   const styles = createStyles(isTablet, width, height);
 
+  const fromPreview = route?.params?.fromPreview ?? false;
+
   /* ================= CAMERA OPTIONS ================= */
 
   const cameraOptions = {
@@ -136,7 +138,11 @@ export default function FaceVerificationScreen({ navigation, route }) {
       });
 
       if (response.status === 200) {
-        navigation.navigate('DocumentVerifyScreen');
+        if (fromPreview) {
+          navigation.goBack(); // Returns to PreviewScreen
+        } else {
+          navigation.navigate('DocumentVerifyScreen');
+        }
       } else {
         Alert.alert('Upload failed', response.data?.message || 'Try again');
       }
