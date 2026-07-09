@@ -8,8 +8,11 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import {TouchableOpacity} from 'react-native';
 
-const MIN_KM = 10;
+const MIN_KM = 1;
 const MAX_KM = 200;
 
 const PETROL_COST_PER_LITRE = 100;
@@ -44,15 +47,29 @@ const EVScreen = () => {
     };
   }, [currentKm]);
 
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.heading}>
-          Calculate your{' '}
-          <Text style={styles.greenText}>Monthly Savings</Text>
-          {'\n'}
-          while using Electric 2 Wheeler!
-        </Text>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <Ionicons
+              name="arrow-back"
+              size={isTablet ? 32 : 24}
+              color="#222"
+            />
+          </TouchableOpacity>
+
+          <Text style={styles.heading}>
+            Calculate your{' '}
+            <Text style={styles.greenText}>Monthly Savings</Text>
+            {'\n'}
+            while using Electric 2 Wheeler!
+          </Text>
+        </View>
 
         <View style={styles.card}>
           {/* Top Section */}
@@ -161,14 +178,12 @@ const styles = StyleSheet.create({
   alignItems: 'center',
 },
 
-  heading: {
-  width: '100%',
-  maxWidth: isTablet ? 800 : '100%',
-  fontSize: 26 * scale,
+ heading: {
+  flex: 1,
+  fontSize: isTablet ? 24 : 21,
   fontWeight: '700',
   color: '#222',
-  lineHeight: 36 * scale,
-  marginBottom: isTablet ? 30 : 20,
+  lineHeight: isTablet ? 34 : 30,
 },
 
   greenText: {
@@ -188,12 +203,12 @@ const styles = StyleSheet.create({
   backgroundColor: '#DDF2B5',
   padding: isTablet ? 30 : 20,
 },
-
-  driveTitle: {
+driveTitle: {
   textAlign: 'center',
-  fontSize: 22 * scale,
-  fontWeight: '700',
-  marginBottom: isTablet ? 28 : 20,
+  fontSize: isTablet ? 22 : 18,
+  fontWeight: '600',
+  marginBottom: isTablet ? 22 : 16,
+  color: '#333',
 },
 
   sliderRow: {
@@ -215,15 +230,15 @@ const styles = StyleSheet.create({
   alignItems: 'center',
 },
 
-  kmValue: {
+ kmValue: {
   color: '#fff',
-  fontSize: isTablet ? 42 : 28,
+  fontSize: isTablet ? 36 : 24,
   fontWeight: '700',
 },
 
-  kmText: {
+kmText: {
   color: '#fff',
-  fontSize: isTablet ? 22 : 18,
+  fontSize: isTablet ? 18 : 15,
   fontWeight: '600',
 },
   rangeRow: {
@@ -232,9 +247,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  rangeText: {
-  fontSize: isTablet ? 18 : 14,
-  color: '#555',
+rangeText: {
+  fontSize: isTablet ? 16 : 12,
+  color: '#666',
 },
 
   bottomSection: {
@@ -243,24 +258,23 @@ const styles = StyleSheet.create({
 
  savingTitle: {
   textAlign: 'center',
-  fontSize: isTablet ? 30 : 22,
+  fontSize: isTablet ? 24 : 18,
   color: '#666',
 },
-
   perMonth: {
   textAlign: 'center',
-  fontSize: isTablet ? 34 : 26,
-  fontWeight: '700',
+  fontSize: isTablet ? 28 : 20,
+  fontWeight: '600',
   color: '#444',
-  marginTop: 8,
+  marginTop: 4,
 },
 
   amount: {
   textAlign: 'center',
-  fontSize: isTablet ? 72 : 50,
+  fontSize: isTablet ? 64 : 44,
   fontWeight: '800',
   color: '#444',
-  marginVertical: isTablet ? 30 : 20,
+  marginVertical: isTablet ? 24 : 18,
 },
 
   separator: {
@@ -276,25 +290,35 @@ const styles = StyleSheet.create({
   marginBottom: isTablet ? 35 : 25,
 },
 
-  label: {
+ label: {
   flex: 1,
-  fontSize: isTablet ? 24 : 18,
+  fontSize: isTablet ? 20 : 16,
   color: '#555',
 },
-
   right: {
     alignItems: 'flex-end',
   },
-
-  value: {
-  fontSize: isTablet ? 32 : 24,
+value: {
+  fontSize: isTablet ? 28 : 22,
   fontWeight: '700',
   color: '#333',
 },
 
-  note: {
-  marginTop: 6,
-  fontSize: isTablet ? 16 : 12,
+ note: {
+  marginTop: 4,
+  fontSize: isTablet ? 14 : 11,
   color: '#888',
+},
+header: {
+  width: '100%',
+  maxWidth: isTablet ? 800 : '100%',
+  flexDirection: 'row',
+  alignItems: 'flex-start',
+  marginBottom: isTablet ? 28 : 18,
+},
+
+backButton: {
+  marginRight: 12,
+  marginTop: 2,
 },
 });
