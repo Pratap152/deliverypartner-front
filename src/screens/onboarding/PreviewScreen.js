@@ -89,6 +89,8 @@ const PreviewScreen = () => {
   }
 
   const data = preview?.data;
+  const isCompanyEmployee =
+    preview?.riderType === 'COMPANY_EMPLOYEE';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -157,234 +159,335 @@ const PreviewScreen = () => {
           </Text>
         </PreviewCard>
 
-        {/* LOCATION */}
+        {!isCompanyEmployee ? (
+          <>
 
-        {data?.location && (
-          <PreviewCard
-            title="Location"
-            icon="location-outline"
-            status="Completed"
-            onEdit={() =>
-              navigation.navigate('SelectCityScreen')
-            }
-          >
+            {/* LOCATION */}
 
-            <Text style={styles.value}>
-              <Text style={styles.label}>City : </Text>
-              {data.location.city}
-            </Text>
+            {data?.location && (
+              <PreviewCard
+                title="Location"
+                icon="location-outline"
+                status="Completed"
+                onEdit={() =>
+                  navigation.navigate('SelectCityScreen')
+                }
+              >
 
-            <Text style={styles.value}>
-              <Text style={styles.label}>Pincode : </Text>
-              {data.location.pincode}
-            </Text>
-
-          </PreviewCard>
-        )}
-
-        {/* VEHICLE */}
-
-        {data?.vehicle && (
-          <PreviewCard
-            title="Vehicle Details"
-            icon="bicycle-outline"
-            status={data.vehicle.status}
-            onEdit={() =>
-              navigation.navigate('VehicleSelectionScreen')
-            }
-          >
-            <Text style={styles.value}>
-              <Text style={styles.label}>Vehicle Type : </Text>
-              {data.vehicle.type}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Vehicle Source : </Text>
-              {data.vehicle.vehicleSource}
-            </Text>
-
-            {data.vehicle.ownershipType && (
-              <Text style={styles.value}>
-                <Text style={styles.label}>Ownership Type : </Text>
-                {data.vehicle.ownershipType}
-              </Text>
-            )}
-          </PreviewCard>
-        )}
-
-        {/* PERSONAL INFO */}
-
-        {data?.personalInfo && (
-          <PreviewCard
-            title="Personal Information"
-            icon="person-circle-outline"
-            status="Completed"
-            onEdit={() =>
-              navigation.navigate('PersonalInfoScreen')
-            }
-          >
-            <Text style={styles.value}>
-              <Text style={styles.label}>Full Name : </Text>
-              {data.personalInfo.fullName}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Date of Birth : </Text>
-              {data.personalInfo.dob}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Gender : </Text>
-              {data.personalInfo.gender}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Email : </Text>
-              {data.personalInfo.email}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Primary Phone : </Text>
-              {data.personalInfo.primaryPhone}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Secondary Phone : </Text>
-              {data.personalInfo.secondaryPhone}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>Area : </Text>
-              {data.personalInfo.area}
-            </Text>
-
-            <Text style={styles.value}>
-              <Text style={styles.label}>State : </Text>
-              {data.personalInfo.state}
-            </Text>
-
-            {data.personalInfo.employeeId && (
-              <Text style={styles.value}>
-                <Text style={styles.label}>Employee ID : </Text>
-                {data.personalInfo.employeeId}
-              </Text>
-            )}
-          </PreviewCard>
-        )}
-
-        {/* SELFIE */}
-
-        {data?.selfie && (
-          <PreviewCard
-            title="Selfie"
-            icon="camera-outline"
-            status="Verified"
-          >
-            <Image
-              source={{ uri: data.selfie.url }}
-              style={styles.image}
-            />
-          </PreviewCard>
-        )}
-
-        {/* AADHAAR */}
-
-        {data?.kyc && (
-          <PreviewCard
-            title="Aadhaar"
-            icon="card-outline"
-            status={data.kyc.aadharStatus}
-          >
-            <Text style={styles.value}>
-              <Text style={styles.label}>Verification Status : </Text>
-              {data.kyc.aadharStatus}
-            </Text>
-
-            {data.kyc.aadharRejectedReason && (
-              <Text style={styles.error}>
-                Rejected Reason : {data.kyc.aadharRejectedReason}
-              </Text>
-            )}
-          </PreviewCard>
-        )}
-
-        {/* PAN */}
-
-        {data?.kyc && (
-          <PreviewCard
-            title="PAN Card"
-            icon="document-text-outline"
-            status={data.kyc.panStatus}
-            onEdit={() =>
-              navigation.navigate('PanUploadScreen')
-            }
-          >
-            <Text style={styles.value}>
-              <Text style={styles.label}>PAN Number : </Text>
-              {data.kyc.panNumber}
-            </Text>
-
-            {data.kyc.panRejectedReason && (
-              <Text style={styles.error}>
-                Rejected Reason : {data.kyc.panRejectedReason}
-              </Text>
-            )}
-
-            {data.kyc.panImage && (
-              <Image
-                source={{ uri: data.kyc.panImage }}
-                style={styles.image}
-              />
-            )}
-          </PreviewCard>
-        )}
-
-        {/* DRIVING LICENSE */}
-
-        {data?.kyc && (
-          <PreviewCard
-            title="Driving License"
-            icon="car-outline"
-            status={data.kyc.dlStatus}
-            onEdit={() =>
-              navigation.navigate('LicenseUploadScreen')
-            }
-          >
-            <Text style={styles.value}>
-              <Text style={styles.label}>DL Number : </Text>
-              {data.kyc.dlNumber}
-            </Text>
-
-
-            {data.kyc.dlRejectedReason && (
-              <Text style={styles.error}>
-                Rejected Reason : {data.kyc.dlRejectedReason}
-              </Text>
-            )}
-
-            {data.kyc.dlFrontImage && (
-              <>
-                <Text style={styles.imageTitle}>Front Image</Text>
-                <Image
-                  source={{ uri: data.kyc.dlFrontImage }}
-                  style={styles.image}
-                />
-              </>
-            )}
-
-            {data.kyc.dlBackImage && (
-              <>
-                <Text style={[styles.imageTitle, { marginTop: 15 }]}>
-                  Back Image
+                <Text style={styles.value}>
+                  <Text style={styles.label}>City : </Text>
+                  {data.location.city}
                 </Text>
 
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Pincode : </Text>
+                  {data.location.pincode}
+                </Text>
+
+              </PreviewCard>
+            )}
+
+            {/* VEHICLE */}
+
+            {data?.vehicle && (
+              <PreviewCard
+                title="Vehicle Details"
+                icon="bicycle-outline"
+                status={data.vehicle.status}
+                onEdit={() =>
+                  navigation.navigate('VehicleSelectionScreen')
+                }
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Vehicle Type : </Text>
+                  {data.vehicle.type}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Vehicle Source : </Text>
+                  {data.vehicle.vehicleSource}
+                </Text>
+
+                {data.vehicle.ownershipType && (
+                  <Text style={styles.value}>
+                    <Text style={styles.label}>Ownership Type : </Text>
+                    {data.vehicle.ownershipType}
+                  </Text>
+                )}
+              </PreviewCard>
+            )}
+
+            {/* PERSONAL INFO */}
+
+            {data?.personalInfo && (
+              <PreviewCard
+                title="Personal Information"
+                icon="person-circle-outline"
+                status="Completed"
+                onEdit={() =>
+                  navigation.navigate('PersonalInfoScreen')
+                }
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Full Name : </Text>
+                  {data.personalInfo.fullName}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Date of Birth : </Text>
+                  {data.personalInfo.dob}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Gender : </Text>
+                  {data.personalInfo.gender}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Email : </Text>
+                  {data.personalInfo.email}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Primary Phone : </Text>
+                  {data.personalInfo.primaryPhone}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Secondary Phone : </Text>
+                  {data.personalInfo.secondaryPhone}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Area : </Text>
+                  {data.personalInfo.area}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>State : </Text>
+                  {data.personalInfo.state}
+                </Text>
+
+                {data.personalInfo.employeeId && (
+                  <Text style={styles.value}>
+                    <Text style={styles.label}>Employee ID : </Text>
+                    {data.personalInfo.employeeId}
+                  </Text>
+                )}
+              </PreviewCard>
+            )}
+
+            {/* SELFIE */}
+
+            {data?.selfie && (
+              <PreviewCard
+                title="Selfie"
+                icon="camera-outline"
+                status="Verified"
+              >
                 <Image
-                  source={{ uri: data.kyc.dlBackImage }}
+                  source={{ uri: data.selfie.url }}
                   style={styles.image}
                 />
-              </>
+              </PreviewCard>
             )}
-          </PreviewCard>
+
+            {/* AADHAAR */}
+
+            {data?.kyc && (
+              <PreviewCard
+                title="Aadhaar"
+                icon="card-outline"
+                status={data.kyc.aadharStatus}
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Verification Status : </Text>
+                  {data.kyc.aadharStatus}
+                </Text>
+
+                {data.kyc.aadharRejectedReason && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {data.kyc.aadharRejectedReason}
+                  </Text>
+                )}
+              </PreviewCard>
+            )}
+
+            {/* PAN */}
+
+            {data?.kyc && (
+              <PreviewCard
+                title="PAN Card"
+                icon="document-text-outline"
+                status={data.kyc.panStatus}
+                onEdit={() =>
+                  navigation.navigate('PanUploadScreen')
+                }
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>PAN Number : </Text>
+                  {data.kyc.panNumber}
+                </Text>
+
+                {data.kyc.panRejectedReason && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {data.kyc.panRejectedReason}
+                  </Text>
+                )}
+
+                {data.kyc.panImage && (
+                  <Image
+                    source={{ uri: data.kyc.panImage }}
+                    style={styles.image}
+                  />
+                )}
+              </PreviewCard>
+            )}
+
+            {/* DRIVING LICENSE */}
+
+            {data?.kyc && (
+              <PreviewCard
+                title="Driving License"
+                icon="car-outline"
+                status={data.kyc.dlStatus}
+                onEdit={() =>
+                  navigation.navigate('LicenseUploadScreen')
+                }
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>DL Number : </Text>
+                  {data.kyc.dlNumber}
+                </Text>
+
+
+                {data.kyc.dlRejectedReason && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {data.kyc.dlRejectedReason}
+                  </Text>
+                )}
+
+                {data.kyc.dlFrontImage && (
+                  <>
+                    <Text style={styles.imageTitle}>Front Image</Text>
+                    <Image
+                      source={{ uri: data.kyc.dlFrontImage }}
+                      style={styles.image}
+                    />
+                  </>
+                )}
+
+                {data.kyc.dlBackImage && (
+                  <>
+                    <Text style={[styles.imageTitle, { marginTop: 15 }]}>
+                      Back Image
+                    </Text>
+
+                    <Image
+                      source={{ uri: data.kyc.dlBackImage }}
+                      style={styles.image}
+                    />
+                  </>
+                )}
+              </PreviewCard>
+            )}
+          </>
+        ) : (
+          <>
+            {/* EMPLOYEE DETAILS */}
+
+            {data?.personalInfo && (
+              <PreviewCard
+                title="Employee Details"
+                icon="person-circle-outline"
+                status="Completed"
+                onEdit={() =>
+                  navigation.navigate('EmployeeDetailsScreen')
+                }
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Company Name : </Text>
+                  {data.personalInfo.companyName || '-'}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Employee ID : </Text>
+                  {data.personalInfo.employeeId}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Full Name : </Text>
+                  {data.personalInfo.fullName}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Date of Birth : </Text>
+                  {data.personalInfo.dob}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Gender : </Text>
+                  {data.personalInfo.gender}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Email : </Text>
+                  {data.personalInfo.email}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Secondary Phone : </Text>
+                  {data.personalInfo.secondaryPhone}
+                </Text>
+              </PreviewCard>
+            )}
+
+            {/* DOCUMENT DETAILS */}
+
+            {data?.kyc && (
+              <PreviewCard
+                title="Document Details"
+                icon="document-text-outline"
+                status="Pending"
+                onEdit={() =>
+                  navigation.navigate('DocumentDetailsScreen')
+                }
+              >
+                <Text style={styles.value}>
+                  <Text style={styles.label}>PAN Number : </Text>
+                  {data.kyc.panNumber}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>PAN Status : </Text>
+                  {data.kyc.panStatus}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>DL Number : </Text>
+                  {data.kyc.dlNumber}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>DL Status : </Text>
+                  {data.kyc.dlStatus}
+                </Text>
+
+                {data?.selfie?.url && (
+                  <>
+                    <Text style={styles.imageTitle}>
+                      Selfie
+                    </Text>
+
+                    <Image
+                      source={{ uri: data.selfie.url }}
+                      style={styles.image}
+                    />
+                  </>
+                )}
+              </PreviewCard>
+            )}
+          </>
         )}
 
         <TouchableOpacity
