@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   BackHandler,
-  Alert
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -59,22 +60,30 @@ export default function SelectCityScreen({ navigation }) {
   const [citiesList, setCitiesList] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
   const [searchText, setSearchText] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCities() {
+      setLoading(true);
+
       try {
         const response = await apiClient.get('/api/location/cities');
         const cities = response?.data?.cities || [];
+
         setAllCities(cities);
         setCitiesList(cities);
+
         if (cities.length > 0) {
           setSelectedCity(cities[0]);
           setSearchText(cities[0]);
         }
       } catch (err) {
         console.log('Error fetching cities', err);
+      } finally {
+        setLoading(false);
       }
     }
+
     fetchCities();
   }, []);
 
@@ -128,7 +137,11 @@ export default function SelectCityScreen({ navigation }) {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         >
-          {citiesList.length === 0 ? (
+          {loading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#1F3365" />
+            </View>
+          ) : citiesList.length === 0 ? (
             <Text style={styles.emptyText}>No cities found</Text>
           ) : (
             citiesList.map(city => (
@@ -194,7 +207,11 @@ const styles = StyleSheet.create({
     maxWidth: CONTENT_MAX_WIDTH,
     paddingHorizontal: H_PADDING,
   },
-
+  loaderContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -263,7 +280,7 @@ const styles = StyleSheet.create({
   },
 
   citySelected: {
-    backgroundColor:'#1F3365',
+    backgroundColor: '#1F3365',
   },
 
   cityText: {
@@ -279,7 +296,7 @@ const styles = StyleSheet.create({
   submitButton: {
     width: isTablet ? 600 : '100%',
     alignSelf: 'center',
-    backgroundColor:'#1F3365',
+    backgroundColor: '#1F3365',
     paddingVertical: isTablet ? 18 : 15,
     borderRadius: 40,
     alignItems: 'center',

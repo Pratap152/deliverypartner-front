@@ -55,7 +55,7 @@ const TermsAgreementModal = ({
 }) => {
     const navigation = useNavigation();
 
-    const TERMS_PDF = 'https://www.africau.edu/images/default/sample.pdf';
+    const [error, setError] = useState(null);
 
     const termsText = [
         "You agree to comply with all applicable Platform policies and operational guidelines.",
@@ -116,13 +116,13 @@ const TermsAgreementModal = ({
             // Separate PDFs
             const url = response.data.find(doc => doc.type === documentKey && doc.isActive === true)?.contentUrl;
             if (url) {
-                console.log('Navigating to PdfViewer with URL:', url);
                 navigation.navigate('PdfViewerScreen', {
                     title: response.data.find(doc => doc.type === documentKey)?.title,
                     pdfUrl: url,
                 });
             }
         } catch (error) {
+            setError(error);
             console.log(error);
         }
     };
@@ -135,6 +135,7 @@ const TermsAgreementModal = ({
             statusBarTranslucent
             onRequestClose={() => { }}>
             <View style={styles.overlay}>
+                {error && <Text style={styles.description}>{error}</Text>}
                 <View style={styles.container}>
 
                     <Text style={styles.title}>

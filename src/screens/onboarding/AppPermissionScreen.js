@@ -22,6 +22,7 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import PermissionItem from '../../components/onboarding/AppPermissions/PermissionItem';
 import apiClient from '../../services/ApiClient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const isTablet = DeviceInfo.isTablet();
 
@@ -45,6 +46,7 @@ const APP_PERMISSIONS = {
 
 const AppPermissionScreen = ({ navigation }) => {
 
+const insets = useSafeAreaInsets();
 useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
@@ -188,7 +190,8 @@ useFocusEffect(
   <View
     style={[
       styles.fixedButtonContainer,
-      { opacity: allGranted ? 1 : 0 },
+      { bottom: 50 + insets.bottom, 
+        opacity: allGranted ? 1 : 0 },
     ]}
     pointerEvents={allGranted ? 'auto' : 'none'}
   >
@@ -217,7 +220,6 @@ scrollContent: {
 
 fixedButtonContainer: {
   position: 'absolute',
-  bottom: 20,
   left: 20,
   right: 20,
   alignItems: 'center',
