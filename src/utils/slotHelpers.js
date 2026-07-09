@@ -14,6 +14,19 @@ export const formatTime = (timeStr) => {
     return `${hours.toString().padStart(2, '0')}:${m} ${suffix}`;
 };
 
+
+export const formatDuration = (minutes) => {
+  if (minutes == null) return "";
+
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hrs === 0) return `${mins} mins`;
+  if (mins === 0) return `${hrs} ${hrs === 1 ? "hr" : "hrs"}`;
+
+  return `${hrs} ${hrs === 1 ? "hr" : "hrs"} ${mins} mins`;
+};
+
 /**
  * Formats date string with custom options
  * @param {string} dateStr - Date string
