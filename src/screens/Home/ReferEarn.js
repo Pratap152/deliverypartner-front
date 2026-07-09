@@ -17,6 +17,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import DeviceInfo from "react-native-device-info";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   responsiveFontSize as rf,
   responsiveHeight as rh,
@@ -226,9 +227,9 @@ export default function ReferEarn({ navigation }) {
     );
   };
 
-  return (
-    <View style={{ flex: 1 }}>
-      <View style={styles.fixedTopBanner}>
+ return (
+  <SafeAreaView style={styles.safeArea}>
+      <View style={styles.topBanner}>
         <View style={styles.backButtonContainer}>
           <TouchableOpacity
             style={styles.backButton}
@@ -249,7 +250,7 @@ export default function ReferEarn({ navigation }) {
       <ScrollView
         style={styles.container}
         contentContainerStyle={{
-          paddingTop: hp("32%"),
+          paddingTop: hp("26%"),
           paddingBottom: 100,
         }}
         refreshControl={
@@ -349,8 +350,7 @@ export default function ReferEarn({ navigation }) {
         </TouchableOpacity>
       </View>
 
-    </View>
-  );
+</SafeAreaView>  );
 }
 
 const styles = StyleSheet.create({
@@ -358,25 +358,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
-
-  fixedTopBanner: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: "#F8FAFC",
-  },
+safeArea: {
+  flex: 1,
+  backgroundColor: "#F8FAFC",
+},
+  topBanner: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  backgroundColor: "#F8FAFC",
+},
   backButtonContainer: {
-    position: "absolute",
-    top: isTablet ? rh(2) : 26,
-    left: 23,
-    zIndex: 20,
-  },
+  position: "absolute",
+  top: isTablet ? rh(1.2) : 20,
+  left: 20,
+  zIndex: 20,
+},
 
   backButton: {
-    width: 30,
-    height: 30,
+    width: 25,
+    height: 25,
     borderRadius: 21,
     backgroundColor: "rgba(255,255,255,0.95)",
 
@@ -402,7 +405,7 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: isTablet ? rh(2) : 15,
+    marginVertical: isTablet ? rh(2) : 3,
     paddingHorizontal: 16,
   },
 

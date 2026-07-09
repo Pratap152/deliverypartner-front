@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   bannerContainer: {
     // borderWidth:1,
     margin:15,
-    height: hp("28%"),
+    height: hp("22%"),
     backgroundColor: '#b5dfeb',
     borderRadius:28,
     flexDirection: 'row',
@@ -60,6 +60,5 @@ const styles = StyleSheet.create({
   moneyBagImage: {
     width: wp("40%"),
     height: wp("45%"),
-    marginBottom: hp("6%"),
   },
 });

@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   loadSlotsApi,
   loadWeeksApi,
   bookSlotApi,
   cancelSlotApi,
-} from "../services/slots/slots.service";
+  fetchZestbotSlots
+} from "../services/slots/SlotBookingService";
  
  
 export function formatWeeks(apiWeeks = []) {
+  console.log("Weeks API Response:", apiWeeks);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
- 
+
   return apiWeeks
     .filter((item) => {
       const itemDate = new Date(item.date);
@@ -18,10 +21,15 @@ export function formatWeeks(apiWeeks = []) {
       return itemDate >= today;
     })
     .map((item) => ({
-      date: item.date,                 // 2025-12-01
-      label: item.dayName,             // Mon, Tue
-      day: new Date(item.date).getDate().toString(), // 1, 2
-    }));
+      ...item,
+
+      date: item.date,
+      label: item.dayName,
+      day: new Date(item.date).getDate().toString(),
+
+      durationMinutes: item.slots?.[0]?.durationMinutes ?? 0,
+      breakInMinutes: item.slots?.[0]?.breakInMinutes ?? 0,
+}));
 }
  
 export function useSlots() {
@@ -30,43 +38,60 @@ export function useSlots() {
   const [weeksLoading, setWeeksLoading] = useState(false);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [zestbotSlotsLoading, setZestbotSlotsLoading] = useState(false);
   const [error, setError] = useState(false);
- 
+
+  const weeksRequestId = useRef(0);
+  const slotsRequestId = useRef(0);
+  
   const clearWeeks = () => setWeeks([]);
   const clearSlots = () => setSlots([]);
  
   // Load week
   const loadWeeks = async (payload) => {
-    console.log("loadWeeks hook entered...payload", payload);
+   const currentRequest = ++weeksRequestId.current;
+
     try {
-      setWeeksLoading(true);
-      setError(false);
- 
-      const weeksRes = await loadWeeksApi(payload);
-      console.log("loadWeeksApi exited.....", weeksRes?.data?.data);
- 
-      if (weeksRes.data?.success) {
-        setWeeks(formatWeeks(weeksRes.data.data));
-      } else {
-        throw new Error("Failed to load weeks");
-      }
+        setWeeksLoading(true);
+        setError(false);
+
+        const weeksRes = await loadWeeksApi(payload);
+
+        // Ignore stale responses
+        if (currentRequest !== weeksRequestId.current) {
+            return;
+        }
+
+        if (weeksRes.data?.success) {
+            setWeeks(formatWeeks(weeksRes.data.data));
+        } else {
+            throw new Error("Failed to load weeks");
+        }
     } catch (err) {
-      console.log("loadWeeks error:", err?.response?.data || err.message);
-      setError(true);
+        if (currentRequest !== weeksRequestId.current) {
+            return;
+        }
+
+        console.log(err?.response?.data || err.message);
+        setError(true);
     } finally {
-      setWeeksLoading(false);
+        if (currentRequest === weeksRequestId.current) {
+            setWeeksLoading(false);
+        }
     }
-  };
+};
  
   // Load slots
   const loadSlots = async (payload) => {
-    console.log("loadSlots hook entered...payload", payload);
+    const currentRequest = ++slotsRequestId.current;
     try {
       setSlotsLoading(true);
       setError(false);
  
       const slotsRes = await loadSlotsApi(payload);
-      console.log("loadSlotsApi exited....", slotsRes?.data);
+      if (currentRequest !== slotsRequestId.current) {
+        return;
+    }
  
       if (slotsRes.data?.success) {
         const slotDate = slotsRes.data.date; // 2026-02-01
@@ -113,9 +138,13 @@ export function useSlots() {
       }
     } catch (err) {
       console.log("loadSlots error:", err?.response?.data || err.message);
-      setError(true);
+      if (currentRequest === slotsRequestId.current) {
+        setError(true);
+    }
     } finally {
-      setSlotsLoading(false);
+      if (currentRequest === slotsRequestId.current) {
+          setSlotsLoading(false);
+      }
     }
   };
  
@@ -146,12 +175,25 @@ export function useSlots() {
       setActionLoading(false);
     }
   };
- 
+
+  const fetchZestbotSlotsDetails = async () => {
+    try {
+      setZestbotSlotsLoading(true);
+      const res = await fetchZestbotSlots();
+      return res.data;
+    } catch (err) {
+      return false;
+    } finally {
+      setZestbotSlotsLoading(false);
+    }
+  }
+
   return {
     weeks,
     slots,
     weeksLoading,
     slotsLoading,
+    zestbotSlotsLoading,
     loading: weeksLoading || slotsLoading,
     actionLoading,
     error,
@@ -161,6 +203,7 @@ export function useSlots() {
     cancelSlot,
     clearWeeks,
     clearSlots,
+    fetchZestbotSlotsDetails,
   };
 }
  

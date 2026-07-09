@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
     View,
     StyleSheet,
-    PermissionsAndroid,
     Platform,
     Image,
     Text,
@@ -13,43 +12,26 @@ import {
     BackHandler,
     Linking,
 } from 'react-native';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 
 import MapView, {
     PROVIDER_GOOGLE,
     Marker,
 } from 'react-native-maps';
-
 import MapViewDirections from 'react-native-maps-directions';
-
-import Geolocation from '@react-native-community/geolocation';
 import NetInfo from '@react-native-community/netinfo';
-
 import { orderService } from '../../services/order/OrderService';
-// import { GOOGLE_MAPS_API_KEY } from '../../config/env';
-
 import Config from 'react-native-config';
-console.log("hello")
-console.log('KEY', Config.GOOGLE_MAPS_API_KEY);
-// ─────────────────────────────────────────────────────────────
-// CONSTANTS
-// ─────────────────────────────────────────────────────────────
+import {useGPS} from '../../context/GPSContext';
 
-const FALLBACK_START_LOCATION = {
-    latitude: 17.3850,
-    longitude: 78.4866,
-};
+
 
 const APP_LOGO = require('../../assets/Applogo.png');
 const RESTAURANT_ICON = require('../../assets/restaurant.png');
 const HOME_ICON = require('../../assets/drop.png');
 
-// ─────────────────────────────────────────────────────────────
-// CLEAN GOOGLE MAP STYLE
-// ─────────────────────────────────────────────────────────────
 
+// CLEAN GOOGLE MAP STYLE
 const MAP_STYLE = [
     { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
     { elementType: 'labels.icon', stylers: [{ visibility: 'on' }] },
@@ -60,11 +42,7 @@ const MAP_STYLE = [
 ];
 
 
-
-// ─────────────────────────────────────────────────────────────
 // MAIN MAP SCREEN
-// ─────────────────────────────────────────────────────────────
-
 const MapScreen = ({ route, navigation }) => {
 
     const {
@@ -72,47 +50,30 @@ const MapScreen = ({ route, navigation }) => {
         type,
         orderDetails: passedOrderDetails,
     } = route.params;
-
-    // ─────────────────────────────────────────────────────────
+  
     // STATE
-    // ─────────────────────────────────────────────────────────
+    const { location, currentLocation, currentHeading } = useGPS();
+    const isLocating = !currentLocation;
+    const locationError = null;
 
     const [markerReady, setMarkerReady] = useState(false);
-
     const [orderDetails, setOrderDetails] = useState(
         passedOrderDetails || null
     );
-
     const [isFetchingOrder, setIsFetchingOrder] = useState(
         !passedOrderDetails
     );
-
     const [buttonLoading, setButtonLoading] = useState(false);
-
-    const [currentLocation, setCurrentLocation] = useState(null);
-
-    const [currentHeading, setCurrentHeading] = useState(0);
-
-    const [isLocating, setIsLocating] = useState(true);
-
     const [isOffline, setIsOffline] = useState(false);
-
     const [isTracking, setIsTracking] = useState(true);
-
     const [routeInfo, setRouteInfo] = useState({
         distance: null,
         duration: null,
     });
 
-    const [locationError, setLocationError] = useState(null);
 
-    // ─────────────────────────────────────────────────────────
     // REFS
-    // ─────────────────────────────────────────────────────────
-
     const mapRef = useRef(null);
-
-    const watchId = useRef(null);
 
     const hasRouteFitted = useRef(false);
 
@@ -122,28 +83,19 @@ const MapScreen = ({ route, navigation }) => {
         new Animated.Value(-60)
     ).current;
 
-    // ─────────────────────────────────────────────────────────
     // PICKUP OR DROP
-    // ─────────────────────────────────────────────────────────
-
     const isPickup =
         type === 'pickupOrder' ||
         type === 'navigateToPickup';
 
-    // ─────────────────────────────────────────────────────────
     // DESTINATION ICON
-    // ─────────────────────────────────────────────────────────
-
     const destinationMarkerIcon = useMemo(() => {
         return isPickup
             ? RESTAURANT_ICON
             : HOME_ICON;
     }, [isPickup]);
 
-    // ─────────────────────────────────────────────────────────
     // TARGET LOCATION
-    // ─────────────────────────────────────────────────────────
-
     const targetLocation = useMemo(() => {
 
         if (!orderDetails) return null;
@@ -172,10 +124,7 @@ const MapScreen = ({ route, navigation }) => {
 
     }, [orderDetails, isPickup]);
 
-    // ─────────────────────────────────────────────────────────
     // TARGET NAME
-    // ─────────────────────────────────────────────────────────
-
     const targetName = useMemo(() => {
 
         if (!orderDetails) return '';
@@ -189,10 +138,7 @@ const MapScreen = ({ route, navigation }) => {
 
     }, [orderDetails, isPickup]);
 
-    // ─────────────────────────────────────────────────────────
     // TARGET ADDRESS
-    // ─────────────────────────────────────────────────────────
-
     const targetAddress = useMemo(() => {
 
         if (!orderDetails) return '';
@@ -203,12 +149,8 @@ const MapScreen = ({ route, navigation }) => {
 
     }, [orderDetails, isPickup]);
 
-    // ─────────────────────────────────────────────────────────
     // PREVENT BACK
-    // ─────────────────────────────────────────────────────────
-
     useEffect(() => {
-
         const backHandler =
             BackHandler.addEventListener(
                 "hardwareBackPress",
@@ -223,20 +165,14 @@ const MapScreen = ({ route, navigation }) => {
 
     }, [navigation]);
 
-    // ─────────────────────────────────────────────────────────
     // RESET ROUTE FIT
-    // ─────────────────────────────────────────────────────────
-
     useEffect(() => {
         hasRouteFitted.current = false;
     }, [targetLocation]);
 
-    // ─────────────────────────────────────────────────────────
+    
     // OFFLINE DETECTION
-    // ─────────────────────────────────────────────────────────
-
     useEffect(() => {
-
         const unsubscribe = NetInfo.addEventListener(
             state => {
 
@@ -256,10 +192,7 @@ const MapScreen = ({ route, navigation }) => {
 
     }, []);
 
-    // ─────────────────────────────────────────────────────────
     // FETCH ORDER DETAILS
-    // ─────────────────────────────────────────────────────────
-
     useEffect(() => {
 
         if (passedOrderDetails) return;
@@ -292,190 +225,32 @@ const MapScreen = ({ route, navigation }) => {
 
     }, [orderId, passedOrderDetails]);
 
-    // ─────────────────────────────────────────────────────────
-    // LOCATION PERMISSION
-    // ─────────────────────────────────────────────────────────
 
-    const requestLocationPermission = async () => {
-
-        if (Platform.OS === 'android') {
-
-            try {
-
-                const granted =
-                    await PermissionsAndroid.request(
-                        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                        {
-                            title: 'Location Permission',
-                            message:
-                                'This app needs access to your location for navigation.',
-                            buttonPositive: 'Allow',
-                            buttonNegative: 'Deny',
-                        }
-                    );
-
-                return (
-                    granted ===
-                    PermissionsAndroid.RESULTS.GRANTED
-                );
-
-            } catch {
-
-                return false;
-            }
-        }
-
-        return true;
-    };
-
-    // ─────────────────────────────────────────────────────────
-    // INITIAL LOCATION
-    // ─────────────────────────────────────────────────────────
-
-    const initializeLocation = async () => {
-
-        const hasPermission =
-            await requestLocationPermission();
-
-        if (!hasPermission) {
-
-            setLocationError('Location permission denied');
-
-            setCurrentLocation(
-                FALLBACK_START_LOCATION
-            );
-
-            setIsLocating(false);
-
-            return;
-        }
-
-        Geolocation.getCurrentPosition(
-
-            position => {
-
-                const roughLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                };
-
-                setCurrentLocation(roughLocation);
-
-                setIsLocating(false);
-
-                setLocationError(null);
-
-                startHighAccuracyWatch();
-            },
-
-            () => {
-
-                setLocationError(
-                    'GPS timeout — finding signal...'
-                );
-
-                setCurrentLocation(
-                    FALLBACK_START_LOCATION
-                );
-
-                setIsLocating(false);
-
-                startHighAccuracyWatch();
-            },
-
-            {
-                enableHighAccuracy: false,
-                timeout: 5000,
-                maximumAge: 30000,
-            }
-        );
-    };
-
-    // ─────────────────────────────────────────────────────────
-    // LIVE TRACKING
-    // ─────────────────────────────────────────────────────────
-
-    const startHighAccuracyWatch = () => {
-
-        watchId.current = Geolocation.watchPosition(
-
-            position => {
-
-                const newLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                };
-
-                const heading =
-                    position.coords.heading ?? 0;
-
-                setCurrentLocation(newLocation);
-
-                setCurrentHeading(heading);
-
-                setLocationError(null);
-
-                if (
-                    isTrackingRef.current &&
-                    mapRef.current
-                ) {
-
-                    mapRef.current.animateCamera({
-                        center: newLocation,
-                        zoom: 17,
-                        pitch: 45,
-                        heading,
-                    }, {
-                        duration: 1000,
-                    });
-                }
-            },
-
-            error => {
-
-                console.log(
-                    '[MapScreen] Watch Error:',
-                    error.message
-                );
-
-                setLocationError('GPS signal lost');
-            },
-
-            {
-                enableHighAccuracy: true,
-                distanceFilter: 5,
-                interval: 2000,
-                fastestInterval: 1000,
-            }
-        );
-    };
-
-    // ─────────────────────────────────────────────────────────
-    // INITIALIZE LOCATION
-    // ─────────────────────────────────────────────────────────
 
     useEffect(() => {
-
-        initializeLocation();
-
-        return () => {
-
-            if (watchId.current !== null) {
-
-                Geolocation.clearWatch(
-                    watchId.current
-                );
-
-                watchId.current = null;
+    if (
+        currentLocation &&
+        mapRef.current &&
+        isTrackingRef.current
+    ) {
+        mapRef.current.animateCamera(
+            {
+                center: currentLocation,
+                zoom: 17,
+                pitch: 45,
+                heading: currentHeading,
+            },
+            {
+                duration: 1000,
             }
-        };
+        );
 
-    }, []);
+    }
 
-    // ─────────────────────────────────────────────────────────
+}, [currentLocation, currentHeading]);
+
+    
     // RECENTER
-    // ─────────────────────────────────────────────────────────
-
     const handleRecenter = () => {
 
         if (!currentLocation || !mapRef.current)
@@ -495,14 +270,9 @@ const MapScreen = ({ route, navigation }) => {
         });
     };
 
-    // ─────────────────────────────────────────────────────────
     // ARRIVAL ACTION
-    // ─────────────────────────────────────────────────────────
-
     const handleArrival = async () => {
-
         try {
-
             setButtonLoading(true);
 
             if (isPickup) {
@@ -537,10 +307,7 @@ const MapScreen = ({ route, navigation }) => {
         }
     };
 
-    // ─────────────────────────────────────────────────────────
     // OPEN MAPS REDIRECT
-    // ─────────────────────────────────────────────────────────
-
     const handleOpenMaps = () => {
 
         if (!targetLocation) {
@@ -566,12 +333,8 @@ const MapScreen = ({ route, navigation }) => {
         });
     };
 
-    // ─────────────────────────────────────────────────────────
     // LOADING STATE
-    // ─────────────────────────────────────────────────────────
-
     if (isFetchingOrder && !passedOrderDetails) {
-
         return (
             <View style={styles.center}>
 
@@ -591,10 +354,7 @@ const MapScreen = ({ route, navigation }) => {
         );
     }
 
-    // ─────────────────────────────────────────────────────────
     // INVALID LOCATION
-    // ─────────────────────────────────────────────────────────
-
     if (!targetLocation) {
 
         return (
@@ -609,16 +369,11 @@ const MapScreen = ({ route, navigation }) => {
         );
     }
 
-    // ─────────────────────────────────────────────────────────
     // UI
-    // ─────────────────────────────────────────────────────────
-
     return (
 
         <View style={styles.container}>
-
             {/* OFFLINE BANNER */}
-
             <Animated.View
                 style={[
                     styles.offlineBanner,
@@ -638,7 +393,6 @@ const MapScreen = ({ route, navigation }) => {
             </Animated.View>
 
             {/* MAP */}
-
             <MapView
                 ref={mapRef}
                 provider={PROVIDER_GOOGLE}
@@ -666,7 +420,6 @@ const MapScreen = ({ route, navigation }) => {
             >
 
                 {/* DESTINATION MARKER */}
-
                 {targetLocation && (
 
                     <Marker
@@ -689,7 +442,6 @@ const MapScreen = ({ route, navigation }) => {
                 )}
 
                 {/* RIDER CURRENT LOCATION */}
-
                 {currentLocation && (
 
                     <Marker
@@ -700,7 +452,6 @@ const MapScreen = ({ route, navigation }) => {
                         tracksViewChanges={false}
                         zIndex={10}
                     >
-
                         <Image
                             source={APP_LOGO}
                             style={styles.riderMarkerImage}
@@ -712,7 +463,6 @@ const MapScreen = ({ route, navigation }) => {
                 )}
 
                 {/* ROUTE */}
-
                 {currentLocation &&
                     targetLocation &&
                     !isOffline && (
@@ -772,7 +522,6 @@ const MapScreen = ({ route, navigation }) => {
             </MapView>
 
             {/* TOP BADGES */}
-
             <View style={styles.topBadgeContainer}>
 
                 {isLocating && (
@@ -823,7 +572,6 @@ const MapScreen = ({ route, navigation }) => {
             </View>
 
             {/* RECENTER BUTTON */}
-
             {!isTracking && (
 
                 <TouchableOpacity
@@ -920,9 +668,6 @@ const MapScreen = ({ route, navigation }) => {
 
 export default MapScreen;
 
-// ─────────────────────────────────────────────────────────────
-// STYLES
-// ─────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
 
@@ -940,8 +685,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-
-    // OFFLINE BANNER
 
     offlineBanner: {
         position: 'absolute',
@@ -961,8 +704,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 10,
     },
-
-    // TOP BADGES
 
     topBadgeContainer: {
         position: 'absolute',
@@ -1000,8 +741,6 @@ const styles = StyleSheet.create({
         color: '#C53030',
     },
 
-    // RECENTER BUTTON
-
     recenterBtn: {
         position: 'absolute',
         bottom: 240,
@@ -1019,8 +758,6 @@ const styles = StyleSheet.create({
     recenterIcon: {
         fontSize: 24,
     },
-
-    // BOTTOM CARD
 
     bottomCard: {
         position: 'absolute',
@@ -1137,8 +874,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
 
-    // ACTION BUTTON
-
     actionButton: {
         backgroundColor: '#1F3365',
         paddingVertical: 18,
@@ -1158,10 +893,6 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         letterSpacing: 0.5,
     },
-
-
-
-    // RIDER MARKER
 
     riderMarkerImage: {
         width: 62,

@@ -61,7 +61,9 @@ export default function PersonalInfoScreen({ navigation }) {
     secondaryPhone: '',
     email: '',
     gender: '',
-    referralCode: ''
+    referralCode: '',
+    area: '',
+    state: '',
   });
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -111,6 +113,15 @@ export default function PersonalInfoScreen({ navigation }) {
     if (field === 'referralCode') {
       value = value.slice(0, 20);
     }
+    // Area max 100 chars
+    if (field === 'area') {
+      value = value.replace(/[^A-Za-z\s]/g, '').slice(0, 100);
+    }
+
+    // State max 100 chars
+    if (field === 'state') {
+      value = value.replace(/[^A-Za-z\s]/g, '').slice(0, 100);
+    }
 
     setFormData(prev => ({ ...prev, [field]: value }));
 
@@ -119,6 +130,8 @@ export default function PersonalInfoScreen({ navigation }) {
     if (field === 'fullName') error = validateName(value);
     if (field === 'secondaryPhone') error = validateMobile(value);
     if (field === 'email') error = validateEmail(value);
+    if (field === 'area') error = validateArea(value);
+    if (field === 'state') error = validateState(value);
 
     setErrors(prev => ({ ...prev, [field]: error }));
   };
@@ -157,6 +170,29 @@ export default function PersonalInfoScreen({ navigation }) {
     return '';
   };
 
+  const validateArea = value => {
+    if (!value.trim()) return 'Area is required';
+
+    if (value.trim().length < 2)
+      return 'Area must contain at least 2 characters';
+
+    if (!/^[A-Za-z\s]+$/.test(value))
+      return 'Only alphabets and spaces are allowed';
+
+    return '';
+  };
+
+  const validateState = value => {
+    if (!value.trim()) return 'State is required';
+
+    if (value.trim().length < 2)
+      return 'State must contain at least 2 characters';
+
+    if (!/^[A-Za-z\s]+$/.test(value))
+      return 'Only alphabets and spaces are allowed';
+
+    return '';
+  };
   const validateForm = () => {
     const newErrors = {
       fullName: validateName(formData.fullName),
@@ -183,6 +219,8 @@ export default function PersonalInfoScreen({ navigation }) {
       email: validateEmail(formData.email),
       secondaryPhone: validateMobile(formData.secondaryPhone),
       gender: formData.gender ? '' : 'Gender required',
+      area: validateArea(formData.area),
+      state: validateState(formData.state),
     };
 
     setErrors(newErrors);
@@ -200,31 +238,39 @@ export default function PersonalInfoScreen({ navigation }) {
       gender: formData.gender,
       secondaryPhone: formData.secondaryPhone.trim(),
       email: formData.email.trim(),
+      area: formData.area.trim(),
+      state: formData.state.trim(),
       referralCode: formData.referralCode.trim(),
     };
 
     console.log('submit', payload);
 
     try {
-      setSubmitting(true);
-      const res = await apiClient.post('/api/rider/personal-info', payload);
+  setSubmitting(true);
 
-      console.log('STATUS:', res.status);
-      console.log('BODY:', res.data);
+  const res = await apiClient.post('/api/rider/personal-info', payload);
 
-      navigation.replace('SplashScreen');
-    } catch (err) {
-      const apiMsg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Something went wrong. Please try again.';
+  console.log('STATUS:', res.status);
+  console.log('BODY:', res.data);
 
-      setErrors(prev => ({ ...prev, referralCode: apiMsg }));
+  navigation.replace('SplashScreen');
 
-      console.log('API ERROR:', err.response?.status, err.response?.data);
-    } finally {
-      setSubmitting(false);
-    }
+} catch (err) {
+  const apiMsg =
+    err.response?.data?.message ||
+    err.response?.data?.error ||
+    'Something went wrong. Please try again.';
+
+  setErrors(prev => ({
+    ...prev,
+    secondaryPhone: apiMsg,
+  }));
+
+  console.log('API ERROR:', err.response?.status, err.response?.data);
+
+} finally {
+  setSubmitting(false);
+}
   };
 
   /* UI  */
@@ -337,6 +383,33 @@ export default function PersonalInfoScreen({ navigation }) {
           />
           {errors.email && <Text style={styles.err}>{errors.email}</Text>}
 
+          {/* AREA */}
+          <Text style={styles.fieldName}>Area</Text>
+          <TextInput
+            value={formData.area}
+            onChangeText={text => handleChange('area', text)}
+            style={styles.input}
+            placeholder="Enter Your Area"
+            placeholderTextColor="darkgrey"
+            maxLength={100}
+          />
+          {errors.area && (
+            <Text style={styles.err}>{errors.area}</Text>
+          )}
+
+          {/* STATE */}
+          <Text style={styles.fieldName}>State</Text>
+          <TextInput
+            value={formData.state}
+            onChangeText={text => handleChange('state', text)}
+            style={styles.input}
+            placeholder="Enter Your State"
+            placeholderTextColor="darkgrey"
+            maxLength={100}
+          />
+          {errors.state && (
+            <Text style={styles.err}>{errors.state}</Text>
+          )}
           {/* REFERRAL CODE */}
           <Text style={styles.fieldName}>Referral Code (Optional)</Text>
           <TextInput
@@ -404,7 +477,7 @@ const createStyles = (isTablet, width) => {
 
     headerContainer: {
       alignItems: 'center',
-      marginBottom: isTablet ? 40 : 28,
+      marginBottom: isTablet ? 35 : 15,
     },
 
     headerTitle: {
@@ -426,7 +499,7 @@ const createStyles = (isTablet, width) => {
       borderRadius: isTablet ? 18 : 12,
       paddingHorizontal: isTablet ? 18 : 14,
       paddingVertical: isTablet ? 18 : 12,
-      marginBottom: isTablet ? 24 : 18,
+      marginBottom: isTablet ? 24 : 15,
       width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
@@ -472,8 +545,7 @@ const createStyles = (isTablet, width) => {
     },
 
     buttonContainer: {
-      marginTop: 10,
-      marginBottom: isTablet ? 30 : 20,
+      marginBottom: isTablet ? 25 : 20,
     },
   });
 };

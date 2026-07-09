@@ -12,9 +12,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Image,
   FlatList,
   RefreshControl,
+  Dimensions
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -25,6 +25,10 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const PAGE_SIZE = 10;
 const getCacheKey = filter => `SLOT_HISTORY_CACHE_${filter}`;
@@ -300,7 +304,7 @@ const SlotHistory = ({ navigation }) => {
           >
             <Ionicons
               name={status.icon}
-              size={rf(1.6)}
+              size={isTablet ? 24 : rf(1.6)}
               color={status.textColor}
               style={{ marginRight: rw(1) }}
             />
@@ -335,7 +339,7 @@ const SlotHistory = ({ navigation }) => {
         >
           <Ionicons
             name="chatbubble-ellipses-outline"
-            size={24}
+            size={isTablet ? 34 : 24}
             color="#192A51"
           />
         </TouchableOpacity>
@@ -375,26 +379,26 @@ const SlotHistory = ({ navigation }) => {
 
         <View style={styles.summaryRow}>
           <View style={[styles.summaryBox, styles.green]}>
-            <Ionicons
-              name="calendar-outline"
-              size={28}
-              color="#22C55E"
-              style={styles.summaryIcon}
-            />
-            <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
-            <Text style={styles.summaryLabel}>Slots Completed</Text>
-          </View>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={isTablet?34 :28}
+                        color="#22C55E"
+                        style={styles.summaryIcon}
+                      />
+                      <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
+                      <Text style={styles.summaryLabel}>Slots Completed</Text>
+                    </View>
 
-          <View style={[styles.summaryBox, styles.orange]}>
-            <Ionicons
-              name="wallet-outline"
-              size={28}
-              color="#F97316"
-              style={styles.summaryIcon}
-            />
-            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
-            <Text style={styles.summaryLabel}>Total Earnings</Text>
-          </View>
+                    <View style={[styles.summaryBox, styles.orange]}>
+                      <Ionicons
+                        name="wallet-outline"
+                        size={isTablet? 34 :28}
+                        color="#F97316"
+                        style={styles.summaryIcon}
+                      />
+                      <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
+                      <Text style={styles.summaryLabel}>Total Earnings</Text>
+                    </View>
         </View>
       </View>
 
@@ -573,8 +577,8 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: rw(2.5),
-    paddingVertical: rh(0.4),
+    paddingHorizontal: isTablet ? rw(3.2) : rw(2.5),
+    paddingVertical: isTablet ? rh(0.7) : rh(0.4),
     borderRadius: 14,
   },
 

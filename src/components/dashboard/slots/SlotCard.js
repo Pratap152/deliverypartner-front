@@ -11,6 +11,7 @@ import { DISPLAY_STATUS } from '../../../utils/constants/slotConstants';
 import StatusBadge from './StatusBadge';
 import Checkbox from './Checkbox';
 import { Dimensions } from 'react-native';
+import { formatDuration } from '../../../utils/slotHelpers';
 
 
 
@@ -18,6 +19,7 @@ const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 export default function SlotCard({
   slot,
+  weekData,
   selectable,
   selected,
   onSelect,
@@ -33,6 +35,30 @@ export default function SlotCard({
   const isBooked = displayStatus === DISPLAY_STATUS.BOOKED;
   const isCancelled = displayStatus === DISPLAY_STATUS.CANCELLED;
   const isAvailable = displayStatus === DISPLAY_STATUS.AVAILABLE;
+
+  const duration =
+  slot.durationInMinutes ??
+  slot.durationMinutes ??
+  weekData?.durationInMinutes ??
+  weekData?.durationMinutes ??
+  weekData?.duration ??
+  null;
+
+const breakTime =
+  slot.breakInMinutes ??
+  weekData?.breakInMinutes ??
+  weekData?.break ??
+  null;
+
+const durationText =
+  duration != null
+    ? `${formatDuration(duration)} `
+    : "--";
+
+const breakText =
+  breakTime != null
+    ? `${formatDuration(breakTime)} `
+    : "--";
 
   return (
     <TouchableOpacity
@@ -58,16 +84,10 @@ export default function SlotCard({
               {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
             </Text>
             <Text style={styles.earn}>
-              Duration {slot.durationInHours} hrs • Break {slot.breakInMinutes} mins
+                Duration {durationText} • Break {breakText}
             </Text>
 
-            {/* Peak Slot Indicator */}
-            {isPeakSlot && (
-              <View style={styles.peakInfoContainer}>
-                <Ionicons name="wallet-outline" size={16} color="#4C4CFF" style={{ marginRight: 4 }} />
-                <Text style={styles.peakText}>Peak Slot • Get 20% more orders</Text>
-              </View>
-            )}
+  
           </View>
         </View>
 
@@ -86,11 +106,7 @@ export default function SlotCard({
             <Checkbox checked={selected} onPress={selectable ? onSelect : null} />
           )}
 
-          {/* Status Badge (Moved to right for better layout if needed, or keep at bottom) */}
-          {/* The user didn't explicitly ask to move badge but image suggests a cleaner layout. 
-                 I'll keep badge at bottom for now to minimize structure change unless it looks bad. 
-                 Actually, let's keep the existing badge structure but maybe adjust if peak.
-             */}
+        
         </View>
       </View>
 

@@ -45,8 +45,29 @@ export default function ProfileScreen({ navigation }) {
   });
 
   const onLogoutPress = () => {
-    authService.logout();
-  };
+  Alert.alert(
+    'Logout',
+    'Are you sure you want to logout?',
+    [
+      {
+        text: 'No',
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await authService.logout();
+          } catch (error) {
+            console.log('Logout error:', error);
+          }
+        },
+      },
+    ],
+    { cancelable: true },
+  );
+};
 
   const openCamera = async () => {
     try {

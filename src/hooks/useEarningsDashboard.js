@@ -142,7 +142,7 @@ export default function useEarningsDashboard() {
     return {
       riderType: res?.riderType,
       baseEarnings: res?.baseEarnings ?? 0,
-      totalEarnings: res?.total ?? 0,
+      total: res?.total ?? 0,
       incentives: res?.incentives ?? 0,
       orders: res?.orders,
       tips: res?.tips,

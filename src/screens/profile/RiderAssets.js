@@ -6,7 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
-  Image,
+  Dimensions
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -17,6 +17,10 @@ import {
 } from "react-native-responsive-dimensions";
 import apiClient from "../../services/ApiClient";
 import { useSelector } from "react-redux";
+
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 const RiderAssets = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
@@ -135,7 +139,7 @@ const RiderAssets = ({ navigation }) => {
                   >
                     <Ionicons
                       name="chatbubble-ellipses-outline"
-                      size={24}
+                      size={isTablet ? 34 : 24}
                       color="#192A51"
                     />
                   </TouchableOpacity>

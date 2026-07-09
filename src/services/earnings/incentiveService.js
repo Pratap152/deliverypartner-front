@@ -50,3 +50,12 @@ export const getPeakIncentivesProgress = async () => {
     throw error?.response?.data || error.message;
   }
 };
+
+export const getRiderIncentivesTarget = async () => {
+  try {
+    const response = await apiClient.get('/api/rider/employee-target-slab');
+    return response.data;
+  } catch (error) {
+    throw error?.response?.data || error.message;
+  }
+}

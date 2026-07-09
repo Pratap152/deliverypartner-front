@@ -16,7 +16,7 @@ import TermsAgreementModal from "../../components/home/TermsAgreementModal";
 import {
   getHomeBanners,
   todayStats,
-} from "../../components/home/data/home.mock";
+} from "../../components/home/data/BannerApi";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
 import { useRider } from "../../context/RiderContext";
@@ -34,7 +34,6 @@ const HomeDashboard = () => {
   const checkAgreementStatus = async () => {
     try {
       const response = await apiClient.get('/api/rider/consent');
-      console.log('Agreement status response:', response.data);
 
       if (
         response.data.data.deliveryPartnerAgreementAccepted === false ||
@@ -43,11 +42,9 @@ const HomeDashboard = () => {
         response.data.data.informationConfirmed === false ||
         response.data.data.electronicConsentAccepted === false
       ) {
-        console.log('User has not accepted all agreements. Showing modal.');
         setShowTermsModal(true);
       }
       else {
-        console.log('User has accepted all agreements. Not showing modal.');
         setShowTermsModal(false);
       }
     } catch (error) {
@@ -71,10 +68,7 @@ const HomeDashboard = () => {
         "electronicConsentAccepted": true
       };
 
-      console.log(payload);
-
       const response = await apiClient.put('/api/rider/consent', payload);
-      console.log('Agreement acceptance response:', response.data);
 
       if (response?.status === 200) {
         setShowTermsModal(false);

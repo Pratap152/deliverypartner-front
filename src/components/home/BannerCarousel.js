@@ -91,26 +91,38 @@ const BannerCarousel = ({ data }) => {
     navigation.navigate('KitSelectionScreen');
   };
   const handlePress = item => {
-    switch (item.id) {
-      case 'bank':
-        navigation.navigate('AddBankDetails');
-        break;
-      case 'kit':
-        handleKitPress();
-        break;
-      case 'refer':
-        navigation.navigate('ReferEarn');
-        break;
-      case 'incentives':
-        navigation.navigate('IncentiveDetails');
-        break;
-      case 'joining':
-        navigation.navigate('JoiningBonusScreen');
-        break;
-      default:
-        break;
-    }
-  };
+  switch (item.type) {
+    case 'bank':
+      navigation.navigate('AddBankDetails');
+      break;
+
+    case 'kit':
+      handleKitPress();
+      break;
+
+    case 'referAndEarn':
+      navigation.navigate('ReferEarn');
+      break;
+
+    case 'dailyIncentive':
+      navigation.navigate('IncentiveDetails');
+      break;
+
+    case 'joiningBonus':
+      navigation.navigate('JoiningBonusScreen');
+      break;
+
+    case 'promotional':
+      if(item.promoType==="EV"){
+         navigation.navigate("EVScreen")
+      }
+      break;
+
+    default:
+      console.log('Banner clicked', item);
+      break;
+  }
+};
 
   const startAutoScroll = useCallback(() => {
     clearInterval(timerRef.current);
