@@ -4,7 +4,7 @@ import { useSlots } from '../../hooks/useSlots';
 import { useSlotSelection } from '../../hooks/useSlotSelection';
 import { TABS, FILTERS } from '../../utils/constants/slotConstants';
 import { extractSlotIds } from '../../utils/slotHelpers';
-import { getWeekNumber } from '../../services/slots/slots.service';
+import { getWeekNumber } from '../../services/slots/SlotBookingService';
 import { useSelector } from 'react-redux';
 
 // Components
@@ -46,81 +46,107 @@ export default function SlotsScreen({ navigation }) {
     // Local state
     const [activeTab, setActiveTab] = useState(TABS.CURRENT);
     const [selectedWeek, setSelectedWeek] = useState(today);
+    const firstLoad = useRef(true);
     const [filter, setFilter] = useState(FILTERS.ALL);
     const [bookModalVisible, setBookModalVisible] = useState(false);
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
     const [successVisible, setSuccessVisible] = useState(false);
     const [activeSlot, setActiveSlot] = useState(null);
 
+
     const cityId = useSelector((state) => state.profile.data?.location?.city?.trim());
     const pincodeId = useSelector((state) => state.profile.data?.location?.pincode?.trim());
 
-    const refreshSlots = () => {
-        if (selectedWeek) {
-            loadSlots({
-                date: selectedWeek,
+
+    useEffect(() => {
+        const loadInitial = async () => {
+            await loadWeeks({
+                cityId,
+                pincodeId,
+            });
+
+            await loadSlots({
+                date: today,
                 filter,
                 cityId,
                 pincodeId,
             });
-        }
-    };
+        };
 
-    // Load weeks and slots in parallel on mount
-    useEffect(() => {
-        loadWeeks({ cityId, pincodeId });
-        loadSlots({ date: today, filter, cityId, pincodeId });
+        loadInitial();
     }, []);
 
-    const isInitialMount = useRef(true);
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return; // skip on mount because we already loaded todays slots
-        }
-        refreshSlots();
-    }, [selectedWeek, filter]);
 
 
-    const autoSelectFirst = useRef(false);
-    useEffect(() => {
-        if (!autoSelectFirst.current) return;
-        if (weeks?.length > 0) {
-            autoSelectFirst.current = false;
-            const firstDate = weeks[0]?.date;
-            if (firstDate) setSelectedWeek(firstDate);
-        }
-    }, [weeks]);
+    const handleTabChange = async (tab) => {
+        if (tab === activeTab) return;
 
-
-    // Handlers
-    const handleTabChange = (tab) => {
         setActiveTab(tab);
-        setSelectedWeek(null);
+
         clearSelection();
         clearSlots();
         clearWeeks();
 
-        autoSelectFirst.current = true;
+        setSelectedWeek(null);
+
         let weekNumber;
+
         if (tab === TABS.NEXT) {
             weekNumber = getWeekNumber() + 1;
-        }
-        if (tab === TABS.UPCOMING) {
+        } else if (tab === TABS.UPCOMING) {
             weekNumber = getWeekNumber() + 2;
         }
-        loadWeeks({
+
+        await loadWeeks({
             weekNumber,
             cityId,
             pincodeId,
         });
     };
 
+    useEffect(() => {
+        if (!weeks.length) return;
+
+        let firstDate = weeks[0].date;
+
+        if (activeTab === TABS.CURRENT) {
+            const todaySlot = weeks.find(w => w.date === today);
+            if (todaySlot) {
+                firstDate = todaySlot.date;
+            }
+        }
+
+        if (!selectedWeek || !weeks.some(w => w.date === selectedWeek)) {
+            setSelectedWeek(firstDate);
+        }
+    }, [weeks]);
+
+    useEffect(() => {
+        if (!selectedWeek) return;
+
+        loadSlots({
+            date: selectedWeek,
+            filter,
+            cityId,
+            pincodeId,
+        });
+    }, [selectedWeek, filter]);
+
     const handleWeekSelect = (date) => {
+        if (date === selectedWeek) {
+            return;
+        }
+
+        clearSelection();
         setSelectedWeek(date);
     };
 
     const handleFilterChange = (newFilter) => {
+        if (newFilter === filter) {
+            return;
+        }
+
+        clearSelection();
         setFilter(newFilter);
     };
 
@@ -131,6 +157,17 @@ export default function SlotsScreen({ navigation }) {
 
     const handleBookingOpen = () => {
         setBookModalVisible(true);
+    };
+
+    const refreshSlots = () => {
+        if (!selectedWeek) return;
+
+        loadSlots({
+            date: selectedWeek,
+            filter,
+            cityId,
+            pincodeId,
+        });
     };
 
     const handleBookConfirm = async () => {
@@ -156,25 +193,27 @@ export default function SlotsScreen({ navigation }) {
             refreshSlots();
         }
     };
-
     const handleRefresh = () => {
-        refreshSlots();
+        if (!selectedWeek) return;
+
+        loadSlots({
+            date: selectedWeek,
+            filter,
+            cityId,
+            pincodeId,
+        });
     };
 
-    // if (weeksLoading || slotsLoading || actionLoading) {
-    //     return (
-    //         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    //             <ActivityIndicator size="large" color="#4C4CFF" />
-    //         </View>
-    //     )
-    // }
-
+    const selectedWeekData =
+    weeks.find(item => item.date === selectedWeek) || null;
 
     return (
         <View style={styles.container}>
             {/* Header */}
-            <SlotBookingHeader activeTab={activeTab} onTabChange={handleTabChange} loading={weeksLoading} />
-
+            <SlotBookingHeader
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+            />
             {/* Main Content */}
             {activeTab === TABS.UPCOMING ? (
                 <LockedWeekView
@@ -184,13 +223,16 @@ export default function SlotsScreen({ navigation }) {
                     weeks={weeks}
                     slots={slots}
                     selectedWeek={selectedWeek}
+                    selectedWeekData={selectedWeekData}
                     filter={filter}
                     onWeekSelect={handleWeekSelect}
                     onFilterChange={handleFilterChange}
                     onSlotSelect={toggleSlotSelection}
                     onSlotCancel={handleSlotCancel}
                     isSlotSelected={isSlotSelected}
-                    loading={slotsLoading || weeksLoading || actionLoading}
+                    weeksLoading={weeksLoading}
+                    slotsLoading={slotsLoading}
+                    actionLoading={actionLoading}
                     onRefresh={handleRefresh}
                 />
             )}

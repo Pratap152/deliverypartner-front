@@ -13,10 +13,15 @@ const kitSlice = createSlice({
       const {
         riderId,
         currentStep,
-        apiResponse = null,
-        deliveryMode = null,
-        addressData = null,
-        selectedZone = null,
+        apiResponse,
+        deliveryMode,
+        addressData,
+        selectedZone,
+        source,
+        kitItems,
+        totalAmount,
+        paymentType,
+        selectedPaymentMethod,
       } = action.payload || {};
 
       if (!riderId) return;
@@ -25,33 +30,124 @@ const kitSlice = createSlice({
         state.riders = {};
       }
 
+      const existingRiderState = state.riders[riderId] || {};
+
       state.riders[riderId] = {
-        ...(state.riders[riderId] || {}),
-        currentStep: currentStep ?? state.riders[riderId]?.currentStep ?? null,
-        apiResponse: apiResponse ?? state.riders[riderId]?.apiResponse ?? null,
-        deliveryMode: deliveryMode ?? state.riders[riderId]?.deliveryMode ?? null,
-        addressData: addressData ?? state.riders[riderId]?.addressData ?? null,
-        selectedZone: selectedZone ?? state.riders[riderId]?.selectedZone ?? null,
-        kitCompleted: state.riders[riderId]?.kitCompleted ?? false,
+        ...existingRiderState,
+        currentStep:
+          currentStep !== undefined
+            ? currentStep
+            : existingRiderState.currentStep ?? null,
+        apiResponse:
+          apiResponse !== undefined
+            ? apiResponse
+            : existingRiderState.apiResponse ?? null,
+        deliveryMode:
+          deliveryMode !== undefined
+            ? deliveryMode
+            : existingRiderState.deliveryMode ?? null,
+        addressData:
+          addressData !== undefined
+            ? addressData
+            : existingRiderState.addressData ?? null,
+        selectedZone:
+          selectedZone !== undefined
+            ? selectedZone
+            : existingRiderState.selectedZone ?? null,
+        source:
+          source !== undefined
+            ? source
+            : existingRiderState.source ?? null,
+        kitItems:
+          kitItems !== undefined
+            ? kitItems
+            : existingRiderState.kitItems ?? null,
+        totalAmount:
+          totalAmount !== undefined
+            ? totalAmount
+            : existingRiderState.totalAmount ?? null,
+        paymentType:
+          paymentType !== undefined
+            ? paymentType
+            : existingRiderState.paymentType ?? null,
+        selectedPaymentMethod:
+          selectedPaymentMethod !== undefined
+            ? selectedPaymentMethod
+            : existingRiderState.selectedPaymentMethod ?? null,
+        kitCompleted: existingRiderState.kitCompleted ?? false,
       };
     },
 
     setKitCompleted: (state, action) => {
-      const riderId = action.payload?.riderId;
+      const {
+        riderId,
+        kitCompleted,
+        apiResponse,
+        deliveryMode,
+        currentStep,
+        addressData,
+        selectedZone,
+        source,
+        kitItems,
+        totalAmount,
+        paymentType,
+        selectedPaymentMethod,
+      } = action.payload || {};
+
       if (!riderId) return;
 
       if (!state.riders) {
         state.riders = {};
       }
 
+      const existingRiderState = state.riders[riderId] || {};
+
       state.riders[riderId] = {
-        ...(state.riders[riderId] || {}),
-        kitCompleted: action.payload?.kitCompleted ?? true,
-        apiResponse: action.payload?.apiResponse ?? state.riders[riderId]?.apiResponse ?? null,
-        deliveryMode: action.payload?.deliveryMode ?? state.riders[riderId]?.deliveryMode ?? null,
-        currentStep: action.payload?.currentStep ?? 'SuccessScreen',
-        addressData: action.payload?.addressData ?? state.riders[riderId]?.addressData ?? null,
-        selectedZone: action.payload?.selectedZone ?? state.riders[riderId]?.selectedZone ?? null,
+        ...existingRiderState,
+        kitCompleted:
+          kitCompleted !== undefined
+            ? kitCompleted
+            : true,
+        apiResponse:
+          apiResponse !== undefined
+            ? apiResponse
+            : existingRiderState.apiResponse ?? null,
+        deliveryMode:
+          deliveryMode !== undefined
+            ? deliveryMode
+            : existingRiderState.deliveryMode ?? null,
+        currentStep:
+          currentStep !== undefined
+            ? currentStep
+            : existingRiderState.currentStep ?? null,
+        addressData:
+          addressData !== undefined
+            ? addressData
+            : existingRiderState.addressData ?? null,
+        selectedZone:
+          selectedZone !== undefined
+            ? selectedZone
+            : existingRiderState.selectedZone ?? null,
+        source:
+          source !== undefined
+            ? source
+            : existingRiderState.source ?? null,
+        kitItems:
+          kitItems !== undefined
+            ? kitItems
+            : existingRiderState.kitItems ?? null,
+        totalAmount:
+          totalAmount !== undefined
+            ? totalAmount
+            : existingRiderState.totalAmount ?? null,
+        paymentType:
+          paymentType !== undefined
+            ? paymentType
+            : existingRiderState.paymentType ?? null,
+        selectedPaymentMethod:
+          selectedPaymentMethod !== undefined
+            ? selectedPaymentMethod
+            : existingRiderState.selectedPaymentMethod ?? null,
       };
     },
 

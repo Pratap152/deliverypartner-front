@@ -33,8 +33,13 @@ import AddBankDetails from '../screens/Home/AddBankDetails';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
-import KitPickupSelection from '../screens/kitSelection/KitPickupSelection';
+import DeliveryModeScreen from '../screens/kitSelection/DeliveryModeScreen';
+import DeliveryAddressScreen from '../screens/kitSelection/DeliveryAddressScreen';
+import PickupLocationScreen from '../screens/kitSelection/PickupLocationScreen';
+import PaymentTypeScreen from '../screens/kitSelection/PaymentTypeScreen';
 import PaymentsScreen from '../screens/kitSelection/PaymentsScreen';
+import OfflinePaymentsScreen from '../screens/kitSelection/OfflinePaymentsScreen';
+import EmiPlanScreen from '../screens/kitSelection/EmiPlanScreen';
 import SuccessScreen from '../screens/kitSelection/SuccessScreen';
 
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
@@ -98,8 +103,13 @@ const AppNavigator = () => {
       <Stack.Screen name="ProcessingVerificationScreen" component={ProcessingVerificationScreen} />
 
       <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />
-      <Stack.Screen name="KitPickupSelection" component={KitPickupSelection} />
+      <Stack.Screen name="DeliveryModeScreen" component={DeliveryModeScreen} />
+      <Stack.Screen name="DeliveryAddressScreen" component={DeliveryAddressScreen} />
+      <Stack.Screen name="PickupLocationScreen" component={PickupLocationScreen} />
+      <Stack.Screen name="PaymentTypeScreen" component={PaymentTypeScreen} />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
+      <Stack.Screen name="OfflinePaymentsScreen" component={OfflinePaymentsScreen} />
+      <Stack.Screen name="EmiPlanScreen" component={EmiPlanScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
 
       <Stack.Screen name="OrderHistory" component={OrderHistory} />

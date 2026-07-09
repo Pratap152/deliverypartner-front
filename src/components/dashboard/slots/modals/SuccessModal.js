@@ -1,40 +1,67 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import BaseModal from './BaseModal';
-import { Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {formatDuration, formatTime} from '../../../../utils/slotHelpers';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const isTablet = width >= 768;
 
-export default function SuccessModal({ visible, onClose }) {
+export default function SuccessModal({
+  visible,
+  onClose,
+  slots = [],
+}) {
   const navigation = useNavigation();
+
   return (
     <BaseModal
       visible={visible}
       onClose={onClose}
-      cardStyle={styles.successCard}
-    >
+      cardStyle={styles.successCard}>
       <View style={styles.checkCircle}>
         <Text style={styles.check}>✓</Text>
       </View>
 
-      <Text style={styles.title}>Slot Booked</Text>
+      <Text style={styles.title}>Slot Booked Successfully</Text>
 
-      <Text style={styles.subTitle}>
-        Shift Login : 4hrs
-      </Text>
+      {slots.length > 0 ? (
+        slots.map(slot => (
+          <View key={slot.slotId} style={styles.slotContainer}>
+            <Text style={styles.slotTime}>
+              {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+            </Text>
 
-      <Text style={styles.earning}>
-        Estimated Earnings ₹180–250
-      </Text>
+            <Text style={styles.slotDuration}>
+              Duration {formatDuration(slot.durationMinutes)}
+              {slot.breakInMinutes
+                ? ` • Break ${formatDuration(slot.breakInMinutes)}`
+                : ''}
+            </Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.slotDuration}>
+          Your slot has been booked successfully.
+        </Text>
+      )}
 
       <TouchableOpacity
         style={styles.primaryBtn}
-        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] })}
-      >
+        onPress={() =>
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'MainTabs'}],
+          })
+        }>
         <Text style={styles.primaryText}>
-          Go Online & Start Earning
+          Go Online
         </Text>
       </TouchableOpacity>
     </BaseModal>
@@ -47,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: isTablet ? 32 : 20,
     padding: isTablet ? 42 : 24,
     alignItems: 'center',
-    width: isTablet ? '70%' : '100%',
+    width: isTablet ? '70%' : '90%',
   },
 
   checkCircle: {
@@ -59,28 +86,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: isTablet ? 24 : 12,
   },
+
   check: {
     color: '#FFF',
     fontSize: isTablet ? 52 : 32,
     fontWeight: '900',
   },
+
   title: {
     fontSize: isTablet ? 34 : 18,
     fontWeight: '800',
     color: '#000',
     marginTop: 8,
-  },
-  subTitle: {
-    fontSize: isTablet ? 22 : 14,
-    color: '#4A4A4A',
-    marginTop: 10,
+    marginBottom: 16,
   },
 
-  earning: {
-    fontSize: isTablet ? 24 : 16,
+  slotContainer: {
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+
+  slotTime: {
+    fontSize: isTablet ? 22 : 16,
     fontWeight: '700',
-    color: '#1E7F3D',
-    marginTop: 14,
+    color: '#000',
+  },
+
+  slotDuration: {
+    fontSize: isTablet ? 18 : 14,
+    color: '#555',
+    marginTop: 4,
   },
 
   primaryBtn: {
