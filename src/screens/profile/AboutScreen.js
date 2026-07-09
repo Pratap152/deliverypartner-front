@@ -61,7 +61,10 @@ export default function AboutScreen({ navigation }) {
     };
 
     return (
-        <SafeAreaView style={styles.root}>
+        <SafeAreaView
+            style={styles.safeArea}
+            edges={['top']}
+        >
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -304,7 +307,7 @@ const styles = StyleSheet.create({
     container: {
         paddingHorizontal: wp('5%'),
         paddingTop: hp('3%'),
-        paddingBottom: hp('4%'),
+        paddingBottom: hp('8%'),
     },
 
     logoSection: {
