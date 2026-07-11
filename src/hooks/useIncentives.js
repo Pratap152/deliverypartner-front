@@ -13,12 +13,14 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getWeeklyIncentivesProgress();
-      if(res.data[0]) {
-      setWeeklyIncentivesProgress(res.data[0]);
+      if (res.data[0]) {
+        setWeeklyIncentivesProgress(res.data[0]);
       }
       else {
-        setWeeklyIncentivesProgress({emptyData: true})
+        setWeeklyIncentivesProgress({ emptyData: true })
       }
+    } catch (error) {
+      console.log("Weekly Incentive Error: ", error);
     } finally {
       setLoad(false);
     }
@@ -28,11 +30,13 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getDailyIncentivesProgress();
-      if(res) {
-      setDailyIncentivesProgress(res);
+      if (res) {
+        setDailyIncentivesProgress(res);
       } else {
-        setDailyIncentivesProgress({emptyData: true})
+        setDailyIncentivesProgress({ emptyData: true })
       }
+    } catch (error) {
+      console.log("Daily Incentive Error: ", error);
     } finally {
       setLoad(false);
     }
@@ -42,11 +46,13 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getPeakIncentivesProgress();
-      if(res.data[0]) {
-      setPeakIncentivesProgress(res.data[0]);
+      if (res.data[0]) {
+        setPeakIncentivesProgress(res.data[0]);
       } else {
-        setPeakIncentivesProgress({emptyData: true})
+        setPeakIncentivesProgress({ emptyData: true })
       }
+    } catch (error) {
+      console.log("Peak Incentive Error: ", error);
     } finally {
       setLoad(false);
     }
@@ -56,11 +62,13 @@ const useIncentives = () => {
     try {
       setLoad(true);
       const res = await getRiderIncentivesTarget();
-      if(res.data) {
-      setRiderIncentivesTarget(res.data);
+      if (res.data) {
+        setRiderIncentivesTarget(res.data);
       } else {
-        setRiderIncentivesTarget({emptyData: true})
+        setRiderIncentivesTarget({ emptyData: true })
       }
+    } catch (error) {
+      console.log("Incentive Target Error: ", error);
     } finally {
       setLoad(false);
     }
