@@ -27,6 +27,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 
+import { getAllDocuments } from '../../services/getAllDocuments';
+
 
 const LOG = '[HEADER-LOCATION]';
 
@@ -37,28 +39,41 @@ const Header = () => {
   const [isLocationModal, setIsLocationModal] = useState(false);
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selfieUri, setSelfieUri] = useState(null);
+
   const dispatch = useDispatch();
   const { data: profile } = useSelector(state => state.profile);
 
-  const getSelfieUri = (selfie) => {
-    if (!selfie) return null;
+  // const getSelfieUri = (selfie) => {
+  //   if (!selfie) return null;
 
-    // backend string URL
-    if (typeof selfie === 'string') return selfie;
+  //   // backend string URL
+  //   if (typeof selfie === 'string') return selfie;
 
-    // backend object { url }
-    if (typeof selfie === 'object' && selfie.url) return selfie.url;
+  //   // backend object { url }
+  //   if (typeof selfie === 'object' && selfie.url) return selfie.url;
 
-    return null;
-  };
-  const selfieUri = getSelfieUri(profile?.selfie);
+  //   return null;
+  // };
 
+const fetchSelfie = async () => {
+  try {
+    const response = await getAllDocuments();
+
+    if (response?.success) {
+      setSelfieUri(response.data?.selfie || null);
+    }
+  } catch (error) {
+    console.log('Failed to fetch selfie:', error);
+  }
+};
 
   useFocusEffect(
-    useCallback(() => {
-      dispatch(fetchProfile());
-    }, [dispatch])
-  );
+  useCallback(() => {
+    dispatch(fetchProfile());
+    fetchSelfie();
+  }, [dispatch]),
+);
 
 
   /* ---------------- PERMISSION ---------------- */

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState} from 'react';
 import {
   ScrollView,
   Text,
@@ -21,12 +21,14 @@ import {
   getOnboardingPreview,
   confirmOnboardingDetails,
 } from '../../services/onboardingPreviewApi';
+import {getAllDocuments} from '../../services/getAllDocuments';
 
 const PreviewScreen = () => {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [documents, setDocuments] = useState({});
 
   const navigation = useNavigation();
 
@@ -64,25 +66,32 @@ const PreviewScreen = () => {
     fetchPreview();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchPreview();
+    }, [])
+  );
+
   const fetchPreview = async () => {
     try {
       setLoading(true);
 
-      const response = await getOnboardingPreview();
+      const [previewResult, documentsResult] =
+        await Promise.allSettled([
+          getOnboardingPreview(),
+          getAllDocuments(),
+        ]);
 
-      console.log(
-        'PREVIEW RESPONSE:',
-        JSON.stringify(response, null, 2),
-      );
-
-      setPreview(response);
-    } catch (err) {
-      console.log(err);
+      if (previewResult.status === 'fulfilled') {
+        setPreview(previewResult.value);
+      }
+      if (documentsResult.status === 'fulfilled') {
+        setDocuments(documentsResult.value.data || {});
+      }
     } finally {
       setLoading(false);
     }
   };
-
   const handleSubmit = async () => {
     if (!confirmed) {
       Alert.alert(
@@ -325,7 +334,9 @@ const PreviewScreen = () => {
                 }
               >
                 <Image
-                  source={{ uri: data.selfie.url }}
+                  source={{
+                    uri: documents.selfie || data?.selfie?.url,
+                  }}
                   style={styles.image}
                 />
               </PreviewCard>
@@ -374,12 +385,14 @@ const PreviewScreen = () => {
                   </Text>
                 )}
 
-                {data.kyc.panImage && (
-                  <Image
-                    source={{ uri: data.kyc.panImage }}
-                    style={styles.image}
-                  />
-                )}
+               {(documents.pan || data?.kyc?.panImage) && (
+                <Image
+                  source={{
+                    uri: documents.pan || data.kyc.panImage,
+                  }}
+                  style={styles.image}
+                />
+              )}
               </PreviewCard>
             )}
 
@@ -406,28 +419,32 @@ const PreviewScreen = () => {
                   </Text>
                 )}
 
-                {data.kyc.dlFrontImage && (
-                  <>
-                    <Text style={styles.imageTitle}>Front Image</Text>
-                    <Image
-                      source={{ uri: data.kyc.dlFrontImage }}
-                      style={styles.image}
-                    />
-                  </>
-                )}
+                {(documents.dlFront || data?.kyc?.dlFrontImage) && (
+                    <>
+                      <Text style={styles.imageTitle}>Front Image</Text>
+                      <Image
+                        source={{
+                          uri: documents.dlFront || data.kyc.dlFrontImage,
+                        }}
+                        style={styles.image}
+                      />
+                    </>
+                  )}
 
-                {data.kyc.dlBackImage && (
-                  <>
-                    <Text style={[styles.imageTitle, { marginTop: 15 }]}>
-                      Back Image
-                    </Text>
+                {(documents.dlBack || data?.kyc?.dlBackImage) && (
+                    <>
+                      <Text style={[styles.imageTitle, { marginTop: 15 }]}>
+                        Back Image
+                      </Text>
 
-                    <Image
-                      source={{ uri: data.kyc.dlBackImage }}
-                      style={styles.image}
-                    />
-                  </>
-                )}
+                      <Image
+                        source={{
+                          uri: documents.dlBack || data.kyc.dlBackImage,
+                        }}
+                        style={styles.image}
+                      />
+                    </>
+                  )}
               </PreviewCard>
             )}
           </>
@@ -518,10 +535,12 @@ const PreviewScreen = () => {
                       Selfie
                     </Text>
 
-                    <Image
-                      source={{ uri: data.selfie.url }}
-                      style={styles.image}
-                    />
+                   <Image
+                    source={{
+                      uri: documents.selfie || data?.selfie?.url,
+                    }}
+                    style={styles.image}
+                  />
                   </>
                 )}
               </PreviewCard>
