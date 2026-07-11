@@ -49,29 +49,29 @@ export default function ProfileScreen({ navigation }) {
   });
 
   const onLogoutPress = () => {
-  Alert.alert(
-    'Logout',
-    'Are you sure you want to logout?',
-    [
-      {
-        text: 'No',
-        style: 'cancel',
-      },
-      {
-        text: 'Yes',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await authService.logout();
-          } catch (error) {
-            console.log('Logout error:', error);
-          }
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
         },
-      },
-    ],
-    { cancelable: true },
-  );
-};
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await authService.logout();
+            } catch (error) {
+              console.log('Logout error:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
 
   // const openCamera = async () => {
   //   try {
@@ -121,41 +121,41 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const fetchSelfie = async () => {
-  try {
-    const res = await getAllDocuments();
-    setSelfieUri(res?.data?.selfie || null);
-  } catch (e) {
-    console.log(e);
-  }
-};
+    try {
+      const res = await getAllDocuments();
+      setSelfieUri(res?.data?.selfie || null);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   useFocusEffect(
-  useCallback(() => {
-    dispatch(fetchProfile());
-    fetchStats();
-    fetchSelfie();
-  }, [dispatch]),
-);
+    useCallback(() => {
+      dispatch(fetchProfile());
+      fetchStats();
+      fetchSelfie();
+    }, [dispatch]),
+  );
 
 
 
 
-  
-//   useEffect(() => {
-//   console.log('PROFILE SELFIE:', profile?.selfie);
-// }, [profile]);
 
-//   const getSelfieUri = selfie => {
-//     if (!selfie) return null;
+  //   useEffect(() => {
+  //   console.log('PROFILE SELFIE:', profile?.selfie);
+  // }, [profile]);
 
-//     if (typeof selfie === 'string') return selfie;
+  //   const getSelfieUri = selfie => {
+  //     if (!selfie) return null;
 
-//     if (typeof selfie === 'object' && selfie.url) {
-//       return selfie.url;
-//     }
+  //     if (typeof selfie === 'string') return selfie;
 
-//     return null;
-//   };
+  //     if (typeof selfie === 'object' && selfie.url) {
+  //       return selfie.url;
+  //     }
+
+  //     return null;
+  //   };
 
 
   return (
@@ -423,6 +423,46 @@ export default function ProfileScreen({ navigation }) {
                     ellipsizeMode="tail"
                   >
                     View balance & transactions
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.arrow}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.listItemReduced}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('AttendanceScreen')}
+            >
+              <View style={styles.listLeft}>
+                <Ionicons
+                  name="calendar-clear-outline"
+                  size={wp('7%')}
+                  color="#13ACBE"
+                />
+
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    paddingRight: 10,
+                  }}
+                >
+                  <Text
+                    style={styles.listTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Attendance
+                  </Text>
+
+                  <Text
+                    style={styles.listSubtitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    View attendance & monthly summary
                   </Text>
                 </View>
               </View>
