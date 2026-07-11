@@ -139,7 +139,8 @@ const Graph = (
     isEligibleForIncentives,
     weeklyTotal,
     weeklyBarChart,
-    wallet
+    wallet,
+    weeklyOrders
   }) => {
 
   const formatOrderLabel = count => {
@@ -251,7 +252,7 @@ const Graph = (
   );
 };
 
-const Footer = (month, riderType) => {
+const Footer = ({ month, riderType }) => {
   return (
     <TouchableOpacity style={{ marginBottom: hp(4) }} >
       <MonthlySummaryCard summary={month} riderType={riderType} />
@@ -430,6 +431,7 @@ export default function EarningsScreen({ navigation }) {
         weeklyTotal={weeklyTotal}
         weeklyBarChart={weeklyBarChart}
         wallet={wallet}
+        weeklyOrders={weeklyOrders}
       />
 
       {riderType === "INDIVIDUAL_EMPLOYEE" &&
