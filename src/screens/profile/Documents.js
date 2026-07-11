@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,14 +19,14 @@ import {
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ImageViewer from 'react-native-image-zoom-viewer';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import apiClient from '../../services/ApiClient';
-import {getAllDocuments} from '../../services/getAllDocuments';
+import { getAllDocuments } from '../../services/getAllDocuments';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 const DOCUMENT_UPLOAD_CONFIG = {
@@ -40,8 +40,10 @@ const DOCUMENT_UPLOAD_CONFIG = {
   },
 };
 
-const DocumentsScreen = ({navigation}) => {
+const DocumentsScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState({});
+  const [documentImages, setDocumentImages] = useState({});
+
   const [loading, setLoading] = useState(true);
   const [previewImages, setPreviewImages] = useState([]);
   const [uploadingKey, setUploadingKey] = useState(null);
@@ -51,20 +53,44 @@ const DocumentsScreen = ({navigation}) => {
   }, []);
 
   const fetchDocuments = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const response = await getAllDocuments();
-      // console.log('Documents API:', JSON.stringify(response.data, null, 2));
+    const [documentsResult, imagesResult] = await Promise.allSettled([
+      apiClient.get('/api/profile/documents'),
+      getAllDocuments(),
+    ]);
 
-      setDocuments(response.data || {});
-    } catch (error) {
-      Alert.alert('Error', 'Unable to fetch documents');
-    } finally {
-      setLoading(false);
+    // Documents API
+    if (
+      documentsResult.status === 'fulfilled' &&
+      documentsResult.value?.data?.success
+    ) {
+      setDocuments(documentsResult.value.data.data);
+    } else {
+      console.log(
+        'Documents API failed:',
+        documentsResult.reason ||
+          documentsResult.value?.data,
+      );
     }
-  };
 
+    // Images API
+    if (imagesResult.status === 'fulfilled') {
+      setDocumentImages(imagesResult.value.data || {});
+    } else {
+      console.log(
+        'Images API failed:',
+        imagesResult.reason,
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    Alert.alert('Error', 'Unable to fetch documents');
+  } finally {
+    setLoading(false);
+  }
+};
   const openGallery = count =>
     new Promise((resolve, reject) => {
       launchImageLibrary(
@@ -75,7 +101,6 @@ const DocumentsScreen = ({navigation}) => {
         res => {
           if (res.didCancel) return reject();
           if (res.errorCode) return reject(res.errorMessage);
-
           resolve(res.assets);
         },
       );
@@ -123,7 +148,6 @@ const DocumentsScreen = ({navigation}) => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 30000,
         },
       );
 
@@ -135,84 +159,108 @@ const DocumentsScreen = ({navigation}) => {
 
         fetchDocuments();
       } else {
-        Alert.alert('Upload Failed', 'Please try again.');
+        Alert.alert('Upload Failed');
       }
-    } catch (error) {
+    } catch (e) {
       Alert.alert(
         'Upload Failed',
-        error?.response?.data?.message || 'Something went wrong',
+        e?.response?.data?.message || 'Something went wrong',
       );
     } finally {
       setUploadingKey(null);
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator
-          size="large"
-          color="#192A51"
-        />
-      </View>
-    );
-  }
+  const isVerified = status => status === 'approved';
 
   const docsArray = [
     {
       key: 'pan',
       title: 'PAN Card',
-      images: documents?.pan
-        ? [{url: documents.pan}]
+      data: documents?.pan,
+      number: documents?.pan?.number,
+      images: documentImages?.pan
+        ? [{ url: documentImages.pan }]
         : [],
     },
     {
       key: 'drivingLicense',
       title: 'Driving License',
+      data: documents?.drivingLicense,
+      number: documents?.drivingLicense?.number,
       images: [
-        ...(documents?.dlFront
-          ? [{url: documents.dlFront}]
+        ...(documentImages?.dlFront
+          ? [{ url: documentImages.dlFront }]
           : []),
-        ...(documents?.dlBack
-          ? [{url: documents.dlBack}]
+        ...(documentImages?.dlBack
+          ? [{ url: documentImages.dlBack }]
           : []),
       ],
     },
   ];
 
+  const verifiedCount = docsArray.filter(item =>
+    isVerified(item.data?.status),
+  ).length;
+
+  const pendingCount = docsArray.length - verifiedCount;
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#192A51" />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-  {/* Header */}
-  <View style={styles.header}>
-    <TouchableOpacity onPress={() => navigation.goBack()}>
-      <Ionicons
-        name="arrow-back"
-        size={rf(2.6)}
-      />
-    </TouchableOpacity>
+  <SafeAreaView style={styles.container}>
+    {/* HEADER */}
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={rf(2.6)} />
+      </TouchableOpacity>
 
-    <Text style={styles.headerTitle}>Documents</Text>
+      <Text style={styles.headerTitle}>Documents</Text>
 
-    <TouchableOpacity
-      style={styles.rightIconWrapper}
-      onPress={() => navigation.navigate('HelpCenterList')}
-    >
-      <Ionicons
-        name="chatbubble-ellipses-outline"
-        size={isTablet ? 34 : 24}
-        color="#192A51"
-      />
-    </TouchableOpacity>
-  </View>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('HelpCenterList')}
+      >
+        <Ionicons
+          name="chatbubble-ellipses-outline"
+          size={isTablet ? 34 : 24}
+          color="#192A51"
+        />
+      </TouchableOpacity>
+    </View>
 
-  <ScrollView
-    showsVerticalScrollIndicator={false}
-    contentContainerStyle={{ paddingBottom: rh(3) }}
-  >
-    {docsArray.map(item => {
-      const uploadMeta = DOCUMENT_UPLOAD_CONFIG[item.key];
+    <ScrollView showsVerticalScrollIndicator={false}>
+      {/* SUMMARY */}
+      <View style={styles.summaryCard}>
+        <Text style={styles.summaryTitle}>Document Status</Text>
 
-      return (
+        <View style={styles.summaryRow}>
+          <View style={[styles.summaryBox, styles.verifiedBox]}>
+            <Text style={styles.summaryCount}>
+              {verifiedCount}
+            </Text>
+            <Text style={styles.summaryLabel}>
+              Verified
+            </Text>
+          </View>
+
+          <View style={[styles.summaryBox, styles.pendingBox]}>
+            <Text style={styles.summaryCount}>
+              {pendingCount}
+            </Text>
+            <Text style={styles.summaryLabel}>
+              Pending
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {docsArray.map(item => (
         <View
           key={item.key}
           style={styles.docCard}
@@ -227,26 +275,68 @@ const DocumentsScreen = ({navigation}) => {
                 />
               </View>
 
-              <Text style={styles.docTitle}>
-                {item.title}
+              <View>
+                <Text style={styles.docTitle}>
+                  {item.title}
+                </Text>
+
+                {item.number ? (
+                  <Text style={styles.numberText}>
+                    {item.number}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <Ionicons
+                name={
+                  item.data?.status === 'approved'
+                    ? 'checkmark-circle'
+                    : 'time-outline'
+                }
+                size={rf(2)}
+                color={
+                  item.data?.status === 'approved'
+                    ? '#12B76A'
+                    : '#F79009'
+                }
+              />
+
+              <Text
+                style={[
+                  styles.statusText,
+                  {
+                    color:
+                      item.data?.status === 'approved'
+                        ? '#12B76A'
+                        : '#F79009',
+                  },
+                ]}
+              >
+                {item.data?.status === 'approved'
+                  ? 'Verified'
+                  : 'Pending'}
               </Text>
             </View>
           </View>
 
-          <Text style={styles.hintText}>
-            {uploadMeta.hint}
-          </Text>
+          {!!DOCUMENT_UPLOAD_CONFIG[item.key]?.hint && (
+            <Text style={styles.hintText}>
+              {DOCUMENT_UPLOAD_CONFIG[item.key].hint}
+            </Text>
+          )}
 
           <View style={styles.actionsRow}>
             <TouchableOpacity
               style={styles.viewBtn}
               onPress={() => {
-                if (item.images.length) {
+                if (item.images.length > 0) {
                   setPreviewImages(item.images);
                 } else {
                   Alert.alert(
                     'No Image',
-                    'Document image not available.',
+                    'Document image not available',
                   );
                 }
               }}
@@ -265,15 +355,16 @@ const DocumentsScreen = ({navigation}) => {
               disabled={uploadingKey === item.key}
               onPress={async () => {
                 try {
-                  const images = await openGallery(
-                    uploadMeta.images,
+                  const imgs = await openGallery(
+                    DOCUMENT_UPLOAD_CONFIG[item.key]
+                      .images,
                   );
 
                   await uploadDocument(
                     item.key,
-                    images,
+                    imgs,
                   );
-                } catch (e) {}
+                } catch {}
               }}
             >
               {uploadingKey === item.key ? (
@@ -294,74 +385,110 @@ const DocumentsScreen = ({navigation}) => {
             </TouchableOpacity>
           </View>
         </View>
-      );
-    })}
-  </ScrollView>
+      ))}
 
-      {/* IMAGE PREVIEW */}
-      <Modal
-        visible={previewImages.length > 0}
-        transparent={false}
-        animationType="fade"
-        onRequestClose={() => setPreviewImages([])}
+      <View style={{ height: rh(3) }} />
+    </ScrollView>
+
+    <Modal
+      visible={previewImages.length > 0}
+      transparent={false}
+      animationType="fade"
+      onRequestClose={() =>
+        setPreviewImages([])
+      }
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#fff',
+        }}
       >
-        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <ImageViewer
-            imageUrls={previewImages}
-            backgroundColor="#FFFFFF"
-            enableSwipeDown
-            enablePreload
-            useNativeDriver
-            onSwipeDown={() => setPreviewImages([])}
-            loadingRender={() => (
-              <ActivityIndicator
-                size="large"
-                color="#192A51"
-              />
-            )}
-          />
-
-          <TouchableOpacity
-            style={styles.modalClose}
-            onPress={() => setPreviewImages([])}
-          >
-            <Ionicons
-              name="close"
-              size={rf(3)}
-              color="#000"
+        <ImageViewer
+          imageUrls={previewImages}
+          backgroundColor="#fff"
+          enableSwipeDown
+          useNativeDriver
+          onSwipeDown={() =>
+            setPreviewImages([])
+          }
+          loadingRender={() => (
+            <ActivityIndicator
+              size="large"
+              color="#192A51"
             />
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </SafeAreaView>
-  );
+          )}
+        />
+
+        <TouchableOpacity
+          style={styles.modalClose}
+          onPress={() =>
+            setPreviewImages([])
+          }
+        >
+          <Ionicons
+            name="close"
+            size={rf(3)}
+            color="#000"
+          />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  </SafeAreaView>
+);
+
 };
 
 export default DocumentsScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6F8' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F6F8',
+  },
+
   header: {
     height: rh(8),
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: rw(4),
     elevation: 2,
   },
-  headerTitle: { fontSize: rf(2.3), fontWeight: '600' },
-  robotIcon: { width: rw(12), height: rw(11), resizeMode: 'contain' },
-  row: { flexDirection: 'row', alignItems: 'center' },
+
+  headerTitle: {
+    fontSize: rf(2.3),
+    fontWeight: '600',
+    color: '#111827',
+  },
+
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   summaryCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     margin: rw(4),
     borderRadius: rw(3),
     padding: rw(4),
     elevation: 2,
   },
-  summaryTitle: { fontSize: rf(2), fontWeight: '600', marginBottom: rh(2) },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
+
+  summaryTitle: {
+    fontSize: rf(2),
+    fontWeight: '600',
+    marginBottom: rh(2),
+    color: '#111827',
+  },
+
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
   summaryBox: {
     flex: 1,
     marginHorizontal: rw(1),
@@ -369,23 +496,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: rh(2),
   },
-  verifiedBox: { backgroundColor: '#ECFDF3' },
-  pendingBox: { backgroundColor: '#FFFAEB' },
-  summaryCount: { fontSize: rf(3), fontWeight: '700' },
-  summaryLabel: { fontSize: rf(1.6), color: '#475467' },
+
+  verifiedBox: {
+    backgroundColor: '#ECFDF3',
+  },
+
+  pendingBox: {
+    backgroundColor: '#FFFAEB',
+  },
+
+  summaryCount: {
+    fontSize: rf(3),
+    fontWeight: '700',
+    color: '#111827',
+  },
+
+  summaryLabel: {
+    fontSize: rf(1.7),
+    color: '#475467',
+    marginTop: 4,
+  },
+
   docCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     marginHorizontal: rw(4),
     marginBottom: rh(2),
     borderRadius: rw(3),
     padding: rw(4),
     elevation: 2,
   },
+
   docHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
+
   docIcon: {
     width: rw(8),
     height: rw(8),
@@ -395,15 +546,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: rw(2),
   },
-  docTitle: { fontSize: rf(2), fontWeight: '600' },
-  statusText: { marginLeft: rw(1), fontSize: rf(1.6), fontWeight: '500' },
-  numberText: { marginTop: rh(1), fontSize: rf(1.7), color: '#667085' },
-  hintText: { marginTop: rh(1), fontSize: rf(1.5), color: '#475467' },
+
+  docTitle: {
+    fontSize: rf(2),
+    fontWeight: '600',
+    color: '#111827',
+  },
+
+  numberText: {
+    marginTop: 4,
+    fontSize: rf(1.6),
+    color: '#667085',
+  },
+
+  statusText: {
+    marginLeft: rw(1),
+    fontSize: rf(1.6),
+    fontWeight: '600',
+  },
+
+  hintText: {
+    marginTop: rh(1.5),
+    fontSize: rf(1.5),
+    color: '#667085',
+  },
+
   actionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginTop: rh(2),
   },
+
   viewBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -412,10 +584,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D0D5DD',
     borderRadius: rw(6),
-    paddingVertical: rh(1),
+    paddingVertical: rh(1.2),
     marginRight: rw(2),
+    backgroundColor: '#FFFFFF',
   },
-  viewText: { marginLeft: rw(1), fontSize: rf(1.7) },
+
+  viewText: {
+    marginLeft: rw(1),
+    fontSize: rf(1.7),
+    color: '#111827',
+    fontWeight: '500',
+  },
+
   updateBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -423,27 +603,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#192A51',
     borderRadius: rw(6),
-    paddingVertical: rh(1),
+    paddingVertical: rh(1.2),
     marginLeft: rw(2),
   },
+
   updateText: {
     marginLeft: rw(1),
     fontSize: rf(1.7),
-    color: '#fff',
-    fontWeight: '500',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
   modalClose: {
     position: 'absolute',
     top: rh(5),
     right: rw(5),
-    zIndex: 10,
+    width: rw(10),
+    height: rw(10),
+    borderRadius: rw(5),
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
   },
-  rightIconWrapper: {
-  width: rw(11),
-  height: rw(11),
-  borderRadius: rw(5),
-  justifyContent: 'center',
-  alignItems: 'center',
-},
 });
+
