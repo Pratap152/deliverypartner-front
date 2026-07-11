@@ -17,9 +17,9 @@ export default function SuccessModal({
   visible,
   onClose,
   slots = [],
-}) {
+}){
   const navigation = useNavigation();
-
+  
   return (
     <BaseModal
       visible={visible}
@@ -32,20 +32,24 @@ export default function SuccessModal({
       <Text style={styles.title}>Slot Booked Successfully</Text>
 
       {slots.length > 0 ? (
-        slots.map(slot => (
-          <View key={slot.slotId} style={styles.slotContainer}>
-            <Text style={styles.slotTime}>
-              {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
-            </Text>
+        slots.map(slot => {
+          const duration = slot.durationMinutes;
+          const breakTime = slot.breakInMinutes;
+          return (
+            <View key={slot.slotId} style={styles.slotContainer}>
+              <Text style={styles.slotTime}>
+                {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+              </Text>
 
-            <Text style={styles.slotDuration}>
-              Duration {formatDuration(slot.durationMinutes)}
-              {slot.breakInMinutes
-                ? ` • Break ${formatDuration(slot.breakInMinutes)}`
-                : ''}
-            </Text>
-          </View>
-        ))
+             <Text style={styles.slotDuration}>
+                Duration {formatDuration(duration)}
+                {breakTime != null
+                  ? ` • Break ${formatDuration(breakTime)}`
+                  : ""}
+              </Text>
+            </View>
+          );
+        })
       ) : (
         <Text style={styles.slotDuration}>
           Your slot has been booked successfully.
@@ -61,7 +65,7 @@ export default function SuccessModal({
           })
         }>
         <Text style={styles.primaryText}>
-          Go Online
+          Go Online & Earn
         </Text>
       </TouchableOpacity>
     </BaseModal>

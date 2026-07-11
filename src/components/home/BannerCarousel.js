@@ -113,7 +113,7 @@ const BannerCarousel = ({ data }) => {
       break;
 
     case 'promotional':
-      if(item.promoType==="EV"){
+        if(item.promoType === "EV Vs PETROL"){
          navigation.navigate("EVScreen")
       }
       break;

@@ -20,6 +20,8 @@ import { launchCamera } from 'react-native-image-picker';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {PermissionsAndroid, Platform} from 'react-native';
+
 
 export default function FaceVerificationScreen({ navigation, route }) {
 
@@ -74,21 +76,47 @@ export default function FaceVerificationScreen({ navigation, route }) {
 
   /* ================= RETAKE PHOTO ================= */
 
-  const retake = () => {
-    launchCamera(cameraOptions, response => {
-      if (response.didCancel) return;
-      if (response.errorCode) {
-        console.log('Camera error:', response.errorMessage);
-        return;
-      }
+  const requestCameraPermission = async () => {
+  if (Platform.OS !== 'android') {
+    return true;
+  }
 
-      const asset = response.assets && response.assets[0];
-      if (asset?.uri) {
-        setPhoto(asset.uri);
-      }
-    });
-  };
+  const granted = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+    {
+      title: 'Camera Permission',
+      message: 'App needs camera permission to capture your selfie.',
+      buttonPositive: 'Allow',
+      buttonNegative: 'Deny',
+    },
+  );
 
+  return granted === PermissionsAndroid.RESULTS.GRANTED;
+};
+
+  const retake = async () => {
+  const hasPermission = await requestCameraPermission();
+
+  if (!hasPermission) {
+    Alert.alert('Permission Required', 'Camera permission is required.');
+    return;
+  }
+
+  launchCamera(cameraOptions, response => {
+    if (response.didCancel) return;
+
+    if (response.errorCode) {
+      console.log('Camera error:', response.errorMessage);
+      return;
+    }
+
+    const asset = response.assets?.[0];
+
+    if (asset?.uri) {
+      setPhoto(asset.uri);
+    }
+  });
+};
   /* ================= FILE INFO ================= */
 
   const getFileInfo = uri => {
