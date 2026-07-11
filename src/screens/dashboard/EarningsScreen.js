@@ -251,7 +251,7 @@ const Graph = (
   );
 };
 
-const Footer = (month, riderType) => {
+const Footer = ({ month, riderType }) => {
   return (
     <TouchableOpacity style={{ marginBottom: hp(4) }} >
       <MonthlySummaryCard summary={month} riderType={riderType} />
