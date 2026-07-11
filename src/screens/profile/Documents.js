@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,28 +8,26 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Dimensions
+  Dimensions,
 } from 'react-native';
+
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ImageViewer from 'react-native-image-zoom-viewer';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 import apiClient from '../../services/ApiClient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {getAllDocuments} from '../../services/getAllDocuments';
 
-
-
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const isTablet = width >= 768;
-
-const formatTitle = key =>
-  key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
 
 const DOCUMENT_UPLOAD_CONFIG = {
   pan: {
@@ -42,9 +40,8 @@ const DOCUMENT_UPLOAD_CONFIG = {
   },
 };
 
-/*  COMPONENT  */
-const DocumentsScreen = ({ navigation }) => {
-  const [documents, setDocuments] = useState(null);
+const DocumentsScreen = ({navigation}) => {
+  const [documents, setDocuments] = useState({});
   const [loading, setLoading] = useState(true);
   const [previewImages, setPreviewImages] = useState([]);
   const [uploadingKey, setUploadingKey] = useState(null);
@@ -53,17 +50,14 @@ const DocumentsScreen = ({ navigation }) => {
     fetchDocuments();
   }, []);
 
-  /*  FETCH DOCUMENTS  */
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/api/profile/documents');
 
-      if (res.data?.success) {
-        setDocuments(res.data.data);
-      } else {
-        Alert.alert('Error', 'Failed to fetch documents');
-      }
+      const response = await getAllDocuments();
+      // console.log('Documents API:', JSON.stringify(response.data, null, 2));
+
+      setDocuments(response.data || {});
     } catch (error) {
       Alert.alert('Error', 'Unable to fetch documents');
     } finally {
@@ -71,7 +65,6 @@ const DocumentsScreen = ({ navigation }) => {
     }
   };
 
-  /*  GALLERY PICKER  */
   const openGallery = count =>
     new Promise((resolve, reject) => {
       launchImageLibrary(
@@ -82,19 +75,19 @@ const DocumentsScreen = ({ navigation }) => {
         res => {
           if (res.didCancel) return reject();
           if (res.errorCode) return reject(res.errorMessage);
+
           resolve(res.assets);
         },
       );
     });
 
-  /*  IMAGE COMPRESSION (FASTER)  */
   const compressImage = async uri => {
     const resized = await ImageResizer.createResizedImage(
       uri,
-      1024, // smaller size
+      1024,
       1024,
       'JPEG',
-      60, // faster upload, no visible quality loss
+      60,
     );
 
     return {
@@ -104,10 +97,9 @@ const DocumentsScreen = ({ navigation }) => {
     };
   };
 
-  /*  UPLOAD DOCUMENT  */
   const uploadDocument = async (docKey, images) => {
     try {
-      setUploadingKey(docKey); // start loader
+      setUploadingKey(docKey);
 
       const formData = new FormData();
 
@@ -131,207 +123,185 @@ const DocumentsScreen = ({ navigation }) => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 30000, // prevent hanging
+          timeout: 30000,
         },
       );
 
       if (res.data?.success) {
         Alert.alert(
-          'Upload Successful',
-          docKey === 'pan'
-            ? 'Your PAN card has been uploaded successfully. It will be verified shortly.'
-            : 'Your Driving License has been uploaded successfully. It will be verified shortly.',
+          'Success',
+          'Document uploaded successfully.',
         );
+
         fetchDocuments();
       } else {
-        Alert.alert('Upload failed', 'Please try again');
+        Alert.alert('Upload Failed', 'Please try again.');
       }
     } catch (error) {
       Alert.alert(
-        'Upload failed',
+        'Upload Failed',
         error?.response?.data?.message || 'Something went wrong',
       );
     } finally {
-      setUploadingKey(null); // stop loader
+      setUploadingKey(null);
     }
-  };
-
-  /*  UI HELPERS  */
-  const isVerified = status => status === 'approved';
-  const getImageUrls = doc => {
-    if (!doc) return [];
-    const urls = [];
-    if (doc.frontImage) urls.push({ url: doc.frontImage });
-    if (doc.backImage) urls.push({ url: doc.backImage });
-    if (doc.image) urls.push({ url: doc.image });
-    return urls;
   };
 
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#192A51" />
+        <ActivityIndicator
+          size="large"
+          color="#192A51"
+        />
       </View>
     );
   }
 
-  const docsArray = documents
-    ? Object.entries(documents)
-        .filter(([key]) => key !== 'aadhar')
-        .map(([key, value]) => ({
-          key,
-          title: formatTitle(key),
-          data: value,
-          number: value?.number,
-        }))
-    : [];
+  const docsArray = [
+    {
+      key: 'pan',
+      title: 'PAN Card',
+      images: documents?.pan
+        ? [{url: documents.pan}]
+        : [],
+    },
+    {
+      key: 'drivingLicense',
+      title: 'Driving License',
+      images: [
+        ...(documents?.dlFront
+          ? [{url: documents.dlFront}]
+          : []),
+        ...(documents?.dlBack
+          ? [{url: documents.dlBack}]
+          : []),
+      ],
+    },
+  ];
 
-  const verifiedCount = docsArray.filter(d => isVerified(d.data.status)).length;
-  const pendingCount = docsArray.length - verifiedCount;
-
-  /*  RENDER  */
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={rf(2.6)} />
-        </TouchableOpacity>
+  {/* Header */}
+  <View style={styles.header}>
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Ionicons
+        name="arrow-back"
+        size={rf(2.6)}
+      />
+    </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Documents</Text>
+    <Text style={styles.headerTitle}>Documents</Text>
 
-        <TouchableOpacity
-                            style={styles.rightIconWrapper}
-                            onPress={() => navigation.navigate('HelpCenterList')}
-                          >
-                            <Ionicons
-                              name="chatbubble-ellipses-outline"
-                              size={isTablet? 34 : 24}
-                              color="#192A51"
-                            />
-                          </TouchableOpacity>
-      </View>
+    <TouchableOpacity
+      style={styles.rightIconWrapper}
+      onPress={() => navigation.navigate('HelpCenterList')}
+    >
+      <Ionicons
+        name="chatbubble-ellipses-outline"
+        size={isTablet ? 34 : 24}
+        color="#192A51"
+      />
+    </TouchableOpacity>
+  </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* SUMMARY */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Document Status</Text>
+  <ScrollView
+    showsVerticalScrollIndicator={false}
+    contentContainerStyle={{ paddingBottom: rh(3) }}
+  >
+    {docsArray.map(item => {
+      const uploadMeta = DOCUMENT_UPLOAD_CONFIG[item.key];
 
-          <View style={styles.summaryRow}>
-            <View style={[styles.summaryBox, styles.verifiedBox]}>
-              <Text style={styles.summaryCount}>{verifiedCount}</Text>
-              <Text style={styles.summaryLabel}>Verified</Text>
-            </View>
+      return (
+        <View
+          key={item.key}
+          style={styles.docCard}
+        >
+          <View style={styles.docHeader}>
+            <View style={styles.row}>
+              <View style={styles.docIcon}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={rf(2.2)}
+                  color="#12B76A"
+                />
+              </View>
 
-            <View style={[styles.summaryBox, styles.pendingBox]}>
-              <Text style={styles.summaryCount}>{pendingCount}</Text>
-              <Text style={styles.summaryLabel}>Pending</Text>
+              <Text style={styles.docTitle}>
+                {item.title}
+              </Text>
             </View>
           </View>
-        </View>
 
-        {/* DOCUMENT CARDS */}
-        {docsArray.map(item => {
-          const uploadMeta = DOCUMENT_UPLOAD_CONFIG[item.key];
+          <Text style={styles.hintText}>
+            {uploadMeta.hint}
+          </Text>
 
-          return (
-            <View key={item.key} style={styles.docCard}>
-              <View style={styles.docHeader}>
-                <View style={styles.row}>
-                  <View style={styles.docIcon}>
-                    <Ionicons
-                      name="document-text-outline"
-                      size={rf(2.2)}
-                      color="#12B76A"
-                    />
-                  </View>
-                  <Text style={styles.docTitle}>{item.title}</Text>
-                </View>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={styles.viewBtn}
+              onPress={() => {
+                if (item.images.length) {
+                  setPreviewImages(item.images);
+                } else {
+                  Alert.alert(
+                    'No Image',
+                    'Document image not available.',
+                  );
+                }
+              }}
+            >
+              <Ionicons
+                name="eye-outline"
+                size={rf(2)}
+              />
+              <Text style={styles.viewText}>
+                View
+              </Text>
+            </TouchableOpacity>
 
-                <View style={styles.row}>
+            <TouchableOpacity
+              style={styles.updateBtn}
+              disabled={uploadingKey === item.key}
+              onPress={async () => {
+                try {
+                  const images = await openGallery(
+                    uploadMeta.images,
+                  );
+
+                  await uploadDocument(
+                    item.key,
+                    images,
+                  );
+                } catch (e) {}
+              }}
+            >
+              {uploadingKey === item.key ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
                   <Ionicons
-                    name={
-                      isVerified(item.data.status)
-                        ? 'checkmark-circle'
-                        : 'time-outline'
-                    }
+                    name="cloud-upload-outline"
                     size={rf(2)}
-                    color={isVerified(item.data.status) ? '#12B76A' : '#F79009'}
+                    color="#fff"
                   />
-                  <Text
-                    style={[
-                      styles.statusText,
-                      {
-                        color: isVerified(item.data.status)
-                          ? '#12B76A'
-                          : '#F79009',
-                      },
-                    ]}
-                  >
-                    {isVerified(item.data.status) ? 'Verified' : 'Pending'}
+
+                  <Text style={styles.updateText}>
+                    Re-upload
                   </Text>
-                </View>
-              </View>
-
-              {item.number && (
-                <Text style={styles.numberText}>{item.number}</Text>
+                </>
               )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    })}
+  </ScrollView>
 
-              {uploadMeta?.hint && (
-                <Text style={styles.hintText}>{uploadMeta.hint}</Text>
-              )}
-
-              <View style={styles.actionsRow}>
-                <TouchableOpacity
-                  style={styles.viewBtn}
-                  onPress={() => {
-                    const imgs = getImageUrls(item.data);
-                    if (imgs.length) setPreviewImages(imgs);
-                    else Alert.alert('No Image', 'Images not available');
-                  }}
-                >
-                  <Ionicons name="eye-outline" size={rf(2)} />
-                  <Text style={styles.viewText}>View</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.updateBtn}
-                  disabled={uploadingKey === item.key}
-                  onPress={async () => {
-                    if (!uploadMeta) {
-                      Alert.alert('Info', 'Upload not supported');
-                      return;
-                    }
-                    try {
-                      const imgs = await openGallery(uploadMeta.images);
-                      await uploadDocument(item.key, imgs);
-                    } catch {}
-                  }}
-                >
-                  {uploadingKey === item.key ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <>
-                      <Ionicons
-                        name="cloud-upload-outline"
-                        size={rf(2)}
-                        color="#fff"
-                      />
-                      <Text style={styles.updateText}>Update</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
-
-        <View style={{ height: rh(3) }} />
-      </ScrollView>
-
-      {/* IMAGE PREVIEW MODAL */}
+      {/* IMAGE PREVIEW */}
       <Modal
         visible={previewImages.length > 0}
+        transparent={false}
         animationType="fade"
         onRequestClose={() => setPreviewImages([])}
       >
@@ -344,7 +314,10 @@ const DocumentsScreen = ({ navigation }) => {
             useNativeDriver
             onSwipeDown={() => setPreviewImages([])}
             loadingRender={() => (
-              <ActivityIndicator size="large" color="#192A51" />
+              <ActivityIndicator
+                size="large"
+                color="#192A51"
+              />
             )}
           />
 
@@ -352,7 +325,11 @@ const DocumentsScreen = ({ navigation }) => {
             style={styles.modalClose}
             onPress={() => setPreviewImages([])}
           >
-            <Ionicons name="close" size={rf(3)} color="#000" />
+            <Ionicons
+              name="close"
+              size={rf(3)}
+              color="#000"
+            />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -462,4 +439,11 @@ const styles = StyleSheet.create({
     right: rw(5),
     zIndex: 10,
   },
+  rightIconWrapper: {
+  width: rw(11),
+  height: rw(11),
+  borderRadius: rw(5),
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 });

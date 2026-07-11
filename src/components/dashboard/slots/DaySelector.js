@@ -43,35 +43,25 @@ export default function DaySelector({
           const isToday = item.date === today;
 
           // Green only for today in Current Week
-          const todaySelected =
-            activeTab === TABS.CURRENT &&
-            isToday &&
-            isSelected;
+          const todaySelected = isToday && isSelected;
+          const todayUnselected = isToday && !isSelected;
 
           return (
             <TouchableOpacity
               key={item.date}
               style={[
                 styles.day,
-
                 todaySelected && styles.todayActive,
-
-                !todaySelected &&
-                  isSelected &&
-                  styles.active,
+                !todaySelected && isSelected && styles.active,
               ]}
               onPress={() => onSelect(item.date)}
             >
               <Text
                 style={[
                   styles.dayText,
-
-                  todaySelected &&
-                    styles.todayText,
-
-                  !todaySelected &&
-                    isSelected &&
-                    styles.activeText,
+                  todaySelected && styles.todayText,
+                  todayUnselected && styles.todayText,
+                  !todaySelected && isSelected && styles.activeText,
                 ]}
               >
                 {item.label}
@@ -80,13 +70,9 @@ export default function DaySelector({
               <Text
                 style={[
                   styles.dateText,
-
-                  todaySelected &&
-                    styles.todayText,
-
-                  !todaySelected &&
-                    isSelected &&
-                    styles.activeText,
+                  todaySelected && styles.todayText,
+                  todayUnselected && styles.todayText,
+                  !todaySelected && isSelected && styles.activeText,
                 ]}
               >
                 {item.day}

@@ -141,9 +141,16 @@ const ZestbotSlotsDetails = () => {
                     {/* Week Days */}
                     <View style={styles.weekContainer}>
                         {shifts.map((item, index) => {
-                            const selected = selectedShift?.bookingId === item.bookingId;
+                            const today = new Date().toISOString().split("T")[0];
+
+                            const isToday = item.date === today;
                             const date = new Date(item.date);
 
+                            const selected =
+                            selectedShift?.bookingId === item.bookingId;
+
+                            const todaySelected = isToday && selected;
+                            const todayUnselected = isToday && !selected;
                             return (
                                 <React.Fragment key={item.bookingId}>
                                     <TouchableOpacity
@@ -152,9 +159,13 @@ const ZestbotSlotsDetails = () => {
                                         style={styles.dayItem}>
 
                                         <Text
-                                            style={[
+                                           style={[
                                                 styles.dayName,
-                                                selected && styles.selectedDayName,
+                                                todaySelected && styles.todayDayName,
+                                                todayUnselected && styles.todayDayName,
+                                                !todaySelected &&
+                                                    selected &&
+                                                    styles.selectedDayName,
                                             ]}>
                                             {date.toLocaleDateString('en-US', {
                                                 weekday: 'short',
@@ -164,12 +175,19 @@ const ZestbotSlotsDetails = () => {
                                         <View
                                             style={[
                                                 styles.dateCircle,
-                                                selected && styles.selectedDateCircle,
+                                                todaySelected && styles.todayDateCircle,
+                                                !todaySelected &&
+                                                    selected &&
+                                                    styles.selectedDateCircle,
                                             ]}>
                                             <Text
                                                 style={[
                                                     styles.dayDate,
-                                                    selected && styles.selectedDayDate,
+                                                    todaySelected && styles.todayDayDate,
+                                                    todayUnselected && styles.todayDayName,
+                                                    !todaySelected &&
+                                                        selected &&
+                                                        styles.selectedDayDate,
                                                 ]}>
                                                 {date.getDate()}
                                             </Text>
@@ -409,6 +427,20 @@ const styles = StyleSheet.create({
     statusText: {
         color: '#2563EB',
         fontSize: wp('3.3%'),
+        fontWeight: '700',
+    },
+    todayDayName: {
+    color: '#16A34A',
+    fontWeight: '700',
+    },
+
+    todayDateCircle: {
+        backgroundColor: '#22C55E',
+        borderRadius: wp('5%'),
+    },
+
+    todayDayDate: {
+        color: '#FFFFFF',
         fontWeight: '700',
     },
 });
