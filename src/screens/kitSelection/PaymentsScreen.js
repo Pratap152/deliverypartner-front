@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useDispatch, useSelector } from 'react-redux';
 
 import phonePayImage from '../../assets/phone-pay-logo.png';
 import googlePayImage from '../../assets/google-pay-logo.png';
@@ -22,22 +23,16 @@ import paytmImage from '../../assets/paytm-logo.jpg';
 import apiClient from '../../services/ApiClient';
 import { COLORS } from '../../utils/colors';
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
-
-import { useDispatch, useSelector } from 'react-redux';
 import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
 
 const PAYMENT_METHODS = [
-  { id: 'phonepe', label: 'PhonePe', image: phonePayImage },
-  { id: 'gpay', label: 'Google Pay', image: googlePayImage },
-  { id: 'paytm', label: 'Paytm', image: paytmImage },
-  { id: 'upi', label: 'UPI ID', image: null },
+  { id: 'phonepe', label: 'PhonePe', image: phonePayImage, type: 'logo' },
+  { id: 'gpay', label: 'Google Pay', image: googlePayImage, type: 'logo' },
+  { id: 'paytm', label: 'Paytm', image: paytmImage, type: 'logo' },
+  { id: 'upi', label: 'Pay via UPI ID', type: 'upi' },
 ];
 
 export default function PaymentsScreen({ route }) {
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [upiId, setUpiId] = useState('');
-
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 768;
   const styles = getStyles(width, height, isTablet);
@@ -47,7 +42,6 @@ export default function PaymentsScreen({ route }) {
   const { createKitAddress } = useKitAddress();
 
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
-
   const riderKitData = useSelector(state =>
     currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
   );
@@ -61,12 +55,24 @@ export default function PaymentsScreen({ route }) {
   const apiResponse =
     route?.params?.apiResponse ?? riderKitData?.apiResponse ?? null;
   const totalAmount =
-    route?.params?.totalAmount ?? riderKitData?.totalAmount ?? null;
+    route?.params?.totalAmount ?? riderKitData?.totalAmount ?? 0;
   const paymentType =
-    route?.params?.paymentType ?? riderKitData?.paymentType ?? 'emi';
+    route?.params?.paymentType ?? riderKitData?.paymentType ?? 'online';
   const selectedEmiPlan =
     route?.params?.selectedEmiPlan ?? riderKitData?.selectedEmiPlan ?? null;
   const source = route?.params?.source ?? riderKitData?.source ?? null;
+
+  const [selectedPayment, setSelectedPayment] = useState(
+    route?.params?.selectedPaymentMethod ??
+      riderKitData?.selectedPaymentMethod ??
+      null
+  );
+  const [upiId, setUpiId] = useState(
+    route?.params?.upiId ?? riderKitData?.upiId ?? ''
+  );
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isEmiFlow = paymentType === 'emi';
 
   const pickupLocationId =
     selectedZone?.id ??
@@ -76,6 +82,32 @@ export default function PaymentsScreen({ route }) {
 
   const formatAmount = amount =>
     Number(amount || 0).toFixed(2).replace(/\.00$/, '');
+
+  const primaryAmount = useMemo(() => {
+    if (isEmiFlow && selectedEmiPlan?.monthlyAmount) {
+      return selectedEmiPlan.monthlyAmount;
+    }
+    return totalAmount;
+  }, [isEmiFlow, selectedEmiPlan, totalAmount]);
+
+  useEffect(() => {
+    const nextSelectedPayment =
+      route?.params?.selectedPaymentMethod ??
+      riderKitData?.selectedPaymentMethod ??
+      null;
+
+    const nextUpiId = route?.params?.upiId ?? riderKitData?.upiId ?? '';
+
+    setSelectedPayment(prev =>
+      prev !== nextSelectedPayment ? nextSelectedPayment : prev
+    );
+    setUpiId(prev => (prev !== nextUpiId ? nextUpiId : prev));
+  }, [
+    route?.params?.selectedPaymentMethod,
+    riderKitData?.selectedPaymentMethod,
+    route?.params?.upiId,
+    riderKitData?.upiId,
+  ]);
 
   useEffect(() => {
     if (!currentRiderId) return;
@@ -92,6 +124,8 @@ export default function PaymentsScreen({ route }) {
         paymentType,
         selectedEmiPlan,
         source,
+        selectedPaymentMethod: selectedPayment,
+        upiId,
       })
     );
   }, [
@@ -105,7 +139,16 @@ export default function PaymentsScreen({ route }) {
     paymentType,
     selectedEmiPlan,
     source,
+    selectedPayment,
+    upiId,
   ]);
+
+  const handleSelectPayment = id => {
+    setSelectedPayment(id);
+    if (id !== 'upi') {
+      setUpiId('');
+    }
+  };
 
   const handlePayment = async () => {
     if (!selectedPayment) {
@@ -118,7 +161,7 @@ export default function PaymentsScreen({ route }) {
       return;
     }
 
-    if (!selectedEmiPlan) {
+    if (isEmiFlow && !selectedEmiPlan) {
       Alert.alert('EMI plan missing', 'Please select an EMI plan before continuing');
       return;
     }
@@ -136,7 +179,7 @@ export default function PaymentsScreen({ route }) {
         );
       } else {
         if (!pickupLocationId) {
-          Alert.alert('Payment failed', 'pickupLocationId missing for selected pickup zone');
+          Alert.alert('Payment failed', 'Pickup location is missing');
           return;
         }
 
@@ -162,10 +205,14 @@ export default function PaymentsScreen({ route }) {
 
       const paymentSelectionPayload = {
         paymentMode: 'ONLINE',
-        paymentType: 'EMI',
-        emiMonths: selectedEmiPlan?.months,
-        emiPlanId: selectedEmiPlan?.id,
-        paymentApp: selectedPayment,
+        paymentType: isEmiFlow ? 'EMI' : 'FULL',
+        paymentMethod: selectedPayment,
+        ...(isEmiFlow && selectedEmiPlan
+          ? {
+              emiMonths: selectedEmiPlan?.months,
+              emiPlanId: selectedEmiPlan?.id,
+            }
+          : {}),
         ...(selectedPayment === 'upi' ? { upiId: upiId.trim() } : {}),
       };
 
@@ -191,7 +238,7 @@ export default function PaymentsScreen({ route }) {
           .join(',') || payableRequest.id;
 
       if (!requestIdsForComplete) {
-        Alert.alert('Payment error', 'requestIds not available for payment completion');
+        Alert.alert('Payment error', 'Request IDs not available for payment completion');
         return;
       }
 
@@ -225,8 +272,16 @@ export default function PaymentsScreen({ route }) {
       );
 
       navigation.replace('SuccessScreen', {
-        apiResponse: patchResponse.data,
+        apiResponse: {
+          ...patchResponse.data,
+          totalAmount: primaryAmount,
+          totalItems: riderKitData?.kitItems?.length ?? null,
+          data: riderKitData?.kitItems ?? patchResponse.data?.data,
+        },
         deliveryMode,
+        paymentType,
+        totalAmount: primaryAmount,
+        selectedEmiPlan,
         source,
       });
     } catch (err) {
@@ -244,17 +299,25 @@ export default function PaymentsScreen({ route }) {
 
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
-        style={[styles.card, selected && styles.cardSelected]}
-        onPress={() => setSelectedPayment(item.id)}
+        activeOpacity={0.85}
+        style={[
+          styles.card,
+          selected && styles.cardSelected,
+          selected && item.id === 'upi' && styles.upiCardSelected,
+        ]}
+        onPress={() => handleSelectPayment(item.id)}
         disabled={isLoading}
       >
         <View style={styles.paymentRow}>
           <View style={styles.paymentLeft}>
-            {item.image ? (
-              <Image source={item.image} style={styles.paymentImage} resizeMode="cover"/>
+            {item.type === 'logo' ? (
+              <Image
+                source={item.image}
+                style={styles.paymentImage}
+                resizeMode="contain"
+              />
             ) : (
-              <Text style={styles.upiLabel}>{item.label}</Text>
+              <Text style={styles.paymentLabel}>{item.label}</Text>
             )}
           </View>
 
@@ -265,13 +328,15 @@ export default function PaymentsScreen({ route }) {
 
         {selected && item.id === 'upi' && (
           <View style={styles.upiContainer}>
+            <Text style={styles.upiHint}>Enter your UPI ID</Text>
             <TextInput
               style={styles.upiInput}
               value={upiId}
               onChangeText={setUpiId}
-              placeholder="Enter UPI ID"
+              placeholder="example@upi"
               placeholderTextColor="#94A3B8"
               autoCapitalize="none"
+              autoCorrect={false}
               keyboardType="email-address"
             />
           </View>
@@ -294,19 +359,19 @@ export default function PaymentsScreen({ route }) {
         </View>
 
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Payable</Text>
-          <Text style={styles.summaryAmount}>₹{formatAmount(totalAmount)}</Text>
+          <Text style={styles.summaryLabel}>
+            {isEmiFlow ? 'Monthly EMI' : 'Total Payable'}
+          </Text>
 
-          {selectedEmiPlan ? (
+          <Text style={styles.summaryAmount}>₹{formatAmount(primaryAmount)}</Text>
+
+          {isEmiFlow && selectedEmiPlan ? (
             <>
-              <Text style={styles.summarySubText}>
-                EMI: ₹{formatAmount(selectedEmiPlan?.monthlyAmount)}/month
-              </Text>
               <Text style={styles.summarySubText}>
                 {selectedEmiPlan?.months} months • {selectedEmiPlan?.interestRate}% interest
               </Text>
               <Text style={styles.summarySubText}>
-                Total payable on EMI: ₹{formatAmount(selectedEmiPlan?.totalAmount)}
+                Total payable: ₹{formatAmount(selectedEmiPlan?.totalAmount)}
               </Text>
             </>
           ) : (
@@ -329,7 +394,7 @@ export default function PaymentsScreen({ route }) {
             <ActivityIndicator
               size="small"
               color={COLORS.primary}
-              style={{ marginBottom: 12 }}
+              style={styles.loader}
             />
           ) : null}
 
@@ -343,9 +408,9 @@ export default function PaymentsScreen({ route }) {
               disabled={!selectedPayment || isLoading}
             >
               <Text style={styles.payTypeText}>
-                {selectedEmiPlan
-                  ? `Pay ₹${formatAmount(selectedEmiPlan?.monthlyAmount)} EMI`
-                  : 'Continue Payment'}
+                {isEmiFlow
+                  ? `Pay ₹${formatAmount(primaryAmount)} EMI`
+                  : `Pay ₹${formatAmount(primaryAmount)}`}
               </Text>
             </TouchableOpacity>
           </View>
@@ -417,13 +482,13 @@ const getStyles = (width, height, isTablet) =>
       marginTop: height * 0.01,
     },
     listContent: {
-      paddingBottom: 10,
+      paddingBottom: 12,
     },
     card: {
       borderWidth: 1,
       borderColor: '#E2E8F0',
       borderRadius: width * 0.02,
-      padding: isTablet ? 24 : width * 0.03,
+      padding: isTablet ? 24 : width * 0.035,
       backgroundColor: COLORS.white,
       marginBottom: height * 0.02,
     },
@@ -435,24 +500,26 @@ const getStyles = (width, height, isTablet) =>
       shadowRadius: 6,
       elevation: 2,
     },
+    upiCardSelected: {
+      backgroundColor: '#F8FAFF',
+    },
     paymentRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
     paymentLeft: {
-      width: isTablet ? 220 : 170,
-      minHeight: isTablet ? 64 : 44,
+      flex: 1,
       justifyContent: 'center',
-      overflow: 'hidden',
+      minHeight: isTablet ? 60 : 42,
     },
     paymentImage: {
-      width: '100%',
-      height: isTablet ? 56 : 40,
+      width: isTablet ? 180 : 140,
+      height: isTablet ? 54 : 36,
     },
-    upiLabel: {
-      fontSize: isTablet ? 22 : 18,
-      fontWeight: '700',
+    paymentLabel: {
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: '600',
       color: COLORS.textPrimary,
     },
     radioOuter: {
@@ -463,6 +530,7 @@ const getStyles = (width, height, isTablet) =>
       borderColor: '#CBD5E1',
       alignItems: 'center',
       justifyContent: 'center',
+      marginLeft: 12,
     },
     radioOuterActive: {
       borderColor: COLORS.primary,
@@ -476,14 +544,22 @@ const getStyles = (width, height, isTablet) =>
     upiContainer: {
       marginTop: 16,
     },
+    upiHint: {
+      fontSize: 13,
+      color: '#64748B',
+      marginBottom: 8,
+    },
     upiInput: {
       height: 46,
       borderWidth: 1,
       borderRadius: 10,
       paddingHorizontal: 12,
-      borderColor: COLORS.border,
+      borderColor: '#CBD5E1',
       color: COLORS.textPrimary,
       backgroundColor: '#FFFFFF',
+    },
+    loader: {
+      marginBottom: 12,
     },
     payTypeRow: {
       marginBottom: height * 0.015,

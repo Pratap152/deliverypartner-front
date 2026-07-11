@@ -9,7 +9,6 @@ import {
  
  
 export function formatWeeks(apiWeeks = []) {
-  console.log("Weeks API Response:", apiWeeks);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -29,6 +28,7 @@ export function formatWeeks(apiWeeks = []) {
 
       durationMinutes: item.slots?.[0]?.durationMinutes ?? 0,
       breakInMinutes: item.slots?.[0]?.breakInMinutes ?? 0,
+      isPeakSlot: item.slots?.[0]?.isPeakSlot,
 }));
 }
  
