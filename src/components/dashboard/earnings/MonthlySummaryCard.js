@@ -16,19 +16,19 @@ export default function MonthlySummaryCard({ summary, onPress, riderType }) {
           </View>
           <View style={styles.totalBox}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₹{formatMoney(summary.total)}</Text>
+            <Text style={styles.totalValue}>₹{formatMoney(summary?.total)}</Text>
           </View>
         </View>
 
         <View style={styles.metrics}>
           <View style={styles.metricRow}>
-            <SummaryItem label="Orders" value={summary.orders ?? 0} />
-            <SummaryItem label="Base Earnings" value={`₹${formatMoney(summary.baseEarnings)}`} />
+            <SummaryItem label="Orders" value={summary?.orders ?? 0} />
+            <SummaryItem label="Base Earnings" value={`₹${formatMoney(summary?.baseEarnings)}`} />
           </View>
 
           <View style={[styles.metricRow, { marginTop: hp(1) }]}>
-            <SummaryItem label="Tips" value={`₹${formatMoney(summary.tips)}`} />
-            <SummaryItem label="Incentives" value={`₹${formatMoney(summary.incentives)}`} />
+            <SummaryItem label="Tips" value={`₹${formatMoney(summary?.tips)}`} />
+            <SummaryItem label="Incentives" value={`₹${formatMoney(summary?.incentives)}`} />
           </View>
         </View>
       </LinearGradient>

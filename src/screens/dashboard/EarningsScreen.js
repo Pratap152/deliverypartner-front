@@ -139,7 +139,8 @@ const Graph = (
     isEligibleForIncentives,
     weeklyTotal,
     weeklyBarChart,
-    wallet
+    wallet,
+    weeklyOrders
   }) => {
 
   const formatOrderLabel = count => {
@@ -430,6 +431,7 @@ export default function EarningsScreen({ navigation }) {
         weeklyTotal={weeklyTotal}
         weeklyBarChart={weeklyBarChart}
         wallet={wallet}
+        weeklyOrders={weeklyOrders}
       />
 
       {riderType === "INDIVIDUAL_EMPLOYEE" &&
