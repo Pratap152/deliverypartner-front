@@ -1,4 +1,6 @@
+
 import React, { memo } from 'react';
+import { useEffect } from "react";
 import {
     Modal,
     View,
@@ -9,7 +11,10 @@ import {
 } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import OrderCard from './OrderCard';
-
+import {
+  playOrderSound,
+  stopOrderSound,
+} from "../../utils/SoundManager";
 /**
  * OrderQueueModal Component
  * Handles multiple orders in a scrollable list matching reference UI.
@@ -19,24 +24,40 @@ const OrderQueueModal = ({
     orderQueue = [],
     loading,
     onAccept,
+    onReject,
     onClose,
 }) => {
-    if (!visible) return null;
+
+    useEffect(() => {
+        if (visible) {
+            playOrderSound();
+        } else {
+            stopOrderSound();
+        }
+
+        return () => stopOrderSound();
+    }, [visible]);
+
+    if (!visible) {
+        return null;
+    }
 
     const renderItem = ({ item }) => {
         const { data, countdown } = item;
         console.log("address", data)
         return (
             <OrderCard
-                distance={`${data.distanceKm || 0} kms`}
-                price={data.estimatedEarning || 0}
-                items={data.itemCount || 1}
-                pickup={data.pickupLocation?.addressLine || 'Store Location'}
-                drop={data.dropLocation?.addressLine}
-                timeLeft={countdown}
-                loading={loading}
-                onAccept={() => onAccept(data.orderId)}
-            />
+    orderId={data.orderId}
+    distance={`${data.distanceKm || 0} kms`}
+    price={data.estimatedEarning || 0}
+    items={data.itemCount || 1}
+    pickup={data.pickupLocation?.addressLine || 'Store Location'}
+    drop={data.dropLocation?.addressLine}
+    timeLeft={countdown}
+    loading={loading}
+    onAccept={() => onAccept(data.orderId)}
+    onReject={() => onReject(data.orderId)}
+/>
         );
     };
 
