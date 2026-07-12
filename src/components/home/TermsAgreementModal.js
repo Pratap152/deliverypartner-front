@@ -8,6 +8,7 @@ import {
     ScrollView,
     ActivityIndicator,
     Linking,
+    Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getLegalDocuments } from '../../services/termsDocumentsService';
@@ -55,7 +56,7 @@ const TermsAgreementModal = ({
 }) => {
     const navigation = useNavigation();
 
-    const TERMS_PDF = 'https://www.africau.edu/images/default/sample.pdf';
+    const [error, setError] = useState(null);
 
     const termsText = [
         "You agree to comply with all applicable Platform policies and operational guidelines.",
@@ -97,7 +98,7 @@ const TermsAgreementModal = ({
         try {
 
             const response = await getLegalDocuments();
-            // console.log('Legal documents response:', response);
+            console.log('Legal documents response:', response);
 
             const allPolicies = response.data.find(
                 item =>
@@ -105,24 +106,22 @@ const TermsAgreementModal = ({
                     item.isActive === true,
             );
 
-            if (allPolicies) {
-                navigation.navigate('PdfViewerScreen', {
-                    title: allPolicies.title,
-                    pdfUrl: allPolicies.contentUrl,
-                });
+            console.log("ALL POLICIES: ", allPolicies);
+
+            if (allPolicies?.url) {
+                await Linking.openURL(allPolicies.url);
                 return;
             }
 
             // Separate PDFs
-            const url = response.data.find(doc => doc.type === documentKey && doc.isActive === true)?.contentUrl;
-            if (url) {
-                console.log('Navigating to PdfViewer with URL:', url);
-                navigation.navigate('PdfViewerScreen', {
-                    title: response.data.find(doc => doc.type === documentKey)?.title,
-                    pdfUrl: url,
-                });
+            const document = response.data.find(doc => doc.type === documentKey && doc.isActive === true);
+            if (document?.url) {
+                await Linking.openURL(document.url);
+            } else {
+                Alert.alert('Document not found');
             }
         } catch (error) {
+            setError(error);
             console.log(error);
         }
     };
@@ -135,6 +134,7 @@ const TermsAgreementModal = ({
             statusBarTranslucent
             onRequestClose={() => { }}>
             <View style={styles.overlay}>
+                {error && <Text style={styles.description}>{error}</Text>}
                 <View style={styles.container}>
 
                     <Text style={styles.title}>

@@ -81,47 +81,48 @@ const offlinePaymentSubtitle = isHomeDelivery
   ]);
 
   const handleContinue = () => {
-    if (!paymentType) return;
+  if (!paymentType) return;
 
-    if (paymentType === 'online') {
-      navigation.navigate('PaymentsScreen', {
-        source,
-        deliveryMode,
-        addressData,
-        selectedZone,
-        paymentType,
-        kitItems,
-        totalAmount,
-        selectedPaymentMethod: null,
-      });
-      return;
-    }
+  if (paymentType === 'online') {
+    navigation.navigate('PaymentsScreen', {
+      source,
+      deliveryMode,
+      addressData,
+      selectedZone,
+      paymentType: 'online',
+      kitItems,
+      totalAmount,
+      selectedPaymentMethod: null,
+      selectedEmiPlan: null,
+    });
+    return;
+  }
 
-    if (paymentType === 'offline') {
-      navigation.navigate('OfflinePaymentsScreen', {
-        source,
-        deliveryMode,
-        addressData,
-        selectedZone,
-        paymentType,
-        kitItems,
-        totalAmount,
-      });
-      return;
-    }
+  if (paymentType === 'offline') {
+    navigation.navigate('OfflinePaymentsScreen', {
+      source,
+      deliveryMode,
+      addressData,
+      selectedZone,
+      paymentType: 'offline',
+      kitItems,
+      totalAmount,
+    });
+    return;
+  }
 
-    if (paymentType === 'emi') {
-      navigation.navigate('EmiPlanScreen', {
-        source,
-        deliveryMode,
-        addressData,
-        selectedZone,
-        paymentType,
-        kitItems,
-        totalAmount,
-      });
-    }
-  };
+  if (paymentType === 'emi') {
+    navigation.navigate('EmiPlanScreen', {
+      source,
+      deliveryMode,
+      addressData,
+      selectedZone,
+      paymentType: 'emi',
+      kitItems,
+      totalAmount,
+    });
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>

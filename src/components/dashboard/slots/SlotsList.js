@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import WeekSelector from './DaySelector';
+import DaySelector from './DaySelector';
 import SlotFilters from './SlotFilters';
 import SlotCard from './SlotCard';
 import EmptySlotState from './EmptySlotState';
@@ -51,7 +51,17 @@ export default function SlotsList({
         activeFilter={filter}
         selectable={selectable}
         selected={selected}
-        onSelect={() => onSlotSelect(item)}
+        onSelect={() =>
+          onSlotSelect({
+            ...item,
+            durationMinutes:
+              item.durationMinutes ?? selectedWeekData?.durationMinutes,
+            breakInMinutes:
+              item.breakInMinutes ?? selectedWeekData?.breakInMinutes,
+            isPeakSlot:
+              item.isPeakSlot ?? selectedWeekData?.isPeakSlot,
+          })
+        }
         onCancel={() => onSlotCancel(item)}
     />
     );
@@ -63,7 +73,7 @@ export default function SlotsList({
       {/* Week Loader */}
       {showHeader && (
         <>
-            <WeekSelector
+            <DaySelector
                 weeks={weeks}
                 selectedWeek={selectedWeek}
                 onSelect={onWeekSelect}

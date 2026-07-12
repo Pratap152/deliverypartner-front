@@ -76,7 +76,7 @@ const StatsCard = ({ isActive, totalOnlineMinutes }) => {
       <View style={styles.row}>
   <StatItem
     icon="trending-up"
-    value={`₹${formatMoney(todayEarnings.totalEarnings ?? 0)}`}
+    value={`₹${formatMoney(todayEarnings.total ?? 0)}`}
     label="Earnings"
     bgColor="#2ECC71"
     screen={EarningsHistoryScreen}

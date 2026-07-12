@@ -29,36 +29,30 @@ export default function SlotCard({
   // Get display status using utility
   const displayStatus = getDisplayStatus(slot, activeFilter);
 
-  // Check for peak slot (handle string or boolean)
-  const isPeakSlot = String(slot.isPeakSlot) === "true" || slot.isPeakSlot === true;
+  const isPeakSlot =
+    String(slot.isPeakSlot ?? weekData?.isPeakSlot) === "true" ||
+    slot.isPeakSlot === true ||
+    weekData?.isPeakSlot === true;
 
   const isBooked = displayStatus === DISPLAY_STATUS.BOOKED;
   const isCancelled = displayStatus === DISPLAY_STATUS.CANCELLED;
   const isAvailable = displayStatus === DISPLAY_STATUS.AVAILABLE;
 
   const duration =
-  slot.durationInMinutes ??
-  slot.durationMinutes ??
-  weekData?.durationInMinutes ??
-  weekData?.durationMinutes ??
-  weekData?.duration ??
-  null;
+    slot.durationMinutes ??
+    weekData?.durationMinutes;
 
-const breakTime =
-  slot.breakInMinutes ??
-  weekData?.breakInMinutes ??
-  weekData?.break ??
-  null;
+  const breakTime =
+    slot.breakInMinutes ??
+    weekData?.breakInMinutes;
 
-const durationText =
-  duration != null
-    ? `${formatDuration(duration)} `
-    : "--";
-
-const breakText =
-  breakTime != null
-    ? `${formatDuration(breakTime)} `
-    : "--";
+  const iconColor = isBooked
+    ? "#34C759"
+    : isCancelled
+    ? "#FF8A00"
+    : isPeakSlot
+    ? "#4C4CFF"
+    : "#2563EB";
 
   return (
     <TouchableOpacity
@@ -66,7 +60,7 @@ const breakText =
       onPress={selectable ? onSelect : null}
       style={[
         styles.card,
-        isPeakSlot && styles.peakCard, // Apply peak style base
+        isPeakSlot && styles.peakCard, 
         selected && styles.selectedCard,
         isBooked && styles.bookedCard,
         isCancelled && styles.cancelledCard,
@@ -76,19 +70,44 @@ const breakText =
       <View style={styles.headerRow}>
         {/* Left: Icon + Time info */}
         <View style={styles.leftContent}>
-          <View style={[styles.iconWrapper, isPeakSlot && styles.peakIconWrapper]}>
-            <Ionicons name="flash" size={18} color={isPeakSlot ? "#4C4CFF" : "#FF6A00"} />
-          </View>
-          <View>
-            <Text style={styles.time}>
-              {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
-            </Text>
-            <Text style={styles.earn}>
-                Duration {durationText} • Break {breakText}
-            </Text>
+            <View
+              style={[
+                styles.iconWrapper,
+                isPeakSlot && styles.peakIconWrapper,
+                isBooked && styles.bookedIconWrapper,
+                isCancelled && styles.cancelledIconWrapper,
+              ]}>
+              <Ionicons
+                name="time-outline"
+                size={isTablet ? 34 : 22}
+                color={iconColor}
+              />
+            </View>
 
-  
-          </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.time}>
+                {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+              </Text>
+
+              <Text style={styles.details}>
+                Duration {formatDuration(duration)} • Break{" "}
+                {formatDuration(breakTime)}
+              </Text>
+
+              {isPeakSlot && (
+                <View style={styles.peakInfoContainer}>
+                  <Ionicons
+                    name="flash"
+                    size={14}
+                    color="#4C4CFF"
+                    style={{marginRight: 5}}
+                  />
+                  <Text style={styles.peakText}>
+                    Peak Slot • High Demand
+                  </Text>
+                </View>
+              )}
+            </View>
         </View>
 
 
@@ -120,34 +139,42 @@ const breakText =
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFF',
-    borderRadius: isTablet ? 24 : 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    padding: isTablet ? 28 : 16,
-    marginVertical: isTablet ? 14 : 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
+  backgroundColor: '#F5F5FF',
+  borderRadius: isTablet ? 24 : 16,
+  borderWidth: 1,
+  borderColor: '#D9E0FF',
+  padding: isTablet ? 28 : 16,
+  marginVertical: isTablet ? 14 : 8,
+  shadowColor: '#000',
+  shadowOffset: {width: 0, height: 2},
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  elevation: 3,
 },
-  peakCard: {
-    backgroundColor: '#F5F5FF', 
-    borderColor: '#C7C7FF',     
-  },
-  selectedCard: {
-    borderColor: '#4C4CFF',
-    backgroundColor: '#F0F0FF',
-  },
-  bookedCard: {
-    borderColor: '#34C759',
-    backgroundColor: '#F1FFF6',
-  },
-  cancelledCard: {
-    borderColor: '#FF6A00',
-    backgroundColor: '#FFF4EC',
-  },
+
+peakCard: {
+  backgroundColor: '#EEF1FF',
+  shadowColor: '#4C4CFF',
+  shadowOffset: {width: 0, height: 3},
+  shadowOpacity: 0.15,
+  shadowRadius: 8,
+  elevation: 5,
+},
+
+selectedCard: {
+  borderColor: '#4C4CFF',
+  borderWidth: 2,
+},
+
+bookedCard: {
+  backgroundColor: '#F1FFF6',
+  borderColor: '#34C759',
+},
+
+cancelledCard: {
+  backgroundColor: '#FFF4EC',
+  borderColor: '#FF8A00',
+},
 
   headerRow: {
     flexDirection: 'row',
@@ -172,17 +199,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconWrapper: {
-    width: isTablet ? 72 : 40,
-    height: isTablet ? 72 : 40,
-    borderRadius: isTablet ? 36 : 20,
-    backgroundColor: '#FFE5D6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: isTablet ? 20 : 12,
+  width: isTablet ? 72 : 42,
+  height: isTablet ? 72 : 42,
+  borderRadius: isTablet ? 36 : 21,
+  backgroundColor: '#E8EDFF',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: isTablet ? 20 : 12,
 },
-  peakIconWrapper: {
-    backgroundColor: '#E0E0FF', 
-  },
+
+peakIconWrapper: {
+  backgroundColor: '#D7DEFF',
+},
+
+bookedIconWrapper: {
+  backgroundColor: '#E8F8ED',
+},
+
+cancelledIconWrapper: {
+  backgroundColor: '#FFF0E5',
+},
   time: {
     fontSize: isTablet ? 30 : 16,
     fontWeight: '700',
@@ -194,21 +230,33 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 6,
 },
-  // Peak specific text styles
   peakInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  peakText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4C4CFF', // Brand color for text
-  },
+  flexDirection: 'row',
+  alignItems: 'center',
+  alignSelf: 'flex-start',
+  marginTop: 8,
+  paddingHorizontal: 10,
+  paddingVertical: 5,
+  borderRadius: 20,
+  borderWidth: 1,
+  backgroundColor: '#E8ECFF',
+  borderColor: '#C7D2FE',
+},
+
+peakText: {
+  color: '#3730A3',
+  fontWeight: '700',
+  fontSize: isTablet ? 16 : 12,
+},
 
   statusRow: {
     marginTop: 12,
     flexDirection: 'row',
     justifyContent: 'center', // Keep centered as before
   },
+  details: {
+  fontSize: isTablet ? 18 : 12,
+  color: '#6B7280',
+  marginTop: 4,
+},
 });

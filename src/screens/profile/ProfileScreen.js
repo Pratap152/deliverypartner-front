@@ -30,10 +30,14 @@ import apiClient from '../../services/ApiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 
+import { getAllDocuments } from '../../services/getAllDocuments';
+
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
 
   const { data: profile } = useSelector(state => state.profile);
+
+  const [selfieUri, setSelfieUri] = useState(null);
 
   const partnerId = profile?.partnerId;
   const isPartnerActive = profile?.isPartnerActive;
@@ -69,34 +73,34 @@ export default function ProfileScreen({ navigation }) {
   );
 };
 
-  const openCamera = async () => {
-    try {
-      let permission = await Camera.getCameraPermissionStatus();
+  // const openCamera = async () => {
+  //   try {
+  //     let permission = await Camera.getCameraPermissionStatus();
 
-      if (permission === 'not-determined') {
-        permission = await Camera.requestCameraPermission();
-      }
+  //     if (permission === 'not-determined') {
+  //       permission = await Camera.requestCameraPermission();
+  //     }
 
-      if (permission === 'authorized') {
-        navigation.navigate('CameraScreen');
-        return;
-      }
+  //     if (permission === 'authorized') {
+  //       navigation.navigate('CameraScreen');
+  //       return;
+  //     }
 
-      Alert.alert(
-        'Camera Permission Required',
-        'Please allow camera access to continue',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Open Settings',
-            onPress: () => Linking.openSettings(),
-          },
-        ],
-      );
-    } catch (error) {
-      console.log('Camera permission error:', error);
-    }
-  };
+  //     Alert.alert(
+  //       'Camera Permission Required',
+  //       'Please allow camera access to continue',
+  //       [
+  //         { text: 'Cancel', style: 'cancel' },
+  //         {
+  //           text: 'Open Settings',
+  //           onPress: () => Linking.openSettings(),
+  //         },
+  //       ],
+  //     );
+  //   } catch (error) {
+  //     console.log('Camera permission error:', error);
+  //   }
+  // };
 
   const fetchStats = async () => {
     try {
@@ -116,26 +120,43 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const fetchSelfie = async () => {
+  try {
+    const res = await getAllDocuments();
+    setSelfieUri(res?.data?.selfie || null);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
   useFocusEffect(
-    useCallback(() => {
-      dispatch(fetchProfile());
-      fetchStats();
-    }, [dispatch]),
-  );
+  useCallback(() => {
+    dispatch(fetchProfile());
+    fetchStats();
+    fetchSelfie();
+  }, [dispatch]),
+);
 
-  const getSelfieUri = selfie => {
-    if (!selfie) return null;
 
-    if (typeof selfie === 'string') return selfie;
 
-    if (typeof selfie === 'object' && selfie.url) {
-      return selfie.url;
-    }
 
-    return null;
-  };
+  
+//   useEffect(() => {
+//   console.log('PROFILE SELFIE:', profile?.selfie);
+// }, [profile]);
 
-  const selfieUri = getSelfieUri(profile?.selfie);
+//   const getSelfieUri = selfie => {
+//     if (!selfie) return null;
+
+//     if (typeof selfie === 'string') return selfie;
+
+//     if (typeof selfie === 'object' && selfie.url) {
+//       return selfie.url;
+//     }
+
+//     return null;
+//   };
+
 
   return (
     <SafeAreaView

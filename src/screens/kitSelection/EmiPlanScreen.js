@@ -123,6 +123,7 @@ const EmiPlanScreen = ({ navigation, route }) => {
       totalAmount: kitAmount ?? totalAmount,
       source,
       selectedEmiPlan: selectedPlan,
+      selectedPaymentMethod: null,
     })
   );
 
@@ -134,6 +135,7 @@ const EmiPlanScreen = ({ navigation, route }) => {
     totalAmount: kitAmount ?? totalAmount,
     paymentType: 'emi',
     selectedEmiPlan: selectedPlan,
+    selectedPaymentMethod: null,
   });
 };
 

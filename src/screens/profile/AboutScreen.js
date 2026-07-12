@@ -22,16 +22,16 @@ import {
 import { Linking } from 'react-native';
 import { useEffect, useState } from 'react';
 import apiClient from '../../services/ApiClient';
-
+ 
 const isTablet = DeviceInfo.isTablet();
-
+ 
 export default function AboutScreen({ navigation }) {
     const [policies, setPolicies] = useState([]);
-
+ 
     const getPolicies = async () => {
         try {
             const response = await apiClient.get('/api/rider/all/policies');
-
+ 
             if (response?.data?.success) {
                 setPolicies(response.data.data);
             }
@@ -39,27 +39,27 @@ export default function AboutScreen({ navigation }) {
             console.log('Policies Error:', error);
         }
     };
-
+ 
     useEffect(() => {
         getPolicies();
     }, []);
-
-    const openPolicy = type => {
-        const policy = policies.find(item => item.type === type);
-
-        if (policy?.contentUrl) {
-            Linking.openURL(policy.contentUrl);
-        }
-    };
-
+ 
+   const policyUrl = policies?.[0]?.url;
+ 
+const openPolicy = () => {
+    if (policyUrl) {
+        Linking.openURL(policyUrl);
+    }
+};
+ 
     const openWebsite = () => {
         Linking.openURL('https://www.zestbot.in/');
     };
-
+ 
     const openEmail = () => {
         Linking.openURL('mailto:rider@zestbot.in');
     };
-
+ 
     return (
         <SafeAreaView
             style={styles.safeArea}
@@ -74,11 +74,11 @@ export default function AboutScreen({ navigation }) {
                         color="#101828"
                     />
                 </TouchableOpacity>
-
+ 
                 <Text style={styles.headerTitle}>
                     About
                 </Text>
-
+ 
                 <TouchableOpacity
                     style={styles.rightIconWrapper}
                     onPress={() => navigation.navigate('HelpCenterList')}
@@ -90,7 +90,7 @@ export default function AboutScreen({ navigation }) {
                     />
                 </TouchableOpacity>
             </View>
-
+ 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.container}
@@ -104,51 +104,51 @@ export default function AboutScreen({ navigation }) {
                             resizeMode="contain"
                         />
                     </View>
-
+ 
                     <Text style={styles.appName}>
                         ZestBot Rider
                     </Text>
-
+ 
                     <Text style={styles.appSubtitle}>
                         Your delivery partner app
                     </Text>
                 </View>
-
+ 
                 {/* App Information */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>
                         App Information
                     </Text>
-
+ 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>
                             Version
                         </Text>
-
+ 
                         <Text style={styles.infoValue}>
                             {DeviceInfo.getVersion()}
                         </Text>
                     </View>
-
+ 
                     <View style={styles.divider} />
-
+ 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>
                             Build Number
                         </Text>
-
+ 
                         <Text style={styles.infoValue}>
                             {DeviceInfo.getBuildNumber()}
                         </Text>
                     </View>
                 </View>
-
+ 
                 {/* Contact Us */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>
                         Contact Us
                     </Text>
-
+ 
                     <TouchableOpacity
                         style={styles.contactRow}
                         activeOpacity={0.7}
@@ -161,20 +161,20 @@ export default function AboutScreen({ navigation }) {
                                 color='#1F3365'
                             />
                         </View>
-
+ 
                         <View style={styles.contactContent}>
                             <Text style={styles.contactLabel}>
                                 Email
                             </Text>
-
+ 
                             <Text style={[styles.contactValue, styles.linkText]}>
                                 rider@zestbot.in
                             </Text>
                         </View>
                     </TouchableOpacity>
-
+ 
                     <View style={styles.divider} />
-
+ 
                     <TouchableOpacity
                         style={styles.contactRow}
                         activeOpacity={0.7}
@@ -187,25 +187,25 @@ export default function AboutScreen({ navigation }) {
                                 color='#1F3365'
                             />
                         </View>
-
+ 
                         <View style={styles.contactContent}>
                             <Text style={styles.contactLabel}>
                                 Website
                             </Text>
-
+ 
                             <Text style={[styles.contactValue, styles.linkText]}>
                                 https://www.zestbot.in/
                             </Text>
                         </View>
                     </TouchableOpacity>
                 </View>
-
+ 
                 {/* Description */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>
                         About ZestBot Rider
                     </Text>
-
+ 
                     <Text style={styles.description}>
                         Delivery Partner is an application designed for riders to manage
                         deliveries efficiently. Riders can accept orders, navigate to pickup
@@ -213,56 +213,54 @@ export default function AboutScreen({ navigation }) {
                         and receive real-time updates.
                     </Text>
                 </View>
-
+ 
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>
                         Legal
                     </Text>
-
+ 
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() => openPolicy('OPERATIONS_POLICY')}
+                       onPress={openPolicy}
                     >
                         <Text style={styles.legalText}>
                             Terms of Services
                         </Text>
-
+ 
                         <Ionicons
                             name="chevron-forward"
                             size={20}
                             color="#999"
                         />
                     </TouchableOpacity>
-
+ 
                     <View style={styles.divider} />
-
+ 
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() => openPolicy('PRIVACY_POLICY')}
+                        onPress={openPolicy}
                     >
                         <Text style={styles.legalText}>
                             Privacy Policy
                         </Text>
-
+ 
                         <Ionicons
                             name="chevron-forward"
                             size={20}
                             color="#999"
                         />
                     </TouchableOpacity>
-
+ 
                     <View style={styles.divider} />
-
+ 
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() =>
-                            openPolicy('DELIVERY_PARTNER_AGREEMENT')
-                        }
+                        onPress={openPolicy}
                     >
                         <Text style={styles.legalText}>
                             License & Acknowledgment
                         </Text>
-
+ 
                         <Ionicons
                             name="chevron-forward"
                             size={20}
@@ -270,18 +268,18 @@ export default function AboutScreen({ navigation }) {
                         />
                     </TouchableOpacity>
                 </View>
-
+ 
             </ScrollView>
         </SafeAreaView>
     );
 }
-
+ 
 const styles = StyleSheet.create({
     root: {
         flex: 1,
         backgroundColor: '#F4F6F8',
     },
-
+ 
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -291,30 +289,30 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         elevation: 3,
     },
-
+ 
     headerTitle: {
         fontSize: rf(2.3),
         fontWeight: '700',
         color: '#101828',
     },
-
+ 
     robotIcon: {
         width: rw(7.5),
         height: rw(7.5),
         resizeMode: 'contain',
     },
-
+ 
     container: {
         paddingHorizontal: wp('5%'),
         paddingTop: hp('3%'),
         paddingBottom: hp('8%'),
     },
-
+ 
     logoSection: {
         alignItems: 'center',
         marginBottom: hp('3%'),
     },
-
+ 
     logoCard: {
         width: wp('40%'),
         height: wp('20%'),
@@ -324,7 +322,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: hp('1.8%'),
     },
-
+ 
     logo: {
         width: wp('40%'),
         height: wp('30%'),
@@ -334,13 +332,13 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#222222',
     },
-
+ 
     appSubtitle: {
         marginTop: hp('0.5%'),
         fontSize: isTablet ? wp('2.2%') : wp('3.8%'),
         color: '#7B7B7B',
     },
-
+ 
     card: {
         width: '100%',
         backgroundColor: '#FFFFFF',
@@ -357,32 +355,32 @@ const styles = StyleSheet.create({
             height: 2,
         },
     },
-
+ 
     cardTitle: {
         fontSize: isTablet ? wp('2.8%') : wp('4.3%'),
         fontWeight: '700',
         color: '#222222',
         marginBottom: hp('1.2%'),
     },
-
+ 
     infoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: hp('1%'),
     },
-
+ 
     infoLabel: {
         fontSize: isTablet ? wp('2.2%') : wp('4%'),
         color: '#666666',
     },
-
+ 
     infoValue: {
         fontSize: isTablet ? wp('2.2%') : wp('4%'),
         color: '#222222',
         fontWeight: '600',
     },
-
+ 
     divider: {
         height: 1,
         backgroundColor: '#ECECEC',
@@ -392,7 +390,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: hp('1.5%'),
     },
-
+ 
     contactIcon: {
         width: wp('11%'),
         height: wp('11%'),
@@ -402,17 +400,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight: wp('3.5%'),
     },
-
+ 
     contactContent: {
         flex: 1,
     },
-
+ 
     contactLabel: {
         fontSize: isTablet ? wp('2.2%') : wp('3.5%'),
         color: '#8B8B8B',
         marginBottom: hp('0.3%'),
     },
-
+ 
     contactValue: {
         fontSize: isTablet ? wp('2.3%') : wp('4%'),
         color: '#1F3365',
@@ -435,10 +433,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: hp('1.8%'),
     },
-
+ 
     legalText: {
         fontSize: isTablet ? wp('2.3%') : wp('4%'),
         color: '#222',
         fontWeight: '500',
     },
 });
+ 
