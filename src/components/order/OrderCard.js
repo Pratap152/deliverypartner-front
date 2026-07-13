@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
@@ -20,7 +21,8 @@ const OrderCard = ({
     drop,
     timeLeft,
     onAccept,
-    loading
+    onReject,
+    loading,
 }) => {
     return (
         <View style={styles.card}>
@@ -53,19 +55,34 @@ const OrderCard = ({
                 </View>
             </View>
 
-            <TouchableOpacity
-                style={[
-                    styles.acceptButton,
-                    { backgroundColor: getButtonColor(timeLeft) },
-                ]}
-                disabled={timeLeft === 0 || loading}
-                activeOpacity={0.85}
-                onPress={onAccept}
-            >
-                <Text style={styles.acceptText}>
-                    {timeLeft > 0 ? `Accept in ${timeLeft}` : 'Expired'}
-                </Text>
-            </TouchableOpacity>
+            <View style={styles.buttonRow}>
+    <TouchableOpacity
+        style={styles.rejectButton}
+        activeOpacity={0.85}
+        onPress={onReject}
+        disabled={loading}
+    >
+        <Ionicons
+            name="close"
+            size={25}
+            color="#FFFFFF"
+        />
+    </TouchableOpacity>
+
+    <TouchableOpacity
+        style={[
+            styles.acceptButton,
+            { backgroundColor: getButtonColor(timeLeft) },
+        ]}
+        disabled={timeLeft === 0 || loading}
+        activeOpacity={0.85}
+        onPress={onAccept}
+    >
+        <Text style={styles.acceptText}>
+            {timeLeft > 0 ? `Accept in ${timeLeft}` : 'Expired'}
+        </Text>
+    </TouchableOpacity>
+</View>
         </View>
     );
 };
@@ -83,7 +100,22 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 5,
+        position: 'relative',
     },
+    rejectButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp('3%'),
+},
+buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: hp('1%'),
+},
     topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -144,13 +176,13 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#333',
     },
-    acceptButton: {
-        marginTop: hp("1%"),
-        borderRadius: wp("8%"),
-        paddingVertical: hp("1.8%"),
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
+   acceptButton: {
+    flex: 1,
+    borderRadius: wp("8%"),
+    paddingVertical: hp("1.8%"),
+    alignItems: 'center',
+    justifyContent: 'center',
+},
     acceptText: {
         color: '#fff',
         fontWeight: '800',

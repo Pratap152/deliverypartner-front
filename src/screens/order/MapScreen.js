@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
     View,
@@ -23,13 +24,16 @@ import NetInfo from '@react-native-community/netinfo';
 import { orderService } from '../../services/order/OrderService';
 import Config from 'react-native-config';
 import {useGPS} from '../../context/GPSContext';
+import { useRider } from "../../context/RiderContext";
+import { getDistance } from 'geolib';
 
 
 
+
+const ARRIVAL_RADIUS = 100; 
 const APP_LOGO = require('../../assets/Applogo.png');
 const RESTAURANT_ICON = require('../../assets/restaurant.png');
 const HOME_ICON = require('../../assets/drop.png');
-
 
 // CLEAN GOOGLE MAP STYLE
 const MAP_STYLE = [
@@ -53,6 +57,8 @@ const MapScreen = ({ route, navigation }) => {
   
     // STATE
     const { location, currentLocation, currentHeading } = useGPS();
+    console.log("GPS Location:", currentLocation);
+    const { checkCurrentOrder } = useRider();
     const isLocating = !currentLocation;
     const locationError = null;
 
@@ -70,7 +76,7 @@ const MapScreen = ({ route, navigation }) => {
         distance: null,
         duration: null,
     });
-
+const [showArrivalButton, setShowArrivalButton] = useState(false);
 
     // REFS
     const mapRef = useRef(null);
@@ -167,10 +173,32 @@ const MapScreen = ({ route, navigation }) => {
 
     // RESET ROUTE FIT
     useEffect(() => {
-        hasRouteFitted.current = false;
-    }, [targetLocation]);
 
-    
+    if (!currentLocation || !targetLocation) {
+        return;
+    }
+const distance = getDistance(
+    currentLocation,
+    targetLocation
+);
+
+console.log("Distance:", distance);
+
+if (
+    distance <= ARRIVAL_RADIUS &&
+    !showArrivalButton
+) {
+    setShowArrivalButton(true);
+}
+}, [
+    currentLocation,
+    targetLocation,
+    isPickup,
+    orderId,
+    navigation,
+]);
+
+   
     // OFFLINE DETECTION
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(
@@ -270,42 +298,6 @@ const MapScreen = ({ route, navigation }) => {
         });
     };
 
-    // ARRIVAL ACTION
-    const handleArrival = async () => {
-        try {
-            setButtonLoading(true);
-
-            if (isPickup) {
-
-                await orderService.markArrivedAtPickup(orderId);
-
-                navigation.replace(
-                    'OrderDetailsScreen',
-                    { orderId }
-                );
-
-            } else {
-
-                await orderService.markArrivedAtDrop(orderId);
-
-                navigation.replace(
-                    'OrderDetailsScreen',
-                    { orderId }
-                );
-            }
-
-        } catch (err) {
-
-            Alert.alert(
-                "Error",
-                "Failed to update status. Please try again."
-            );
-
-        } finally {
-
-            setButtonLoading(false);
-        }
-    };
 
     // OPEN MAPS REDIRECT
     const handleOpenMaps = () => {
@@ -332,6 +324,45 @@ const MapScreen = ({ route, navigation }) => {
             });
         });
     };
+    const handleArrival = async () => {
+
+    try {
+
+        setButtonLoading(true);
+
+        if (isPickup) {
+
+            await orderService.markArrivedAtPickup(orderId);
+
+        } else {
+
+            await orderService.markArrivedAtDrop(orderId);
+
+        }
+await checkCurrentOrder();
+        navigation.replace(
+    "OrderDetailsScreen",
+    {
+        orderId,
+        status: isPickup
+            ? "RIDER_ARRIVED_AT_PICKUP"
+            : "RIDER_ARRIVED_AT_DROP",
+    }
+);
+    } catch (error) {
+
+        Alert.alert(
+            "Error",
+            "Unable to update status."
+        );
+
+    } finally {
+
+        setButtonLoading(false);
+
+    }
+
+};
 
     // LOADING STATE
     if (isFetchingOrder && !passedOrderDetails) {
@@ -368,7 +399,14 @@ const MapScreen = ({ route, navigation }) => {
             </View>
         );
     }
-
+if (!currentLocation) {
+    return (
+        <View style={styles.center}>
+            <ActivityIndicator size="large" color="#00C4B4" />
+            <Text>Getting current location...</Text>
+        </View>
+    );
+}
     // UI
     return (
 
@@ -402,17 +440,11 @@ const MapScreen = ({ route, navigation }) => {
                 showsCompass={false}
                 showsScale={false}
                 initialRegion={{
-                    latitude:
-                        currentLocation?.latitude ||
-                        FALLBACK_START_LOCATION.latitude,
-
-                    longitude:
-                        currentLocation?.longitude ||
-                        FALLBACK_START_LOCATION.longitude,
-
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                }}
+    latitude: currentLocation.latitude,
+    longitude: currentLocation.longitude,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+}}
                 onPanDrag={() => {
                     isTrackingRef.current = false;
                     setIsTracking(false);
@@ -634,32 +666,23 @@ const MapScreen = ({ route, navigation }) => {
                         {targetAddress}
                     </Text>
                 </View>
-
-
-                <TouchableOpacity
-                    style={[
-                        styles.actionButton,
-                        buttonLoading &&
-                        styles.actionButtonInactive
-                    ]}
-                    onPress={handleArrival}
-                    disabled={buttonLoading}
-                >
-
-                    {buttonLoading ? (
-
-                        <ActivityIndicator color="#fff" />
-
-                    ) : (
-
-                        <Text style={styles.actionButtonText}>
-                            {isPickup
-                                ? 'Arrived at Restaurant'
-                                : 'Arrived at Drop Location'}
-                        </Text>
-                    )}
-                </TouchableOpacity>
-
+{showArrivalButton && (
+    <TouchableOpacity
+        style={styles.actionButton}
+        onPress={handleArrival}
+        disabled={buttonLoading}
+    >
+        {buttonLoading ? (
+            <ActivityIndicator color="#FFFFFF" />
+        ) : (
+            <Text style={styles.actionButtonText}>
+                {isPickup
+                    ? "Arrived at Restaurant"
+                    : "Arrived at Drop Location"}
+            </Text>
+        )}
+    </TouchableOpacity>
+)}
             </View>
 
         </View>
