@@ -1,3 +1,4 @@
+
 import React, {
  
   createContext,
@@ -29,6 +30,10 @@ import OrderQueueModal from "../components/order/OrderQueueModal";
 import { WEBSOCKET_URL } from "../utils/host";
 
 import { gpsService } from "../services/gps/GpsService";
+import {
+    playOrderSound,
+    stopOrderSound,
+} from "../utils/SoundManager";
  
 const RiderContext = createContext();
  
@@ -37,6 +42,8 @@ export const RiderProvider = ({ children }) => {
   const socketRef = useRef(null);
  
   const popupShownRef = useRef(false);
+
+  const heartbeatRef = useRef(null);
  
   /** ---------------------------
  
@@ -51,8 +58,9 @@ export const RiderProvider = ({ children }) => {
   const [status, setStatus] = useState("DISCONNECTED");
  
   const [loading, setLoading] = useState(false);
- 
-  const [accessToken, setAccessToken] = useState(null);
+
+  const [activeOrder, setActiveOrder] = useState(null);
+
  
   const [riderStatus, setRiderStatus] = useState(null);
  
@@ -79,19 +87,21 @@ export const RiderProvider = ({ children }) => {
    * --------------------------*/
  
   useEffect(() => {
+  const init = async () => {
+    const { accessToken } = await tokenService.get();
+
+    if (accessToken) {
+      checkCurrentOrder();
+    }
+  };
+
+  init();
+}, []);
  
-    const loadToken = async () => {
- 
-      const { accessToken } = await tokenService.get();
- 
-      setAccessToken(accessToken);
- 
-    };
- 
-    loadToken();
- 
-  }, []);
- 
+
+   // Check active order when token is available 
+
+
   /** ---------------------------
  
    * SHIFT STARTED POPUP
@@ -140,100 +150,127 @@ export const RiderProvider = ({ children }) => {
     syncTracking();
   }, [actuallyOnline]);
  
+
+  useEffect(() => {
+  if (!actuallyOnline) return;
+
+  const connected =
+    socketRef.current &&
+    socketRef.current.readyState === WebSocket.OPEN;
+
+  if (!connected) {
+    console.log("Connecting WebSocket...");
+    connectSocket();
+  }
+}, [actuallyOnline]);
   /** ---------------------------
  
    * SOCKET
  
    * --------------------------*/
- 
-  const connectSocket = () => {
- 
-    const isSocketConnected =
- 
-      socketRef.current &&
- 
-      socketRef.current.readyState === WebSocket.OPEN;
- 
-    if (isSocketConnected || !accessToken) return;
- 
-    setStatus("CONNECTING");
- 
-    const ws = new WebSocket(
- 
-      `${WEBSOCKET_URL}/ws?type=RIDER_NOTIFICATION&token=${accessToken}`
- 
+const connectSocket = async () => {
+
+  const { accessToken } = await tokenService.get();
+
+  if (!accessToken) {
+    console.log("No access token");
+    return;
+  }
+
+  // ✅ Prevent multiple socket connections
+  if (
+    socketRef.current &&
+    (socketRef.current.readyState === WebSocket.OPEN ||
+      socketRef.current.readyState === WebSocket.CONNECTING)
+  ) {
+    console.log("🟢 Socket already connected");
+    return;
+  }
+  const ws = new WebSocket(
+    `${WEBSOCKET_URL}/ws?type=RIDER_NOTIFICATION&token=${accessToken}`
+  );
+
+  socketRef.current = ws;
+  setStatus("CONNECTING");
+
+  ws.onopen = () => {
+    heartbeatRef.current = setInterval(() => {
+  if (
+    socketRef.current &&
+    socketRef.current.readyState === WebSocket.OPEN
+  ) {
+    socketRef.current.send(
+      JSON.stringify({
+        type: "PING",
+      })
     );
- 
-    socketRef.current = ws;
- 
-    ws.onopen = () => {
- 
-      console.log("WS connected");
- 
-      setStatus("CONNECTED");
- 
-    };
- 
-    ws.onerror = (error) => {
- 
-      console.log("WS error", error);
- 
-    };
- 
-    ws.onmessage = (event) => {
- 
-      try {
- 
-        const data = JSON.parse(event.data);
- 
-        if (data.type === "ORDER_POPUP") {
- 
-          addOrderToQueue(data);
- 
-        }
- 
-        if (data.type === "ORDER_CANCELLED") {
- 
-          removeOrderFromQueue(data.orderId);
- 
-          Alert.alert(
- 
-            "Order Cancelled",
- 
-            "Order was cancelled by the system."
- 
-          );
- 
-          navigate("MainTabs");
- 
-        }
- 
-      } catch (e) {
- 
-        console.log("WS parse error", e);
- 
-      }
- 
-    };
- 
-    ws.onclose = () => {
- 
-      console.log("WS disconnected");
- 
-      socketRef.current = null;
- 
-      setStatus("DISCONNECTED");
- 
-      if (!actuallyOnline) {
- 
-        setOrderQueue([]);
- 
-      }
- 
-    };
- 
+  }
+}, 30000);
+    console.log("🟢 WS Connected");
+    setStatus("CONNECTED");
   };
- 
+
+  ws.onmessage = (event) => {
+    console.log("📩 RAW WS MESSAGE:", event.data);
+
+    try {
+      const data = JSON.parse(event.data);
+
+      console.log("📦 Parsed Message:", data);
+
+      switch (data.type) {
+        case "ORDER_POPUP":
+          console.log("🚴 ORDER_POPUP RECEIVED");
+            playOrderSound();
+          addOrderToQueue(data);
+          break;
+
+        case "ORDER_CANCELLED":
+          console.log("❌ ORDER_CANCELLED");
+stopOrderSound();
+          removeOrderFromQueue(data.orderId);
+
+          Alert.alert(
+            "Order Cancelled",
+            "Order was cancelled by the system."
+          );
+
+          navigate("MainTabs");
+          break;
+
+        default:
+          console.log("Unknown Message:", data);
+      }
+    } catch (err) {
+      console.log("WS Parse Error:", err);
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.log("❌ WS Error:", err.message || err);
+  };
+
+ ws.onclose = (event) => {
+  console.log("WS Closed:", event.code, event.reason);
+
+  socketRef.current = null;
+  setStatus("DISCONNECTED");
+
+  if (heartbeatRef.current) {
+    clearInterval(heartbeatRef.current);
+    heartbeatRef.current = null;
+}
+
+if (event.code === 4010) {
+    console.log("Token expired. Do not reconnect.");
+    return;
+}
+
+  if (actuallyOnline) {
+    setTimeout(connectSocket, 3000);
+  }
+};
+};
   const disconnectSocket = () => {
  
     if (socketRef.current) {
@@ -262,35 +299,30 @@ export const RiderProvider = ({ children }) => {
  
       "change",
  
-      (nextAppState) => {
+      (nextAppState) => { 
  
         console.log("App State:", nextAppState);
  
         if (
- 
-          nextAppState === "active" &&
- 
-          actuallyOnline &&
- 
-          accessToken
- 
-        ) {
- 
-          const isSocketConnected =
- 
-            socketRef.current &&
- 
-            socketRef.current.readyState === WebSocket.OPEN;
- 
-          if (!isSocketConnected) {
- 
-            console.log("App active again, reconnecting socket");
- 
-            connectSocket();
- 
-          }
- 
-        }
+    nextAppState === "active" &&
+    actuallyOnline
+) {
+
+    // Refresh active order
+    checkCurrentOrder();
+
+    const isSocketConnected =
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN;
+
+    if (!isSocketConnected) {
+
+        console.log("App active again, reconnecting socket");
+
+        connectSocket();
+
+    }
+}
  
       }
  
@@ -302,8 +334,18 @@ export const RiderProvider = ({ children }) => {
  
     };
  
-  }, [actuallyOnline, accessToken]);
+}, [actuallyOnline]);
  
+
+
+  useEffect(() => {
+  return () => {
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+    }
+    disconnectSocket();
+  };
+}, []);
   /** ---------------------------
  
    * GO ONLINE / OFFLINE
@@ -398,6 +440,54 @@ export const RiderProvider = ({ children }) => {
  
   };
  
+  const checkCurrentOrder = async () => {
+
+    try {
+
+        const res =
+            await orderService.getCurrentOrderStatus();
+             console.log("Current Order API:", res);
+
+        if (!res?.success) {
+            setActiveOrder(null);
+            return;
+        }
+
+        const current =
+            res.statusTimeline.find(
+                item => item.isCurrent
+            );
+
+        if (!current) {
+            setActiveOrder(null);
+            return;
+        }
+
+        if (
+            current.status === "DELIVERED" ||
+            current.status === "CANCELLED" ||
+            current.status === "DELIVERY_FAILED"
+        ) {
+            setActiveOrder(null);
+            return;
+        }
+
+        setActiveOrder({
+            orderId: res.orderId,
+            currentStatus: current.status,
+        });
+       console.log("Active Order:", {
+    orderId: res.orderId,
+    currentStatus: current.status,
+});
+    } catch(e){
+
+    setActiveOrder(null);
+
+}
+  
+};
+
   const fetchRiderStatus = async () => {
     try {
       setRefreshing(true);
@@ -475,22 +565,22 @@ export const RiderProvider = ({ children }) => {
  
     const interval = setInterval(() => {
  
-      setOrderQueue((prev) =>
- 
-        prev
- 
-          .map((o) => ({
- 
+     setOrderQueue((prev) => {
+
+    const updated = prev
+        .map((o) => ({
             ...o,
- 
             countdown: o.countdown - 1,
- 
-          }))
- 
-          .filter((o) => o.countdown > 0)
- 
-      );
- 
+        }))
+        .filter((o) => o.countdown > 0);
+
+    if (updated.length === 0) {
+        stopOrderSound();
+    }
+
+
+    return updated;
+});
     }, 1000);
  
     return () => clearInterval(interval);
@@ -512,13 +602,14 @@ export const RiderProvider = ({ children }) => {
       setLoading(true);
  
 const res = await orderService.acceptOrder(orderId);
+await checkCurrentOrder();
  
 if (!res?.success) {
   throw new Error(res?.message || "Accept failed");
 }
       setOrderQueue([]);
       setExpandedOrderId(null);
- 
+      stopOrderSound();
       navigate("OrderDetailsScreen", {
  
         orderId,
@@ -544,23 +635,24 @@ status: "ASSIGNED",
   };
  
   const rejectOrder = async (orderId) => {
- 
+
     try {
- 
-      await orderService.rejectOrder(orderId);
- 
+
+        await orderService.rejectOrder(orderId);
+
     } catch (e) {
- 
-      console.log("Reject failed", e);
- 
+
+        console.log("Reject failed", e);
+
     } finally {
- 
-      removeOrderFromQueue(orderId);
- 
+
+        stopOrderSound();   
+
+        removeOrderFromQueue(orderId);
+
     }
- 
-  };
- 
+
+};
   /** ---------------------------
  
    * PROVIDER
@@ -605,18 +697,26 @@ status: "ASSIGNED",
         refreshing,
  
         fetchRiderStatus,
+
+        activeOrder,
+
+        checkCurrentOrder,
       }}
 >
  
       {children}
  
       <OrderQueueModal
-        visible={orderQueue.length > 0}
-        orderQueue={orderQueue}
-        loading={loading}
-        onAccept={acceptOrder}
-        onClose={() => setOrderQueue([])}
-      />
+    visible={orderQueue.length > 0}
+    orderQueue={orderQueue}
+    loading={loading}
+    onAccept={acceptOrder}
+    onReject={rejectOrder}
+    onClose={() => {
+    stopOrderSound();
+    setOrderQueue([]);
+}}
+/>
 </RiderContext.Provider>
  
   );
