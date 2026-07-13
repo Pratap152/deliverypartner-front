@@ -388,7 +388,7 @@ export default function EarningsScreen({ navigation }) {
   if (load || loading || earningsDataLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#1E88E5" />
+        <ActivityIndicator size="large" color="#1F3365" />
       </View>
     )
   }

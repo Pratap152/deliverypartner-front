@@ -82,7 +82,7 @@ const NotificationsScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#192A51" />
+          <ActivityIndicator size="large" color="#1F3365" />
         </View>
       </SafeAreaView>
     );
