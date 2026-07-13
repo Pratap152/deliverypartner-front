@@ -595,10 +595,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F7FB',
   },
 
-  loader: {
+  loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F6FBFF',
   },
 
   scrollContent: {

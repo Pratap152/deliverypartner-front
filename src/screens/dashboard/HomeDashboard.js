@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, BackHandler, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, BackHandler, Alert } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -162,7 +162,16 @@ const HomeDashboard = () => {
     }
   };
 
-  if (refreshing) return null;
+ if (refreshing) {
+  return (
+    <SafeAreaView style={styles.loaderContainer}>
+      <ActivityIndicator
+        size="large"
+        color="#1F3365"
+      />
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView
@@ -271,6 +280,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginTop: hp('3%'),
   },
+  loaderContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#F6FBFF',
+},
 });
 
 export default HomeDashboard;

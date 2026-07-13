@@ -216,7 +216,7 @@ export default function SlotsScreen() {
         <View style={styles.loaderContainer}>
           <ActivityIndicator
             size="large"
-            color="#4C4CFF"
+            color="#1F3365"
           />
         </View>
       ) : activeTab === TABS.UPCOMING ? (
