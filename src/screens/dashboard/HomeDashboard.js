@@ -19,6 +19,7 @@ import {
 } from "../../components/home/data/BannerApi";
 import SwipeOnlineToggle from "../../components/home/SwipeOnlineToggle";
 import BannerCarousel from "../../components/home/BannerCarousel";
+import ActiveOrderCard from "../../components/home/ActiveOrderCard";
 import { useRider } from "../../context/RiderContext";
 import { checkLocationRequirements, requestLocationRequirements, listenAppResume } from '../../utils/locationPermission';
 
@@ -129,16 +130,29 @@ const HomeDashboard = () => {
   );
 
   const navigation = useNavigation();
-  const { isOnline, goOnline, goOffline, isLoading, totalOnlineMinutes, refreshing, fetchRiderStatus } = useRider();
+  const {
+  isOnline,
+  goOnline,
+  goOffline,
+  isLoading,
+  totalOnlineMinutes,
+  refreshing,
+  fetchRiderStatus,
+  activeOrder,
+  checkCurrentOrder
+} = useRider();
   const [banners, setBanners] = useState([]);
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     loadHomeData();
-  }, []);
+  }, [])
+);
 
   const loadHomeData = async () => {
     try {
       await fetchRiderStatus();
+      await checkCurrentOrder();
 
       const bannerData = await getHomeBanners();
 
@@ -174,7 +188,14 @@ const HomeDashboard = () => {
           onSwipeOnline={goOnline}
           onSwipeOffline={goOffline}
         />
-
+{
+    activeOrder &&
+    (
+        <ActiveOrderCard
+            activeOrder={activeOrder}
+        />
+    )
+}
         {/* Banner carousel visible in offline */}
         {!isOnline && (
           <View style={styles.carouselWrapper}>

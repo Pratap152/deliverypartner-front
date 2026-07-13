@@ -67,10 +67,23 @@ const SplashScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
+    <View style={styles.loaderContainer}>
+      <ActivityIndicator
+              size="large"
+              color="#1F3365"
+            />
     </View>
   );
 };
+
+
+const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F6FBFF',
+  },
+});
 
 export default SplashScreen;
