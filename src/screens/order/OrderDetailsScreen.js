@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackHandler } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { orderUIConfig } from '../../config/orderUIConfig';
+import { useRider } from "../../context/RiderContext";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -49,6 +51,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const ui = orderUIConfig[status] || {};
 
   const { location } = useGPS();
+  const { checkCurrentOrder } = useRider();
 
   console.log("check",orderDetails)
 
@@ -109,7 +112,10 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     return;
     }
     let target;
-    if(status==="ASSIGNED" || status==="EN_ROUTE_TO_PICKUP"){
+    if(
+status==="ASSIGNED" ||
+status==="RIDER_EN_ROUTE_TO_PICKUP"
+){
       target={
       latitude:orderDetails.pickupAddress.lat,
       longitude:orderDetails.pickupAddress.lng
@@ -138,7 +144,32 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
       // NAVIGATION
       if (action.navigateTo) {
-        navigation.navigate(action.navigateTo, {
+       if (action.action === "navigateToPickup") {
+
+    if (status === "ASSIGNED") {
+        await orderService.markEnRouteToPickup(orderId);
+        await checkCurrentOrder();
+    }
+
+    navigation.replace("MapScreen", {
+        orderId,
+        status: "RIDER_EN_ROUTE_TO_PICKUP",
+        type: "navigateToPickup",
+    });
+
+    return;
+}
+if (action.action === "continueToPickup") {
+
+    navigation.replace("MapScreen", {
+        orderId,
+        status: "RIDER_EN_ROUTE_TO_PICKUP",
+        type: "navigateToPickup",
+    });
+
+    return;
+}
+        navigation.replace(action.navigateTo, {
           orderId,
           status,
           orderDetails,
@@ -151,12 +182,18 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       let res = null;
 
       // API CALL BASED ON ACTION
-      if (action.action === 'enRouteToPickup') {
-        res = await orderService.markEnRouteToPickup(orderId);
-      }
 
       if (action.action === 'pickupOrder') {
         res = await orderService.pickupOrder(orderId);
+        await checkCurrentOrder();
+        await orderService.markInTransit(orderId);
+        await checkCurrentOrder();
+        navigation.replace("MapScreen",{
+    orderId,
+    orderDetails,
+    type:"navigateToDrop"
+});
+return;
       }
 
       if (action.action === 'inTransit') {
@@ -165,6 +202,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
       if (action.action === 'deliverOrder') {
         res = await orderService.deliverOrder(orderId);
+        await checkCurrentOrder();
 
         const earning =
           res?.earningCredited ||
@@ -250,8 +288,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   let dropTarget = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
 
   const isPickupPhase =
-    status === 'ASSIGNED' ||
-    status === 'EN_ROUTE_TO_PICKUP';
+status==="ASSIGNED" ||
+status==="RIDER_EN_ROUTE_TO_PICKUP";
 
   /* MAIN UI */
   return (

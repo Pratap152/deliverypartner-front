@@ -238,6 +238,28 @@ class OrderService {
     }
 
     // ---------------------------
+// CURRENT ACTIVE ORDER
+// ---------------------------
+async getCurrentOrderStatus(){
+
+    const response =
+        await apiClient.get(
+            "/api/rider/current-order-status"
+        );
+
+    if(!response.data.success){
+
+        return {
+            success:false
+        };
+
+    }
+
+    return response.data;
+
+}
+
+    // ---------------------------
     // ONLINE
     // ---------------------------
     async setRiderOnline() {
