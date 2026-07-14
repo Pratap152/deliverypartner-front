@@ -7,6 +7,10 @@ import Documents from '../screens/profile/Documents';
 import Insurance from '../screens/profile/Insurance';
 import Wallet from '../screens/profile/Wallet';
 import CashBalance from '../screens/profile/CashBalance';
+import AttendanceScreen from '../screens/profile/AttendanceScreen';
+import AttendanceDetailsScreen from '../screens/profile/AttendanceDetailsScreen';
+import AttendanceRulesScreen from '../screens/profile/AttendanceRulesScreen';
+import MonthlySummaryScreen from '../screens/profile/MonthlySummaryScreen';
 import CameraScreen from '../screens/profile/CameraScreen';
 import BankAC from '../screens/profile/BankAC';
 import SlotHistory from '../screens/profile/SlotHistory';
@@ -27,6 +31,10 @@ export default function ProfileNavigator() {
       <Stack.Screen name="Insurance" component={Insurance} />
       <Stack.Screen name="Wallet" component={Wallet} />
       <Stack.Screen name="CashBalance" component={CashBalance} />
+      <Stack.Screen name="AttendanceScreen" component={AttendanceScreen} />
+      <Stack.Screen name="AttendanceDetailsScreen" component={AttendanceDetailsScreen} />
+      <Stack.Screen name="AttendanceRulesScreen" component={AttendanceRulesScreen} />
+      <Stack.Screen name="MonthlySummaryScreen" component={MonthlySummaryScreen} />
       <Stack.Screen name="CameraScreen" component={CameraScreen} />
       <Stack.Screen name="BankAC" component={BankAC} />
       <Stack.Screen name="SlotHistory" component={SlotHistory} />

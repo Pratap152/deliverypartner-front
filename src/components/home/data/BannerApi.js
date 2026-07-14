@@ -64,7 +64,11 @@ export const getHomeBanners = async () => {
 
       if (!value || typeof value !== 'object') return;
 
+      // Hide banner if not available
       if (!value.isAvailable) return;
+
+      // Hide banner if already completed
+      if (value.isCompleted) return;
 
       banners.push({
         id: navigationIds[key] || key,
@@ -73,12 +77,9 @@ export const getHomeBanners = async () => {
         subtitle: value.message,
         imageUrl: value.imageUrl,
         cta: defaultCTA[key] || 'Know More',
-
-        // Entire backend response if needed later
         data: value,
       });
     });
-
     /**
      * PROMOTIONAL BANNERS
      * Backend can send 1,5,10,100 banners.
