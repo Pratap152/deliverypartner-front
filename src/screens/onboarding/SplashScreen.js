@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { View, ActivityIndicator, BackHandler, Alert } from 'react-native';
+import { View, ActivityIndicator, BackHandler, Alert, StyleSheet } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { tokenService } from '../../services/TokenService';
 import { resolveNextScreen } from '../../utils/onboardingFlow';
