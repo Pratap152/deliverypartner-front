@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -28,13 +28,127 @@ const DeliveryAddressScreen = ({ navigation, route }) => {
 
   const { source, kitItems = [], totalAmount = 0 } = route?.params || {};
 
-  const [name, setName] = useState(riderKitData?.addressData?.name ?? '');
-  const [mobile, setMobile] = useState(riderKitData?.addressData?.mobile ?? '');
-  const [address, setAddress] = useState(riderKitData?.addressData?.address ?? '');
-  const [city, setCity] = useState(riderKitData?.addressData?.city ?? '');
-  const [pincode, setPincode] = useState(riderKitData?.addressData?.pincode ?? '');
-  const [landmark, setLandmark] = useState(riderKitData?.addressData?.landmark ?? '');
+  const [formData, setFormData] = useState({
+    name: riderKitData?.addressData?.name ?? '',
+    mobile: riderKitData?.addressData?.mobile ?? '',
+    address: riderKitData?.addressData?.address ?? '',
+    city: riderKitData?.addressData?.city ?? '',
+    pincode: riderKitData?.addressData?.pincode ?? '',
+    landmark: riderKitData?.addressData?.landmark ?? '',
+  });
+
   const [errors, setErrors] = useState({});
+
+  const validateName = value => {
+    if (!value.trim()) return 'Name is required';
+    if (value.trim().length < 3) return 'Name must contain at least 3 characters';
+    if (!/^[A-Za-z\s]+$/.test(value.trim())) {
+      return 'Only alphabets and spaces are allowed';
+    }
+    return '';
+  };
+
+  const validateMobile = value => {
+    if (!value) return 'Mobile number is required';
+    if (!/^[6-9]\d{9}$/.test(value)) {
+      return 'Enter a valid 10-digit mobile number';
+    }
+    return '';
+  };
+
+  const validateAddress = value => {
+    if (!value.trim()) return 'Address is required';
+    if (value.trim().length < 8) return 'Enter complete address';
+    return '';
+  };
+
+  const validateCity = value => {
+    if (!value.trim()) return 'City is required';
+    if (value.trim().length < 2) return 'City must contain at least 2 characters';
+    if (!/^[A-Za-z\s]+$/.test(value.trim())) {
+      return 'Only alphabets and spaces are allowed';
+    }
+    return '';
+  };
+
+  const validatePincode = value => {
+    if (!value) return 'Pincode is required';
+    if (!/^\d{6}$/.test(value)) return 'Enter valid 6-digit pincode';
+    return '';
+  };
+
+  const validateLandmark = value => {
+    if (!value.trim()) return '';
+    if (value.trim().length < 2) return 'Landmark must contain at least 2 characters';
+    return '';
+  };
+
+  const handleChange = (field, value) => {
+    if (field === 'name') {
+      value = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
+    }
+
+    if (field === 'mobile') {
+      value = value.replace(/[^0-9]/g, '').slice(0, 10);
+
+      if (value.length > 0 && !/^[6-9]/.test(value)) {
+        return;
+      }
+    }
+
+    if (field === 'city') {
+      value = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
+    }
+
+    if (field === 'pincode') {
+      value = value.replace(/[^0-9]/g, '').slice(0, 6);
+    }
+
+    if (field === 'address') {
+      value = value.slice(0, 200);
+    }
+
+    if (field === 'landmark') {
+      value = value.slice(0, 100);
+    }
+
+    setFormData(prev => ({ ...prev, [field]: value }));
+
+    let error = '';
+    if (field === 'name') error = validateName(value);
+    if (field === 'mobile') error = validateMobile(value);
+    if (field === 'address') error = validateAddress(value);
+    if (field === 'city') error = validateCity(value);
+    if (field === 'pincode') error = validatePincode(value);
+    if (field === 'landmark') error = validateLandmark(value);
+
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const validateForm = () => {
+    const nextErrors = {
+      name: validateName(formData.name),
+      mobile: validateMobile(formData.mobile),
+      address: validateAddress(formData.address),
+      city: validateCity(formData.city),
+      pincode: validatePincode(formData.pincode),
+      landmark: validateLandmark(formData.landmark),
+    };
+
+    setErrors(nextErrors);
+    return Object.values(nextErrors).every(error => !error);
+  };
+
+  const isFormValid = useMemo(() => {
+    return (
+      !validateName(formData.name) &&
+      !validateMobile(formData.mobile) &&
+      !validateAddress(formData.address) &&
+      !validateCity(formData.city) &&
+      !validatePincode(formData.pincode) &&
+      !validateLandmark(formData.landmark)
+    );
+  }, [formData]);
 
   useEffect(() => {
     if (!currentRiderId) return;
@@ -44,46 +158,30 @@ const DeliveryAddressScreen = ({ navigation, route }) => {
         riderId: currentRiderId,
         currentStep: 'DeliveryAddressScreen',
         deliveryMode: 'online',
-        addressData: { name, mobile, address, city, pincode, landmark },
+        addressData: {
+          name: formData.name,
+          mobile: formData.mobile,
+          address: formData.address,
+          city: formData.city,
+          pincode: formData.pincode,
+          landmark: formData.landmark,
+        },
         kitItems,
         totalAmount,
       })
     );
-  }, [dispatch, currentRiderId, name, mobile, address, city, pincode, landmark, kitItems, totalAmount]);
-
-  const validate = () => {
-    const nextErrors = {};
-
-    if (!name.trim() || name.trim().length < 2) {
-      nextErrors.name = 'Enter valid name';
-    }
-    if (!/^\d{10}$/.test(mobile.trim())) {
-      nextErrors.mobile = 'Enter valid mobile number';
-    }
-    if (!address.trim() || address.trim().length < 8) {
-      nextErrors.address = 'Enter complete address';
-    }
-    if (!city.trim()) {
-      nextErrors.city = 'Enter city';
-    }
-    if (!/^\d{6}$/.test(pincode.trim())) {
-      nextErrors.pincode = 'Enter valid pincode';
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
+  }, [dispatch, currentRiderId, formData, kitItems, totalAmount]);
 
   const handleContinue = () => {
-    if (!validate()) return;
+    if (!validateForm()) return;
 
     const addressData = {
-      name: name.trim(),
-      mobile: mobile.trim(),
-      address: address.trim(),
-      city: city.trim(),
-      pincode: pincode.trim(),
-      landmark: landmark.trim(),
+      name: formData.name.trim(),
+      mobile: formData.mobile.trim(),
+      address: formData.address.trim(),
+      city: formData.city.trim(),
+      pincode: formData.pincode.trim(),
+      landmark: formData.landmark.trim(),
     };
 
     dispatch(
@@ -107,13 +205,24 @@ const DeliveryAddressScreen = ({ navigation, route }) => {
     });
   };
 
+  const getInputStyle = field => [
+    styles.input,
+    field === 'address' && styles.multilineInput,
+    errors[field] ? styles.inputError : null,
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
       >
-        <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
               <Ionicons name="chevron-back" size={22} color="#0F172A" />
@@ -127,19 +236,20 @@ const DeliveryAddressScreen = ({ navigation, route }) => {
           <TextInput
             placeholder="Name"
             placeholderTextColor="#94A3B8"
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
+            style={getInputStyle('name')}
+            value={formData.name}
+            onChangeText={text => handleChange('name', text)}
+            maxLength={50}
           />
           {errors.name ? <Text style={styles.error}>{errors.name}</Text> : null}
 
           <TextInput
             placeholder="Mobile Number"
             placeholderTextColor="#94A3B8"
-            style={styles.input}
-            value={mobile}
-            onChangeText={setMobile}
-            keyboardType="phone-pad"
+            style={getInputStyle('mobile')}
+            value={formData.mobile}
+            onChangeText={text => handleChange('mobile', text)}
+            keyboardType="number-pad"
             maxLength={10}
           />
           {errors.mobile ? <Text style={styles.error}>{errors.mobile}</Text> : null}
@@ -147,28 +257,30 @@ const DeliveryAddressScreen = ({ navigation, route }) => {
           <TextInput
             placeholder="Complete Address"
             placeholderTextColor="#94A3B8"
-            style={[styles.input, styles.multilineInput]}
-            value={address}
-            onChangeText={setAddress}
+            style={getInputStyle('address')}
+            value={formData.address}
+            onChangeText={text => handleChange('address', text)}
             multiline
+            maxLength={200}
           />
           {errors.address ? <Text style={styles.error}>{errors.address}</Text> : null}
 
           <TextInput
             placeholder="City"
             placeholderTextColor="#94A3B8"
-            style={styles.input}
-            value={city}
-            onChangeText={setCity}
+            style={getInputStyle('city')}
+            value={formData.city}
+            onChangeText={text => handleChange('city', text)}
+            maxLength={50}
           />
           {errors.city ? <Text style={styles.error}>{errors.city}</Text> : null}
 
           <TextInput
             placeholder="Pincode"
             placeholderTextColor="#94A3B8"
-            style={styles.input}
-            value={pincode}
-            onChangeText={setPincode}
+            style={getInputStyle('pincode')}
+            value={formData.pincode}
+            onChangeText={text => handleChange('pincode', text)}
             keyboardType="number-pad"
             maxLength={6}
           />
@@ -177,12 +289,18 @@ const DeliveryAddressScreen = ({ navigation, route }) => {
           <TextInput
             placeholder="Landmark (Optional)"
             placeholderTextColor="#94A3B8"
-            style={styles.input}
-            value={landmark}
-            onChangeText={setLandmark}
+            style={getInputStyle('landmark')}
+            value={formData.landmark}
+            onChangeText={text => handleChange('landmark', text)}
+            maxLength={100}
           />
+          {errors.landmark ? <Text style={styles.error}>{errors.landmark}</Text> : null}
 
-          <TouchableOpacity style={styles.primaryBtn} onPress={handleContinue}>
+          <TouchableOpacity
+            style={[styles.primaryBtn, !isFormValid && styles.primaryBtnDisabled]}
+            onPress={handleContinue}
+            disabled={!isFormValid}
+          >
             <Text style={styles.primaryBtnText}>Save & Continue</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -195,13 +313,44 @@ export default DeliveryAddressScreen;
 
 const getStyles = isTablet =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F5F7FB' },
-    contentContainer: { paddingHorizontal: isTablet ? 60 : 20, paddingTop: 12, paddingBottom: 32 },
-    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
-    backBtn: { width: 40, height: 40, justifyContent: 'center' },
-    headerSpacer: { width: 40 },
-    headerTitle: { fontSize: isTablet ? 28 : 18, fontWeight: '700', color: '#0F172A' },
-    formTitle: { fontSize: isTablet ? 22 : 16, fontWeight: '700', color: '#1E293B', marginBottom: 16 },
+    container: {
+      flex: 1,
+      backgroundColor: '#F5F7FB',
+    },
+    keyboardContainer: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingHorizontal: isTablet ? 60 : 20,
+      paddingTop: 12,
+      paddingBottom: 32,
+      flexGrow: 1,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    headerTitle: {
+      fontSize: isTablet ? 28 : 18,
+      fontWeight: '700',
+      color: '#0F172A',
+    },
+    formTitle: {
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: '700',
+      color: '#1E293B',
+      marginBottom: 16,
+    },
     input: {
       backgroundColor: '#FFFFFF',
       borderRadius: 12,
@@ -212,6 +361,9 @@ const getStyles = isTablet =>
       fontSize: 14,
       color: '#0F172A',
       marginBottom: 10,
+    },
+    inputError: {
+      borderColor: '#DC2626',
     },
     multilineInput: {
       minHeight: 90,
@@ -230,6 +382,9 @@ const getStyles = isTablet =>
       borderRadius: 14,
       paddingVertical: 18,
       alignItems: 'center',
+    },
+    primaryBtnDisabled: {
+      opacity: 0.5,
     },
     primaryBtnText: {
       color: '#FFFFFF',

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -281,17 +282,27 @@ function formatPrettyDate(dateString) {
     safeApiCached(key, () => EarningsNewAPI.getDailyByDate(next, 1));
   };
 
-  //REFRESH 
+  //PULL TO REFRESH 
   const onRefresh = async () => {
-    Analytics.track("earnings_refresh", { mode, view });
-    setRefreshing(true);
+  Analytics.track("earnings_refresh", { mode, view });
+  setRefreshing(true);
 
-    if (mode === "TODAY") await loadToday(true);
-    else if (mode === "WEEK") await loadCurrentWeek(true);
-    else if (mode === "HISTORY") await loadHistoryWeek(selectedWeek, selectedYear, true);
-
+  try {
+    if (view === "DAY" && selectedDay) {
+      await loadDay(selectedDay, true, true);
+    } else if (view === "ORDER") {
+      // optional: no refresh, or re-fetch transaction if needed
+    } else if (mode === "TODAY") {
+      await loadToday(true);
+    } else if (mode === "WEEK") {
+      await loadCurrentWeek(true);
+    } else if (mode === "HISTORY" && selectedWeek) {
+      await loadHistoryWeek(selectedWeek, selectedYear, true);
+    }
+  } finally {
     setRefreshing(false);
-  };
+  }
+};
 
   // BACK 
   const onBack = () => {
@@ -405,79 +416,97 @@ function getBackendWeekNumber(date) {
         Analytics.track("earnings_open_week_selector");
         setWeekModal(true);
       }} />
-      <Dropdown Dropdown label={selectedDay ? `Day: ${formatPrettyDate(selectedDay)}` : "Pick Day"} onPress={() => {
-        Analytics.track("earnings_open_day_picker");
-        setCalendarVisible(true);
-      }} />
+      <Dropdown
+            label={selectedDay ? `Day: ${formatPrettyDate(selectedDay)}` : "Pick Day"}
+            onPress={() => {
+              Analytics.track("earnings_open_day_picker");
+              setCalendarVisible(true);
+            }}
+          />
     </View>
   );
 
   const renderWeekRoot = () => {
-    if (!weekData) return <EmptyState />;
-    return (
-      <FlatList
-        data={weekData.days || []}
-        keyExtractor={(item) => item.date}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        ListHeaderComponent={
-          <>
-            {mode === "HISTORY" && renderHistorySelectors()}
-            <TotalCard title="Total" amount={formatMoney(weekData.total) || 0} />
-          </>
-        }
-        renderItem={({ item }) => (
-          <Row
-            title={`${item.day} (${formatPrettyDate(item.date)})`}
-            subtitle={`${item.orders || 0} orders`}
-            right={`₹${formatMoney(item.amount) || 0}`}
-            onPress={() => {
-              Analytics.track("earnings_select_day", { date: item.date });
-              loadDay(item.date, true, true);
-            }}
-          />
-        )}
-      />
-    );
-  };
-
-
-  const renderDay = () => (
+  if (!weekData) return <EmptyState />;
+  return (
     <FlatList
-      data={ledgerItems}
-      extraData={{ dayData, selectedDay, hasMore, page, loading}}
-      keyExtractor={(item, idx) => (item.orderId || idx) + "_" + idx}
+      data={weekData.days || []}
+      keyExtractor={(item) => item.date}
       refreshing={refreshing}
       onRefresh={onRefresh}
-      ListHeaderComponent={
-        <TotalCard title="Total Earnings" amount={formatMoney(dayData?.totalEarnings) || 0} />
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#9c50ff"]}
+          tintColor="#9c50ff"
+        />
       }
-      ListEmptyComponent={<EmptyState />}
-      onEndReached={() => loadDay(selectedDay, false)}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={
-        loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} /> : null
+      ListHeaderComponent={
+        <>
+          {mode === "HISTORY" && renderHistorySelectors()}
+          <TotalCard title="Total" amount={formatMoney(weekData.total) || 0} />
+        </>
       }
       renderItem={({ item }) => (
         <Row
-          title={item.type}
-          subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
+          title={`${item.day} (${formatPrettyDate(item.date)})`}
+          subtitle={`${item.orders || 0} orders`}
           right={`₹${formatMoney(item.amount) || 0}`}
           onPress={() => {
-            if (item.type === "DELIVERY" && item.orderId) {
-              loadTransactionDetails(item.orderId);
-              return;
-            }
-
-            if (item.type === "INCENTIVE" && item.transactionId) {
-              loadTransactionDetails(item.transactionId);
-            }
+            Analytics.track("earnings_select_day", { date: item.date });
+            loadDay(item.date, true, true);
           }}
         />
       )}
     />
   );
+};
 
+
+  const renderDay = () => (
+  <FlatList
+    data={ledgerItems}
+    extraData={{ dayData, selectedDay, hasMore, page, loading }}
+    keyExtractor={(item, idx) => (item.orderId || idx) + "_" + idx}
+    refreshing={refreshing}
+    onRefresh={onRefresh}
+    refreshControl={
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        colors={["#9c50ff"]}
+        tintColor="#9c50ff"
+      />
+    }
+    ListHeaderComponent={
+      <TotalCard title="Total Earnings" amount={formatMoney(dayData?.totalEarnings) || 0} />
+    }
+    ListEmptyComponent={<EmptyState />}
+    onEndReached={() => loadDay(selectedDay, false)}
+    onEndReachedThreshold={0.5}
+    ListFooterComponent={
+      loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} /> : null
+    }
+    renderItem={({ item }) => (
+      <Row
+        title={item.type}
+        subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
+        right={`₹${formatMoney(item.amount) || 0}`}
+        onPress={() => {
+          if (item.type === "DELIVERY" && item.orderId) {
+            loadTransactionDetails(item.orderId);
+            return;
+          }
+
+          if (item.type === "INCENTIVE" && item.transactionId) {
+            loadTransactionDetails(item.transactionId);
+          }
+        }}
+      />
+    )}
+  />
+);
 
   const renderOrder = () => {
     if (!orderData) return <EmptyState />;
@@ -532,17 +561,31 @@ function getBackendWeekNumber(date) {
   };
 
   const renderContent = () => {
-    if (initialLoading) return null;
+  if (initialLoading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#9c50ff" />
+        <Text style={styles.loaderText}>Loading earnings...</Text>
+      </View>
+    );
+  }
 
-        if (error) return <ErrorBox text={error} onRetry={() => {
+  if (error) {
+    return (
+      <ErrorBox
+        text={error}
+        onRetry={() => {
           Analytics.track("earnings_retry", { mode, view });
           bootstrap();
-        }} />;
+        }}
+      />
+    );
+  }
 
-        if (view === "ORDER") return renderOrder();
-        if (view === "DAY") return renderDay();
-        return renderWeekRoot();
-      };
+  if (view === "ORDER") return renderOrder();
+  if (view === "DAY") return renderDay();
+  return renderWeekRoot();
+};
 
   // UI 
   return (
@@ -827,4 +870,15 @@ const styles = StyleSheet.create({
       ? responsiveFontSize(1.1)
       : 14,
   },
+  loaderContainer: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+loaderText: {
+  marginTop: 12,
+  color: "#777",
+  fontSize: 14,
+},
 });

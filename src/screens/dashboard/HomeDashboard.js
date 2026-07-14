@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, BackHandler, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, BackHandler, Alert ,RefreshControl} from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,10 +23,13 @@ import ActiveOrderCard from "../../components/home/ActiveOrderCard";
 import { useRider } from "../../context/RiderContext";
 import { checkLocationRequirements, requestLocationRequirements, listenAppResume } from '../../utils/locationPermission';
 
-const HomeDashboard = () => {
 
+const HomeDashboard = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [loadingAgreement, setLoadingAgreement] = useState(false);
+  const [locationReady, setLocationReady] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
 
   useEffect(() => {
     checkAgreementStatus();
@@ -82,8 +85,7 @@ const HomeDashboard = () => {
     }
   };
 
-  const [locationReady, setLocationReady] = useState(false);
-
+ 
   const validateLocation = async () => {
     const status = await checkLocationRequirements();
     setLocationReady(status);
@@ -131,23 +133,23 @@ const HomeDashboard = () => {
 
   const navigation = useNavigation();
   const {
-  isOnline,
-  goOnline,
-  goOffline,
-  isLoading,
-  totalOnlineMinutes,
-  refreshing,
-  fetchRiderStatus,
-  activeOrder,
-  checkCurrentOrder
-} = useRider();
-  const [banners, setBanners] = useState([]);
+    isOnline,
+    goOnline,
+    goOffline,
+    isLoading,
+    totalOnlineMinutes,
+    refreshing,
+    fetchRiderStatus,
+    activeOrder,
+    checkCurrentOrder
+  } = useRider();
+    const [banners, setBanners] = useState([]);
 
   useFocusEffect(
-  useCallback(() => {
-    loadHomeData();
-  }, [])
-);
+    useCallback(() => {
+      loadHomeData();
+    }, [])
+  );
 
   const loadHomeData = async () => {
     try {
@@ -155,30 +157,60 @@ const HomeDashboard = () => {
       await checkCurrentOrder();
 
       const bannerData = await getHomeBanners();
-
       setBanners(bannerData);
-    } catch (error) {
-      console.log('HOME DATA ERROR:', error);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
- if (refreshing) {
-  return (
-    <SafeAreaView style={styles.loaderContainer}>
-      <ActivityIndicator
-        size="large"
-        color="#1F3365"
-      />
-    </SafeAreaView>
-  );
-}
+  const onRefresh = useCallback(async () => {
+      try {
+        setPullRefreshing(true);
+
+        await Promise.all([
+          fetchRiderStatus(),
+          checkCurrentOrder(),
+          checkAgreementStatus(),
+          validateLocation(),
+        ]);
+
+        const bannerData = await getHomeBanners();
+        setBanners(bannerData);
+      } catch (error) {
+        console.log('Refresh error:', error);
+      } finally {
+        setPullRefreshing(false);
+      }
+    }, []);
+
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={styles.loaderContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#1F3365"
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
       style={styles.safe}
       edges={['top']}
     >
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={pullRefreshing}
+              onRefresh={onRefresh}
+              colors={['#1F3365']}       // Android
+              tintColor="#1F3365"        // iOS
+            />
+          }
+        >
         <Header />
 
         {/* ONLINE / OFFLINE TOGGLE */}

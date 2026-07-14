@@ -228,7 +228,6 @@ const SuccessScreen = () => {
       : 'Kit Request Submitted';
 
   const subtitle =
-    apiResponse?.message ||
     (resolvedPaymentType === 'emi'
       ? 'Your EMI request has been submitted successfully.'
       : resolvedPaymentType === 'offline'
