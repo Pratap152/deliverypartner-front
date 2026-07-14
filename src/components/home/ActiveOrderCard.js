@@ -1,5 +1,12 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Vibration,
+  Animated,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import LinearGradient from "react-native-linear-gradient";
@@ -20,7 +27,38 @@ const STATUS_LABEL = {
 
 export default function ActiveOrderCard({ activeOrder }) {
   const navigation = useNavigation();
+  const shakeAnim = React.useRef(new Animated.Value(0)).current;
+useEffect(() => {
+  Vibration.vibrate(300);
 
+  Animated.sequence([
+    Animated.timing(shakeAnim, {
+      toValue: 10,
+      duration: 50,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: -10,
+      duration: 50,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: 10,
+      duration: 50,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: -10,
+      duration: 50,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: 0,
+      duration: 50,
+      useNativeDriver: true,
+    }),
+  ]).start();
+}, []);
   const handleNavigation = () => {
     switch (activeOrder.currentStatus) {
       case "ASSIGNED":
@@ -63,12 +101,17 @@ export default function ActiveOrderCard({ activeOrder }) {
 
   return (
   <TouchableOpacity activeOpacity={0.9} onPress={handleNavigation}>
+  <Animated.View
+    style={{
+      transform: [{ translateX: shakeAnim }],
+    }}
+  >
     <LinearGradient
-  colors={["#FFEFEF", "#f98080"]}
-  start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-  style={styles.card}
->
+      colors={["#FFEFEF", "#f98080"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.card}
+    >
 
   <View style={styles.left}>
         <View style={styles.iconContainer}>
@@ -96,8 +139,9 @@ export default function ActiveOrderCard({ activeOrder }) {
           color="#2563EB"
         />
       </View>
-    </LinearGradient>
-  </TouchableOpacity>
+        </LinearGradient>
+  </Animated.View>
+</TouchableOpacity>
 );
 }
 
