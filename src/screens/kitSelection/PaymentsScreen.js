@@ -314,7 +314,7 @@ export default function PaymentsScreen({ route }) {
               <Image
                 source={item.image}
                 style={styles.paymentImage}
-                resizeMode="contain"
+                resizeMode="cover"
               />
             ) : (
               <Text style={styles.paymentLabel}>{item.label}</Text>
@@ -514,8 +514,8 @@ const getStyles = (width, height, isTablet) =>
       minHeight: isTablet ? 60 : 42,
     },
     paymentImage: {
-      width: isTablet ? 180 : 140,
-      height: isTablet ? 54 : 36,
+      width: isTablet ? 180 : 110,
+      height: isTablet ? 54 : 32,
     },
     paymentLabel: {
       fontSize: isTablet ? 22 : 16,
