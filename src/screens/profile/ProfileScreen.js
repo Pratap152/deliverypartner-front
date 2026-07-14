@@ -365,7 +365,7 @@ export default function ProfileScreen({ navigation }) {
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    Wallet
+                    Payout
                   </Text>
 
                   <Text
