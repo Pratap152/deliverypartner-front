@@ -86,12 +86,27 @@ export const RiderProvider = ({ children }) => {
  
    * --------------------------*/
  
-  useEffect(() => {
+ useEffect(() => {
   const init = async () => {
     const { accessToken } = await tokenService.get();
 
-    if (accessToken) {
-      checkCurrentOrder();
+    if (!accessToken) return;
+
+    try {
+      // Restore rider online status
+      const riderStatusRes = await getRiderOnlineStatus();
+
+      if (riderStatusRes?.success) {
+        setActuallyOnline(riderStatusRes.data.isOnline);
+        setIsActive(riderStatusRes.data.isOnline);
+        setTotalOnlineMinutes(riderStatusRes.data.totalOnlineMinutesToday);
+      }
+
+      // Restore active order
+      await checkCurrentOrder();
+
+    } catch (err) {
+      console.log("Init error:", err);
     }
   };
 
@@ -220,10 +235,9 @@ const connectSocket = async () => {
 
       switch (data.type) {
         case "ORDER_POPUP":
-          console.log("🚴 ORDER_POPUP RECEIVED");
-            playOrderSound();
-          addOrderToQueue(data);
-          break;
+  console.log("🚴 ORDER_POPUP RECEIVED");
+  addOrderToQueue(data);
+  break;
 
         case "ORDER_CANCELLED":
           console.log("❌ ORDER_CANCELLED");
