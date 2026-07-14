@@ -10,6 +10,26 @@ import {
   responsiveHeight,
 } from 'react-native-responsive-dimensions';
 
+const formatDate = dateString => {
+  if (!dateString) return '--';
+
+  return new Date(dateString).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+const formatTime = dateString => {
+  if (!dateString) return '--';
+
+  return new Date(dateString).toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
+
 const TodayCard = ({ attendance }) => {
 
   const getStatus = status => {
@@ -77,59 +97,89 @@ const TodayCard = ({ attendance }) => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Today's Attendance</Text>
 
-      <Text style={styles.title}>
-        Today's Attendance
-      </Text>
-
-      <View style={styles.row}>
-        <Text style={styles.label}>Check In</Text>
-        <Text style={styles.value}>
-          {attendance.checkIn || '--'}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.row}>
-        <Text style={styles.label}>Check Out</Text>
-        <Text style={styles.value}>
-          {attendance.checkOut || '--'}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.row}>
-        <Text style={styles.label}>Working Hours</Text>
-        <Text style={styles.value}>
-          {attendance.workingHours || '--'}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.row}>
-        <Text style={styles.label}>Status</Text>
-
-        <View style={styles.statusContainer}>
+      <View style={styles.summaryCard}>
+        <View style={styles.item}>
           <Ionicons
-            name={status.icon}
-            size={18}
-            color={status.color}
+            name="log-in-outline"
+            size={26}
+            color="#00C853"
+          />
+
+          <View style={{ alignItems: 'center' }}>
+            <Text style={styles.value}>
+              {formatTime(attendance.checkIn)}
+            </Text>
+
+            <Text style={styles.dateText}>
+              {formatDate(attendance.checkIn)}
+            </Text>
+          </View>
+
+          <Text style={styles.label}>Check in</Text>
+        </View>
+
+        <View style={styles.verticalDivider} />
+
+        <View style={styles.item}>
+          <Ionicons
+            name="log-out-outline"
+            size={26}
+            color="#FF6D00"
+          />
+
+          <View style={{ alignItems: 'center' }}>
+            <Text style={styles.value}>
+              {formatTime(attendance.checkOut)}
+            </Text>
+
+            <Text style={styles.dateText}>
+              {formatDate(attendance.checkOut)}
+            </Text>
+          </View>
+
+          <Text style={styles.label}>Check out</Text>
+        </View>
+
+        <View style={styles.verticalDivider} />
+
+        <View style={styles.item}>
+          <Ionicons
+            name="time-outline"
+            size={26}
+            color="#5C6CFA"
+          />
+
+          <Text style={styles.value}>
+            {attendance.workingHours || '--'}
+          </Text>
+
+          <Text style={styles.label}>Hours</Text>
+        </View>
+
+        <View style={styles.verticalDivider} />
+
+        <View style={styles.item}>
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: status.color },
+            ]}
           />
 
           <Text
             style={[
-              styles.statusText,
-              { color: status.color },
-            ]}>
+              styles.value,
+              { color: '#222' },
+            ]}
+          >
             {status.label}
           </Text>
+
+          <Text style={styles.label}>Status</Text>
         </View>
-
       </View>
-
     </View>
   );
 };
@@ -137,70 +187,91 @@ const TodayCard = ({ attendance }) => {
 export default TodayCard;
 
 const styles = StyleSheet.create({
-
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
     marginBottom: 18,
+  },
+
+  title: {
+    fontSize: responsiveFontSize(2.2),
+    fontWeight: '700',
+    color: '#1F3365',
+    marginBottom: 12,
+  },
+
+  summaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: responsiveHeight(2),
+
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+  },
+
+  item: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  verticalDivider: {
+    width: 1,
+    height: 74,
+    backgroundColor: '#ECECEC',
+  },
+
+  value: {
+    marginTop: 8,
+    fontSize: responsiveFontSize(2.1),
+    fontWeight: '700',
+    color: '#222',
+    textAlign: 'center',
+  },
+
+  label: {
+    marginTop: 4,
+    fontSize: responsiveFontSize(1.6),
+    color: '#8A8A8A',
+    fontWeight: '500',
+  },
+
+  statusDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    marginBottom: 8,
+  },
+
+  emptyContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+
+    borderWidth: 1,
+    borderColor: '#ECECEC',
 
     elevation: 3,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     shadowOffset: {
       width: 0,
       height: 2,
     },
-  },
-
-  title: {
-    fontSize: responsiveFontSize(2),
-    fontWeight: '700',
-    color: '#1F3365',
-    marginBottom: 16,
-  },
-
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: responsiveHeight(5),
-  },
-
-  label: {
-    fontSize: responsiveFontSize(1.8),
-    color: '#666',
-    fontWeight: '500',
-  },
-
-  value: {
-    fontSize: responsiveFontSize(1.9),
-    color: '#1F3365',
-    fontWeight: '700',
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: '#EFEFEF',
-    marginVertical: 6,
-  },
-
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  statusText: {
-    marginLeft: 6,
-    fontSize: responsiveFontSize(1.8),
-    fontWeight: '700',
-  },
-
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 25,
   },
 
   emptyText: {
@@ -209,5 +280,10 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
   },
-
+  dateText: {
+    marginTop: 3,
+    fontSize: responsiveFontSize(1.35),
+    color: '#8A8A8A',
+    fontWeight: '500',
+  },
 });

@@ -22,30 +22,37 @@ const OverviewCard = ({
       value: `₹${Number(estimatedSalary).toLocaleString('en-IN')}`,
       icon: 'wallet-outline',
       color: '#2E7D32',
-      bg: '#E8F5E9',
+      bg: '#F1FAF3',
+      border: '#D5EFD9',
     },
     {
       title: 'Present',
       value: `${presentDays} Days`,
       icon: 'checkmark-circle-outline',
       color: '#1565C0',
-      bg: '#E3F2FD',
+      bg: '#F2F8FE',
+      border: '#D5E7FB',
     },
     {
       title: 'Hours',
       value: `${workingHours}`,
       icon: 'time-outline',
       color: '#EF6C00',
-      bg: '#FFF3E0',
+      bg: '#FFF8EF',
+      border: '#FFE1BE',
     },
   ];
-
   return (
     <View style={styles.container}>
       {cards.map((item, index) => (
         <View
           key={index}
-          style={styles.card}>
+          style={[
+            styles.card,
+            {
+              borderColor: item.border,
+            },
+          ]}>
 
           <View
             style={[
@@ -78,9 +85,7 @@ const OverviewCard = ({
 };
 
 export default OverviewCard;
-
 const styles = StyleSheet.create({
-
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -90,42 +95,45 @@ const styles = StyleSheet.create({
   card: {
     width: '31.5%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: responsiveHeight(2),
+    borderRadius: 18,
+    paddingVertical: responsiveHeight(2.2),
     alignItems: 'center',
 
-    elevation: 3,
+    borderWidth: 1,
+
+    elevation: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
   },
 
   iconContainer: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
 
   title: {
-    fontSize: responsiveFontSize(1.6),
-    color: '#7A7A7A',
+    fontSize: responsiveFontSize(1.45),
+    color: '#8A94A6',
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
 
   value: {
-    marginTop: 6,
-    fontSize: responsiveFontSize(1.9),
+    marginTop: 8,
+    fontSize: responsiveFontSize(2.05),
     fontWeight: '700',
     color: '#1F3365',
     textAlign: 'center',
-    paddingHorizontal: 5,
+    paddingHorizontal: 6,
   },
-
 });
