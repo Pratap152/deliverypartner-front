@@ -8,13 +8,16 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   Image,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { BackHandler } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
+
+import kitImage1 from '../../assets/kitSelectionBag.jpg';
+import kitImage2 from '../../assets/kitSelectionTshirt.png';
 
 const formatAssetName = value => {
   if (!value) return '';
@@ -23,6 +26,8 @@ const formatAssetName = value => {
     .toLowerCase()
     .replace(/\b\w/g, c => c.toUpperCase());
 };
+
+const STATIC_PREVIEW_IMAGES = [kitImage1, kitImage2];
 
 const KitSelectionScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
@@ -37,7 +42,7 @@ const KitSelectionScreen = ({ navigation, route }) => {
 
   const [kitData, setKitData] = useState([]);
   const [kitError, setKitError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [imageErrors, setImageErrors] = useState({});
 
   const totalPrice = useMemo(() => {
     return kitData.reduce((sum, item) => sum + (Number(item?.price) || 0), 0);
@@ -90,7 +95,11 @@ const KitSelectionScreen = ({ navigation, route }) => {
       const response = await getJoiningKit();
       setKitData(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
-      setKitError(error?.response?.data?.message || error?.message || 'Failed to fetch kit details');
+      setKitError(
+        error?.response?.data?.message ||
+          error?.message ||
+          'Failed to fetch kit details'
+      );
       setKitData([]);
     }
   };
@@ -121,6 +130,16 @@ const KitSelectionScreen = ({ navigation, route }) => {
   };
 
   const previewItems = kitData.slice(0, 2);
+
+  const getPreviewSource = (item, index) => {
+    const imageKey = item?.id ?? `${item?.assetName}-${index}`;
+
+    if (item?.imageUrl && !imageErrors[imageKey]) {
+      return { uri: item.imageUrl };
+    }
+
+    return STATIC_PREVIEW_IMAGES[index] || STATIC_PREVIEW_IMAGES[0];
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -153,19 +172,25 @@ const KitSelectionScreen = ({ navigation, route }) => {
         ) : (
           <>
             <View style={styles.kitPreviewCard}>
-              {previewItems.map(item => (
-                <View key={item.id} style={styles.previewItem}>
-                  {item?.imageUrl ? (
-                    <Image source={{ uri: item.imageUrl }} style={styles.previewImage} resizeMode="contain" />
-                  ) : (
-                    <View style={styles.imageFallback}>
-                      <Text style={styles.imageFallbackText}>
-                        {formatAssetName(item.assetName || item.assetType)}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              ))}
+              {previewItems.map((item, index) => {
+                const imageKey = item?.id ?? `${item?.assetName}-${index}`;
+
+                return (
+                  <View key={imageKey} style={styles.previewItem}>
+                    <Image
+                      source={getPreviewSource(item, index)}
+                      style={styles.previewImage}
+                      resizeMode="contain"
+                      onError={() =>
+                        setImageErrors(prev => ({
+                          ...prev,
+                          [imageKey]: true,
+                        }))
+                      }
+                    />
+                  </View>
+                );
+              })}
             </View>
 
             <View style={styles.includesBlock}>
@@ -188,7 +213,10 @@ const KitSelectionScreen = ({ navigation, route }) => {
         )}
 
         <TouchableOpacity
-          style={[styles.continueBtn, (!kitData.length || loading) && styles.continueBtnDisabled]}
+          style={[
+            styles.continueBtn,
+            (!kitData.length || loading) && styles.continueBtnDisabled,
+          ]}
           onPress={handleContinue}
           disabled={!kitData.length || loading}
         >
@@ -259,21 +287,6 @@ const getStyles = isTablet =>
     previewImage: {
       width: '100%',
       height: '100%',
-    },
-    imageFallback: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 16,
-      backgroundColor: '#142C63',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 12,
-    },
-    imageFallbackText: {
-      color: '#FFFFFF',
-      textAlign: 'center',
-      fontWeight: '700',
-      fontSize: 13,
     },
     includesBlock: {
       marginBottom: 24,
