@@ -165,7 +165,7 @@ const Graph = (
           </View>
 
           {/* INDIVIDUAL, COMPANY — earnings bar chart only */}
-          {(riderType === 'INDIVIDUAL_EMPLOYEE' || riderType === 'COMPANY_EMPLOYEE') && (
+          {riderType === 'INDIVIDUAL_EMPLOYEE' && (
             <WeeklyEarningsChart
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
@@ -174,7 +174,7 @@ const Graph = (
           )}
 
           {/* ZESTBOT — only after target met */}
-          {riderType === 'ZESTBOT_EMPLOYEE' && (
+          {(riderType === 'ZESTBOT_EMPLOYEE' || riderType === 'COMPANY_EMPLOYEE') && (
             <WeeklyEarningsChartZestBot
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
@@ -388,7 +388,7 @@ export default function EarningsScreen({ navigation }) {
   if (load || loading || earningsDataLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#1E88E5" />
+        <ActivityIndicator size="large" color="#1F3365" />
       </View>
     )
   }

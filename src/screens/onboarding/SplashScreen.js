@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { View, ActivityIndicator, BackHandler, Alert } from 'react-native';
+import { View, ActivityIndicator, BackHandler, Alert, StyleSheet } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { tokenService } from '../../services/TokenService';
 import { resolveNextScreen } from '../../utils/onboardingFlow';
@@ -67,10 +67,23 @@ const SplashScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
+    <View style={styles.loaderContainer}>
+      <ActivityIndicator
+              size="large"
+              color="#1F3365"
+            />
     </View>
   );
 };
+
+
+const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F6FBFF',
+  },
+});
 
 export default SplashScreen;

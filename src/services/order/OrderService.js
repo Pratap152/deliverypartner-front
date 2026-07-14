@@ -26,22 +26,38 @@ class OrderService {
     // REJECT ORDER
     // ---------------------------
     async rejectOrder(orderId) {
-        try {
-            console.log(`[OrderService] Rejecting order ${orderId}`);
+    try {
+        console.log(`[OrderService] Rejecting order ${orderId}`);
 
-            const response = await apiClient.patch(
-                `/api/orders/${orderId}/reject`
-            );
+        const response = await apiClient.patch(
+            `/api/orders/${orderId}/reject`
+        );
 
-            console.log("[OrderService] reject response:", response.data);
+        console.log("[OrderService] reject response:", response.data);
 
-            return response.data; // { success, message, pendingRiders }
-        } catch (error) {
-            console.error('[rejectOrder error]', error?.response?.data || error.message);
-            throw error;
+        return response.data;
+
+    } catch (error) {
+
+        const data = error?.response?.data;
+
+        if (
+            data?.message ===
+            "Order already handled or not assigned"
+        ) {
+            console.log("[Reject]", data.message);
+
+            return data;
         }
-    }
 
+        console.error(
+            "[rejectOrder error]",
+            data || error.message
+        );
+
+        throw error;
+    }
+}
     // ---------------------------
     // GET ORDER DETAILS (SOURCE OF TRUTH)
     // ---------------------------
