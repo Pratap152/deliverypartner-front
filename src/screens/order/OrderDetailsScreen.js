@@ -46,14 +46,15 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [deliveryResult, setDeliveryResult] = useState(null);
   const [buttonLoading, setButtonLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('CASH'); 
+  const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [paymentCollected, setPaymentCollected] = useState(false);
 
   const ui = orderUIConfig[status] || {};
 
   const { location } = useGPS();
   const { checkCurrentOrder } = useRider();
 
-  console.log("check",orderDetails)
+  console.log("check", orderDetails)
 
   useEffect(() => {
     // Disable Android hardware back button
@@ -106,33 +107,33 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     fetchOrderDetails();
   }, [orderId]);
 
- 
+
   useEffect(() => {
-    if(!location || !orderDetails){
-    return;
+    if (!location || !orderDetails) {
+      return;
     }
     let target;
-    if(
-status==="ASSIGNED" ||
-status==="RIDER_EN_ROUTE_TO_PICKUP"
-){
-      target={
-      latitude:orderDetails.pickupAddress.lat,
-      longitude:orderDetails.pickupAddress.lng
+    if (
+      status === "ASSIGNED" ||
+      status === "RIDER_EN_ROUTE_TO_PICKUP"
+    ) {
+      target = {
+        latitude: orderDetails.pickupAddress.lat,
+        longitude: orderDetails.pickupAddress.lng
       };
     } else {
-      target={
-      latitude:orderDetails.deliveryAddress.lat,
-      longitude:orderDetails.deliveryAddress.lng
-    };
-  }
-    const distance=getDistance(location,target);
+      target = {
+        latitude: orderDetails.deliveryAddress.lat,
+        longitude: orderDetails.deliveryAddress.lng
+      };
+    }
+    const distance = getDistance(location, target);
     setDistanceToTarget(distance);
-    },[
-      location,
-      status,
-      orderDetails
-    ]);
+  }, [
+    location,
+    status,
+    orderDetails
+  ]);
 
   //  Button action
   const handleAction = async () => {
@@ -144,31 +145,31 @@ status==="RIDER_EN_ROUTE_TO_PICKUP"
 
       // NAVIGATION
       if (action.navigateTo) {
-       if (action.action === "navigateToPickup") {
+        if (action.action === "navigateToPickup") {
 
-    if (status === "ASSIGNED") {
-        await orderService.markEnRouteToPickup(orderId);
-        await checkCurrentOrder();
-    }
+          if (status === "ASSIGNED") {
+            await orderService.markEnRouteToPickup(orderId);
+            await checkCurrentOrder();
+          }
 
-    navigation.replace("MapScreen", {
-        orderId,
-        status: "RIDER_EN_ROUTE_TO_PICKUP",
-        type: "navigateToPickup",
-    });
+          navigation.replace("MapScreen", {
+            orderId,
+            status: "RIDER_EN_ROUTE_TO_PICKUP",
+            type: "navigateToPickup",
+          });
 
-    return;
-}
-if (action.action === "continueToPickup") {
+          return;
+        }
+        if (action.action === "continueToPickup") {
 
-    navigation.replace("MapScreen", {
-        orderId,
-        status: "RIDER_EN_ROUTE_TO_PICKUP",
-        type: "navigateToPickup",
-    });
+          navigation.replace("MapScreen", {
+            orderId,
+            status: "RIDER_EN_ROUTE_TO_PICKUP",
+            type: "navigateToPickup",
+          });
 
-    return;
-}
+          return;
+        }
         navigation.replace(action.navigateTo, {
           orderId,
           status,
@@ -188,12 +189,12 @@ if (action.action === "continueToPickup") {
         await checkCurrentOrder();
         await orderService.markInTransit(orderId);
         await checkCurrentOrder();
-        navigation.replace("MapScreen",{
-    orderId,
-    orderDetails,
-    type:"navigateToDrop"
-});
-return;
+        navigation.replace("MapScreen", {
+          orderId,
+          orderDetails,
+          type: "navigateToDrop"
+        });
+        return;
       }
 
       if (action.action === 'inTransit') {
@@ -201,7 +202,21 @@ return;
       }
 
       if (action.action === 'deliverOrder') {
+
+        const isCOD =
+          orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
+          orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
+          orderDetails?.payment?.mode?.toUpperCase() === 'COD';
+
+        // First click -> only collect payment
+        if (isCOD && !paymentCollected) {
+          setPaymentCollected(true);
+          return;
+        }
+
+        // Second click -> Deliver Order API
         res = await orderService.deliverOrder(orderId);
+
         await checkCurrentOrder();
 
         const earning =
@@ -210,10 +225,6 @@ return;
           0;
 
         const cod = res?.codCollected || 0;
-
-        const isCOD = orderDetails?.payment?.method?.toUpperCase() === 'COD' ||
-          orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
-          orderDetails?.payment?.mode?.toUpperCase() === 'COD';
 
         navigation.reset({
           index: 0,
@@ -288,8 +299,8 @@ return;
   let dropTarget = { latitude: orderDetails.deliveryAddress.lat, longitude: orderDetails.deliveryAddress.lng };
 
   const isPickupPhase =
-status==="ASSIGNED" ||
-status==="RIDER_EN_ROUTE_TO_PICKUP";
+    status === "ASSIGNED" ||
+    status === "RIDER_EN_ROUTE_TO_PICKUP";
 
   /* MAIN UI */
   return (
@@ -486,6 +497,7 @@ status==="RIDER_EN_ROUTE_TO_PICKUP";
         status={status}
         orderDetails={orderDetails}
         paymentMethod={paymentMethod}
+        paymentCollected={paymentCollected}
         distanceToTarget={distanceToTarget}
       />
 
