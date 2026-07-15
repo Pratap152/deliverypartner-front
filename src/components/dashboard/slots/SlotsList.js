@@ -33,11 +33,16 @@ export default function SlotsList({
   slotsLoading = false,
   actionLoading = false,
   onRefresh,
+  refreshing,
   selectedWeekData,
 }) {
   const hasWeeks = weeks.length > 0;
   const hasSlots = slots.length > 0;
   const showHeader = hasWeeks && (!weeksLoading || hasSlots);
+
+  const showLoader =
+  (slotsLoading && !refreshing) ||
+  (actionLoading && !refreshing);
 
 
   const renderSlotCard = ({ item }) => {
@@ -87,13 +92,15 @@ export default function SlotsList({
         )}
 
       {/* Slots Loader */}
-      {slotsLoading || actionLoading ? (
+      {showLoader ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator
             size="large"
             color="#4C4CFF"
           />
         </View>
+      ) : !hasWeeks ? (
+        <EmptySlotState />
       ) : (
         <FlatList
           data={slots}
@@ -107,9 +114,9 @@ export default function SlotsList({
           ListFooterComponent={
             hasSlots ? <SlotHistory /> : null
           }
-          refreshing={false}
-          onRefresh={onRefresh}
-          contentContainerStyle={[
+           refreshing={refreshing}
+           onRefresh={onRefresh}
+           contentContainerStyle={[
             styles.listContent,
             !hasSlots && {
               flexGrow: 1,
