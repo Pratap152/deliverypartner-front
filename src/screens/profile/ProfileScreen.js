@@ -30,7 +30,19 @@ export default function ProfileScreen({ navigation }) {
 
   const { data: profile } = useSelector(state => state.profile);
 
-  const [selfieUri, setSelfieUri] = useState(null);
+  const getSelfieUri = selfie => {
+    if (!selfie) return null;
+
+    if (typeof selfie === 'string') return selfie;
+
+    if (selfie?.url) return selfie.url;
+
+    if (selfie?.uri) return selfie.uri;
+
+    return null;
+  };
+
+  const selfieUri = getSelfieUri(profile?.selfie);
 
   const partnerId = profile?.partnerId;
   const riderType = profile?.riderType;
@@ -101,20 +113,12 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const fetchSelfie = async () => {
-    try {
-      const res = await getAllDocuments();
-      setSelfieUri(res?.data?.selfie || null);
-    } catch (e) {
-      console.log(e);
-    }
-  };
+
 
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchProfile());
       fetchStats();
-      fetchSelfie();
     }, [dispatch]),
   );
 
@@ -780,17 +784,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
 
-    backgroundColor:'#f2fcfe',
+    backgroundColor: '#f2fcfe',
     borderRadius: 20,
 
     borderWidth: 1,
-    borderColor:'#f2fcfe',
+    borderColor: '#f2fcfe',
   },
 
   riderTypeText: {
     fontSize: 13,
     fontWeight: '600',
-    color:  '#747474',
+    color: '#747474',
   },
   divider: {
     height: 1,

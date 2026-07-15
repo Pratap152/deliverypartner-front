@@ -22,6 +22,23 @@ const MonthlySummaryScreen = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
 
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const monthName = monthNames[month - 1];
+
   useEffect(() => {
     fetchSummary();
   }, []);
@@ -86,7 +103,7 @@ const MonthlySummaryScreen = ({ route }) => {
         <View style={styles.monthCard}>
 
           <Text style={styles.month}>
-            {month} / {year}
+            {monthName} {year}
           </Text>
 
           <Text style={styles.subtitle}>
