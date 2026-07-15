@@ -6,8 +6,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import DaySelector from './DaySelector';
-import SlotFilters from './SlotFilters';
 import SlotCard from './SlotCard';
 import EmptySlotState from './EmptySlotState';
 import SlotHistory from '../../common/SlotHistory';
@@ -32,8 +30,6 @@ export default function SlotsList({
   weeksLoading = false,
   slotsLoading = false,
   actionLoading = false,
-  onRefresh,
-  refreshing,
   selectedWeekData,
 }) {
   const hasWeeks = weeks.length > 0;
@@ -41,8 +37,7 @@ export default function SlotsList({
   const showHeader = hasWeeks && (!weeksLoading || hasSlots);
 
   const showLoader =
-  (slotsLoading && !refreshing) ||
-  (actionLoading && !refreshing);
+  slotsLoading || actionLoading;
 
 
   const renderSlotCard = ({ item }) => {
@@ -71,32 +66,16 @@ export default function SlotsList({
     />
     );
   };
-
+  
   return (
     <View style={styles.container}>
-
-      {/* Week Loader */}
-      {showHeader && (
-        <>
-            <DaySelector
-                weeks={weeks}
-                selectedWeek={selectedWeek}
-                onSelect={onWeekSelect}
-                />
-
-            <SlotFilters
-                value={filter}
-                onChange={onFilterChange}
-                />
-        </>
-        )}
 
       {/* Slots Loader */}
       {showLoader ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator
             size="large"
-            color="#4C4CFF"
+            color="#1F3365"
           />
         </View>
       ) : !hasWeeks ? (
@@ -114,8 +93,6 @@ export default function SlotsList({
           ListFooterComponent={
             hasSlots ? <SlotHistory /> : null
           }
-           refreshing={refreshing}
-           onRefresh={onRefresh}
            contentContainerStyle={[
             styles.listContent,
             !hasSlots && {
@@ -124,6 +101,7 @@ export default function SlotsList({
             },
           ]}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={false}
         />
       )}
     </View>

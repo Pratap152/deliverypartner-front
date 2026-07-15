@@ -105,11 +105,23 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const fetchSelfie = async () => {
+    try {
+      const response = await getAllDocuments();
+
+      console.log('Documents API:', response.data);
+
+      setSelfieUri(response.data?.selfie || null);
+    } catch (error) {
+      console.log('Selfie Error:', error);
+      setSelfieUri(null);
+    }
+  };
 
 
   const loadProfileData = async () => {
   try {
-    await Promise.all([
+    await Promise.allSettled([
       dispatch(fetchProfile()),
       fetchStats(),
       fetchSelfie(),
@@ -122,16 +134,15 @@ export default function ProfileScreen({ navigation }) {
   useFocusEffect(
   useCallback(() => {
     loadProfileData();
-  }, [])
+  }, []),
 );
 
 const onRefresh = useCallback(async () => {
-  try {
-    setRefreshing(true);
-    await loadProfileData();
-  } finally {
-    setRefreshing(false);
-  }
+  setRefreshing(true);
+
+  await loadProfileData();
+
+  setRefreshing(false);
 }, []);
 
   return (
