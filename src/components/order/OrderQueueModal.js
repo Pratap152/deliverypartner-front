@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React, { memo, useState } from "react";
 import { useEffect } from "react";
 import {
     Modal,
@@ -27,20 +27,65 @@ const OrderQueueModal = ({
     onReject,
     onClose,
 }) => {
-
+const [submitting, setSubmitting] = useState({
+  orderId: null,
+  action: null, // "accept" | "reject"
+});
     useEffect(() => {
-        if (visible) {
-            playOrderSound();
-        } else {
-            stopOrderSound();
-        }
-
-        return () => stopOrderSound();
-    }, [visible]);
-
-    if (!visible) {
-        return null;
+    if (visible) {
+        playOrderSound();
+    } else {
+        stopOrderSound();
     }
+
+    return () => stopOrderSound();
+}, [visible]);
+
+// =====================
+// Accept
+// =====================
+const handleAccept = async (orderId) => {
+    if (submitting.orderId) return;
+
+    setSubmitting({
+        orderId,
+        action: "accept",
+    });
+
+    try {
+        await onAccept(orderId);
+    } finally {
+        setSubmitting({
+            orderId: null,
+            action: null,
+        });
+    }
+};
+
+// =====================
+// Reject
+// =====================
+const handleReject = async (orderId) => {
+    if (submitting.orderId) return;
+
+    setSubmitting({
+        orderId,
+        action: "reject",
+    });
+
+    try {
+        await onReject(orderId);
+    } finally {
+        setSubmitting({
+            orderId: null,
+            action: null,
+        });
+    }
+};
+
+if (!visible) {
+    return null;
+}
 
     const renderItem = ({ item }) => {
         const { data, countdown } = item;
@@ -54,9 +99,11 @@ const OrderQueueModal = ({
     pickup={data.pickupLocation?.addressLine || 'Store Location'}
     drop={data.dropLocation?.addressLine}
     timeLeft={countdown}
-    loading={loading}
-    onAccept={() => onAccept(data.orderId)}
-    onReject={() => onReject(data.orderId)}
+    isSubmitting={submitting.orderId === data.orderId}
+loadingAction={submitting.action}
+
+onAccept={() => handleAccept(data.orderId)}
+onReject={() => handleReject(data.orderId)}
 />
         );
     };
