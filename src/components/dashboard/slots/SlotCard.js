@@ -252,11 +252,10 @@ peakText: {
   statusRow: {
     marginTop: 12,
     flexDirection: 'row',
-    justifyContent: 'center', // Keep centered as before
+    justifyContent: 'center',
   },
   details: {
-  fontSize: isTablet ? 18 : 12,
-  color: '#6B7280',
+  fontSize: isTablet ? 18 : 14,
   marginTop: 4,
 },
 });
