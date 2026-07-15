@@ -123,7 +123,7 @@ const ZestbotSlotsDetails = () => {
     if (initialLoading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#4C4CFF" />
+                <ActivityIndicator size="large" color="#1F3365" />
             </View>
         );
     };
