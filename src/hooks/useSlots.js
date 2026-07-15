@@ -40,6 +40,7 @@ export function useSlots() {
   const [actionLoading, setActionLoading] = useState(false);
   const [zestbotSlotsLoading, setZestbotSlotsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [isRefreshingSlots, setIsRefreshingSlots] = useState(false);
 
   const weeksRequestId = useRef(0);
   const slotsRequestId = useRef(0);
@@ -48,14 +49,17 @@ export function useSlots() {
   const clearSlots = () => setSlots([]);
  
   // Load week
-  const loadWeeks = async (payload) => {
+  const loadWeeks = async (payload, isRefresh = false) => {
    const currentRequest = ++weeksRequestId.current;
 
     try {
-        setWeeksLoading(true);
+        if (!isRefresh) {
+          setWeeksLoading(true);
+        }
         setError(false);
 
         const weeksRes = await loadWeeksApi(payload);
+        
 
         // Ignore stale responses
         if (currentRequest !== weeksRequestId.current) {
@@ -76,17 +80,23 @@ export function useSlots() {
         setError(true);
     } finally {
         if (currentRequest === weeksRequestId.current) {
-            setWeeksLoading(false);
+            if (!isRefresh) {
+                setWeeksLoading(false);
+              }
         }
     }
 };
  
   // Load slots
-  const loadSlots = async (payload) => {
-    const currentRequest = ++slotsRequestId.current;
-    try {
+  const loadSlots = async (payload, isRefresh = false) => {
+  const currentRequest = ++slotsRequestId.current;
+
+  try {
+    if (isRefresh) {
+      setIsRefreshingSlots(true);
+    } else {
       setSlotsLoading(true);
-      setError(false);
+    }
  
       const slotsRes = await loadSlotsApi(payload);
       if (currentRequest !== slotsRequestId.current) {
@@ -142,11 +152,15 @@ export function useSlots() {
         setError(true);
     }
     } finally {
-      if (currentRequest === slotsRequestId.current) {
-          setSlotsLoading(false);
+    if (currentRequest === slotsRequestId.current) {
+      if (isRefresh) {
+        setIsRefreshingSlots(false);
+      } else {
+        setSlotsLoading(false);
       }
     }
-  };
+  }
+};
  
   // Book slot
   const bookSlot = async (payload) => {
