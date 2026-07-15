@@ -22,13 +22,8 @@ import {
   PERMISSIONS,
   openSettings,
 } from 'react-native-permissions';
-
-// import apiClient from '../../services/ApiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
-
-import { getAllDocuments } from '../../services/getAllDocuments';
-
 
 const LOG = '[HEADER-LOCATION]';
 
@@ -39,41 +34,29 @@ const Header = () => {
   const [isLocationModal, setIsLocationModal] = useState(false);
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selfieUri, setSelfieUri] = useState(null);
 
   const dispatch = useDispatch();
   const { data: profile } = useSelector(state => state.profile);
 
-  // const getSelfieUri = (selfie) => {
-  //   if (!selfie) return null;
+  const getSelfieUri = selfie => {
+    if (!selfie) return null;
 
-  //   // backend string URL
-  //   if (typeof selfie === 'string') return selfie;
+    if (typeof selfie === 'string') return selfie;
 
-  //   // backend object { url }
-  //   if (typeof selfie === 'object' && selfie.url) return selfie.url;
+    if (selfie?.url) return selfie.url;
 
-  //   return null;
-  // };
+    if (selfie?.uri) return selfie.uri;
 
-const fetchSelfie = async () => {
-  try {
-    const response = await getAllDocuments();
+    return null;
+  };
 
-    if (response?.success) {
-      setSelfieUri(response.data?.selfie || null);
-    }
-  } catch (error) {
-    console.log('Failed to fetch selfie:', error);
-  }
-};
+  const selfieUri = getSelfieUri(profile?.selfie);
 
   useFocusEffect(
-  useCallback(() => {
-    dispatch(fetchProfile());
-    fetchSelfie();
-  }, [dispatch]),
-);
+    useCallback(() => {
+      dispatch(fetchProfile());
+    }, [dispatch]),
+  );
 
 
   /* ---------------- PERMISSION ---------------- */
@@ -170,9 +153,9 @@ const fetchSelfie = async () => {
               />
             ) : (
               <Ionicons
-                name="person-circle-outline"
-                size={42}
-                color="#13ACBE"
+                name="person-outline"
+                size={28}
+                color="#1F3365"
               />
             )}
           </TouchableOpacity>
