@@ -23,6 +23,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile, updateProfile } from '../../redux/slices/profileSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getAllDocuments } from '../../services/getAllDocuments';
 
 const PersonalDetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -31,14 +32,28 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const [form, setForm] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [imageModal, setImageModal] = useState(false);
+  const [selfieUri, setSelfieUri] = useState(null);
 
   /*  FETCH PROFILE  */
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchProfile());
+
+      const loadDocuments = async () => {
+        try {
+          const response = await getAllDocuments();
+
+          console.log('Documents API:', response.data);
+
+          setSelfieUri(response.data?.selfie || null);
+        } catch (e) {
+          console.log('Documents Error:', e);
+        }
+      };
+
+      loadDocuments();
     }, [dispatch]),
   );
-
   /*  SYNC FORM  */
   useEffect(() => {
     if (profile) {
@@ -62,20 +77,24 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const handleChange = (key, value) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
-  const getSelfieUri = selfie => {
-    if (!selfie) return null;
-    if (typeof selfie === 'string') return selfie;
-    if (selfie?.url) return selfie.url;
-    if (selfie?.uri) return selfie.uri;
-    return null;
-  };
+  // const getSelfieUri = selfie => {
+  //   if (!selfie) return null;
+  //   if (typeof selfie === 'string') return selfie;
+  //   if (selfie?.url) return selfie.url;
+  //   if (selfie?.uri) return selfie.uri;
+  //   return null;
+  // };
 
-  const pickImage = async () => {
-    const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.7 });
-    if (!res.didCancel && res.assets?.length) {
-      handleChange('selfie', res.assets[0].uri);
-    }
-  };
+ const pickImage = async () => {
+  const res = await launchImageLibrary({
+    mediaType: 'photo',
+    quality: 0.7,
+  });
+
+  if (!res.didCancel && res.assets?.length) {
+    setSelfieUri(res.assets[0].uri);
+  }
+};
 
   /*  SAVE PROFILE (REDUX) */
   const handleSave = () => {
@@ -97,12 +116,10 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
     formData.append('pincode', form.pincode);
 
-    if (form.selfie && typeof form.selfie === 'string') {
+    if (selfieUri && !selfieUri.startsWith('http')) {
       formData.append('selfie', {
-        uri: form.selfie,
-
+        uri: selfieUri,
         name: 'selfie.jpg',
-
         type: 'image/jpeg',
       });
     }
@@ -110,12 +127,15 @@ const PersonalDetailsScreen = ({ navigation }) => {
     dispatch(updateProfile(formData))
       .unwrap()
 
-      .then(() => {
+      .then(async () => {
         Alert.alert('Success', 'Profile updated successfully');
 
         setIsEditing(false);
 
         dispatch(fetchProfile());
+
+        const docs = await getAllDocuments();
+        setSelfieUri(docs.data?.selfie || null);
       })
 
       .catch(() => {
@@ -133,7 +153,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
   if (!form) return null;
 
-  const selfieUri = getSelfieUri(form.selfie);
 
   return (
     <SafeAreaView
@@ -162,7 +181,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
                 city: profile.location?.city || '',
                 state: profile.location?.state || '',
                 pincode: profile.location?.pincode || '',
-                selfie: profile.selfie || null,
               });
             }
             setIsEditing(p => !p);

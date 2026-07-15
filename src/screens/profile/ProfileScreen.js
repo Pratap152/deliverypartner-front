@@ -11,6 +11,7 @@ import {
   ScrollView,
   Alert,
   Linking,
+  RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -25,24 +26,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 import { getAllDocuments } from '../../services/getAllDocuments';
 
+
+
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
 
   const { data: profile } = useSelector(state => state.profile);
 
-  const getSelfieUri = selfie => {
-    if (!selfie) return null;
-
-    if (typeof selfie === 'string') return selfie;
-
-    if (selfie?.url) return selfie.url;
-
-    if (selfie?.uri) return selfie.uri;
-
-    return null;
-  };
-
-  const selfieUri = getSelfieUri(profile?.selfie);
+  const [selfieUri, setSelfieUri] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const partnerId = profile?.partnerId;
   const riderType = profile?.riderType;
@@ -115,12 +107,32 @@ export default function ProfileScreen({ navigation }) {
 
 
 
+  const loadProfileData = async () => {
+  try {
+    await Promise.all([
+      dispatch(fetchProfile()),
+      fetchStats(),
+      fetchSelfie(),
+    ]);
+  } catch (error) {
+    console.log('Profile refresh error:', error);
+  }
+};
+
   useFocusEffect(
-    useCallback(() => {
-      dispatch(fetchProfile());
-      fetchStats();
-    }, [dispatch]),
-  );
+  useCallback(() => {
+    loadProfileData();
+  }, [])
+);
+
+const onRefresh = useCallback(async () => {
+  try {
+    setRefreshing(true);
+    await loadProfileData();
+  } finally {
+    setRefreshing(false);
+  }
+}, []);
 
   return (
     <SafeAreaView
@@ -130,12 +142,19 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.safeArea}>
         <ScrollView
-          bounces={false}
-          alwaysBounceVertical={false}
-          overScrollMode="never"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
+            bounces
+            alwaysBounceVertical
+            overScrollMode="always"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#13ACBE']}     // Android
+                tintColor="#13ACBE"      // iOS
+              />
+            }>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profile</Text>

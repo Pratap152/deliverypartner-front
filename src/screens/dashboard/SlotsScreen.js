@@ -53,6 +53,8 @@ export default function SlotsScreen() {
 
   const [bookedSlots, setBookedSlots] = useState([]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const cityId = useSelector(
     state => state.profile.data?.location?.city?.trim(),
   );
@@ -205,6 +207,29 @@ export default function SlotsScreen() {
 
   const showLoader = weeksLoading || tabLoading;
 
+  const handleRefresh = async () => {
+    if (refreshing) return;
+
+    try {
+      setRefreshing(true);
+
+      await Promise.all([
+        loadWeeks({
+          cityId,
+          pincodeId,
+        }),
+        loadSlots({
+          date: selectedWeek,
+          filter,
+          cityId,
+          pincodeId,
+        }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <SlotBookingHeader
@@ -236,14 +261,8 @@ export default function SlotsScreen() {
           weeksLoading={weeksLoading}
           slotsLoading={slotsLoading}
           actionLoading={actionLoading}
-          onRefresh={() =>
-            loadSlots({
-              date: selectedWeek,
-              filter,
-              cityId,
-              pincodeId,
-            })
-          }
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       )}
 

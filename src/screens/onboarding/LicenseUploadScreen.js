@@ -420,6 +420,7 @@ const LicenseUploadScreen = ({ navigation }) => {
               value={dlNumber}
               onChangeText={handleDLChange}
               autoCapitalize="characters"
+              maxLength={15}
             />
 
             {dlError ? (

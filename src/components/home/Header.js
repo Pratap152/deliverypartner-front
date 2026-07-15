@@ -12,7 +12,7 @@ import {
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-
+ 
 import Geolocation from '@react-native-community/geolocation';
 import axios from 'axios';
 import {
@@ -22,59 +22,76 @@ import {
   PERMISSIONS,
   openSettings,
 } from 'react-native-permissions';
+ 
+// import apiClient from '../../services/ApiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
-
+ 
+import { getAllDocuments } from '../../services/getAllDocuments';
+ 
+ 
 const LOG = '[HEADER-LOCATION]';
-
+ 
 const Header = () => {
   const apiKey = 'AIzaSyAt59NjjnVtI5PfvhkQKFDLeBFfCTW-mxg';
   const navigation = useNavigation();
-
+ 
   const [isLocationModal, setIsLocationModal] = useState(false);
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const [selfieUri, setSelfieUri] = useState(null);
+ 
   const dispatch = useDispatch();
   const { data: profile } = useSelector(state => state.profile);
-
-  const getSelfieUri = selfie => {
-    if (!selfie) return null;
-
-    if (typeof selfie === 'string') return selfie;
-
-    if (selfie?.url) return selfie.url;
-
-    if (selfie?.uri) return selfie.uri;
-
-    return null;
-  };
-
-  const selfieUri = getSelfieUri(profile?.selfie);
-
+ 
+  // const getSelfieUri = (selfie) => {
+  //   if (!selfie) return null;
+ 
+  //   // backend string URL
+  //   if (typeof selfie === 'string') return selfie;
+ 
+  //   // backend object { url }
+  //   if (typeof selfie === 'object' && selfie.url) return selfie.url;
+ 
+  //   return null;
+  // };
+ 
+const fetchSelfie = async () => {
+  try {
+    const response = await getAllDocuments();
+ 
+    if (response?.success) {
+      setSelfieUri(response.data?.selfie || null);
+    }
+  } catch (error) {
+    console.log('Failed to fetch selfie:', error);
+  }
+};
+ 
   useFocusEffect(
-    useCallback(() => {
-      dispatch(fetchProfile());
-    }, [dispatch]),
-  );
-
-
+  useCallback(() => {
+    dispatch(fetchProfile());
+    fetchSelfie();
+  }, [dispatch]),
+);
+ 
+ 
   /* ---------------- PERMISSION ---------------- */
   const checkLocationPermission = async () => {
     const permission =
       Platform.OS === 'android'
         ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
         : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
-
+ 
     const result = await check(permission);
-
+ 
     if (result === RESULTS.GRANTED) return true;
-
+ 
     if (result === RESULTS.DENIED) {
       const req = await request(permission);
       return req === RESULTS.GRANTED;
     }
-
+ 
     if (result === RESULTS.BLOCKED) {
       Alert.alert(
         'Permission Required',
@@ -85,24 +102,24 @@ const Header = () => {
         ],
       );
     }
-
+ 
     return false;
   };
-
+ 
   /* ---------------- LOCATION ---------------- */
   const getCurrentLocation = () => {
     setIsLocationModal(true);
     setLoading(true);
     setAddress('');
-
+ 
     Geolocation.getCurrentPosition(
       async position => {
         const { latitude, longitude } = position.coords;
-
+ 
         try {
           const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
           const res = await axios.get(url);
-
+ 
           if (res.data.status === 'OK') {
             setAddress(res.data.results[0]?.formatted_address);
           } else {
@@ -119,7 +136,7 @@ const Header = () => {
         if (error.code === 1) msg = 'Location permission denied';
         if (error.code === 2) msg = 'Location services are disabled';
         if (error.code === 3) msg = 'Location request timed out';
-
+ 
         setAddress(msg);
         setLoading(false);
         Alert.alert('Location Error', msg);
@@ -131,12 +148,12 @@ const Header = () => {
       },
     );
   };
-
+ 
   const onLocationPress = async () => {
     const allowed = await checkLocationPermission();
     if (allowed) getCurrentLocation();
   };
-
+ 
   return (
     <>
       {/* HEADER */}
@@ -153,18 +170,18 @@ const Header = () => {
               />
             ) : (
               <Ionicons
-                name="person-outline"
-                size={28}
-                color="#1F3365"
+                name="person-circle-outline"
+                size={42}
+                color="#13ACBE"
               />
             )}
           </TouchableOpacity>
-
+ 
           <Text style={styles.name}>
             {profile?.personalInfo?.fullName || '—'}
           </Text>
         </View>
-
+ 
         <View style={styles.right}>
           <TouchableOpacity
             style={styles.rightIconWrapper}
@@ -176,7 +193,7 @@ const Header = () => {
               color="#2563EB"
             />
           </TouchableOpacity>
-
+ 
           <TouchableOpacity
             style={styles.rightIconWrapper}
             onPress={() => navigation.navigate('HelpCenterList')}
@@ -189,19 +206,19 @@ const Header = () => {
           </TouchableOpacity>
         </View>
       </View>
-
+ 
       {/* LOCATION MODAL */}
       <Modal visible={isLocationModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Current Location</Text>
-
+ 
             {loading ? (
               <Text style={styles.modalText}>Fetching location…</Text>
             ) : (
               <Text style={styles.modalText}>{address}</Text>
             )}
-
+ 
             <TouchableOpacity
               style={styles.closeBtn}
               onPress={() => setIsLocationModal(false)}
@@ -214,7 +231,7 @@ const Header = () => {
     </>
   );
 };
-
+ 
 /* ---------------- STYLES (UNCHANGED) ---------------- */
 const styles = StyleSheet.create({
   container: {
@@ -258,7 +275,7 @@ const styles = StyleSheet.create({
   },
   rightIcon: { width: wp('6%'), height: wp('6%') },
   rightIcons: { width: wp('12%'), height: wp('12%') },
-
+ 
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
@@ -289,5 +306,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
+ 
 export default Header;
+ 
+ 
