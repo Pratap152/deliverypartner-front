@@ -35,17 +35,6 @@ export default function SuccessfullDelivered({ route, navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
-  useEffect(() => {
-    const refreshStatus = async () => {
-      if (!isOnline) return;
-
-      await goOffline();
-      await goOnline();
-    };
-
-    refreshStatus();
-  }, []);
-
   console.log(' [SuccessfulDelivered] Received params:', {
     amount,
     codCollected,
