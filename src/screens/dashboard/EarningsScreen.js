@@ -34,6 +34,7 @@ import { Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { getEarningsSummary } from '../../services/earnings/earningsService';
+import apiClient from '../../services/ApiClient';
 
 
 const { width } = Dimensions.get('window');
@@ -140,7 +141,8 @@ const Graph = (
     weeklyTotal,
     weeklyBarChart,
     wallet,
-    weeklyOrders
+    weeklyOrders,
+    earningsDataLoading
   }) => {
 
   const formatOrderLabel = count => {
@@ -170,6 +172,7 @@ const Graph = (
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
               height={isTablet ? hp(38) : hp(30)}
+              earningsDataLoading={earningsDataLoading}
             />
           )}
 
@@ -183,6 +186,7 @@ const Graph = (
               completedOrders={todayEarnings?.totalCompletedOrders}
               weeklyTotal={weeklyTotal}
               eligible={todayEarnings?.eligible}
+              earningsDataLoading={earningsDataLoading}
             />
           )}
 
@@ -269,6 +273,25 @@ export default function EarningsScreen({ navigation }) {
   const [earningsData, setEarningsData] = useState(null);
   const [todayEarningsData, setTodayEarningsData] = useState(null);
   const [monthlyEarningsData, setMonthlyEarningsData] = useState(null);
+  const [barChartData, setBarChartData] = useState(null);
+  const [barChartArray, setBarChartArray] = useState([]);
+
+  useEffect(() => {
+    const fetchBarChart = async () => {
+      try {
+        setEarningsDataLoading(true);
+        const res = await apiClient.get('/api/rider/earnings/new/new_weekly-chart');
+        setBarChartData(res.data);
+        setBarChartArray(res.data.week);
+      } catch (error) {
+        console.log("Error fetching bar chart: ", error);
+      } finally {
+        setEarningsDataLoading(false);
+      }
+    }
+
+    fetchBarChart();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -278,7 +301,7 @@ export default function EarningsScreen({ navigation }) {
         setEarningsData(summaryData);
         setMonthlyEarningsData(summaryData?.month);
         setTodayEarningsData(summaryData?.today);
-        console.log('Fetched earnings summary:', summaryData);
+        // console.log('Fetched earnings summary:', summaryData);
       } catch (error) {
         console.error('Error fetching earnings summary:', error);
       } finally {
@@ -324,7 +347,7 @@ export default function EarningsScreen({ navigation }) {
     incentives = [],
   } = data;
 
-  // console.log("todayEarnings: ", todayEarnings);
+  // console.log("weekly: ", weeklyBarChart);
 
   const isEligibleForIncentives = todayEarnings?.eligible;
 
@@ -429,9 +452,10 @@ export default function EarningsScreen({ navigation }) {
         riderType={riderType}
         isEligibleForIncentives={isEligibleForIncentives}
         weeklyTotal={weeklyTotal}
-        weeklyBarChart={weeklyBarChart}
+        weeklyBarChart={barChartArray}
         wallet={wallet}
         weeklyOrders={weeklyOrders}
+        earningsDataLoading={earningsDataLoading}
       />
 
       {riderType === "INDIVIDUAL_EMPLOYEE" &&
