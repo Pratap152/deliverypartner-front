@@ -254,9 +254,9 @@ const Graph = (
 
 const Footer = ({ month, riderType }) => {
   return (
-    <TouchableOpacity style={{ marginBottom: hp(4) }} >
+    <View style={{ marginBottom: hp(4) }} >
       <MonthlySummaryCard summary={month} riderType={riderType} />
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -400,8 +400,8 @@ export default function EarningsScreen({ navigation }) {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={['#2196F3']} // Android
-          tintColor="#2196F3"  // iOS
+          colors={['#1F3365']} // Android
+          tintColor="#1F3365"  // iOS
         />
       }
       style={{ flex: 1 }}>

@@ -11,26 +11,22 @@ import {
   ScrollView,
   Alert,
   Linking,
+  RefreshControl
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera } from 'react-native-vision-camera';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-
 import DeviceInfo from 'react-native-device-info';
-
 import { authService } from '../../services/AuthService';
 import apiClient from '../../services/ApiClient';
-
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
-
 import { getAllDocuments } from '../../services/getAllDocuments';
+
+
 
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -38,9 +34,27 @@ export default function ProfileScreen({ navigation }) {
   const { data: profile } = useSelector(state => state.profile);
 
   const [selfieUri, setSelfieUri] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const partnerId = profile?.partnerId;
-  const isPartnerActive = profile?.isPartnerActive;
+  const riderType = profile?.riderType;
+
+  const formattedRiderType = riderType
+    ? riderType
+      .toLowerCase()
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+    : '--';
+
+  const ATTENDANCE_RIDER_TYPES = [
+    'ZESTBOT_EMPLOYEE',
+    'COMPANY_EMPLOYEE',
+  ];
+
+  const isAttendanceVisible = ATTENDANCE_RIDER_TYPES.includes(
+    profile?.riderType,
+  );
 
   const [stats, setStats] = useState({
     rating: 0,
@@ -49,58 +63,29 @@ export default function ProfileScreen({ navigation }) {
   });
 
   const onLogoutPress = () => {
-  Alert.alert(
-    'Logout',
-    'Are you sure you want to logout?',
-    [
-      {
-        text: 'No',
-        style: 'cancel',
-      },
-      {
-        text: 'Yes',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await authService.logout();
-          } catch (error) {
-            console.log('Logout error:', error);
-          }
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
         },
-      },
-    ],
-    { cancelable: true },
-  );
-};
-
-  // const openCamera = async () => {
-  //   try {
-  //     let permission = await Camera.getCameraPermissionStatus();
-
-  //     if (permission === 'not-determined') {
-  //       permission = await Camera.requestCameraPermission();
-  //     }
-
-  //     if (permission === 'authorized') {
-  //       navigation.navigate('CameraScreen');
-  //       return;
-  //     }
-
-  //     Alert.alert(
-  //       'Camera Permission Required',
-  //       'Please allow camera access to continue',
-  //       [
-  //         { text: 'Cancel', style: 'cancel' },
-  //         {
-  //           text: 'Open Settings',
-  //           onPress: () => Linking.openSettings(),
-  //         },
-  //       ],
-  //     );
-  //   } catch (error) {
-  //     console.log('Camera permission error:', error);
-  //   }
-  // };
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await authService.logout();
+            } catch (error) {
+              console.log('Logout error:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
 
   const fetchStats = async () => {
     try {
@@ -121,42 +106,44 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const fetchSelfie = async () => {
+    try {
+      const response = await getAllDocuments();
+
+      console.log('Documents API:', response.data);
+
+      setSelfieUri(response.data?.selfie || null);
+    } catch (error) {
+      console.log('Selfie Error:', error);
+      setSelfieUri(null);
+    }
+  };
+
+
+  const loadProfileData = async () => {
   try {
-    const res = await getAllDocuments();
-    setSelfieUri(res?.data?.selfie || null);
-  } catch (e) {
-    console.log(e);
+    await Promise.allSettled([
+      dispatch(fetchProfile()),
+      fetchStats(),
+      fetchSelfie(),
+    ]);
+  } catch (error) {
+    console.log('Profile refresh error:', error);
   }
 };
 
   useFocusEffect(
   useCallback(() => {
-    dispatch(fetchProfile());
-    fetchStats();
-    fetchSelfie();
-  }, [dispatch]),
+    loadProfileData();
+  }, []),
 );
 
+const onRefresh = useCallback(async () => {
+  setRefreshing(true);
 
+  await loadProfileData();
 
-
-  
-//   useEffect(() => {
-//   console.log('PROFILE SELFIE:', profile?.selfie);
-// }, [profile]);
-
-//   const getSelfieUri = selfie => {
-//     if (!selfie) return null;
-
-//     if (typeof selfie === 'string') return selfie;
-
-//     if (typeof selfie === 'object' && selfie.url) {
-//       return selfie.url;
-//     }
-
-//     return null;
-//   };
-
+  setRefreshing(false);
+}, []);
 
   return (
     <SafeAreaView
@@ -166,12 +153,19 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.safeArea}>
         <ScrollView
-          bounces={false}
-          alwaysBounceVertical={false}
-          overScrollMode="never"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
+            bounces
+            alwaysBounceVertical
+            overScrollMode="always"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#13ACBE']}     // Android
+                tintColor="#13ACBE"      // iOS
+              />
+            }>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profile</Text>
@@ -206,25 +200,16 @@ export default function ProfileScreen({ navigation }) {
                   Rider ID: {partnerId || '—'}
                 </Text>
 
-                <View
-                  style={[
-                    styles.activeBadge,
-                    {
-                      backgroundColor: isPartnerActive
-                        ? '#E6F6EC'
-                        : '#FDECEA',
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.activeText,
-                      {
-                        color: isPartnerActive ? '#2E7D32' : '#C62828',
-                      },
-                    ]}
-                  >
-                    {isPartnerActive ? 'Active' : 'Inactive'}
+                <View style={styles.riderTypeBadge}>
+                  <Ionicons
+                    name="briefcase-outline"
+                    size={14}
+                    color='#747474'
+                    style={{ marginRight: 6 }}
+                  />
+
+                  <Text style={styles.riderTypeText}>
+                    {formattedRiderType}
                   </Text>
                 </View>
               </View>
@@ -414,7 +399,7 @@ export default function ProfileScreen({ navigation }) {
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    Wallet
+                    Payout
                   </Text>
 
                   <Text
@@ -429,6 +414,48 @@ export default function ProfileScreen({ navigation }) {
 
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
+
+            {isAttendanceVisible && (
+              <TouchableOpacity
+                style={styles.listItemReduced}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('AttendanceScreen')}
+              >
+                <View style={styles.listLeft}>
+                  <Ionicons
+                    name="calendar-clear-outline"
+                    size={wp('7%')}
+                    color="#13ACBE"
+                  />
+
+                  <View
+                    style={{
+                      flex: 1,
+                      marginLeft: 12,
+                      paddingRight: 10,
+                    }}
+                  >
+                    <Text
+                      style={styles.listTitle}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      Attendance
+                    </Text>
+
+                    <Text
+                      style={styles.listSubtitle}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      View attendance & monthly summary
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={styles.arrow}>›</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.listItemReduced}
@@ -778,21 +805,27 @@ const styles = StyleSheet.create({
     color: '#222',
   },
 
-  activeBadge: {
-    marginTop: hp('0.8%'),
+  riderTypeBadge: {
+    marginTop: 8,
     alignSelf: 'flex-start',
-    backgroundColor: '#E6F6EC',
-    paddingHorizontal: wp('2.5%'),
-    paddingVertical: hp('0.4%'),
-    borderRadius: wp('3%'),
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+
+    backgroundColor: '#f2fcfe',
+    borderRadius: 20,
+
+    borderWidth: 1,
+    borderColor: '#f2fcfe',
   },
 
-  activeText: {
-    fontSize: wp('3.3%'),
-    color: '#2E7D32',
-    fontWeight: '500',
+  riderTypeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#747474',
   },
-
   divider: {
     height: 1,
     backgroundColor: '#EEE',

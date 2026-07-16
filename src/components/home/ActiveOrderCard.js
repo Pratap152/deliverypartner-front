@@ -7,7 +7,7 @@ import {
   Vibration,
   Animated,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import LinearGradient from "react-native-linear-gradient";
 import {
@@ -28,37 +28,39 @@ const STATUS_LABEL = {
 export default function ActiveOrderCard({ activeOrder }) {
   const navigation = useNavigation();
   const shakeAnim = React.useRef(new Animated.Value(0)).current;
-useEffect(() => {
-  Vibration.vibrate(300);
+  useFocusEffect(
+    React.useCallback(() => {
+      Vibration.vibrate(300);
 
-  Animated.sequence([
-    Animated.timing(shakeAnim, {
-      toValue: 10,
-      duration: 50,
-      useNativeDriver: true,
-    }),
-    Animated.timing(shakeAnim, {
-      toValue: -10,
-      duration: 50,
-      useNativeDriver: true,
-    }),
-    Animated.timing(shakeAnim, {
-      toValue: 10,
-      duration: 50,
-      useNativeDriver: true,
-    }),
-    Animated.timing(shakeAnim, {
-      toValue: -10,
-      duration: 50,
-      useNativeDriver: true,
-    }),
-    Animated.timing(shakeAnim, {
-      toValue: 0,
-      duration: 50,
-      useNativeDriver: true,
-    }),
-  ]).start();
-}, []);
+      Animated.sequence([
+        Animated.timing(shakeAnim, {
+          toValue: 10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: -10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: 10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: -10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: 0,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, [activeOrder?.orderId])
+  );
   const handleNavigation = () => {
     switch (activeOrder.currentStatus) {
       case "ASSIGNED":
@@ -100,49 +102,49 @@ useEffect(() => {
   };
 
   return (
-  <TouchableOpacity activeOpacity={0.9} onPress={handleNavigation}>
-  <Animated.View
-    style={{
-      transform: [{ translateX: shakeAnim }],
-    }}
-  >
-    <LinearGradient
-      colors={["#FFEFEF", "#f98080"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.card}
-    >
+    <TouchableOpacity activeOpacity={0.9} onPress={handleNavigation}>
+      <Animated.View
+        style={{
+          transform: [{ translateX: shakeAnim }],
+        }}
+      >
+        <LinearGradient
+          colors={["#FFEFEF", "#f98080"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.card}
+        >
 
-  <View style={styles.left}>
-        <View style={styles.iconContainer}>
-          <Ionicons
-            name="bicycle"
-            size={26}
-            color="#2563EB"
-          />
-        </View>
+          <View style={styles.left}>
+            <View style={styles.iconContainer}>
+              <Ionicons
+                name="bicycle"
+                size={26}
+                color="#2563EB"
+              />
+            </View>
 
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>Active Order</Text>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>Active Order</Text>
 
-          <Text style={styles.subtitle}>
-            {STATUS_LABEL[activeOrder.currentStatus]}
-          </Text>
-        </View>
-      </View>
+              <Text style={styles.subtitle}>
+                {STATUS_LABEL[activeOrder.currentStatus]}
+              </Text>
+            </View>
+          </View>
 
-      <View style={styles.resumeButton}>
+          <View style={styles.resumeButton}>
 
-        <Ionicons
-          name="arrow-forward"
-          size={18}
-          color="#2563EB"
-        />
-      </View>
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color="#2563EB"
+            />
+          </View>
         </LinearGradient>
-  </Animated.View>
-</TouchableOpacity>
-);
+      </Animated.View>
+    </TouchableOpacity>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -151,8 +153,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 15,
     paddingHorizontal: 18,
-    borderColor:"#fa0606",
-    borderWidth:1,
+    borderColor: "#fa0606",
+    borderWidth: 1,
 
     flexDirection: "row",
     justifyContent: "space-between",

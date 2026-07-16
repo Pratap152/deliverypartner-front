@@ -74,7 +74,7 @@ export default function SlotBookingHeader({
                   styles.activeTabText,
               ]}
             >
-              Current Week
+             This Week
             </Text>
           </TouchableOpacity>
 

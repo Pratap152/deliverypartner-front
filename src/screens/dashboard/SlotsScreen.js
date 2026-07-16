@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, ActivityIndicator} from 'react-native';
+import {View, StyleSheet, ActivityIndicator, RefreshControl, ScrollView} from 'react-native';
 import {useSelector} from 'react-redux';
 
 import {useSlots} from '../../hooks/useSlots';
@@ -7,6 +7,8 @@ import {useSlotSelection} from '../../hooks/useSlotSelection';
 import {TABS, FILTERS} from '../../utils/constants/slotConstants';
 import {extractSlotIds} from '../../utils/slotHelpers';
 import {getWeekNumber} from '../../services/slots/SlotBookingService';
+import DaySelector from '../../components/dashboard/slots/DaySelector';
+import SlotFilters from '../../components/dashboard/slots/SlotFilters';
 
 import SlotBookingHeader from '../../components/dashboard/slots/SlotBookingHeader';
 import SlotsList from '../../components/dashboard/slots/SlotsList';
@@ -52,6 +54,8 @@ export default function SlotsScreen() {
   const [tabLoading, setTabLoading] = useState(false);
 
   const [bookedSlots, setBookedSlots] = useState([]);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const cityId = useSelector(
     state => state.profile.data?.location?.city?.trim(),
@@ -203,7 +207,45 @@ export default function SlotsScreen() {
   const selectedWeekData =
     weeks.find(item => item.date === selectedWeek) || null;
 
-  const showLoader = weeksLoading || tabLoading;
+  const showLoader =
+  (weeksLoading || tabLoading) && !refreshing;
+
+  const handleRefresh = async () => {
+  if (refreshing) return;
+
+  try {
+    setRefreshing(true);
+
+    let weekNumber;
+
+    if (activeTab === TABS.NEXT) {
+      weekNumber = getWeekNumber() + 1;
+    } else if (activeTab === TABS.UPCOMING) {
+      weekNumber = getWeekNumber() + 2;
+    }
+
+    await loadWeeks(
+      {
+        weekNumber,
+        cityId,
+        pincodeId,
+      },
+      true,
+    );
+
+    await loadSlots(
+      {
+        date: selectedWeek,
+        filter,
+        cityId,
+        pincodeId,
+      },
+      true,
+    );
+  } finally {
+    setRefreshing(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -222,31 +264,50 @@ export default function SlotsScreen() {
       ) : activeTab === TABS.UPCOMING ? (
         <LockedWeekView />
       ) : (
-        <SlotsList
-          weeks={weeks}
-          slots={slots}
-          selectedWeek={selectedWeek}
-          selectedWeekData={selectedWeekData}
-          filter={filter}
-          onWeekSelect={handleWeekSelect}
-          onFilterChange={handleFilterChange}
-          onSlotSelect={toggleSlotSelection}
-          onSlotCancel={handleSlotCancel}
-          isSlotSelected={isSlotSelected}
-          weeksLoading={weeksLoading}
-          slotsLoading={slotsLoading}
-          actionLoading={actionLoading}
-          onRefresh={() =>
-            loadSlots({
-              date: selectedWeek,
-              filter,
-              cityId,
-              pincodeId,
-            })
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#1F3365']}
+              tintColor="#1F3365"
+            />
           }
-        />
-      )}
+          showsVerticalScrollIndicator={false}
+        >
+          {weeks.length > 0 && (
+            <>
+              <DaySelector
+                weeks={weeks}
+                selectedWeek={selectedWeek}
+                onSelect={handleWeekSelect}
+              />
 
+              <SlotFilters
+                value={filter}
+                onChange={handleFilterChange}
+              />
+            </>
+          )}
+
+          <SlotsList
+            weeks={weeks}
+            slots={slots}
+            selectedWeek={selectedWeek}
+            selectedWeekData={selectedWeekData}
+            filter={filter}
+            onWeekSelect={handleWeekSelect}
+            onFilterChange={handleFilterChange}
+            onSlotSelect={toggleSlotSelection}
+            onSlotCancel={handleSlotCancel}
+            isSlotSelected={isSlotSelected}
+            weeksLoading={weeksLoading}
+            slotsLoading={slotsLoading}
+            actionLoading={actionLoading}
+          />
+        </ScrollView>
+      )}
+      
       <SlotBookingFooter
         selectedCount={selectedCount}
         onBook={() => setBookModalVisible(true)}

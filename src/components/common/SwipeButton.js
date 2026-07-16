@@ -15,6 +15,7 @@ const SwipeButton = ({
     status,
     orderDetails,
     paymentMethod,
+    paymentCollected,
     distanceToTarget
 }) => {
     // If there are no bottom buttons, don't render anything
@@ -42,7 +43,13 @@ const SwipeButton = ({
                             orderDetails?.payment?.paymentMethod?.toUpperCase() === 'COD' ||
                             orderDetails?.payment?.mode?.toUpperCase() === 'COD'
                         )
-                            ? (paymentMethod === 'CASH' ? 'Collect Cash' : 'Confirm Online Payment')
+                            ? (
+                                paymentCollected
+                                    ? 'Deliver Order'
+                                    : (paymentMethod === 'CASH'
+                                        ? 'Collect Cash'
+                                        : 'Confirm Online Payment')
+                            )
                             : ui.bottomButtons?.[0]?.label}
                     </Text>
                 )}

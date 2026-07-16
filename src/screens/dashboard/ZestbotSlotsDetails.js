@@ -7,6 +7,7 @@ import {
     StatusBar,
     ActivityIndicator,
     ScrollView,
+    RefreshControl
 } from 'react-native';
 import {
     widthPercentageToDP as wp,
@@ -24,21 +25,25 @@ const ZestbotSlotsDetails = () => {
     } = useSlots();
 
     const [response, setResponse] = useState(null);
+    const [selectedShift, setSelectedShift] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
 
     useEffect(() => {
         const fetchZestbotSlots = async () => {
             try {
-                const res = await fetchZestbotSlotsDetails();
-                setResponse(res);
+            const res = await fetchZestbotSlotsDetails();
+            setResponse(res);
             } catch (error) {
-                console.error("Error fetching Zestbot slots:", error);
+            console.error("Error fetching Zestbot slots:", error);
+            } finally {
+            setInitialLoading(false);
             }
         };
 
         fetchZestbotSlots();
-    }, []);
+        }, []);
 
-    const [selectedShift, setSelectedShift] = useState(null);
 
     const shifts = response?.data?.shifts || [];
 
@@ -90,10 +95,35 @@ const ZestbotSlotsDetails = () => {
         }
     };
 
-    if (zestbotSlotsLoading) {
+    const handleRefresh = async () => {
+        if (refreshing) return;
+
+        try {
+            setRefreshing(true);
+
+            const res = await fetchZestbotSlotsDetails();
+            setResponse(res);
+
+            if (res?.data?.shifts?.length) {
+            const today = new Date().toISOString().split('T')[0];
+
+            const currentShift =
+                res.data.shifts.find(item => item.date === today) ||
+                res.data.shifts[0];
+
+            setSelectedShift(currentShift);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+    
+    if (initialLoading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#4C4CFF" />
+                <ActivityIndicator size="large" color="#1F3365" />
             </View>
         );
     };
@@ -137,7 +167,15 @@ const ZestbotSlotsDetails = () => {
                     style={styles.scrollView}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}
-                >
+                    refreshControl={
+                        <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        colors={['#1F3365']}
+                        tintColor="#1F3365"
+                        />
+                    }
+                    >
                     {/* Week Days */}
                     <View style={styles.weekContainer}>
                         {shifts.map((item, index) => {

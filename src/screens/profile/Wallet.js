@@ -127,7 +127,7 @@ export default function WalletScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={rf(2.6)} color="#101828" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Wallet</Text>
+          <Text style={styles.headerTitle}>Payout</Text>
           <TouchableOpacity
             style={styles.rightIconWrapper}
             onPress={() => navigation.navigate('HelpCenterList')}>
@@ -146,7 +146,7 @@ export default function WalletScreen({ navigation }) {
               <View style={styles.walletTop}>
                 <View>
                   <View style={styles.walletTitleRow}>
-                    <Text style={styles.walletLabel}>Wallet Balance</Text>
+                    <Text style={styles.walletLabel}>Total Balance</Text>
                   </View>
                   <View style={styles.balanceRow}>
                     <Text style={styles.walletAmount}>
@@ -375,7 +375,7 @@ export default function WalletScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="#101828" />
         </TouchableOpacity>
-        <Text style={tabletStyles.headerTitle}>Wallet</Text>
+        <Text style={tabletStyles.headerTitle}>Payout</Text>
         <TouchableOpacity
           onPress={() => navigation.navigate('HelpCenterList')}>
           <Ionicons name="chatbubble-ellipses-outline" size={30} color="#294484" />
@@ -395,7 +395,7 @@ export default function WalletScreen({ navigation }) {
             style={tabletStyles.walletCard}>
             <View style={tabletStyles.walletTop}>
               <View>
-                <Text style={tabletStyles.walletLabel}>Wallet Balance</Text>
+                <Text style={tabletStyles.walletLabel}>Total Balance</Text>
                 <Text style={tabletStyles.walletAmount}>
                   {formatCurrency(wallet?.totalAmount)}
                 </Text>

@@ -1,6 +1,12 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -22,7 +28,8 @@ const OrderCard = ({
     timeLeft,
     onAccept,
     onReject,
-    loading,
+    isSubmitting,
+    loadingAction,
 }) => {
     return (
         <View style={styles.card}>
@@ -57,30 +64,46 @@ const OrderCard = ({
 
             <View style={styles.buttonRow}>
     <TouchableOpacity
-        style={styles.rejectButton}
-        activeOpacity={0.85}
-        onPress={onReject}
-        disabled={loading}
-    >
+    style={[
+        styles.rejectButton,
+        isSubmitting && { opacity: 0.6 },
+    ]}
+    activeOpacity={0.85}
+    onPress={onReject}
+    disabled={isSubmitting}
+>
+       {
+    isSubmitting && loadingAction === "reject" ? (
+        <ActivityIndicator color="#fff" />
+    ) : (
         <Ionicons
             name="close"
             size={25}
             color="#FFFFFF"
         />
+    )
+}
     </TouchableOpacity>
 
     <TouchableOpacity
-        style={[
-            styles.acceptButton,
-            { backgroundColor: getButtonColor(timeLeft) },
-        ]}
-        disabled={timeLeft === 0 || loading}
-        activeOpacity={0.85}
-        onPress={onAccept}
-    >
+    style={[
+        styles.acceptButton,
+        { backgroundColor: getButtonColor(timeLeft) },
+        isSubmitting && { opacity: 0.6 },
+    ]}
+    disabled={timeLeft === 0 || isSubmitting}
+    activeOpacity={0.85}
+    onPress={onAccept}
+>
+        {
+    isSubmitting && loadingAction === "accept" ? (
+        <ActivityIndicator color="#fff" />
+    ) : (
         <Text style={styles.acceptText}>
-            {timeLeft > 0 ? `Accept in ${timeLeft}` : 'Expired'}
+            {timeLeft > 0 ? `Accept in ${timeLeft}` : "Expired"}
         </Text>
+    )
+}
     </TouchableOpacity>
 </View>
         </View>
