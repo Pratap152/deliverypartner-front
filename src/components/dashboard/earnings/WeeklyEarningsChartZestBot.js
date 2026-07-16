@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Svg, { Rect, Text as TextSvg, Line } from 'react-native-svg';
 import {
   widthPercentageToDP as wp,
@@ -10,11 +10,11 @@ import { formatMoney } from '../../../utils/formatMoney';
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const PADDING_LEFT   = wp(10);
-const PADDING_RIGHT  = wp(2);
-const PADDING_TOP    = wp(6);   
-const PADDING_BOTTOM = wp(7);   
-const BAR_RADIUS     = 4;
+const PADDING_LEFT = wp(10);
+const PADDING_RIGHT = wp(2);
+const PADDING_TOP = wp(6);
+const PADDING_BOTTOM = wp(7);
+const BAR_RADIUS = 4;
 const VALUE_LABEL_GAP = 4;
 
 
@@ -25,36 +25,36 @@ function BarChart({
   getValue,
   yLabelFormat,
   yAxisCount = 4,
-  barColor       = '#10B981',
+  barColor = '#10B981',
   barColorActive = '#059669',
   valueLabelFormat,
 }) {
   const [activeIndex, setActiveIndex] = useState(null);
 
-  const plotWidth     = chartWidth - PADDING_LEFT - PADDING_RIGHT;
-  const plotHeight    = chartHeight - PADDING_TOP - PADDING_BOTTOM;
+  const plotWidth = chartWidth - PADDING_LEFT - PADDING_RIGHT;
+  const plotHeight = chartHeight - PADDING_TOP - PADDING_BOTTOM;
   const barGroupWidth = plotWidth / data.length;
-  const barWidth      = barGroupWidth * 0.45;
+  const barWidth = barGroupWidth * 0.45;
 
-  const rawMax   = Math.max(...data.map(d => getValue(d)), 0);
+  const rawMax = Math.max(...data.map(d => getValue(d)), 0);
   const maxValue = rawMax === 0
     ? yAxisCount - 1
     : Math.ceil(rawMax / (yAxisCount - 1)) * (yAxisCount - 1);
 
   const points = useMemo(() => {
     return data.map((item, index) => {
-      const val       = getValue(item);
-      const barX      = PADDING_LEFT + index * barGroupWidth + (barGroupWidth - barWidth) / 2;
+      const val = getValue(item);
+      const barX = PADDING_LEFT + index * barGroupWidth + (barGroupWidth - barWidth) / 2;
       const barHeight = maxValue === 0 ? 0 : (val / maxValue) * plotHeight;
-      const barY      = PADDING_TOP + plotHeight - barHeight;
-      const centerX   = barX + barWidth / 2;
+      const barY = PADDING_TOP + plotHeight - barHeight;
+      const centerX = barX + barWidth / 2;
       return { ...item, val, barX, barY, barHeight, centerX };
     });
   }, [data, maxValue]);
 
   const panResponder = require('react-native').PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder:  () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: (_, g) => {
       const i = Math.floor((g.x0 - PADDING_LEFT) / barGroupWidth);
       if (i >= 0 && i < data.length) setActiveIndex(i);
@@ -63,7 +63,7 @@ function BarChart({
       const i = Math.floor((g.moveX - PADDING_LEFT) / barGroupWidth);
       if (i >= 0 && i < data.length) setActiveIndex(i);
     },
-    onPanResponderRelease:   () => setActiveIndex(null),
+    onPanResponderRelease: () => setActiveIndex(null),
     onPanResponderTerminate: () => setActiveIndex(null),
   });
 
@@ -73,7 +73,7 @@ function BarChart({
 
         {/* Grid + Y labels */}
         {Array.from({ length: yAxisCount }).map((_, i) => {
-          const y     = PADDING_TOP + (i * plotHeight) / (yAxisCount - 1);
+          const y = PADDING_TOP + (i * plotHeight) / (yAxisCount - 1);
           const value = Math.round((maxValue / (yAxisCount - 1)) * (yAxisCount - 1 - i));
           return (
             <React.Fragment key={`grid-${i}`}>
@@ -96,10 +96,10 @@ function BarChart({
         })}
 
         {points.map((p, index) => {
-          const isActive    = activeIndex === index;
-          const hasValue    = p.val > 0;
-          const displayH    = Math.max(p.barHeight, hasValue ? BAR_RADIUS * 2 : 0);
-          const displayY    = PADDING_TOP + plotHeight - displayH;
+          const isActive = activeIndex === index;
+          const hasValue = p.val > 0;
+          const displayH = Math.max(p.barHeight, hasValue ? BAR_RADIUS * 2 : 0);
+          const displayY = PADDING_TOP + plotHeight - displayH;
           const valueLabelY = displayY - VALUE_LABEL_GAP;
 
           return (
@@ -123,7 +123,7 @@ function BarChart({
                   fontSize={isTablet ? wp(2.2) : wp(2.6)}
                   fill={isActive ? barColorActive : '#374151'}
                   textAnchor="middle"
-                  fontWeight={isActive ? '700' : '500'}
+                  fontWeight={isActive ? '800' : '600'}
                 >
                   {valueLabelFormat ? valueLabelFormat(p) : `${p.val}`}
                 </TextSvg>
@@ -136,7 +136,7 @@ function BarChart({
                 fontSize={isTablet ? wp(2.6) : wp(3.2)}
                 fill={isActive ? '#111827' : '#9CA3AF'}
                 textAnchor="middle"
-                fontWeight={isActive ? '600' : '400'}
+                fontWeight={isActive ? '800' : '600'}
               >
                 {p.label}
               </TextSvg>
@@ -153,6 +153,48 @@ const bcStyles = StyleSheet.create({
   container: { alignSelf: 'center' },
 });
 
+const WeekNavigator = ({
+  currentWeekIndex,
+  totalWeeks,
+  onPrevious,
+  onNext,
+}) => (
+  <View style={styles.weekNavigation}>
+    <TouchableOpacity
+      disabled={currentWeekIndex === 0}
+      style={styles.iconButton}
+      onPress={onPrevious}
+    >
+      <Text
+        style={[
+          styles.arrow,
+          currentWeekIndex === 0 && styles.disabled,
+        ]}
+      >
+        ◀
+      </Text>
+    </TouchableOpacity>
+
+    <Text style={styles.weekTitle}>
+      Week {currentWeekIndex + 1} of {totalWeeks}
+    </Text>
+
+    <TouchableOpacity
+      disabled={currentWeekIndex === totalWeeks - 1}
+      style={styles.iconButton}
+      onPress={onNext}
+    >
+      <Text
+        style={[
+          styles.arrow,
+          currentWeekIndex === totalWeeks - 1 && styles.disabled,
+        ]}
+      >
+        ▶
+      </Text>
+    </TouchableOpacity>
+  </View>
+);
 
 export default function WeeklyEarningsChartZestBot({
   data,
@@ -162,16 +204,83 @@ export default function WeeklyEarningsChartZestBot({
   completedOrders,
   weeklyTotal,
   eligible,
+  earningsDataLoading,
 }) {
-  const target      = monthlyTarget ?? 0;
-  const completed   = completedOrders ?? 0;
-  const isComplete  = eligible === true;
-  const remaining   = Math.max(target - completed, 0);
+  const target = monthlyTarget ?? 0;
+  const completed = completedOrders ?? 0;
+  const isComplete = eligible === true;
+  const remaining = Math.max(target - completed, 0);
   const progressPct = target > 0 ? Math.min((completed / target) * 100, 100) : 0;
+
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
+
+  React.useEffect(() => {
+    if (!weeks.length) return;
+
+    const today = new Date();
+    const currentDay = today.getDate();
+
+    const index = weeks.findIndex(week =>
+      week.some(item => item.day === currentDay),
+    );
+
+    if (index !== -1) {
+      setCurrentWeekIndex(index);
+    }
+  }, [weeks]);
+
+  const weeks = useMemo(() => {
+    if (!data?.length) return [];
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const weeks = [];
+    let currentWeek = [];
+
+    data.forEach(item => {
+      const date = new Date(year, month, item.day);
+      const dayOfWeek = date.getDay(); // Sun=0, Mon=1, ..., Sat=6
+
+      // Start a new week every Monday (except for the very first item)
+      if (dayOfWeek === 1 && currentWeek.length > 0) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+
+      currentWeek.push({
+        ...item,
+        label: String(item.day),
+        value: item.amount ?? 0,
+      });
+    });
+
+    if (currentWeek.length > 0) {
+      weeks.push(currentWeek);
+    }
+
+    return weeks;
+  }, [data]);
+
+  const weekData = weeks[currentWeekIndex] || [];
+
+  if (earningsDataLoading) {
+    return (
+      <View
+        style={{
+          height: chartHeight,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
 
   return (
     <View>
-
       {/* Before target */}
       {!isComplete && (
         <>
@@ -198,8 +307,16 @@ export default function WeeklyEarningsChartZestBot({
 
           {/* Orders chart — amber bars */}
           <Text style={styles.chartLabel}>Daily Orders</Text>
+
+          <WeekNavigator
+            currentWeekIndex={currentWeekIndex}
+            totalWeeks={weeks.length}
+            onPrevious={() => setCurrentWeekIndex(i => i - 1)}
+            onNext={() => setCurrentWeekIndex(i => i + 1)}
+          />
+
           <BarChart
-            data={data}
+            data={weekData}
             chartWidth={chartWidth}
             chartHeight={chartHeight}
             getValue={(item) => item.orders ?? 0}
@@ -237,9 +354,16 @@ export default function WeeklyEarningsChartZestBot({
             <Text style={styles.earningsTotal}>₹{formatMoney(weeklyTotal ?? 0)}</Text>
           </View>
 
+          <WeekNavigator
+            currentWeekIndex={currentWeekIndex}
+            totalWeeks={weeks.length}
+            onPrevious={() => setCurrentWeekIndex(i => i - 1)}
+            onNext={() => setCurrentWeekIndex(i => i + 1)}
+          />
+
           {/* Earnings chart — green bars */}
           <BarChart
-            data={data}
+            data={weekData}
             chartWidth={chartWidth}
             chartHeight={chartHeight}
             getValue={(item) => item.value ?? 0}
@@ -255,7 +379,6 @@ export default function WeeklyEarningsChartZestBot({
           />
         </>
       )}
-
     </View>
   );
 }
@@ -272,13 +395,55 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
   },
+  weekNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: hp(1.5),
+  },
+  navButton: {
+    fontSize: isTablet ? wp(3.2) : wp(5),
+    fontWeight: '700',
+    color: '#2E9B51',
+    paddingHorizontal: wp(2),
+  },
+  disabledButton: {
+    color: '#D1D5DB',
+  },
+  weekTitle: {
+    fontSize: isTablet ? wp(2.8) : wp(3.8),
+    fontWeight: '600',
+    color: '#111827',
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  arrow: {
+    fontSize: isTablet ? 28 : 24,
+    color: '#10B981',
+    fontWeight: '700',
+  },
+  disabled: {
+    color: '#D1D5DB',
+  },
   pill: {
     paddingHorizontal: wp(2.5),
     paddingVertical: 3,
     borderRadius: 20,
   },
-  pillAmber:     { backgroundColor: '#FEF3C7' },
-  pillGreen:     { backgroundColor: '#D1FAE5' },
+  pillAmber: { backgroundColor: '#FEF3C7' },
+  pillGreen: { backgroundColor: '#D1FAE5' },
   pillText: {
     fontSize: isTablet ? wp(2.2) : wp(3),
     fontWeight: '600',
@@ -307,7 +472,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: hp(0.8),
   },
-  fill:      { height: '100%', borderRadius: 99 },
+  fill: { height: '100%', borderRadius: 99 },
   fillAmber: { backgroundColor: '#F59E0B' },
   fillGreen: { backgroundColor: '#10B981' },
   descUnlock: {
