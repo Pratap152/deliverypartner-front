@@ -31,6 +31,7 @@ export default function SlotsList({
   slotsLoading = false,
   actionLoading = false,
   selectedWeekData,
+  onBookSlot
 }) {
   const hasWeeks = weeks.length > 0;
   const hasSlots = slots.length > 0;
@@ -62,14 +63,31 @@ export default function SlotsList({
               item.isPeakSlot ?? selectedWeekData?.isPeakSlot,
           })
         }
+        onBook={() =>
+          onBookSlot({
+            ...item,
+            durationMinutes:
+              item.durationMinutes ?? selectedWeekData?.durationMinutes,
+            breakInMinutes:
+              item.breakInMinutes ?? selectedWeekData?.breakInMinutes,
+            isPeakSlot:
+              item.isPeakSlot ?? selectedWeekData?.isPeakSlot,
+          })
+        }
         onCancel={() => onSlotCancel(item)}
-    />
+      />
     );
   };
   
   return (
-    <View style={styles.container}>
-
+    <View
+      style={[
+        styles.container,
+        !hasSlots && {
+          justifyContent: 'center',
+        },
+      ]}
+    >
       {/* Slots Loader */}
       {showLoader ? (
         <View style={styles.loaderContainer}>
@@ -90,16 +108,12 @@ export default function SlotsList({
                 ? <EmptySlotState filter={filter} />
                 : null
         }
-          ListFooterComponent={
-            hasSlots ? <SlotHistory /> : null
-          }
            contentContainerStyle={[
-            styles.listContent,
-            !hasSlots && {
-              flexGrow: 1,
-              justifyContent: 'center',
-            },
-          ]}
+              styles.listContent,
+              {
+                flexGrow: 1,
+              },
+            ]}
           showsVerticalScrollIndicator={false}
           scrollEnabled={false}
         />
@@ -112,8 +126,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: isTablet ? 28 : 16,
-    marginTop: isTablet ? 20 : 10,
-
+    marginTop: isTablet ? 10 : 0,
+    minHeight: 500,
+  
     ...(isTablet && {
       width: '94%',
       alignSelf: 'center',
@@ -128,6 +143,6 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-    paddingBottom: 100,
+    paddingBottom: 16,
   },
 });

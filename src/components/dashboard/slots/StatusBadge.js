@@ -21,18 +21,19 @@ export default function StatusBadge({ status, style }) {
 }
 
 const styles = StyleSheet.create({
-    badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: isTablet ? 14 : 8,
-    paddingHorizontal: isTablet ? 36 : 24,
-    borderRadius: 30,
-    minWidth: isTablet ? 240 : 160,
-    justifyContent: 'center',
-},
+   badge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        width: isTablet ? 240 : 160,  
+        paddingVertical: isTablet ? 14 : 8,
+
+        borderRadius: 30,
+        },
     text: {
-    fontSize: isTablet ? 22 : 14,
-    fontWeight: '700',
-    marginLeft: 8,
-},
+        fontSize: isTablet ? 22 : 14,
+        fontWeight: '700',
+        marginLeft: 8,
+    },
 });
