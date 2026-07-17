@@ -114,6 +114,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
     marginBottom: isTablet ? 20 : 12,
+    marginLeft: 8,
+    marginTop: 5
   },
 
   row: {

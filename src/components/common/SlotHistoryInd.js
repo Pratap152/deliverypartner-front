@@ -1,7 +1,6 @@
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
-  View,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -27,7 +26,7 @@ export default function SlotHistory() {
       <MaterialIcons
         name="history"
         size={isTablet ? 26 : 22}
-        color="#374151"
+        color="#4B5563"
         style={styles.icon}
       />
 
@@ -38,7 +37,7 @@ export default function SlotHistory() {
       <MaterialIcons
         name="keyboard-arrow-right"
         size={isTablet ? 30 : 24}
-        color="#374151"
+        color="#4B5563"
       />
     </TouchableOpacity>
   );
@@ -49,24 +48,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
 
-    backgroundColor: '#EEF6FF',
-
     width: isTablet ? '96%' : wp(94),
     height: isTablet ? 64 : 52,
 
+    alignSelf: 'center',
+
+    backgroundColor: '#FCFDFF', 
     borderRadius: 14,
 
     marginTop: 16,
     marginBottom: 12,
 
     borderWidth: 1,
-    borderColor: '#D7E8FF',
+    borderColor: '#EEF2F7',
 
     paddingHorizontal: 16,
 
-    shadowColor: '#2563EB',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     shadowOffset: {
       width: 0,
       height: 2,

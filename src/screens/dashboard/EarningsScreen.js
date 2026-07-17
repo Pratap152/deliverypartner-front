@@ -62,7 +62,7 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
                 navigation.navigate('EarningsHistoryScreen', { mode: 'HISTORY' })}>
               <MaterialIcons
                 name="history"
-                size={isTablet ? 30 : 22}
+                size={isTablet ? 30 : 24}
                 color="#FFFFFF"
               />
             </TouchableOpacity>
@@ -72,7 +72,7 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
             >
               <Ionicons
                 name="chatbubble-ellipses-outline"
-                size={24}
+                size={isTablet ? 28 : 22}
                 color="#ffff"
               />
             </TouchableOpacity>
