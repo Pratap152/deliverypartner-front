@@ -1,4 +1,4 @@
-const WEBSITE_URL="https://rider-module.onrender.com";
+const WEBSITE_URL="https://rider-api.swachvega.com";
 
 
 export default WEBSITE_URL;
