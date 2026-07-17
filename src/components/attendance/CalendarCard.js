@@ -38,58 +38,63 @@ const CalendarCard = ({
   onNextMonth,
   navigation,
 }) => {
-
-  // Convert API calendar array to a lookup object
   const statusMap = {};
 
   calendar.forEach(item => {
     statusMap[item.date] = item.status;
   });
 
-  // Number of days in month
   const totalDays = new Date(year, month, 0).getDate();
 
-  // Monday = first day
   let firstDay = new Date(year, month - 1, 1).getDay();
   firstDay = firstDay === 0 ? 6 : firstDay - 1;
 
-  // Calendar cells
   const calendarDays = [];
 
-  // Empty cells before first day
   for (let i = 0; i < firstDay; i++) {
     calendarDays.push(null);
   }
 
-  // Actual days
   for (let day = 1; day <= totalDays; day++) {
     calendarDays.push(day);
   }
 
+  // Updated attendance colors
   const getStatusColor = status => {
     switch (status) {
       case 'FULL_DAY':
-        return '#4CAF50';
+        return '#22C55E';
 
       case 'HALF_DAY':
-        return '#FFC107';
+        return '#FACC15';
+
+      case 'ONE_THIRD_DAY':
+        return '#F59E0B';
 
       case 'ABSENT':
-        return '#F44336';
+        return '#EF4444';
 
       case 'HOLIDAY':
-        return '#FF9800';
+        return '#3B82F6';
+
+      case 'LEAVE':
+        return '#9C27B0';
+
+      case 'IN_PROGRESS':
+        return '#13ACBE';
 
       default:
-        return '#E0E0E0';
+        return '#FFFFFF';
     }
   };
 
   const handleDatePress = day => {
     if (!day) return;
 
-    const formattedDate =
-      `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const formattedDate = `${year}-${String(month).padStart(
+      2,
+      '0',
+    )}-${String(day).padStart(2, '0')}`;
 
     navigation.navigate('AttendanceDetailsScreen', {
       date: formattedDate,
@@ -98,21 +103,17 @@ const CalendarCard = ({
 
   return (
     <View style={styles.container}>
-
       {/* Header */}
 
       <View style={styles.header}>
-
         <TouchableOpacity
           onPress={onPreviousMonth}
           style={styles.arrowButton}>
-
           <Ionicons
             name="chevron-back"
             size={22}
             color="#1F3365"
           />
-
         </TouchableOpacity>
 
         <Text style={styles.monthText}>
@@ -122,28 +123,22 @@ const CalendarCard = ({
         <TouchableOpacity
           onPress={onNextMonth}
           style={styles.arrowButton}>
-
           <Ionicons
             name="chevron-forward"
             size={22}
             color="#1F3365"
           />
-
         </TouchableOpacity>
-
       </View>
 
       {loading ? (
-
         <View style={styles.loaderContainer}>
           <ActivityIndicator
             size="small"
-            color="#1F3365"
+            color="#13ACBE"
           />
         </View>
-
       ) : (
-
         <>
           {/* Week Days */}
 
@@ -157,12 +152,10 @@ const CalendarCard = ({
             ))}
           </View>
 
-          {/* Calendar Grid */}
+          {/* Calendar */}
 
           <View style={styles.grid}>
-
             {calendarDays.map((day, index) => {
-
               if (!day) {
                 return (
                   <View
@@ -172,8 +165,10 @@ const CalendarCard = ({
                 );
               }
 
-              const dateString =
-                `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const dateString = `${year}-${String(month).padStart(
+                2,
+                '0',
+              )}-${String(day).padStart(2, '0')}`;
 
               const status = statusMap[dateString];
 
@@ -185,49 +180,46 @@ const CalendarCard = ({
                 today.getDate() === day;
 
               return (
-
                 <TouchableOpacity
                   key={index}
                   style={styles.dayCell}
                   activeOpacity={0.8}
-                  onPress={() => handleDatePress(day)}
-                >
-
+                  onPress={() => handleDatePress(day)}>
                   <View
                     style={[
                       styles.circle,
                       {
-                        backgroundColor:
-                          getStatusColor(status),
+                        backgroundColor: getStatusColor(status),
+                        borderColor: status
+                          ? getStatusColor(status)
+                          : '#D1D5DB',
+                        borderWidth: 1,
                       },
                       isToday && styles.todayCircle,
-                    ]}
-                  >
-
+                    ]}>
                     <Text
-                      style={styles.dayNumber}>
+                      style={[
+                        styles.dayNumber,
+                        {
+                          color: status ? '#FFFFFF' : '#1F2937',
+                        },
+                      ]}>
                       {day}
                     </Text>
-
                   </View>
-
                 </TouchableOpacity>
-
               );
-
             })}
-
           </View>
 
-                    {/* Legend */}
+          {/* Legend */}
 
           <View style={styles.legendContainer}>
-
             <View style={styles.legendItem}>
               <View
                 style={[
                   styles.legendDot,
-                  { backgroundColor: '#4CAF50' },
+                  { backgroundColor: '#22C55E' },
                 ]}
               />
               <Text style={styles.legendText}>Full Day</Text>
@@ -237,7 +229,7 @@ const CalendarCard = ({
               <View
                 style={[
                   styles.legendDot,
-                  { backgroundColor: '#FFC107' },
+                  { backgroundColor: '#FACC15' },
                 ]}
               />
               <Text style={styles.legendText}>Half Day</Text>
@@ -247,7 +239,7 @@ const CalendarCard = ({
               <View
                 style={[
                   styles.legendDot,
-                  { backgroundColor: '#F44336' },
+                  { backgroundColor: '#EF4444' },
                 ]}
               />
               <Text style={styles.legendText}>Absent</Text>
@@ -257,18 +249,43 @@ const CalendarCard = ({
               <View
                 style={[
                   styles.legendDot,
-                  { backgroundColor: '#FF9800' },
+                  { backgroundColor: '#3B82F6' },
                 ]}
               />
               <Text style={styles.legendText}>Holiday</Text>
             </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: '#F59E0B' },
+                ]}
+              />
+              <Text style={styles.legendText}>One Third Day</Text>
+            </View>
 
+            <View style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: '#9C27B0' },
+                ]}
+              />
+              <Text style={styles.legendText}>Leave</Text>
+            </View>
+
+            <View style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: '#13ACBE' },
+                ]}
+              />
+              <Text style={styles.legendText}>In Progress</Text>
+            </View>
           </View>
-
         </>
-
       )}
-
     </View>
   );
 };
@@ -276,7 +293,6 @@ const CalendarCard = ({
 export default CalendarCard;
 
 const styles = StyleSheet.create({
-
   container: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -346,21 +362,33 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
+  // Updated circle
   circle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
 
+  // Highlight today's date
   todayCircle: {
-    borderWidth: 2,
-    borderColor: '#1F3365',
+    borderWidth: 3,
+    borderColor: '#13ACBE',
+
+    shadowColor: '#13ACBE',
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    elevation: 6,
   },
 
   dayNumber: {
-    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: responsiveFontSize(1.8),
   },
@@ -378,8 +406,8 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
     width: '48%',
+    marginBottom: 10,
   },
 
   legendDot: {
@@ -394,5 +422,4 @@ const styles = StyleSheet.create({
     color: '#555',
     fontWeight: '500',
   },
-
 });
