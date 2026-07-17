@@ -25,6 +25,7 @@ export default function SlotCard({
   onSelect,
   onCancel,
   activeFilter,
+  onBook,
 }) {
   // Get display status using utility
   const displayStatus = getDisplayStatus(slot, activeFilter);
@@ -55,12 +56,10 @@ export default function SlotCard({
     : "#2563EB";
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={selectable ? onSelect : null}
+    <View
       style={[
         styles.card,
-        isPeakSlot && styles.peakCard, 
+        isPeakSlot && styles.peakCard,
         selected && styles.selectedCard,
         isBooked && styles.bookedCard,
         isCancelled && styles.cancelledCard,
@@ -122,7 +121,15 @@ export default function SlotCard({
 
           {/* Checkbox for Available slots */}
           {isAvailable && selectable && (
-            <Checkbox checked={selected} onPress={selectable ? onSelect : null} />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onSelect}
+            >
+              <Checkbox
+                checked={selected}
+                onPress={onSelect}
+              />
+            </TouchableOpacity>
           )}
 
         
@@ -130,12 +137,24 @@ export default function SlotCard({
       </View>
 
       {/* ---------- STATUS ROW ---------- */}
-      <View style={styles.statusRow}>
-        <StatusBadge status={displayStatus} />
-      </View>
-    </TouchableOpacity>
-  );
-}
+            <View style={styles.statusRow}>
+              {isAvailable ? (
+                <TouchableOpacity
+                  style={styles.bookButton}
+                  onPress={() => onBook(slot)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.bookButtonText}>
+                    Book Slot
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <StatusBadge status={displayStatus} />
+              )}
+            </View>
+          </View>
+        );
+      }
 
 const styles = StyleSheet.create({
   card: {
@@ -250,12 +269,45 @@ peakText: {
 },
 
   statusRow: {
-    marginTop: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
+  marginTop: 12,
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+bookButton: {
+  backgroundColor: '#4C4CFF',
+  width: isTablet ? 240 : 160,
+  paddingVertical: isTablet ? 14 : 8,
+  borderRadius: 30,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+bookButtonText: {
+  color: '#FFF',
+  fontWeight: '700',
+  fontSize: isTablet ? 16 : 13,
+},
   details: {
   fontSize: isTablet ? 18 : 14,
   marginTop: 4,
 },
+bookButtonSelected: {
+  backgroundColor: '#34C759',
+},
+badge: {
+  minWidth: isTablet ? 150 : 120,
+  height: isTablet ? 42 : 34,
+  borderRadius: 17,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 16,
+},
+badgeText: {
+  textAlign: 'center',
+  fontWeight: '700',
+  fontSize: isTablet ? 16 : 13,
+},
+
 });

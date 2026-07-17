@@ -39,6 +39,7 @@ export default function SlotFilters({ value, onChange }) {
 const styles = StyleSheet.create({
   container: {
     marginVertical: 8,
+    marginLeft: 8,
   },
   scrollContent: {
     flexDirection: "row",

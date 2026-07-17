@@ -17,6 +17,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSlots } from '../../hooks/useSlots';
 
+import EmptySlotState from '../../components/dashboard/slots/EmptySlotState';
+
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SlotHistory from '../../components/common/SlotHistory';
+
 const ZestbotSlotsDetails = () => {
 
     const {
@@ -46,6 +53,7 @@ const ZestbotSlotsDetails = () => {
 
 
     const shifts = response?.data?.shifts || [];
+    const hasShifts = shifts.length > 0;
 
     useEffect(() => {
         if (shifts.length === 0) return;
@@ -119,6 +127,8 @@ const ZestbotSlotsDetails = () => {
             setRefreshing(false);
         }
     };
+
+    const navigation = useNavigation();
     
     if (initialLoading) {
         return (
@@ -158,15 +168,45 @@ const ZestbotSlotsDetails = () => {
             />
             <View style={styles.container}>
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>My Slots</Text>
+                    <View style={styles.headerTop}>
+                        <Text style={styles.headerTitle}>My Slots</Text>
+
+                        <View style={styles.headerIcons}>
+                        <TouchableOpacity
+                            style={styles.iconBtn}
+                            onPress={() => navigation.navigate('SlotHistoryScreen')}
+                        >
+                            <MaterialIcons
+                            name="history"
+                            size={22}
+                            color="#FFF"
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.iconBtn}
+                            onPress={() => navigation.navigate('HelpCenterList')}
+                        >
+                            <Ionicons
+                            name="chatbubble-ellipses-outline"
+                            size={22}
+                            color="#FFF"
+                            />
+                        </TouchableOpacity>
+                        </View>
+                    </View>
+
                     <Text style={styles.headerSubtitle}>
                         View and manage your assigned shifts
                     </Text>
-                </View>
+                    </View>
                 <ScrollView
                     style={styles.scrollView}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContent}
+                   contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingBottom: 95 },
+                    ]}
                     refreshControl={
                         <RefreshControl
                         refreshing={refreshing}
@@ -176,7 +216,10 @@ const ZestbotSlotsDetails = () => {
                         />
                     }
                     >
-                    {/* Week Days */}
+                    
+                    {hasShifts ? (
+                    <>
+                        {/* Week Days */}
                     <View style={styles.weekContainer}>
                         {shifts.map((item, index) => {
                             const today = new Date().toISOString().split("T")[0];
@@ -298,7 +341,20 @@ const ZestbotSlotsDetails = () => {
 
                         </View>
                     )}
+
+                    </>
+                    ) : (
+                    <View style={styles.emptyContainer}>
+                        <EmptySlotState />
+                    </View>
+                    )}
+                    
+
+                    
                 </ScrollView>
+                <View style={styles.bottomHistory}>
+                <SlotHistory />
+                </View>
             </View>
         </SafeAreaView>
     );
@@ -321,11 +377,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F8FAFC',
     },
-    header: {
-        backgroundColor: '#4C4CFF',
-        paddingHorizontal: wp('5%'),
-        paddingTop: hp('1%'),
-        paddingBottom: hp('3%'),
+   header: {
+    backgroundColor: '#4C4CFF',
+    paddingHorizontal: wp('5%'),
+    paddingTop: hp('1%'),
+    paddingBottom: hp('2.2%'),
     },
     headerTitle: {
         color: '#FFFFFF',
@@ -342,8 +398,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
     },
     scrollContent: {
-        paddingBottom: hp('4%'),
-    },
+    flexGrow: 1,
+    paddingBottom: hp('4%'),
+},
     weekContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -481,4 +538,32 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '700',
     },
+    headerTop: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: hp('0.6%'),
+},
+
+headerIcons: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+iconBtn: {
+  width: 40,
+  height: 40,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginLeft: 8,
+},
+
+bottomHistory: {
+  position: 'absolute',
+  left: 16,
+  right: 16,
+  bottom: 0,
+  backgroundColor: 'transparent',
+  alignSelf:'center'
+},
 });

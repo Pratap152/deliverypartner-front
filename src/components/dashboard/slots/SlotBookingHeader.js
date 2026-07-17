@@ -9,16 +9,16 @@ import {
   Dimensions,
 } from 'react-native';
 import {
-  widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-import { TABS } from '../../../utils/constants/slotConstants';
+import {TABS} from '../../../utils/constants/slotConstants';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const isTablet = width >= 768;
 
 export default function SlotBookingHeader({
@@ -37,29 +37,42 @@ export default function SlotBookingHeader({
 
       {/* Header */}
       <View style={styles.headerTop}>
-        <Text style={styles.headerTitle}>
-          My Slots
-        </Text>
+        <Text style={styles.headerTitle}>My Slots</Text>
 
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={() => navigation.navigate('HelpCenterList')}
-        >
-          <Ionicons
-            name="chatbubble-ellipses-outline"
-            size={24}
-            color="#FFF"
-          />
-        </TouchableOpacity>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => navigation.navigate('SlotHistoryScreen')}
+          >
+            <MaterialIcons
+                      name="history"
+                      size={isTablet ? 30 : 24}
+                      color="#FFFFFF"
+                          />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => navigation.navigate('HelpCenterList')}
+          >
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={isTablet ? 28 : 22}
+              color="#FFF"
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            bounces={false}
+            contentContainerStyle={styles.scrollContent}
+            style={{flexGrow: 0}}
+          >
           <TouchableOpacity
             style={[
               styles.tab,
@@ -74,7 +87,7 @@ export default function SlotBookingHeader({
                   styles.activeTabText,
               ]}
             >
-             This Week
+              This Week
             </Text>
           </TouchableOpacity>
 
@@ -97,11 +110,11 @@ export default function SlotBookingHeader({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.tab,
-              activeTab === TABS.UPCOMING &&
-                styles.activeTab,
-            ]}
+              style={[
+                styles.tab,
+                activeTab === TABS.UPCOMING && styles.activeTab,
+                { marginRight: 0 }, // last tab
+              ]}
             onPress={() => onTabChange(TABS.UPCOMING)}
           >
             <Text
@@ -123,8 +136,8 @@ export default function SlotBookingHeader({
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#4C4CFF',
-    paddingBottom: isTablet ? hp(3) : hp(2),
     paddingHorizontal: isTablet ? 28 : 16,
+    paddingBottom: isTablet ? hp(2.2) : hp(1.3),
     borderBottomLeftRadius: isTablet ? 34 : 24,
     borderBottomRightRadius: isTablet ? 34 : 24,
   },
@@ -133,7 +146,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: isTablet ? 18 : 12,
   },
 
   headerTitle: {
@@ -142,28 +155,36 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
 
-  iconBtn: {
-    padding: 4,
-  },
-
-  tabContainer: {
+  headerIcons: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: isTablet ? 20 : 12,
-    padding: isTablet ? 8 : 6,
-    alignSelf: isTablet ? 'center' : 'stretch',
-    width: isTablet ? '87%' : '96.5%',
-  },
-
-  scrollContent: {
-    flexGrow: 1,
-  },
-
-  tab: {
-    paddingVertical: isTablet ? 18 : 10,
-    paddingHorizontal: isTablet ? 36 : 16,
-    borderRadius: isTablet ? 18 : 10,
     alignItems: 'center',
+  },
+
+  iconBtn: {
+    width: isTablet ? 48 : 40,
+    height: isTablet ? 48 : 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+
+ tabContainer: {
+  alignSelf: 'flex-start',
+  backgroundColor: 'rgba(255,255,255,0.18)',
+  borderRadius: isTablet ? 20 : 12,
+  padding: isTablet ? 8 : 6,
+  overflow: 'hidden',
+},
+  scrollContent: {
+  alignItems: 'center',
+  paddingRight: 0,
+},
+
+tab: {
+  paddingVertical: isTablet ? 18 : 10,
+  paddingHorizontal: isTablet ? 22 : 18,
+  borderRadius: isTablet ? 18 : 10,
+  marginRight: 8,
   },
 
   activeTab: {
@@ -171,7 +192,7 @@ const styles = StyleSheet.create({
   },
 
   tabText: {
-    color: '#E0E0E0',
+    color: '#E5E7EB',
     fontWeight: '600',
     fontSize: isTablet ? 22 : 14,
   },
