@@ -56,47 +56,69 @@ const AttendanceDetailsScreen = ({ route }) => {
   };
 
   const getStatus = status => {
+  switch (status) {
+    case 'FULL_DAY':
+      return {
+        text: 'Full Day',
+        color: '#4CAF50',
+        icon: 'checkmark-circle',
+      };
 
-    switch (status) {
+    case 'HALF_DAY':
+      return {
+        text: 'Half Day',
+        color: '#FFC107',
+        icon: 'time',
+      };
 
-      case 'FULL_DAY':
-        return {
-          text: 'Full Day',
-          color: '#4CAF50',
-          icon: 'checkmark-circle',
-        };
+    case 'ONE_THIRD_DAY':
+      return {
+        text: 'One Third Day',
+        color: '#FFB300',
+        icon: 'hourglass',
+      };
 
-      case 'HALF_DAY':
-        return {
-          text: 'Half Day',
-          color: '#FFC107',
-          icon: 'time',
-        };
+    case 'ABSENT':
+      return {
+        text: 'Absent',
+        color: '#F44336',
+        icon: 'close-circle',
+      };
 
-      case 'ABSENT':
-        return {
-          text: 'Absent',
-          color: '#F44336',
-          icon: 'close-circle',
-        };
+    case 'HOLIDAY':
+      return {
+        text: 'Holiday',
+        color: '#FF9800',
+        icon: 'gift',
+      };
 
-      case 'HOLIDAY':
-        return {
-          text: 'Holiday',
-          color: '#FF9800',
-          icon: 'gift',
-        };
+    case 'LEAVE':
+      return {
+        text: 'Leave',
+        color: '#9C27B0',
+        icon: 'airplane',
+      };
 
-      default:
-        return {
-          text: '--',
-          color: '#999',
-          icon: 'help-circle',
-        };
+    case 'IN_PROGRESS':
+      return {
+        text: 'In Progress',
+        color: '#13ACBE',
+        icon: 'sync-circle',
+      };
 
-    }
-
-  };
+    default:
+      return {
+        text: status
+          ? status
+              .replace(/_/g, ' ')
+              .toLowerCase()
+              .replace(/\b\w/g, c => c.toUpperCase())
+          : '--',
+        color: '#999',
+        icon: 'help-circle',
+      };
+  }
+};
 
   if (loading) {
     return (
@@ -124,11 +146,11 @@ const AttendanceDetailsScreen = ({ route }) => {
           />
 
           <Text style={styles.emptyTitle}>
-            Attendance Not Found
+            No Attendance
           </Text>
 
           <Text style={styles.emptySubtitle}>
-            No attendance record available for this date.
+            You did not work on this day. No attendance record is available.
           </Text>
 
         </View>
@@ -194,7 +216,7 @@ const AttendanceDetailsScreen = ({ route }) => {
           </View>
 
         </View>
-                {/* Holiday */}
+        {/* Holiday */}
 
         {details.attendance === 'HOLIDAY' ? (
 

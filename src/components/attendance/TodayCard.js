@@ -31,42 +31,54 @@ const formatTime = dateString => {
 };
 
 const TodayCard = ({ attendance }) => {
-
   const getStatus = status => {
     switch (status) {
       case 'FULL_DAY':
         return {
           label: 'Full Day',
           color: '#4CAF50',
-          icon: 'checkmark-circle',
         };
 
       case 'HALF_DAY':
         return {
           label: 'Half Day',
           color: '#FFC107',
-          icon: 'time',
+        };
+
+      case 'ONE_THIRD_DAY':
+        return {
+          label: 'One Third Day',
+          color: '#FFB300',
         };
 
       case 'ABSENT':
         return {
           label: 'Absent',
           color: '#F44336',
-          icon: 'close-circle',
         };
 
       case 'HOLIDAY':
         return {
           label: 'Holiday',
           color: '#FF9800',
-          icon: 'calendar',
+        };
+
+      case 'LEAVE':
+        return {
+          label: 'Leave',
+          color: '#9C27B0',
+        };
+
+      case 'IN_PROGRESS':
+        return {
+          label: 'In Progress',
+          color: '#13ACBE',
         };
 
       default:
         return {
           label: '--',
           color: '#999',
-          icon: 'help-circle',
         };
     }
   };
@@ -74,9 +86,7 @@ const TodayCard = ({ attendance }) => {
   if (!attendance) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>
-          Today's Attendance
-        </Text>
+        <Text style={styles.title}>Today's Attendance</Text>
 
         <View style={styles.emptyContainer}>
           <Ionicons
@@ -100,6 +110,7 @@ const TodayCard = ({ attendance }) => {
       <Text style={styles.title}>Today's Attendance</Text>
 
       <View style={styles.summaryCard}>
+        {/* Check In */}
         <View style={styles.item}>
           <Ionicons
             name="log-in-outline"
@@ -117,11 +128,12 @@ const TodayCard = ({ attendance }) => {
             </Text>
           </View>
 
-          <Text style={styles.label}>Check in</Text>
+          <Text style={styles.label}>Check In</Text>
         </View>
 
         <View style={styles.verticalDivider} />
 
+        {/* Check Out */}
         <View style={styles.item}>
           <Ionicons
             name="log-out-outline"
@@ -139,11 +151,12 @@ const TodayCard = ({ attendance }) => {
             </Text>
           </View>
 
-          <Text style={styles.label}>Check out</Text>
+          <Text style={styles.label}>Check Out</Text>
         </View>
 
         <View style={styles.verticalDivider} />
 
+        {/* Working Hours */}
         <View style={styles.item}>
           <Ionicons
             name="time-outline"
@@ -160,20 +173,24 @@ const TodayCard = ({ attendance }) => {
 
         <View style={styles.verticalDivider} />
 
+        {/* Status */}
         <View style={styles.item}>
           <View
             style={[
               styles.statusDot,
-              { backgroundColor: status.color },
+              {
+                backgroundColor: status.color,
+              },
             ]}
           />
 
           <Text
             style={[
               styles.value,
-              { color: '#222' },
-            ]}
-          >
+              {
+                color: status.color,
+              },
+            ]}>
             {status.label}
           </Text>
 
@@ -202,14 +219,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
     paddingVertical: responsiveHeight(2),
-
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
     borderWidth: 1,
     borderColor: '#ECECEC',
-
     elevation: 4,
     shadowColor: '#000',
     shadowOpacity: 0.06,
@@ -234,7 +248,7 @@ const styles = StyleSheet.create({
 
   value: {
     marginTop: 8,
-    fontSize: responsiveFontSize(2.1),
+    fontSize: responsiveFontSize(2),
     fontWeight: '700',
     color: '#222',
     textAlign: 'center',
@@ -245,6 +259,15 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: '#8A8A8A',
     fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  dateText: {
+    marginTop: 3,
+    fontSize: responsiveFontSize(1.35),
+    color: '#8A8A8A',
+    fontWeight: '500',
+    textAlign: 'center',
   },
 
   statusDot: {
@@ -260,10 +283,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 30,
-
     borderWidth: 1,
     borderColor: '#ECECEC',
-
     elevation: 3,
     shadowColor: '#000',
     shadowOpacity: 0.05,
@@ -279,11 +300,5 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.8),
     color: '#888',
     textAlign: 'center',
-  },
-  dateText: {
-    marginTop: 3,
-    fontSize: responsiveFontSize(1.35),
-    color: '#8A8A8A',
-    fontWeight: '500',
   },
 });
