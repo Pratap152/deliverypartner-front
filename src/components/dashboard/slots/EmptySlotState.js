@@ -63,8 +63,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 40,
-        paddingVertical: 60,
     },
     iconWrapper: {
     width: isTablet ? 180 : 100,
