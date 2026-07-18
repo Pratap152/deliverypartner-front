@@ -138,27 +138,27 @@ const ZestbotSlotsDetails = () => {
         );
     };
 
-    if (!response) {
-        return (
-            <SafeAreaView edges={['top']} style={styles.safeArea}>
-                <StatusBar
-                    backgroundColor="#192A51"
-                    barStyle="light-content"
-                />
-                <View style={styles.container}>
-                    <View style={styles.header}>
-                        <Text style={styles.headerTitle}>My Slots</Text>
-                        <Text style={styles.headerSubtitle}>
-                            View and manage your assigned shifts
-                        </Text>
-                    </View>
-                    <View style={styles.loadingContainer}>
-                        <Text style={{ fontSize: 16, color: '#64748B' }}>No data available</Text>
-                    </View>
-                </View>
-            </SafeAreaView>
-        );
-    }
+    // if (!response) {
+    //     return (
+    //         <SafeAreaView edges={['top']} style={styles.safeArea}>
+    //             <StatusBar
+    //                 backgroundColor="#192A51"
+    //                 barStyle="light-content"
+    //             />
+    //             <View style={styles.container}>
+    //                 <View style={styles.header}>
+    //                     <Text style={styles.headerTitle}>My Slots</Text>
+    //                     <Text style={styles.headerSubtitle}>
+    //                         View and manage your assigned shifts
+    //                     </Text>
+    //                 </View>
+    //                 <View style={styles.loadingContainer}>
+    //                     <Text style={{ fontSize: 16, color: '#64748B' }}>No data available</Text>
+    //                 </View>
+    //             </View>
+    //         </SafeAreaView>
+    //     );
+    // }
 
     return (
         <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -566,4 +566,9 @@ bottomHistory: {
   backgroundColor: 'transparent',
   alignSelf:'center'
 },
+emptyContainer:{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+}
 });
