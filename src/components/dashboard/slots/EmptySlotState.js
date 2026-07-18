@@ -37,7 +37,7 @@ export default function EmptySlotState({ filter }) {
                     icon: 'calendar-outline',
                     iconColor: '#6B7280',
                     backgroundColor: '#F3F4F6',
-                    message: 'No slots available for this day.',
+                    message: 'No slots available for this week.',
                 };
         }
     };
