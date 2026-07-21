@@ -24,6 +24,7 @@ import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
+import { saveDrivingLicense } from '../../services/onboardingApi';
 
 const { width } = Dimensions.get('window');
 
@@ -185,39 +186,39 @@ const LicenseUploadScreen = ({ navigation }) => {
   };
 
   const pickCamera = async () => {
-  try {
-    const { scannedImages } =
-      await DocumentScanner.scanDocument({
-        maxNumDocuments: 1,
-        responseType: 'imageFilePath',
-      });
+    try {
+      const { scannedImages } =
+        await DocumentScanner.scanDocument({
+          maxNumDocuments: 1,
+          responseType: 'imageFilePath',
+        });
 
-    if (
-      !scannedImages ||
-      scannedImages.length === 0
-    ) {
-      return;
+      if (
+        !scannedImages ||
+        scannedImages.length === 0
+      ) {
+        return;
+      }
+
+      const image = {
+        uri: scannedImages[0],
+        fileName: `dl_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+        fileSize: 1024,
+      };
+
+      if (selectedBox.current === 'front') {
+        setFront(image);
+      } else if (selectedBox.current === 'back') {
+        setBack(image);
+      }
+    } catch (error) {
+      console.log(
+        'Document scan error:',
+        error,
+      );
     }
-
-    const image = {
-      uri: scannedImages[0],
-      fileName: `dl_${Date.now()}.jpg`,
-      type: 'image/jpeg',
-      fileSize: 1024,
-    };
-
-    if (selectedBox.current === 'front') {
-      setFront(image);
-    } else if (selectedBox.current === 'back') {
-      setBack(image);
-    }
-  } catch (error) {
-    console.log(
-      'Document scan error:',
-      error,
-    );
-  }
-};
+  };
 
   const pickGallery = () => {
     launchImageLibrary(
@@ -285,16 +286,7 @@ const LicenseUploadScreen = ({ navigation }) => {
 
       formData.append('documentType', 'DL');
 
-      await apiClient.post(
-        '/api/rider/dl',
-        formData,
-        {
-          headers: {
-            'Content-Type':
-              'multipart/form-data',
-          },
-        },
-      );
+      await saveDrivingLicense(formData);
 
       dispatch(verifyDocument('dl'));
 
@@ -640,7 +632,7 @@ const styles = StyleSheet.create({
   },
 
   submitBtn: {
-    backgroundColor:'#1F3365',
+    backgroundColor: '#1F3365',
     paddingVertical: isTablet ? 20 : 16,
     borderRadius: 40,
     marginVertical: 15,

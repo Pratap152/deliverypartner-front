@@ -17,7 +17,7 @@ import {
 } from 'react-native-responsive-dimensions';
 
 import apiClient from '../../services/ApiClient';
-
+import { getCashBalance } from '../../services/profile/profileApiService';
 
 
 const { width } = Dimensions.get('window');
@@ -33,7 +33,7 @@ const CashBalanceScreen = ({ navigation }) => {
 
   const getCashBalance = async () => {
     try {
-      const response = await apiClient.get('/api/rider/cashbalance');
+      const response = await getCashBalance();
 
       if (response?.data?.success) {
         setCashData(response.data.data);

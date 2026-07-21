@@ -25,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import apiClient from '../../services/ApiClient';
 import { getAllDocuments } from '../../services/getAllDocuments';
+import { getProfileDocuments, updateDocuments } from '../../services/profile/profileApiService';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -57,7 +58,7 @@ const DocumentsScreen = ({ navigation }) => {
     setLoading(true);
 
     const [documentsResult, imagesResult] = await Promise.allSettled([
-      apiClient.get('/api/profile/documents'),
+      getProfileDocuments(),
       getAllDocuments(),
     ]);
 
@@ -141,15 +142,7 @@ const DocumentsScreen = ({ navigation }) => {
         formData.append('dlBackImage', back);
       }
 
-      const res = await apiClient.put(
-        '/api/profile/documents/update',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      );
+      const res = await updateDocuments(formData);
 
       if (res.data?.success) {
         Alert.alert(

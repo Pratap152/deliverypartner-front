@@ -22,7 +22,7 @@ import BannerCarousel from "../../components/home/BannerCarousel";
 import ActiveOrderCard from "../../components/home/ActiveOrderCard";
 import { useRider } from "../../context/RiderContext";
 import { checkLocationRequirements, requestLocationRequirements, listenAppResume } from '../../utils/locationPermission';
-
+import { getAgreementStatus, saveAgreementStatus } from '../../services/termsDocumentsService';
 
 const HomeDashboard = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -37,14 +37,14 @@ const HomeDashboard = () => {
 
   const checkAgreementStatus = async () => {
     try {
-      const response = await apiClient.get('/api/rider/consent');
+      const response = await getAgreementStatus();
 
       if (
-        response.data.data.deliveryPartnerAgreementAccepted === false ||
-        response.data.data.operationsPolicyAccepted === false ||
-        response.data.data.privacyPolicyAccepted === false ||
-        response.data.data.informationConfirmed === false ||
-        response.data.data.electronicConsentAccepted === false
+        response.data.deliveryPartnerAgreementAccepted === false ||
+        response.data.operationsPolicyAccepted === false ||
+        response.data.privacyPolicyAccepted === false ||
+        response.data.informationConfirmed === false ||
+        response.data.electronicConsentAccepted === false
       ) {
         setShowTermsModal(true);
       }
@@ -72,7 +72,7 @@ const HomeDashboard = () => {
         "electronicConsentAccepted": true
       };
 
-      const response = await apiClient.put('/api/rider/consent', payload);
+      const response = await saveAgreementStatus(payload);
 
       if (response?.status === 200) {
         setShowTermsModal(false);

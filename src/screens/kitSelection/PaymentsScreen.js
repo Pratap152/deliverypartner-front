@@ -24,6 +24,7 @@ import apiClient from '../../services/ApiClient';
 import { COLORS } from '../../utils/colors';
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
 import { setKitCompleted, setKitFlowStep } from '../../redux/slices/kitSlice';
+import { patchPayment, saveResponse } from '../../services/paymentsService';
 
 const PAYMENT_METHODS = [
   { id: 'phonepe', label: 'PhonePe', image: phonePayImage, type: 'logo' },
@@ -218,10 +219,7 @@ export default function PaymentsScreen({ route }) {
 
       const requestIds = payableRequest.id;
 
-      const postResponse = await apiClient.post(
-        `/api/kit/payment?requestIds=${requestIds}`,
-        paymentSelectionPayload
-      );
+      const postResponse = await saveResponse(requestIds, paymentSelectionPayload);
 
       if (!postResponse?.data?.success) {
         Alert.alert(
@@ -242,9 +240,7 @@ export default function PaymentsScreen({ route }) {
         return;
       }
 
-      const patchResponse = await apiClient.patch(
-        `/api/kit/payments/complete?requestIds=${requestIdsForComplete}`
-      );
+      const patchResponse = await patchPayment(requestIdsForComplete);
 
       if (!patchResponse?.data?.success) {
         Alert.alert(

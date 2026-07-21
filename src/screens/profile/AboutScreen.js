@@ -22,6 +22,7 @@ import {
 import { Linking } from 'react-native';
 import { useEffect, useState } from 'react';
 import apiClient from '../../services/ApiClient';
+import { getAllPolicies } from '../../services/profile/profileApiService';
  
 const isTablet = DeviceInfo.isTablet();
  
@@ -30,7 +31,7 @@ export default function AboutScreen({ navigation }) {
  
     const getPolicies = async () => {
         try {
-            const response = await apiClient.get('/api/rider/all/policies');
+            const response = await getAllPolicies();
  
             if (response?.data?.success) {
                 setPolicies(response.data.data);

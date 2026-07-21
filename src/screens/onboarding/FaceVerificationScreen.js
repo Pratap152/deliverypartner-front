@@ -21,6 +21,7 @@ import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {PermissionsAndroid, Platform} from 'react-native';
+import { verifyFace } from '../../services/onboardingApi';
 
 
 export default function FaceVerificationScreen({ navigation, route }) {
@@ -159,11 +160,7 @@ export default function FaceVerificationScreen({ navigation, route }) {
         type,
       });
 
-      const response = await apiClient.post('/api/rider/selfie', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await verifyFace(formData);
 
       if (response.status === 200) {
         if (fromPreview) {

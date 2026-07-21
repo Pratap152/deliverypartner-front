@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native'; // safer
 import apiClient from '../../services/ApiClient';
+import { getCurrentSlot } from '../../services/Home/homeApiService';
 import SlotBookingScreen from "../../screens/dashboard/SlotBookingScreen";
 /* ================= TIME FORMAT HELPERS ================= */
 const formatTime = time => {
@@ -40,7 +41,7 @@ const ActiveShiftBanner = () => {
   const fetchSlot = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await apiClient.get('/api/slots/current');
+      const { data } = await getCurrentSlot();
       setResponse(data);
       if (data?.success && data?.data?.slot) {
         setSlot(data.data.slot);

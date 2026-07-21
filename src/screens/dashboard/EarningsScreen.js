@@ -33,7 +33,7 @@ import useIncentives from '../../hooks/useIncentives';
 import { Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { getEarningsSummary } from '../../services/earnings/earningsService';
+import { getEarningsSummary, getWeeklyBarChart } from '../../services/earnings/earningsService';
 import apiClient from '../../services/ApiClient';
 
 
@@ -280,9 +280,9 @@ export default function EarningsScreen({ navigation }) {
     const fetchBarChart = async () => {
       try {
         setEarningsDataLoading(true);
-        const res = await apiClient.get('/api/rider/earnings/new/new_weekly-chart');
-        setBarChartData(res.data);
-        setBarChartArray(res.data.week);
+        const res = await getWeeklyBarChart();
+        setBarChartData(res);
+        setBarChartArray(res.week);
       } catch (error) {
         console.log("Error fetching bar chart: ", error);
       } finally {
