@@ -167,7 +167,7 @@ const offlinePaymentSubtitle = isHomeDelivery
   </View>
 </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.optionCard, paymentType === 'emi' && styles.optionCardActive]}
           onPress={() => setPaymentType('emi')}
         >
@@ -180,7 +180,7 @@ const offlinePaymentSubtitle = isHomeDelivery
               {paymentType === 'emi' ? <View style={styles.radioInner} /> : null}
             </View>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={[styles.primaryBtn, !paymentType && styles.primaryBtnDisabled]}
