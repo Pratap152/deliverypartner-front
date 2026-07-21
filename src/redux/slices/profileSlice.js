@@ -4,7 +4,7 @@ import apiClient from '../../services/ApiClient';
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
   async () => {
-    const res = await apiClient.get('/api/profile/rider/profile');
+    const res = await apiClient.get('/api/rider/profile/rider/profile');
     return res.data?.data;
   }
 );
@@ -12,12 +12,12 @@ export const fetchProfile = createAsyncThunk(
 export const updateProfile = createAsyncThunk(
   'profile/updateProfile',
   async (formData) => {
-    await apiClient.put('/api/profile/update', formData, {
+    await apiClient.put('/api/rider/profile/update', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
     // re-fetch updated profile
-    const res = await apiClient.get('/api/profile/rider/profile');
+    const res = await apiClient.get('/api/rider/profile/rider/profile');
     return res.data?.data;
   }
 );

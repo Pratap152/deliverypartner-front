@@ -65,7 +65,7 @@ apiClient.interceptors.response.use(
         if (!refreshToken) throw new Error('NO_REFRESH_TOKEN');
 
         const res = await apiClient.post(
-          '/api/mobile/refresh-token',
+          '/api/rider/mobile/refresh-token',
           { refreshToken },
           { skipAuth: true },
         );

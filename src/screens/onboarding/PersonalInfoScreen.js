@@ -21,6 +21,7 @@ import DeviceInfo from 'react-native-device-info';
 import apiClient from '../../services/ApiClient';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { personalInfo } from '../../services/onboardingApi';
 
 export default function PersonalInfoScreen({ navigation }) {
 
@@ -248,7 +249,7 @@ export default function PersonalInfoScreen({ navigation }) {
     try {
   setSubmitting(true);
 
-  const res = await apiClient.post('/api/rider/personal-info', payload);
+  const res = await personalInfo(payload);
 
   console.log('STATUS:', res.status);
   console.log('BODY:', res.data);

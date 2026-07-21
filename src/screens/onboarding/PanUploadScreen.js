@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import apiClient from '../../services/ApiClient';
 import DeviceInfo from 'react-native-device-info';
+import { uploadPan } from '../../services/onboardingApi';
 
 const isTablet = DeviceInfo.isTablet();
 
@@ -131,11 +132,7 @@ const PanUploadScreen = ({ navigation }) => {
         name: image.fileName || 'pan.jpg',
       });
 
-      const response = await apiClient.post('/api/rider/pan', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await uploadPan(formData);
 
       dispatch(verifyDocument('pan'));
 

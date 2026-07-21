@@ -21,6 +21,7 @@ import { COLORS } from '../../utils/colors';
 import apiClient from '../../services/ApiClient';
 
 import Svg, { Path } from 'react-native-svg';
+import { riderType } from '../../services/onboardingApi';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -87,9 +88,11 @@ const RiderTypeScreen = ({ navigation }) => {
     try {
       setLoading(true);
 
-      await apiClient.post('/api/company/rider/type', {
+      const payload = {
         riderType: selectedType,
-      });
+      }
+
+      await riderType(payload);
 
       if (
         selectedType === 'INDIVIDUAL_EMPLOYEE' ||

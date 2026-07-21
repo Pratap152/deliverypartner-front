@@ -24,6 +24,7 @@ import {
 import DeviceInfo from 'react-native-device-info';
 
 import apiClient from '../../services/ApiClient';
+import { getBankDetails, updateBankDetails } from '../../services/profile/profileApiService';
 
 const isTablet = DeviceInfo.isTablet();
 const containerMaxWidth = isTablet ? 900 : '100%';
@@ -51,7 +52,7 @@ const BankAC = ({ navigation }) => {
   /* FETCH BANK DETAILS */
   const fetchBankDetails = async () => {
     try {
-      const res = await apiClient.get(`/api/profile/bank-details`);
+      const res = await getBankDetails();
 
       if (res?.data?.success) {
         const data = res.data.data;
@@ -93,7 +94,7 @@ const BankAC = ({ navigation }) => {
         },
       };
 
-      const res = await apiClient.put(`/api/profile/bank-details`, payload);
+      const res = await updateBankDetails(payload);
 
       if (res?.data?.success) {
         setIsEditing(false);

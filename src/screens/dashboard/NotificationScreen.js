@@ -18,6 +18,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import DeviceInfo from 'react-native-device-info';
 
+import { getNotifications } from '../../services/NotificationService';
+
 import apiClient from '../../services/ApiClient';
 
 dayjs.extend(relativeTime);
@@ -32,11 +34,9 @@ const NotificationsScreen = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await apiClient.get(
-        '/api/notifications/all',
-      );
+      const response = await getNotifications();
 
-      setNotifications(response?.data?.data || []);
+      setNotifications(response?.data || []);
     } catch (error) {
       console.log(
         'Notifications Error:',

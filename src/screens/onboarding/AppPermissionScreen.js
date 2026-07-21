@@ -23,6 +23,7 @@ import DeviceInfo from 'react-native-device-info';
 import PermissionItem from '../../components/onboarding/AppPermissions/PermissionItem';
 import apiClient from '../../services/ApiClient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { onboardingAppPermissions } from '../../services/onboardingApi';
 
 const isTablet = DeviceInfo.isTablet();
 
@@ -86,11 +87,7 @@ useFocusEffect(
 
   async function handleSubmit() {
     try {
-      await apiClient.post(
-        '/api/rider/app-permissions',
-        { camera: true, foregroundLocation: true, backgroundLocation: true },
-        { headers: { 'x-client': 'mobile' } },
-      );
+      await onboardingAppPermissions();
       navigation.replace('RiderTypeScreen');
     } catch (e) {
       console.log('Permission API error:', e);

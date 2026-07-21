@@ -14,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
 import apiClient from '../../services/ApiClient';
+import { getEmiPlans } from '../../services/paymentsService';
 
 const EmiPlanScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
@@ -43,9 +44,7 @@ const EmiPlanScreen = ({ navigation, route }) => {
       setLoading(true);
       setPlansError(null);
 
-      const response = await apiClient.get('/api/kit/emi/plans', {
-        headers: { 'x-client': 'mobile' },
-      });
+      const response = await getEmiPlans();
 
       const responseData = response?.data ?? {};
       const emiPlans = Array.isArray(responseData?.plans) ? responseData.plans : [];
