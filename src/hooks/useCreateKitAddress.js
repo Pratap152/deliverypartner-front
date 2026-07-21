@@ -17,7 +17,7 @@ export function useKitAddress() {
     setSuccess(false);
     try {
       const response = await apiClient.post(
-        "/api/kit/rider/joining-kit",
+        "/api/rider/kit/rider/joining-kit",
         {
           deliveryMode,
           name,

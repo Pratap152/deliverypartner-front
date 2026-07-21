@@ -15,7 +15,7 @@ export const loadWeeksApi = async (payload = {}) => {
   const weekNumber = payload.weekNumber || getWeekNumber();
   const { cityId, pincodeId, year } = payload;
 
-  return apiClient.get(`/api/slots/week`, {
+  return apiClient.get(`/api/rider/slots/week`, {
     params: { cityId, pincodeId, weekNumber, year },
   });
 };
@@ -24,7 +24,7 @@ export const loadWeeksApi = async (payload = {}) => {
 export const loadSlotsApi = async (payload = {}) => {
   const { date, cityId, pincodeId, filter: status = "all" } = payload;
 
-  return apiClient.get(`/api/slots/status`, {
+  return apiClient.get(`/api/rider/slots/status`, {
     params: {
       date,
       cityId,
@@ -37,13 +37,13 @@ export const loadSlotsApi = async (payload = {}) => {
 // Book slots
 export const bookSlotApi = async (payload) => {
   const { slotIds, date } = payload;
-  return apiClient.post(`/api/slots/book`, { date, slotIds });
+  return apiClient.post(`/api/rider/slots/book`, { date, slotIds });
 };
 
 
 // Cancel slots
 export const cancelSlotApi = async (bookingId) => {
-  return apiClient.delete(`/api/slots/cancel/${bookingId}`);
+  return apiClient.delete(`/api/rider/slots/cancel/${bookingId}`);
 };
 
 //Zestbot slots

@@ -89,7 +89,7 @@ export const useOrderHistory = (filter) => {
       else if (pageNo === 1) setLoading(true);
       else setLoadingMore(true);
 
-      const res = await apiClient.get('/api/profile/orders/history', {
+      const res = await apiClient.get('/api/rider/profile/orders/history', {
         signal: controller.signal,
         params: {
           filter: API_FILTER_MAP[activeFilter],

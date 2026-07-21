@@ -17,7 +17,7 @@ import {
 } from "react-native-responsive-dimensions";
 import apiClient from "../../services/ApiClient";
 import { useSelector } from "react-redux";
-
+import { getRiderAssets } from "../../services/profile/profileApiService";
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -46,7 +46,7 @@ const RiderAssets = ({ navigation }) => {
 
   const fetchAssets = async () => {
     try {
-      const res = await apiClient.get("/api/kit/rider/assets");
+      const res = await getRiderAssets();
       setAssetsData(res?.data?.data || []);
       setTotalAssets(res?.data?.totalAssets || 0);
     } catch (err) {

@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import apiClient from '../../services/ApiClient';
+import { getBankDetails, getWalletData, getSettlementBreakdown, getTransactions } from '../../services/profile/profileApiService';
 
 export default function WalletScreen({ navigation }) {
   const { width } = useWindowDimensions();
@@ -41,14 +42,14 @@ export default function WalletScreen({ navigation }) {
 
   const fetchData = async () => {
     try {
-      const walletRes = await apiClient.get('/api/rider/get/wallet');
+      const walletRes = await getWalletData();
       setWallet(walletRes.data.data);
     } catch (error) {
       console.log('Wallet Error', error);
     }
 
     try {
-      const settlementRes = await apiClient.get('/api/settlement-breakdown');
+      const settlementRes = await getSettlementBreakdown();
       if (settlementRes.data.success) {
         setSettlement(settlementRes.data.data);
         setSettlementList(settlementRes.data.data.settlements);
@@ -66,14 +67,14 @@ export default function WalletScreen({ navigation }) {
     }
 
     try {
-      const bankRes = await apiClient.get('/api/profile/bank-details');
+      const bankRes = await getBankDetails();
       setBank(bankRes.data.data);
     } catch (error) {
       console.log('Bank Error', error);
     }
 
     try {
-      const transactionRes = await apiClient.get('/api/wallet/withdrawals');
+      const transactionRes = await getTransactions();
       setTransactions(transactionRes.data.data.transactions || []);
     } catch (error) {
       console.log('Transaction Error', error);

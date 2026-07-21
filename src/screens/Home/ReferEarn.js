@@ -30,6 +30,8 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Clipboard from "@react-native-clipboard/clipboard";
 
 import ReferralBanner from "../Home/ReferralBanner";
+
+import { getReferralsList, shareRefer } from '../../services/referralService';
 import apiClient from "../../services/ApiClient";
 
 export default function ReferEarn({ navigation }) {
@@ -46,7 +48,7 @@ export default function ReferEarn({ navigation }) {
     try {
       setLoading(true);
 
-      const res = await apiClient.get("/api/referral/referrer/list");
+      const res = await getReferralsList();
 
       if (res?.data?.success) {
         const apiData = res.data?.data || res.data;
@@ -110,9 +112,10 @@ export default function ReferEarn({ navigation }) {
 
   const shareReferralCode = async () => {
     try {
-      const res = await apiClient.post("/api/refer/share", {
+      const payload = {
         partnerId: referralCode,
-      });
+      };
+      const res = await shareRefer(payload);
 
       if (res?.data?.success) {
         const shareData = res.data.data;

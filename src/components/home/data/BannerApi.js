@@ -1,4 +1,5 @@
 import apiClient from "../../../services/ApiClient";
+import { getBanners } from "../../../services/Home/homeApiService";
 
 export const bannerMeta = {
   bank: {
@@ -29,7 +30,7 @@ export const bannerMeta = {
 
 export const getHomeBanners = async () => {
   try {
-    const response = await apiClient.get('/api/banner/home-banners');
+    const response = await getBanners();
 
     const apiData = response?.data?.data || {};
 

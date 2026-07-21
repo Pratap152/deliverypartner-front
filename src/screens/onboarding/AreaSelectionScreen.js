@@ -14,6 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 
+import { getPincodes, savePincode } from '../../services/onboardingApi';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -68,11 +69,9 @@ export default function AreaSelectionScreen({ route, navigation }) {
       setLoading(true);
 
       try {
-        const response = await apiClient.get(
-          `/api/location/areas?city=${city}`,
-        );
+        const response = await getPincodes(city);
 
-        const pincodesData = response?.data?.pincodes || [];
+        const pincodesData = response?.pincodes || [];
 
         const uniquePincodes = pincodesData.reduce((acc, item) => {
           if (!acc.includes(item.code)) {
@@ -111,12 +110,15 @@ export default function AreaSelectionScreen({ route, navigation }) {
   async function handleSubmit() {
     if (!selectedPincode) return;
 
+    const payload = {
+      city, pincode: selectedPincode,
+    };
+    const headers = {
+      headers: { 'x-client': 'mobile' },
+    }
+
     try {
-      await apiClient.post(
-        '/api/rider/location',
-        { city, pincode: selectedPincode },
-        { headers: { 'x-client': 'mobile' } },
-      );
+      await savePincode(payload, headers,);
 
       navigation.replace('SplashScreen');
     } catch (e) {

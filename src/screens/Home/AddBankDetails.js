@@ -21,6 +21,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import apiClient from "../../services/ApiClient";
 import DeviceInfo from "react-native-device-info";
 
+import { saveBankDetails } from '../../services/bankDetailsService';
 
 const isTablet = DeviceInfo.isTablet();
 export default function AddBankDetails() {
@@ -54,16 +55,19 @@ export default function AddBankDetails() {
   const handleSubmit = async () => {
     if (!allValid) return;
 
-    setLoading(true);
     try {
-      await apiClient.post("/api/bank/bank-details", {
+      setLoading(true);
+
+      const payload = {
         bankName: bankName.trim(),
         accountHolderName: holder.trim(),
         accountNumber,
         ifscCode: ifsc,
         branch: branch.trim(),
         accountType,
-      });
+      };
+
+      const response = await saveBankDetails(payload);
 
       setSuccessModal(true);
     } catch (e) {
@@ -81,7 +85,7 @@ export default function AddBankDetails() {
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <TouchableOpacity onPress={() => navigation.goBack()}
-                            style={{marginTop:15}}>
+            style={{ marginTop: 15 }}>
             <Ionicons
               name="arrow-back"
               size={isTablet ? 34 : 24}

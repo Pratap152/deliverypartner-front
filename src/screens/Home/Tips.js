@@ -18,6 +18,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import OrderHistory from '../profile/OrderHistory';
 import apiClient from '../../services/ApiClient';
 import DeviceInfo from 'react-native-device-info';
+import { getDailySummary, getOverview, getMonthlySummary, getDailyTipsList } from '../../services/tipsService';
 
 const isTablet = DeviceInfo.isTablet();
 const Tips = () => {
@@ -71,7 +72,7 @@ const [showAllTips, setShowAllTips] = useState(false);
 
   const fetchOverview = async () => {
     try {
-      const response = await apiClient.get('/api/rider/tips/overview');
+      const response = await getOverview();
 
       if (response.data.success) {
         setOverview(response.data.data);
@@ -87,9 +88,7 @@ const formatApiDate = (date) => {
 const fetchDailySummary = async (date) => {
     try{
 
-        const response = await apiClient.get(
-            `/api/rider/tips/daily/summary?date=${formatApiDate(date)}`
-        );
+        const response = await getDailySummary(formatApiDate(date));
 
         if(response.data.success){
 
@@ -139,9 +138,9 @@ const fetchMonthlySummary = async (date) => {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
 
-    const response = await apiClient.get(
-      `/api/rider/tips/monthly/summary?month=${month}&year=${year}`
-    );
+    console.log("DDD: ", month, year);
+
+    const response = await getMonthlySummary(month, year);
 
     if (response.data.success) {
 
@@ -189,9 +188,7 @@ const fetchDailyTipsList = async (date) => {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
 
-    const response = await apiClient.get(
-      `/api/rider/tips/daily-list?month=${month}&year=${year}`
-    );
+    const response = await getDailyTipsList(month, year);
 
     if (response.data.success) {
       setDailyTipsList(response.data.data);
