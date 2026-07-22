@@ -35,7 +35,7 @@ export default function useAadhaarVerification() {
     setError('');
 
     try {
-      const response = await apiClient.post('/aadhar/send-otp', {
+      const response = await apiClient.post('/api/rider/aadhar/send-otp', {
         aadharNumber: aadhaar.replace(/\s/g, ''),
       });
 
