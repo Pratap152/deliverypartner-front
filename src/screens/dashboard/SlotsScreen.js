@@ -332,7 +332,10 @@ const handleBookSlot = slot => {
         visible={bookModalVisible}
         slots={selectedSlots}
         date={selectedWeek}
-        onClose={() => setBookModalVisible(false)}
+        onClose={() => {
+          clearSelection();
+          setBookModalVisible(false);
+        }}
         onConfirm={handleBookConfirm}
         loading={actionLoading}
       />
