@@ -6,11 +6,11 @@ export const getReferralsList = async () => {
 };
 
 export const shareRefer = async (payload) => {
-  const response = await apiClient.post("/api/rider/refer/share", payload);
+  const response = await apiClient.post("/api/rider/share", payload);
   return response;
 };
 
 export const referRider = async (payload) => {
-  const response = await apiClient.post('/api/rider/refer/rider/refer', payload);
+  const response = await apiClient.post('/api/rider/refer', payload);
   return response;
 };
