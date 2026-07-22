@@ -1,8 +1,9 @@
+
+
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeDashboard from '../screens/dashboard/HomeDashboard';
 import PdfViewerScreen from '../screens/Home/PdfViewerScreen';
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
-import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import SuccessfullDelivered from '../screens/Home/SuccessfullDelivered';
 import AddBankDetails from '../screens/Home/AddBankDetails';
 import KitSelectionScreen from '../screens/kitSelection/KitSelectionScreen';
@@ -30,7 +31,6 @@ function HomeNavigator() {
                     })}
                 />
                 <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
-                <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
                 <Stack.Screen name="SuccessfullDelivered" component={SuccessfullDelivered} />
                 <Stack.Screen name="AddBankDetails" component={AddBankDetails} />
 

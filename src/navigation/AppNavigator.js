@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator';
@@ -43,7 +45,6 @@ import EmiPlanScreen from '../screens/kitSelection/EmiPlanScreen';
 import SuccessScreen from '../screens/kitSelection/SuccessScreen';
 
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
-import QRScannerScreen from '../screens/Home/QRScannerScreen';
 import LiveTracking from '../screens/Home/LiveTracking';
 import ChatSupportScreen from '../screens/order/ChatSupportScreen';
 // import MapScreen from '../screens/Home/MapScreen';
@@ -124,7 +125,6 @@ const AppNavigator = () => {
       <Stack.Screen name="MapScreen" component={MapScreen} />
       <Stack.Screen name="ReportIssue" component={ReportIssue} />
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
-      <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="LiveTracking" component={LiveTracking} />
       <Stack.Screen name="ChatSupportScreen" component={ChatSupportScreen} />
 
@@ -141,7 +141,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
       <Stack.Screen name="Wallet" component={WalletScreen} />
       <Stack.Screen name="BankAC" component={BankAC} />
-      <Stack.Screen name='ReferEarn' component={ReferEarn}/>
+      <Stack.Screen name='ReferEarn' component={ReferEarn} />
       <Stack.Screen name="JoiningBonusScreen" component={JoiningBonusScreen} />
       <Stack.Screen name="EVScreen" component={EVScreen} />
     </Stack.Navigator>
