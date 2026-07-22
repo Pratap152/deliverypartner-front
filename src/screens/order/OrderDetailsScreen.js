@@ -1,4 +1,6 @@
 
+
+
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -48,6 +50,8 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [buttonLoading, setButtonLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paymentCollected, setPaymentCollected] = useState(false);
+  const [qrCode, setQrCode] = useState(null);
+  const [loadingQr, setLoadingQr] = useState(false);
 
   const ui = orderUIConfig[status] || {};
 
@@ -107,6 +111,44 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     fetchOrderDetails();
   }, [orderId]);
 
+  useEffect(() => {
+
+    const fetchQr = async () => {
+      try {
+
+        setLoadingQr(true);
+
+        const response = await orderService.getOrderQr(orderId);
+
+        console.log("QR Response:", response);
+
+        if (response.success && response.data) {
+          setQrCode(response.data.qrCode);
+        } else {
+          setQrCode(null);
+          console.log("No QR available for this order.");
+        }
+
+      } catch (error) {
+
+        console.log("QR Error:", error);
+        setQrCode(null);
+
+      } finally {
+
+        setLoadingQr(false);
+
+      }
+    };
+
+    if (
+      status === "RIDER_ARRIVED_AT_DROP" &&
+      paymentMethod === "ONLINE"
+    ) {
+      fetchQr();
+    }
+
+  }, [status, paymentMethod, orderId]);
 
   useEffect(() => {
     if (!location || !orderDetails) {
@@ -302,6 +344,13 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     status === "ASSIGNED" ||
     status === "RIDER_EN_ROUTE_TO_PICKUP";
 
+  const standardBase64 = qrCode
+    ? qrCode
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .trim()
+    : null;
+
   /* MAIN UI */
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -413,11 +462,27 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
                   {paymentMethod === 'ONLINE' && (
                     <View style={styles.qrContainer}>
-                      <Image
-                        source={require('../../assets/Qr.png')}
-                        style={styles.qrImage}
-                        resizeMode="contain"
-                      />
+                      {loadingQr ? (
+
+                        <Text>Loading QR...</Text>
+
+                      ) : qrCode ? (
+
+                        <Image
+                          style={styles.qrImage}
+                          resizeMode="contain"
+                          source={{
+                            uri: `data:image/png;base64,${standardBase64}`,
+                          }}
+                        />
+
+                      ) : (
+
+                        <Text style={{ color: "#666", fontSize: 16 }}>
+                          QR Code is not available.
+                        </Text>
+
+                      )}
                       <View style={styles.qrAmountBox}>
                         <Text style={styles.qrAmountLabel}>Amount to be paid</Text>
                         <Text style={styles.qrAmountValue}>₹{(orderDetails.pricing?.totalAmount || orderDetails.pricing?.total || 0).toFixed(2)}</Text>
