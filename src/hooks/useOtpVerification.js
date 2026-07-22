@@ -67,7 +67,7 @@ const useOtpVerification = otpLength => {
 
     try {
       const response = await apiClient.post(
-        '/aadhar/verify-otp',
+        '/api/rider/aadhar/verify-otp',
         {
           aadharNumber: aadharNumber.replace(/\s/g, ''),
           otp: enteredOtp,
