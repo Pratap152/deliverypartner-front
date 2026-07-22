@@ -17,6 +17,7 @@ import SlotBookingFooter from '../../components/dashboard/slots/SlotBookingFoote
 import BookSlotModal from '../../components/dashboard/slots/modals/BookSlotModal';
 import CancelSlotModal from '../../components/dashboard/slots/modals/CancelSlotModal';
 import SuccessModal from '../../components/dashboard/slots/modals/SuccessModal';
+import SlotHistoryInd from '../../components/common/SlotHistoryInd';
 
 export default function SlotsScreen() {
   const {
@@ -247,6 +248,11 @@ export default function SlotsScreen() {
   }
 };
 
+const handleBookSlot = slot => {
+  clearSelection();
+  toggleSlotSelection(slot);
+  setBookModalVisible(true);
+};
   return (
     <View style={styles.container}>
       <SlotBookingHeader
@@ -265,6 +271,9 @@ export default function SlotsScreen() {
         <LockedWeekView />
       ) : (
         <ScrollView
+          contentContainerStyle={{
+            paddingBottom: 90,
+          }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -276,18 +285,18 @@ export default function SlotsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {weeks.length > 0 && (
-            <>
-              <DaySelector
-                weeks={weeks}
-                selectedWeek={selectedWeek}
-                onSelect={handleWeekSelect}
-              />
+              <View style={styles.headerSection}>
+                <DaySelector
+                  weeks={weeks}
+                  selectedWeek={selectedWeek}
+                  onSelect={handleWeekSelect}
+                />
 
-              <SlotFilters
-                value={filter}
-                onChange={handleFilterChange}
-              />
-            </>
+                <SlotFilters
+                  value={filter}
+                  onChange={handleFilterChange}
+                />
+              </View>
           )}
 
           <SlotsList
@@ -304,9 +313,14 @@ export default function SlotsScreen() {
             weeksLoading={weeksLoading}
             slotsLoading={slotsLoading}
             actionLoading={actionLoading}
+            onBookSlot={handleBookSlot}
           />
         </ScrollView>
       )}
+
+      <View style={styles.bottomHistory}>
+        <SlotHistoryInd />
+      </View>
       
       <SlotBookingFooter
         selectedCount={selectedCount}
@@ -318,7 +332,10 @@ export default function SlotsScreen() {
         visible={bookModalVisible}
         slots={selectedSlots}
         date={selectedWeek}
-        onClose={() => setBookModalVisible(false)}
+        onClose={() => {
+          clearSelection();
+          setBookModalVisible(false);
+        }}
         onConfirm={handleBookConfirm}
         loading={actionLoading}
       />
@@ -355,4 +372,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerSection: {
+  paddingHorizontal: 16,
+  paddingTop: 12,
+  paddingBottom: 2,
+},
+bottomHistory: {
+  position: 'absolute',
+  left: 16,
+  right: 16,
+  bottom: 0,
+  backgroundColor: 'transparent',
+}
 });

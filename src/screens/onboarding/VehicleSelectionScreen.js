@@ -19,6 +19,7 @@ import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient'; // interceptor-based api
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { vehicleSelection } from '../../services/onboardingApi';
 
 const submitVehicleType = async (vehicleType, evOwn) => {
   let payload;
@@ -33,7 +34,7 @@ const submitVehicleType = async (vehicleType, evOwn) => {
     };
   }
   console.log('Submitting vehicle type:', payload);
-  const res = await apiClient.post('/api/rider/vehicle', payload);
+  const res = await vehicleSelection(payload);
   return res.data;
 };
 

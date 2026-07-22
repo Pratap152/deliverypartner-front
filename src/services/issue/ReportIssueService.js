@@ -2,7 +2,7 @@ import apiClient from "../../services/ApiClient";
 
 export const ReportIssueService = {
   reportIssue: async ({ issueType, notes, orderId, slotId }) => {
-    const response = await apiClient.post("/api/issues/report", {
+    const response = await apiClient.post("/api/rider/issues/report", {
       issueType,
       notes,
       orderId,

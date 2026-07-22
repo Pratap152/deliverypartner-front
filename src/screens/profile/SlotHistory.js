@@ -25,7 +25,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { getSlotHistory } from '../../services/profile/profileApiService';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -128,13 +128,13 @@ const SlotHistory = ({ navigation }) => {
           setListLoading(true);
         }
 
-        const res = await apiClient.get('/api/profile/slots/history', {
-          params: {
+        const params = {
             filter: filterType === 'all' ? undefined : filterType,
             page: pageNo,
             limit: PAGE_SIZE,
-          },
-        });
+        }
+
+        const res = await getSlotHistory(params);
 
         if (reqId !== requestIdRef.current) return;
 

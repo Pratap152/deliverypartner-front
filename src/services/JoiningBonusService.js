@@ -4,7 +4,7 @@ import apiClient from '../services/ApiClient';
 /* GET PROGRAMS */
 export const getReferralPrograms = async () => {
   const res = await apiClient.get(
-    '/api/referral/programs'
+    '/api/rider/referral/programs'
   );
 
   return res.data;
@@ -13,7 +13,7 @@ export const getReferralPrograms = async () => {
 /* GET PROGRAM PROGRESS */
 export const getReferralProgramsProgress = async () => {
   const res = await apiClient.get(
-    '/api/referral/programs/progress'
+    '/api/rider/referral/programs/progress'
   );
 
   return res.data;

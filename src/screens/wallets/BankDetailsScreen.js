@@ -128,7 +128,7 @@ const validateIFSC = (t) => {
     setLoading(true);
     try { 
       const response = await axios.post(
-  `${WEBSITE_URL}/api/bank/bank-details`,
+  `${WEBSITE_URL}/api/rider/bank/bank-details`,
   {
     bankName,
     accountHolderName: holder,

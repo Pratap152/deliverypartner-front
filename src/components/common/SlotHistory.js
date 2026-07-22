@@ -1,37 +1,44 @@
-import { useNavigation } from '@react-navigation/native';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import {
   widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Dimensions } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const isTablet = width >= 768;
+
 export default function SlotHistory() {
   const navigation = useNavigation();
-  return (
 
+  return (
     <TouchableOpacity
+      activeOpacity={0.85}
       onPress={() => navigation.navigate('SlotHistoryScreen')}
-      style={styles.slots_history} >
-      <View style={styles.iconWrapper}>
-        <Ionicons
-          name="time-outline"
-          size={isTablet ? 28 : 22}
-          color="#4C4CFF"
-        />
-      </View>
+      style={styles.slots_history}
+    >
+      <MaterialIcons
+        name="history"
+        size={isTablet ? 26 : 22}
+        color="#374151"
+        style={styles.icon}
+      />
 
       <Text style={styles.historyText}>
         View Slots History
       </Text>
-      <Ionicons
-        name='chevron-forward-outline'
-        size={isTablet ? 28 : 20}
-        color='#4C4CFF'
+
+      <MaterialIcons
+        name="keyboard-arrow-right"
+        size={isTablet ? 30 : 24}
+        color="#374151"
       />
     </TouchableOpacity>
   );
@@ -41,50 +48,40 @@ const styles = StyleSheet.create({
   slots_history: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'center',
 
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#EEF6FF',
 
-    width: isTablet ? '96%' : wp(90),
-    height: isTablet ? 110 : hp(10),
+    width: isTablet ? '96%' : wp(94),
+    height: isTablet ? 64 : 52,
 
-    borderRadius: isTablet ? 20 : wp(3),
+    borderRadius: 14,
 
-    marginTop: hp(3),
+    marginTop: 16,
+    marginBottom: 12,
 
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#D7E8FF',
 
-    paddingHorizontal: isTablet ? 22 : 16,
+    paddingHorizontal: 16,
+
+    shadowColor: '#2563EB',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    elevation: 2,
   },
-  slot_img: {
-    height: isTablet ? 34 : hp(3),
-    width: isTablet ? 34 : wp(7),
+
+  icon: {
+    marginRight: 12,
   },
-  iconWrapper: {
-    borderRadius: isTablet ? 16 : wp(2),
-    backgroundColor: '#F1F5F9',
 
-    height: isTablet ? 64 : hp(5),
-    width: isTablet ? 64 : wp(12),
-
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    marginRight: isTablet ? 24 : 16,
-  },
   historyText: {
     flex: 1,
-
-    fontSize: isTablet ? 24 : wp(4),
-
+    fontSize: isTablet ? 20 : 15,
     fontWeight: '600',
-
-    color: 'grey',
-
-    marginLeft: isTablet ? 4 : 0,
+    color: '#374151',
   },
 });
-
-
-

@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getCities } from '../../services/onboardingApi';
 
 const isTablet = DeviceInfo.isTablet();
 const H_PADDING = isTablet ? 40 : 20;
@@ -67,7 +68,7 @@ export default function SelectCityScreen({ navigation }) {
       setLoading(true);
 
       try {
-        const response = await apiClient.get('/api/location/cities');
+        const response = await getCities();
         const cities = response?.data?.cities || [];
 
         setAllCities(cities);

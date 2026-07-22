@@ -25,7 +25,7 @@ import apiClient from '../../services/ApiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 import { getAllDocuments } from '../../services/getAllDocuments';
-
+import { getRiderRatingWeekly } from '../../services/profile/profileApiService';
 
 
 export default function ProfileScreen({ navigation }) {
@@ -89,7 +89,7 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchStats = async () => {
     try {
-      const res = await apiClient.get('/api/rider/rating/weekly');
+      const res = await getRiderRatingWeekly();
 
       if (res?.data?.success) {
         const data = res.data.data;

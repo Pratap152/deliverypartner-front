@@ -15,6 +15,8 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import Toast from 'react-native-toast-message';
 import { Alert } from 'react-native';
 import ReferralBanner from './ReferralBanner';
+
+import { referRider } from '../../services/referralService';
 import apiClient from "../../services/ApiClient";
 
 function ReferFrd({ navigation }) {
@@ -64,11 +66,13 @@ function ReferFrd({ navigation }) {
       setLoading(true);
       setPhoneError('');
 
-      const response = await apiClient.post('/api/refer/rider/refer', {
+      const payload = {
         name,
         phoneNumber: phone,
         area: city,
-      });
+      };
+
+      const response = await referRider(payload);
 
       const resData = response?.data;
 

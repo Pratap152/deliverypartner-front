@@ -27,6 +27,7 @@ import PrimaryButton from '../../components/common/PrimaryButton';
 import { setSelectedVehicle } from '../../redux/slices/vehicleSlice';
 import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { saveDocumentDetails } from '../../services/onboardingApi';
 
 const DocumentDetailsScreen = ({ navigation }) => {
 
@@ -274,17 +275,15 @@ const DocumentDetailsScreen = ({ navigation }) => {
                 name: photo.fileName || "selfie.jpg",
             });
 
-            const res = await apiClient.post(
-                "/api/company/rider/document",
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+            const headers = {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
 
-            if (res.data.success) {
+            const res = await saveDocumentDetails(formData, headers);
+
+            if (res.success) {
                 navigation.replace("SplashScreen");
             }
 
@@ -477,12 +476,12 @@ const styles = StyleSheet.create({
         color: '#000000',
     },
     checkContainer: {
-      width: 34,
-      height: 34,
-      borderRadius: 999,
-      backgroundColor: '#FFFFFF',
-      justifyContent: 'center',
-      alignItems: 'center',
+        width: 34,
+        height: 34,
+        borderRadius: 999,
+        backgroundColor: '#FFFFFF',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     uploadCard: {
         marginTop: 5,

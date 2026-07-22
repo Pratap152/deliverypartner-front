@@ -1,3 +1,4 @@
+
 import apiClient from '../ApiClient';
 
 class OrderService {
@@ -10,7 +11,7 @@ class OrderService {
             console.log(`[OrderService] Accepting order ${orderId}`);
 
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/accept`
+                `/api/rider/orders/${orderId}/accept`
             );
 
             console.log("[OrderService] accept response:", response.data);
@@ -26,44 +27,44 @@ class OrderService {
     // REJECT ORDER
     // ---------------------------
     async rejectOrder(orderId) {
-    try {
-        console.log(`[OrderService] Rejecting order ${orderId}`);
+        try {
+            console.log(`[OrderService] Rejecting order ${orderId}`);
 
-        const response = await apiClient.patch(
-            `/api/orders/${orderId}/reject`
-        );
+            const response = await apiClient.patch(
+                `/api/rider/orders/${orderId}/reject`
+            );
 
-        console.log("[OrderService] reject response:", response.data);
+            console.log("[OrderService] reject response:", response.data);
 
-        return response.data;
+            return response.data;
 
-    } catch (error) {
+        } catch (error) {
 
-        const data = error?.response?.data;
+            const data = error?.response?.data;
 
-        if (
-            data?.message ===
-            "Order already handled or not assigned"
-        ) {
-            console.log("[Reject]", data.message);
+            if (
+                data?.message ===
+                "Order already handled or not assigned"
+            ) {
+                console.log("[Reject]", data.message);
 
-            return data;
+                return data;
+            }
+
+            console.error(
+                "[rejectOrder error]",
+                data || error.message
+            );
+
+            throw error;
         }
-
-        console.error(
-            "[rejectOrder error]",
-            data || error.message
-        );
-
-        throw error;
     }
-}
     // ---------------------------
     // GET ORDER DETAILS (SOURCE OF TRUTH)
     // ---------------------------
     async getOrderDetails(orderId) {
         try {
-            const url = `/api/orders/${orderId}/details`;
+            const url = `/api/rider/orders/${orderId}/details`;
             console.log(`[OrderService] Fetching: ${url}`);
 
             const response = await apiClient.get(url);
@@ -126,7 +127,7 @@ class OrderService {
         try {
             console.log(`[OrderService] Marking en route to pickup ${orderId}`);
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/en-route-pickup`
+                `/api/rider/orders/${orderId}/en-route-pickup`
             );
             console.log("[en-route-pickup response]", response.data);
             return response.data;
@@ -143,7 +144,7 @@ class OrderService {
         try {
             console.log(`[OrderService] Marking arrived at pickup ${orderId}`);
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/arrived-pickup`
+                `/api/rider/orders/${orderId}/arrived-pickup`
             );
             console.log("[arrived-pickup response]", response.data);
             return response.data;
@@ -161,7 +162,7 @@ class OrderService {
             console.log(`[OrderService] Picking up ${orderId}`);
 
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/pickup`
+                `/api/rider/orders/${orderId}/pickup`
             );
 
             console.log("[pickup response]", response.data);
@@ -180,7 +181,7 @@ class OrderService {
         try {
             console.log(`[OrderService] Marking in transit ${orderId}`);
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/in-transit`
+                `/api/rider/orders/${orderId}/in-transit`
             );
             console.log("[in-transit response]", response.data);
             return response.data;
@@ -197,7 +198,7 @@ class OrderService {
         try {
             console.log(`[OrderService] Marking arrived at drop ${orderId}`);
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/arrived-drop`
+                `/api/rider/orders/${orderId}/arrived-drop`
             );
             console.log("[arrived-drop response]", response.data);
             return response.data;
@@ -215,12 +216,12 @@ class OrderService {
             console.log(`[OrderService] Delivering ${orderId}`);
 
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/deliver`
+                `/api/rider/orders/${orderId}/deliver`
             );
 
             console.log("[deliver response]", response.data);
 
-            return response.data; 
+            return response.data;
             // { success, message, orderId, earningCredited, codCollected }
         } catch (error) {
             console.error('[deliverOrder error]', error?.response?.data || error.message);
@@ -236,7 +237,7 @@ class OrderService {
             console.log(`[OrderService] Cancelling ${orderId}`);
 
             const response = await apiClient.patch(
-                `/api/orders/${orderId}/cancel`,
+                `/api/rider/orders/${orderId}/cancel`,
                 {
                     reasonCode,
                     reasonText
@@ -254,27 +255,55 @@ class OrderService {
     }
 
     // ---------------------------
-// CURRENT ACTIVE ORDER
-// ---------------------------
-async getCurrentOrderStatus(){
+    // CURRENT ACTIVE ORDER
+    // ---------------------------
+    async getCurrentOrderStatus() {
 
-    const response =
-        await apiClient.get(
-            "/api/rider/current-order-status"
-        );
+        const response =
+            await apiClient.get(
+                "/api/rider/current-order-status"
+            );
 
-    if(!response.data.success){
+        if (!response.data.success) {
 
-        return {
-            success:false
-        };
+            return {
+                success: false
+            };
+
+        }
+
+        return response.data;
 
     }
 
-    return response.data;
 
-}
+    // ---------------------------
+    // GET ORDER QR
+    // ---------------------------
+    async getOrderQr(orderId) {
+        try {
 
+            // Temporary for testing
+            const id = "516";
+
+            const response = await apiClient.get(
+                `/api/rider/orders/orders/${id}/qr`
+            );
+
+            console.log("[QR API]", response.data);
+
+            return response.data;
+
+        } catch (error) {
+
+            console.error(
+                "[getOrderQr error]",
+                error?.response?.data || error.message
+            );
+
+            throw error;
+        }
+    }
     // ---------------------------
     // ONLINE
     // ---------------------------

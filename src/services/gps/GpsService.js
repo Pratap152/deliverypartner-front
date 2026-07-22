@@ -73,7 +73,7 @@ class GpsService {
 
   async updateRiderLocation(locationData) {
     try {
-      await apiClient.put('/api/rider-gps/update-gps', locationData);
+      await apiClient.put('/api/rider/gps/update-gps', locationData);
     } catch (e) {
       console.error(
         '[GpsService] Failed to update rider location',

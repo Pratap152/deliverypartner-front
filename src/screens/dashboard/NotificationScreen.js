@@ -18,6 +18,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import DeviceInfo from 'react-native-device-info';
 
+import { getNotifications } from '../../services/NotificationService';
+
 import apiClient from '../../services/ApiClient';
 
 dayjs.extend(relativeTime);
@@ -32,11 +34,9 @@ const NotificationsScreen = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await apiClient.get(
-        '/api/notifications/all',
-      );
+      const response = await getNotifications();
 
-      setNotifications(response?.data?.data || []);
+      setNotifications(response?.data || []);
     } catch (error) {
       console.log(
         'Notifications Error:',
@@ -91,11 +91,11 @@ const NotificationsScreen = () => {
   return (
     <SafeAreaView
       edges={['top']}
-      style={{ flex: 1, backgroundColor: '#192A51' }}
+      style={{ flex: 1, backgroundColor: '#0284C7' }}
     >
       <View style={styles.container}>
         <StatusBar
-          backgroundColor="#192A51"
+          backgroundColor="#0284C7"
           barStyle="light-content"
         />
         <View style={styles.header}>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    backgroundColor: '#192A51',
+    backgroundColor: '#0284C7',
     paddingHorizontal: isTablet ? wp('4%') : 18,
     paddingTop: isTablet ? hp('1%') : 4,
     paddingVertical: isTablet ? hp('2.5%') : 18,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
 
   headerSubTitle: {
     marginTop: isTablet ? hp('0.6%') : 4,
-    color: '#D7DDEA',
+    color: '#E0F2FE',
     fontSize: isTablet ? wp('2%') : 13,
   },
 
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     width: isTablet ? wp('6%') : 42,
     height: isTablet ? wp('6%') : 42,
     borderRadius: isTablet ? wp('1.4%') : 10,
-    backgroundColor: '#EEF4FF',
+  backgroundColor: '#E0F2FE',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: isTablet ? wp('2.5%') : 12,
@@ -186,6 +186,8 @@ const styles = StyleSheet.create({
 
   icon: {
     fontSize: isTablet ? wp('2.5%') : 18,
+    color: '#0284C7',
+    fontWeight: '700',
   },
 
   content: {

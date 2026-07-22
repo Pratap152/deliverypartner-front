@@ -1,5 +1,6 @@
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { CHANNELS } from '../components/notifications/channels';
+import apiClient from './ApiClient';
 
 class NotificationService {
   async init() {
@@ -29,3 +30,8 @@ class NotificationService {
 }
 
 export default new NotificationService();
+
+export const getNotifications = async () => {
+  const response = await apiClient.get('/api/rider/notifications/all',);
+  return response.data;
+}

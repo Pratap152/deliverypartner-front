@@ -155,9 +155,6 @@ const PickupLocationScreen = ({ navigation, route }) => {
                   <View style={styles.cardTopRow}>
                     <View style={styles.cardTextWrap}>
                       <Text style={styles.storeName}>{zone?.name || 'Pickup City'}</Text>
-                      <Text style={styles.storeAddress}>
-                        Pickup locations available in this city
-                      </Text>
                     </View>
 
                     <View
