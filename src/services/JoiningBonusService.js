@@ -55,3 +55,9 @@ Min Earnings: ₹${task.conditions?.minEarnings || 0}
       return 'Complete daily target';
   }
 };
+
+export const getJoiningBonus = async () => {
+  const response = await apiClient.get('/api/rider/joining-bonus');
+  console.log("SERVICEEEE: ", response);
+  return response.data;
+};
