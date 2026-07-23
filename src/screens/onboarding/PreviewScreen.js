@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -20,8 +20,9 @@ import PreviewCard from '../../components/onboarding/AppPermissions/PreviewCard'
 import {
   getOnboardingPreview,
   confirmOnboardingDetails,
+  resubmitKyc,
 } from '../../services/onboardingPreviewApi';
-import {getAllDocuments} from '../../services/getAllDocuments';
+import { getAllDocuments } from '../../services/getAllDocuments';
 
 const PreviewScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -104,10 +105,13 @@ const PreviewScreen = () => {
     try {
       setSubmitting(true);
 
-      const response = await confirmOnboardingDetails(true);
+      let response;
 
-      console.log(response);
-
+      if (isRejectedFlow) {
+        response = await resubmitKyc();
+      } else {
+        response = await confirmOnboardingDetails(true);
+      }
       if (response.success) {
         navigation.replace('ProcessingVerificationScreen');
       }
@@ -131,9 +135,44 @@ const PreviewScreen = () => {
     );
   }
 
-  const data = preview?.data;
+  const rider = preview?.rider;
+  const profile = rider?.profile;
+  const location = rider?.location;
+  const vehicle = rider?.vehicle;
+  const selfie = rider?.selfie;
+  const kyc = rider?.kyc;
+  const onboarding = rider?.onboarding;
+
+  const screenStatus = preview?.screen; // PENDING | REJECTED | APPROVED
+  const isRejectedFlow = screenStatus === 'REJECTED';
+  const isApprovedFlow = screenStatus === 'APPROVED';
+
+  const sections = preview?.sections || [];
+
+  const getSection = key =>
+    sections.find(item => item.key === key);
+
+  const panSection = getSection('PAN_UPLOAD');
+  const dlSection = getSection('DL_UPLOAD');
+  const aadhaarSection = getSection('AADHAAR');
+
+  const canEdit = status => {
+    // Initial onboarding
+    if (!isRejectedFlow && !isApprovedFlow) {
+      return true;
+    }
+
+    // Rejected flow
+    if (isRejectedFlow) {
+      return status?.toLowerCase() === 'rejected';
+    }
+
+    // Approved flow
+    return false;
+  };
+
   const isCompanyEmployee =
-    preview?.riderType === 'COMPANY_EMPLOYEE';
+    rider?.riderType === 'COMPANY_EMPLOYEE';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -142,10 +181,16 @@ const PreviewScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
 
-        <Text style={styles.heading}>Review Profile</Text>
+        <Text style={styles.heading}>
+          {isRejectedFlow
+            ? 'KYC Review Required'
+            : 'Review Profile'}
+        </Text>
 
         <Text style={styles.subHeading}>
-          Review all your onboarding details before submitting.
+          {isRejectedFlow
+            ? 'Please update the rejected details and resubmit your KYC.'
+            : 'Review all your onboarding details before submitting.'}
         </Text>
 
         {/* PHONE */}
@@ -153,41 +198,14 @@ const PreviewScreen = () => {
         <PreviewCard
           title="Phone Number"
           icon="call-outline"
-          status={data?.phone?.verified ? 'Verified' : 'Pending'}
+          status={rider?.phoneIsVerified ? 'Verified' : 'Pending'}
         >
-
           <Text style={styles.value}>
             <Text style={styles.label}>Phone Number : </Text>
-            {data?.phone?.phoneNumber}
+            {rider?.countryCode} {rider?.phoneNumber}
           </Text>
         </PreviewCard>
 
-        {/* PERMISSIONS */}
-
-        <PreviewCard
-          title="Permissions"
-          icon="shield-checkmark-outline"
-          status="Completed"
-        >
-          <Text style={styles.value}>
-            <Text style={styles.label}>Camera : </Text>
-            {data?.permissions?.camera ? 'Granted' : 'Denied'}
-          </Text>
-
-          <Text style={styles.value}>
-            <Text style={styles.label}>Foreground Location : </Text>
-            {data?.permissions?.foregroundLocation
-              ? 'Granted'
-              : 'Denied'}
-          </Text>
-
-          <Text style={styles.value}>
-            <Text style={styles.label}>Background Location : </Text>
-            {data?.permissions?.backgroundLocation
-              ? 'Granted'
-              : 'Denied'}
-          </Text>
-        </PreviewCard>
 
         {/* RIDER TYPE */}
 
@@ -198,7 +216,7 @@ const PreviewScreen = () => {
         >
           <Text style={styles.value}>
             <Text style={styles.label}>Type : </Text>
-            {preview?.riderType?.replaceAll('_', ' ')}
+            {rider?.riderType?.replaceAll('_', ' ')}
           </Text>
         </PreviewCard>
 
@@ -207,54 +225,67 @@ const PreviewScreen = () => {
 
             {/* LOCATION */}
 
-            {data?.location && (
+            {location && (
               <PreviewCard
                 title="Location"
                 icon="location-outline"
                 status="Completed"
-                onEdit={() =>
-                  navigation.navigate('SelectCityScreen')
+                onEdit={
+                  !isRejectedFlow && !isApprovedFlow
+                    ? () => navigation.navigate('SelectCityScreen')
+                    : undefined
                 }
               >
-
                 <Text style={styles.value}>
                   <Text style={styles.label}>City : </Text>
-                  {data.location.city}
+                  {location.city}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>Area : </Text>
+                  {location.area}
+                </Text>
+
+                <Text style={styles.value}>
+                  <Text style={styles.label}>State : </Text>
+                  {location.state}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Pincode : </Text>
-                  {data.location.pincode}
+                  {location.pincode}
                 </Text>
-
               </PreviewCard>
             )}
 
+
             {/* VEHICLE */}
 
-            {data?.vehicle && (
+            {vehicle && (
               <PreviewCard
                 title="Vehicle Details"
                 icon="bicycle-outline"
-                status={data.vehicle.status}
-                onEdit={() =>
-                  navigation.navigate('VehicleSelectionScreen')
+                status={vehicle.status}
+                onEdit={
+                  !isRejectedFlow && !isApprovedFlow
+                    ? () => navigation.navigate('VehicleSelectionScreen')
+                    : undefined
                 }
               >
                 <Text style={styles.value}>
                   <Text style={styles.label}>Vehicle Type : </Text>
-                  {data.vehicle.type}
+                  {vehicle.type}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Vehicle Source : </Text>
-                  {data.vehicle.vehicleSource}
+                  {vehicle.vehicleSource}
                 </Text>
 
-                {data.vehicle.ownershipType && (
+                {vehicle.ownershipType && (
                   <Text style={styles.value}>
                     <Text style={styles.label}>Ownership Type : </Text>
-                    {data.vehicle.ownershipType}
+                    {vehicle.ownershipType}
                   </Text>
                 )}
               </PreviewCard>
@@ -262,102 +293,106 @@ const PreviewScreen = () => {
 
             {/* PERSONAL INFO */}
 
-            {data?.personalInfo && (
+            {profile && (
               <PreviewCard
                 title="Personal Information"
                 icon="person-circle-outline"
-                status="Completed"
-                onEdit={() =>
-                  navigation.navigate('PersonalInfoScreen')
+                status={kyc?.personalInfoStatus}
+                onEdit={
+                  canEdit(kyc?.personalInfoStatus)
+                    ? () => navigation.navigate('PersonalInfoScreen')
+                    : undefined
                 }
               >
+                {kyc?.personalInfoStatus === 'rejected' && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {kyc?.personalInfoRejectedReason}
+                  </Text>
+                )}
+
                 <Text style={styles.value}>
                   <Text style={styles.label}>Full Name : </Text>
-                  {data.personalInfo.fullName}
+                  {profile.fullName}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Date of Birth : </Text>
-                  {data.personalInfo.dob}
+                  {profile.dob}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Gender : </Text>
-                  {data.personalInfo.gender}
+                  {profile.gender}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Email : </Text>
-                  {data.personalInfo.email}
+                  {profile.email}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Primary Phone : </Text>
-                  {data.personalInfo.primaryPhone}
+                  {profile.primaryPhone}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Secondary Phone : </Text>
-                  {data.personalInfo.secondaryPhone}
+                  {profile.secondaryPhone}
                 </Text>
-
-                <Text style={styles.value}>
-                  <Text style={styles.label}>Area : </Text>
-                  {data.personalInfo.area}
-                </Text>
-
-                <Text style={styles.value}>
-                  <Text style={styles.label}>State : </Text>
-                  {data.personalInfo.state}
-                </Text>
-
-                {data.personalInfo.employeeId && (
-                  <Text style={styles.value}>
-                    <Text style={styles.label}>Employee ID : </Text>
-                    {data.personalInfo.employeeId}
-                  </Text>
-                )}
               </PreviewCard>
             )}
 
             {/* SELFIE */}
 
-            {data?.selfie && (
+            {selfie && (
               <PreviewCard
                 title="Selfie"
                 icon="camera-outline"
-                status="Verified"
-                onEdit={() =>
-                  navigation.navigate('FaceVerificationScreen', {
-                    fromPreview: true,
-                  })
+                status={kyc?.selfieStatus}
+                onEdit={
+                  canEdit(kyc?.selfieStatus)
+                    ? () =>
+                      navigation.navigate('FaceVerificationScreen', {
+                        fromPreview: true,
+                      })
+                    : undefined
                 }
               >
                 <Image
                   source={{
-                    uri: documents.selfie || data?.selfie?.url,
+                    uri: documents.selfie || selfie.url,
                   }}
                   style={styles.image}
                 />
+                {kyc?.selfieStatus === 'rejected' && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {kyc?.selfieRejectedReason}
+                  </Text>
+                )}
               </PreviewCard>
             )}
 
             {/* AADHAAR */}
 
-            {data?.kyc && (
+            {kyc && (
               <PreviewCard
                 title="Aadhaar"
                 icon="card-outline"
-                status={data.kyc.aadharStatus}
+                status={kyc?.aadharStatus}
+                onEdit={
+                  canEdit(kyc?.aadharStatus)
+                    ? () => navigation.navigate('AadhaarScreen')
+                    : undefined
+                }
               >
                 <Text style={styles.value}>
-                  <Text style={styles.label}>Verification Status : </Text>
-                  {data.kyc.aadharStatus}
+                  <Text style={styles.label}>Status : </Text>
+                  {aadhaarSection?.status || kyc.aadharStatus}
                 </Text>
 
-                {data.kyc.aadharRejectedReason && (
+                {kyc?.aadharRejectedReason && (
                   <Text style={styles.error}>
-                    Rejected Reason : {data.kyc.aadharRejectedReason}
+                    Rejected Reason : {aadhaarSection.reason}
                   </Text>
                 )}
               </PreviewCard>
@@ -365,86 +400,89 @@ const PreviewScreen = () => {
 
             {/* PAN */}
 
-            {data?.kyc && (
+            {kyc && (
               <PreviewCard
                 title="PAN Card"
                 icon="document-text-outline"
-                status={data.kyc.panStatus}
-                onEdit={() =>
-                  navigation.navigate('PanUploadScreen')
+                status={kyc?.panStatus}
+                onEdit={
+                  canEdit(kyc?.panStatus)
+                    ? () => navigation.navigate('PanUploadScreen')
+                    : undefined
                 }
               >
                 <Text style={styles.value}>
                   <Text style={styles.label}>PAN Number : </Text>
-                  {data.kyc.panNumber}
+                  {kyc.panNumber}
                 </Text>
 
-                {data.kyc.panRejectedReason && (
+                {kyc?.panRejectedReason && (
                   <Text style={styles.error}>
-                    Rejected Reason : {data.kyc.panRejectedReason}
+                    Rejected Reason : {panSection.reason}
                   </Text>
                 )}
 
-               {(documents.pan || data?.kyc?.panImage) && (
-                <Image
-                  source={{
-                    uri: documents.pan || data.kyc.panImage,
-                  }}
-                  style={styles.image}
-                />
-              )}
+                {(documents.pan || kyc.panImage) && (
+                  <Image
+                    source={{
+                      uri: documents.pan || kyc.panImage,
+                    }}
+                    style={styles.image}
+                  />
+                )}
               </PreviewCard>
             )}
 
             {/* DRIVING LICENSE */}
 
-            {data?.kyc && (
+            {kyc && (
               <PreviewCard
                 title="Driving License"
                 icon="car-outline"
-                status={data.kyc.dlStatus}
-                onEdit={() =>
-                  navigation.navigate('LicenseUploadScreen')
+                status={kyc?.dlStatus}
+                onEdit={
+                  canEdit(kyc?.dlStatus)
+                    ? () => navigation.navigate('LicenseUploadScreen')
+                    : undefined
                 }
               >
                 <Text style={styles.value}>
                   <Text style={styles.label}>DL Number : </Text>
-                  {data.kyc.dlNumber}
+                  {kyc.dlNumber}
                 </Text>
 
-
-                {data.kyc.dlRejectedReason && (
+                {kyc?.dlRejectedReason && (
                   <Text style={styles.error}>
-                    Rejected Reason : {data.kyc.dlRejectedReason}
+                    Rejected Reason : {dlSection.reason}
                   </Text>
                 )}
 
-                {(documents.dlFront || data?.kyc?.dlFrontImage) && (
-                    <>
-                      <Text style={styles.imageTitle}>Front Image</Text>
-                      <Image
-                        source={{
-                          uri: documents.dlFront || data.kyc.dlFrontImage,
-                        }}
-                        style={styles.image}
-                      />
-                    </>
-                  )}
+                {(documents.dlFront || kyc.dlFrontImage) && (
+                  <>
+                    <Text style={styles.imageTitle}>Front Image</Text>
+                    <Image
+                      source={{
+                        uri: documents.dlFront || kyc.dlFrontImage,
+                      }}
+                      style={styles.image}
+                    />
+                  </>
+                )}
 
-                {(documents.dlBack || data?.kyc?.dlBackImage) && (
-                    <>
-                      <Text style={[styles.imageTitle, { marginTop: 15 }]}>
-                        Back Image
-                      </Text>
+                {(documents.dlBack || kyc.dlBackImage) && (
+                  <>
+                    <Text style={[styles.imageTitle, { marginTop: 15 }]}>
+                      Back Image
+                    </Text>
 
-                      <Image
-                        source={{
-                          uri: documents.dlBack || data.kyc.dlBackImage,
-                        }}
-                        style={styles.image}
-                      />
-                    </>
-                  )}
+                    <Image
+                      source={{
+                        uri: documents.dlBack || kyc.dlBackImage,
+                      }}
+                      style={styles.image}
+                    />
+                  </>
+                )}
               </PreviewCard>
             )}
           </>
@@ -452,95 +490,89 @@ const PreviewScreen = () => {
           <>
             {/* EMPLOYEE DETAILS */}
 
-            {data?.personalInfo && (
+            {profile && (
               <PreviewCard
                 title="Employee Details"
                 icon="person-circle-outline"
-                status="Completed"
+                status={kyc?.personalInfoStatus}
                 onEdit={() =>
                   navigation.navigate('EmployeeDetailsScreen')
                 }
               >
                 <Text style={styles.value}>
                   <Text style={styles.label}>Company Name : </Text>
-                  {data.personalInfo.companyName || '-'}
+                  {rider?.companyName || '-'}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Employee ID : </Text>
-                  {data.personalInfo.employeeId}
+                  {rider?.empId || '-'}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Full Name : </Text>
-                  {data.personalInfo.fullName}
+                  {profile?.fullName}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Date of Birth : </Text>
-                  {data.personalInfo.dob}
+                  {profile?.dob}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Gender : </Text>
-                  {data.personalInfo.gender}
+                  {profile?.gender}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Email : </Text>
-                  {data.personalInfo.email}
+                  {profile?.email}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Secondary Phone : </Text>
-                  {data.personalInfo.secondaryPhone}
+                  {profile?.secondaryPhone}
                 </Text>
               </PreviewCard>
             )}
 
             {/* DOCUMENT DETAILS */}
 
-            {data?.kyc && (
+            {/* DOCUMENT DETAILS */}
+
+            {kyc && (
               <PreviewCard
                 title="Document Details"
                 icon="document-text-outline"
-                status="Pending"
-                onEdit={() =>
-                  navigation.navigate('DocumentDetailsScreen')
-                }
+                status="Completed"
+                onEdit={() => navigation.navigate('DocumentDetailsScreen')}
               >
-                <Text style={styles.value}>
-                  <Text style={styles.label}>PAN Number : </Text>
-                  {data.kyc.panNumber}
-                </Text>
+                {vehicle && (
+                  <Text style={styles.value}>
+                    <Text style={styles.label}>Vehicle Type : </Text>
+                    {vehicle.type}
+                  </Text>
+                )}
 
                 <Text style={styles.value}>
-                  <Text style={styles.label}>PAN Status : </Text>
-                  {data.kyc.panStatus}
+                  <Text style={styles.label}>PAN Number : </Text>
+                  {kyc.panNumber || '-'}
                 </Text>
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>DL Number : </Text>
-                  {data.kyc.dlNumber}
+                  {kyc.dlNumber || '-'}
                 </Text>
 
-                <Text style={styles.value}>
-                  <Text style={styles.label}>DL Status : </Text>
-                  {data.kyc.dlStatus}
-                </Text>
-
-                {data?.selfie?.url && (
+                {(documents.selfie || selfie?.url) && (
                   <>
-                    <Text style={styles.imageTitle}>
-                      Selfie
-                    </Text>
-
-                   <Image
-                    source={{
-                      uri: documents.selfie || data?.selfie?.url,
-                    }}
-                    style={styles.image}
-                  />
+                    <Text style={styles.imageTitle}>Selfie</Text>
+                    <Image
+                      source={{
+                        uri: documents.selfie || selfie?.url,
+                      }}
+                      style={styles.image}
+                    />
                   </>
                 )}
               </PreviewCard>
@@ -577,8 +609,12 @@ const PreviewScreen = () => {
         >
           <Text style={styles.submitText}>
             {submitting
-              ? 'Submitting...'
-              : 'Submit Application'}
+              ? (isRejectedFlow
+                ? 'Resubmitting...'
+                : 'Submitting...')
+              : (isRejectedFlow
+                ? 'Resubmit Application'
+                : 'Submit Application')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -604,7 +640,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     padding: 16,
-    paddingBottom: 180,
+    paddingBottom: 30,
   },
 
   heading: {
