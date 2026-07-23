@@ -13,6 +13,28 @@ export const resolveNextScreen = async () => {
 
   const isFalse = (val) => val === false;
 
+  const stage = res.onboardingStage;
+
+  // Rider has submitted KYC and waiting for admin review, ProcessingVerificationScreen
+  if (
+    stage === 'KYC_SUBMITTED' ||
+    stage === 'KYC_UNDER_REVIEW' 
+  ) {
+    return 'ProcessingVerificationScreen';
+  }
+
+  // Admin rejected one or more documents
+  if (stage === 'KYC_REJECTED' || stage === 'KYC_APPROVAL_PENDING') {
+    return 'PreviewScreen';
+  }
+
+  // Everything approved
+  if (stage === 'COMPLETED') {
+    return 'MainTabs';
+  }
+
+
+
   // Phone
   if (isFalse(p.phoneVerified)) {
     return 'OtpVerificationScreen';
@@ -91,11 +113,5 @@ export const resolveNextScreen = async () => {
     return 'PreviewScreen';
   }
 
-  // Processing Verification
-  if (isFalse(p.kycCompleted) || !res.isFullyRegistered) {
-    return 'ProcessingVerificationScreen';
-  }
-
-  // All onboarding & verification completed
   return 'MainTabs';
 };

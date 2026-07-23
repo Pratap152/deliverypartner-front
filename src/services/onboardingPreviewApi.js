@@ -44,3 +44,23 @@ export const confirmOnboardingDetails = async (
     throw error;
   }
 };
+
+/**
+ * Resubmit KYC after rejection
+ */
+export const resubmitKyc = async () => {
+  try {
+    const response = await apiClient.post(
+      '/api/rider/resubmit-kyc',
+    );
+
+    return response.data;
+  } catch (error) {
+    console.log(
+      'RESUBMIT KYC ERROR:',
+      error?.response?.data || error,
+    );
+
+    throw error;
+  }
+};
