@@ -23,6 +23,7 @@ import {
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
 import WeeklyEarningsChartZestBot from '../../components/dashboard/earnings/WeeklyEarningsChartZestBot';
+import IncentivesCards from '../../components/dashboard/earnings/IncentivesCards';
 import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -354,44 +355,6 @@ export default function EarningsScreen({ navigation }) {
   const CARD_WIDTH = isTablet ? wp(97) : wp(95);
   const CARD_PADDING = wp(4);
 
-  const IncentivesCards = ({ item }) => {
-    return (
-      <View>
-        {!item?.emptyData ?
-          <PremiumPressable onPress={() => handleItemPress(item)}>
-            <IncentiveCard
-              item={item}
-              weeklyCompletedOrders={weeklyCompletedOrders}
-              dailyCompletedOrders={dailyCompletedOrders}
-              peakCompletedOrders={peakCompletedOrders}
-              weeklyProgressPercentage={weeklyProgressPercentage}
-            />
-          </PremiumPressable>
-          :
-          <View style={styles.emptyCard}>
-
-            {item?.type === "daily" &&
-              <Text style={styles.emptyTitle}>
-                Daily Incentives Not Available
-              </Text>}
-            {item?.type === "peak" &&
-              <Text style={styles.emptyTitle}>
-                Peak Incentives Not Available
-              </Text>}
-            {item?.type === "weekly" &&
-              <Text style={styles.emptyTitle}>
-                Weekly Incentives Not Available
-              </Text>}
-
-            <Text style={styles.emptySubtitle}>
-              Complete more orders to unlock exciting incentives.
-            </Text>
-          </View>
-        }
-      </View>
-    );
-  }
-
   // NAVIGATIONS TO INCENTIVE PAGES
   const handleItemPress = (item) => {
     if (item?.type === 'peak') {
@@ -462,9 +425,32 @@ export default function EarningsScreen({ navigation }) {
         <View>
           <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
           <View style={styles.incentivesCards}>
-            <IncentivesCards item={incentives[0]} />
-            <IncentivesCards item={incentives[1]} />
-            <IncentivesCards item={incentives[2]} />
+            <IncentivesCards
+              item={incentives[0]}
+              onPress={handleItemPress}
+              weeklyCompletedOrders={weeklyCompletedOrders}
+              dailyCompletedOrders={dailyCompletedOrders}
+              peakCompletedOrders={peakCompletedOrders}
+              weeklyProgressPercentage={weeklyProgressPercentage}
+            />
+
+            <IncentivesCards
+              item={incentives[1]}
+              onPress={handleItemPress}
+              weeklyCompletedOrders={weeklyCompletedOrders}
+              dailyCompletedOrders={dailyCompletedOrders}
+              peakCompletedOrders={peakCompletedOrders}
+              weeklyProgressPercentage={weeklyProgressPercentage}
+            />
+
+            <IncentivesCards
+              item={incentives[2]}
+              onPress={handleItemPress}
+              weeklyCompletedOrders={weeklyCompletedOrders}
+              dailyCompletedOrders={dailyCompletedOrders}
+              peakCompletedOrders={peakCompletedOrders}
+              weeklyProgressPercentage={weeklyProgressPercentage}
+            />
           </View>
         </View>
       }
