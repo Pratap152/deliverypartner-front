@@ -149,8 +149,8 @@ const JoiningBonusScreen = ({ navigation }) => {
 
   const progressData = isTaskBased
     ? {
-      title: 'Weekly Progress',
-      subtitle: 'Complete tasks all the week and earn extra rewards!',
+      title: 'Monthly Progress',
+      subtitle: 'Complete tasks all the month and earn extra rewards!',
       completed: joiningBonus?.completedDays,
       total: joiningBonus?.totalDays,
       percentage: Math.round(
@@ -210,7 +210,7 @@ const JoiningBonusScreen = ({ navigation }) => {
       />
 
       <HeaderBar
-        title="Joining Bonus"
+        title={joiningBonus?.programName}
         onBack={() => navigation.goBack()}
       />
 

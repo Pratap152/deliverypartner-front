@@ -45,7 +45,6 @@ class GpsService {
       },
 
       error => {
-        // Ignore temporary GPS unavailable errors.
         if (error.code === 2) return;
 
         console.error('[GpsService]', error);
@@ -53,9 +52,9 @@ class GpsService {
 
       {
         enableHighAccuracy: true,
-        distanceFilter: 5,
-        interval: 5000,
-        fastestInterval: 3000,
+        distanceFilter: 0,
+        interval: 3000,
+        fastestInterval: 2000,
       }
     );
   }
@@ -73,7 +72,13 @@ class GpsService {
 
   async updateRiderLocation(locationData) {
     try {
+      // console.log('[GpsService] Sending coordinates to API');
+      // console.log(locationData);
+
       await apiClient.put('/api/rider/gps/update-gps', locationData);
+
+      // console.log('[GpsService] API Success');
+      // console.log(response.data);
     } catch (e) {
       console.error(
         '[GpsService] Failed to update rider location',

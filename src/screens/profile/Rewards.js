@@ -67,6 +67,17 @@ const REWARD_SECTIONS = [
     badgeColor: '#7B61FF',
     badgeBg: '#F4F0FF',
   },
+  {
+    key: 'joining',
+    title: 'Joining Bonus',
+    description: 'Complete your joining milestones and earn rewards',
+    icon: 'gift-outline',
+    iconColor: '#E91E63',
+    iconBg: '#FCE7F3',
+    badge: 'New',
+    badgeColor: '#E91E63',
+    badgeBg: '#FCE7F3',
+  },
 ];
 
 const RewardsScreen = ({ navigation }) => {
@@ -110,6 +121,12 @@ const RewardsScreen = ({ navigation }) => {
 
     if (item.key === 'refer') {
       navigation.navigate('ReferEarn');
+      return;
+    }
+
+    if (item.key === 'joining') {
+      navigation.navigate('JoiningBonusScreen');
+      return;
     }
   };
 
