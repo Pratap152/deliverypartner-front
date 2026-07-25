@@ -43,7 +43,7 @@ export function useKitAddress() {
   setLoading(true);
   setError(null);
   try {
-    const response = await apiClient.get('/api/location/cities', {
+    const response = await apiClient.get('/api/rider/location/cities', {
       headers: { 'x-client': 'mobile' },
     });
 
@@ -63,7 +63,7 @@ export function useKitAddress() {
   setLoading(true);
   setError(null);
   try {
-    const response = await apiClient.get('/api/kit/joining-kit', {
+    const response = await apiClient.get('/api/rider/kit/joining-kit', {
       headers: { 'x-client': 'mobile' },
     });
     setData(response.data);
