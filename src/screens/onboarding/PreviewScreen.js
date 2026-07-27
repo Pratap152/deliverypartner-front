@@ -383,7 +383,7 @@ const PreviewScreen = () => {
               </PreviewCard>
             )}
 
-            {/* AADHAAR */}
+            {/* AADHAAR
 
             {kyc && (
               <PreviewCard
@@ -402,7 +402,7 @@ const PreviewScreen = () => {
                   </Text>
                 )}
               </PreviewCard>
-            )}
+            )} */}
 
             {/* PAN */}
 
