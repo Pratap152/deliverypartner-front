@@ -29,7 +29,10 @@ import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { saveDocumentDetails } from '../../services/onboardingApi';
 
-const DocumentDetailsScreen = ({ navigation }) => {
+const DocumentDetailsScreen = ({ navigation, route }) => {
+
+    const fromRejectedFlow =
+        route?.params?.fromRejectedFlow || false;
 
     useFocusEffect(
         React.useCallback(() => {
@@ -284,7 +287,16 @@ const DocumentDetailsScreen = ({ navigation }) => {
             const res = await saveDocumentDetails(formData, headers);
 
             if (res.success) {
-                navigation.replace("SplashScreen");
+
+                if (fromRejectedFlow) {
+
+                    navigation.replace("PreviewScreen");
+
+                } else {
+
+                    navigation.replace("SplashScreen");
+
+                }
             }
 
         } catch (error) {
