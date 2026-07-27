@@ -146,6 +146,15 @@ const PreviewScreen = () => {
   const screenStatus = preview?.screen; // PENDING | REJECTED | APPROVED
   const isRejectedFlow = screenStatus === 'REJECTED';
   const isApprovedFlow = screenStatus === 'APPROVED';
+  const isReviewFlow = screenStatus === "REVIEW";
+
+  const canEditSection = section => {
+    if (isReviewFlow) {
+      return true; // before submit
+    }
+
+    return section?.editable === true;
+  };
 
   const sections = preview?.sections || [];
 
@@ -155,6 +164,8 @@ const PreviewScreen = () => {
   const panSection = getSection('PAN_UPLOAD');
   const dlSection = getSection('DL_UPLOAD');
   const aadhaarSection = getSection('AADHAAR');
+  const selfieSection = getSection('SELFIE');
+  const documentSection = getSection('DOCUMENT_DETAILS');
 
   const canEdit = status => {
     // Initial onboarding
@@ -297,7 +308,7 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Personal Information"
                 icon="person-circle-outline"
-                status={kyc?.personalInfoStatus}
+                status="Completed"
                 onEdit={
                   canEdit(kyc?.personalInfoStatus)
                     ? () => navigation.navigate('PersonalInfoScreen')
@@ -379,11 +390,6 @@ const PreviewScreen = () => {
                 title="Aadhaar"
                 icon="card-outline"
                 status={kyc?.aadharStatus}
-                onEdit={
-                  canEdit(kyc?.aadharStatus)
-                    ? () => navigation.navigate('AadhaarScreen')
-                    : undefined
-                }
               >
                 <Text style={styles.value}>
                   <Text style={styles.label}>Status : </Text>
@@ -494,9 +500,11 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Employee Details"
                 icon="person-circle-outline"
-                status={kyc?.personalInfoStatus}
-                onEdit={() =>
-                  navigation.navigate('EmployeeDetailsScreen')
+                status="Completed"
+                onEdit={
+                  !isRejectedFlow && !isApprovedFlow
+                    ? () => navigation.navigate('EmployeeDetailsScreen')
+                    : undefined
                 }
               >
                 <Text style={styles.value}>
@@ -536,7 +544,35 @@ const PreviewScreen = () => {
               </PreviewCard>
             )}
 
-            {/* DOCUMENT DETAILS */}
+            {/* selfie */}
+            {selfie && (
+              <PreviewCard
+                title="Selfie"
+                icon="camera-outline"
+                status={selfieSection?.status || "Pending"}
+                onEdit={
+                  canEditSection(selfieSection)
+                    ? () =>
+                      navigation.navigate("DocumentDetailsScreen", {
+                        fromRejectedFlow: true,
+                      })
+                    : undefined
+                }
+              >
+                {selfieSection?.reason && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {selfieSection.reason}
+                  </Text>
+                )}
+
+                <Image
+                  source={{
+                    uri: documents.selfie || selfie.url,
+                  }}
+                  style={styles.image}
+                />
+              </PreviewCard>
+            )}
 
             {/* DOCUMENT DETAILS */}
 
@@ -544,9 +580,21 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Document Details"
                 icon="document-text-outline"
-                status="Completed"
-                onEdit={() => navigation.navigate('DocumentDetailsScreen')}
+                status={documentSection?.status || "Completed"}
+                onEdit={
+                  canEditSection(documentSection)
+                    ? () =>
+                      navigation.navigate("DocumentDetailsScreen", {
+                        fromRejectedFlow: true,
+                      })
+                    : undefined
+                }
               >
+                {documentSection?.reason && (
+                  <Text style={styles.error}>
+                    Rejected Reason : {documentSection.reason}
+                  </Text>
+                )}
                 {vehicle && (
                   <Text style={styles.value}>
                     <Text style={styles.label}>Vehicle Type : </Text>
@@ -563,18 +611,6 @@ const PreviewScreen = () => {
                   <Text style={styles.label}>DL Number : </Text>
                   {kyc.dlNumber || '-'}
                 </Text>
-
-                {(documents.selfie || selfie?.url) && (
-                  <>
-                    <Text style={styles.imageTitle}>Selfie</Text>
-                    <Image
-                      source={{
-                        uri: documents.selfie || selfie?.url,
-                      }}
-                      style={styles.image}
-                    />
-                  </>
-                )}
               </PreviewCard>
             )}
           </>
