@@ -21,6 +21,7 @@ import DeviceInfo from 'react-native-device-info';
 import { getNotifications } from '../../services/NotificationService';
 
 import apiClient from '../../services/ApiClient';
+import { routeNotification } from '../../components/notifications/router';
 
 dayjs.extend(relativeTime);
 const isTablet = DeviceInfo.isTablet();
@@ -55,7 +56,10 @@ const NotificationsScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => routeNotification(item)}
+    >
       <View style={styles.iconContainer}>
         <Text style={styles.icon}>
           {getIconText(item.type)}
@@ -75,7 +79,7 @@ const NotificationsScreen = () => {
           {dayjs(item.createdAt).fromNow()}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
     width: isTablet ? wp('6%') : 42,
     height: isTablet ? wp('6%') : 42,
     borderRadius: isTablet ? wp('1.4%') : 10,
-  backgroundColor: '#E0F2FE',
+    backgroundColor: '#E0F2FE',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: isTablet ? wp('2.5%') : 12,
