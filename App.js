@@ -22,6 +22,8 @@ import { addNotification } from './src/redux/slices/notificationSlice';
 import { GPSProvider } from './src/context/GPSContext';
 import { RiderProvider } from './src/context/RiderContext';
 
+import { routeNotification } from './src/components/notifications/router';
+
 
 const AppContent = () => {
 
@@ -61,32 +63,37 @@ const AppContent = () => {
       const permissionGranted = await FCMService.requestUserPermission();
       if (!permissionGranted) return;
 
-    /* ---------------- TOKEN (UNCHANGED) ---------------- */
-    const fcmToken = await FCMService.getFCMToken();
-    console.log('FCM TOKEN:', fcmToken);
+      /* ---------------- TOKEN (UNCHANGED) ---------------- */
+      const fcmToken = await FCMService.getFCMToken();
+      console.log('FCM TOKEN:', fcmToken);
 
-    await updateFcmToken({
-      fcmToken,
-      platform: Platform.OS,
-      appVersion: '1.0.0',
-      deviceType: 'mobile',
-    });
-
-    /* ---------------- TOKEN REFRESH (UNCHANGED) ---------------- */
-    FCMService.listenTokenRefresh(async newToken => {
       await updateFcmToken({
-        fcmToken: newToken,
+        fcmToken,
         platform: Platform.OS,
         appVersion: '1.0.0',
         deviceType: 'mobile',
       });
-    });
+
+      /* ---------------- TOKEN REFRESH (UNCHANGED) ---------------- */
+      FCMService.listenTokenRefresh(async newToken => {
+        await updateFcmToken({
+          fcmToken: newToken,
+          platform: Platform.OS,
+          appVersion: '1.0.0',
+          deviceType: 'mobile',
+        });
+      });
 
       /* ---------------- FOREGROUND (UPGRADED) ---------------- */
       FCMService.listenForegroundMessages(async msg => {
+        console.log(
+          'FOREGROUND MESSAGE:',
+          JSON.stringify(msg, null, 2),
+        );
+
         await NotificationService.show(msg);
 
-        dispatch(addNotification((msg)));
+        dispatch(addNotification(msg));
       });
 
       /* ---------------- OPEN FROM BACKGROUND (UNCHANGED) ---------------- */
@@ -173,16 +180,15 @@ const AppContent = () => {
   //     authService.forceLogout();
   //   }
   // };
-
   const handleNotificationClick = remoteMessage => {
+    console.log(
+      'NOTIFICATION CLICK:',
+      JSON.stringify(remoteMessage, null, 2),
+    );
+
     if (!remoteMessage) return;
 
-    const { type, screen, params } = remoteMessage.data || {};
-
-    // 🎯 SLOT ROUTING
-    if (type?.startsWith('SlotBookingScreen') && screen) {
-      navigate(screen, params ? JSON.parse(params) : {});
-    }
+    routeNotification(remoteMessage.data);
   };
 
 
