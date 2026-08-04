@@ -2,7 +2,9 @@ name: Rider CI/CD
 
 on:
   workflow_dispatch:
-
+  push:
+    branches:
+      - merge-final-dev
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: deliverypartner/zestbot_rider
