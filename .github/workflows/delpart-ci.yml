@@ -51,3 +51,30 @@ jobs:
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Pull Docker Image
+        run: |
+          docker pull \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+      - name: Build Android App
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+            bash -c "
+              chmod +x android/gradlew
+
+              npm ci
+
+              cd android
+
+              ./gradlew generateCodegenArtifactsFromSchema
+
+              ./gradlew testDebugUnitTest
+
+              ./gradlew assembleRelease
+
+              ./gradlew bundleRelease
+            "
