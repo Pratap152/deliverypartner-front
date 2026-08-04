@@ -2,18 +2,32 @@ name: Rider CI/CD
 
 on:
   workflow_dispatch:
-  
+    inputs:
+      build_target:
+        description: "Select Build Type"
+        required: true
+        default: APK_AND_AAB
+        type: choice
+        options:
+          - APK_ONLY
+          - APK_AND_AAB
+
   push:
     branches:
       - merge-final-dev
+
 env:
   AWS_REGION: us-east-1
+
   ECR_REPOSITORY: deliverypartner/zestbot_rider
-  IMAGE_TAG: ${{ github.sha }}
+
+  S3_BUCKET: deliverypartner
+
+  APP_NAME: ZestBot_Rider
 
 jobs:
 
-  docker-build:
+  android-build:
 
     runs-on: ubuntu-latest
 
@@ -22,8 +36,24 @@ jobs:
 
     steps:
 
+################################################################################
+# MODULE 1 - Checkout Repository
+################################################################################
+
       - name: Checkout Repository
         uses: actions/checkout@v5
+
+################################################################################
+# MODULE 2 - Generate Image Tag
+################################################################################
+
+      - name: Generate Image Tag
+        run: |
+          echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+################################################################################
+# MODULE 3 - Configure AWS Credentials
+################################################################################
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5
@@ -32,14 +62,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+################################################################################
+# MODULE 4 - Login to Amazon ECR
+################################################################################
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+################################################################################
+# MODULE 5 - Build Docker Image
+################################################################################
 
       - name: Build Docker Image
         run: |
           docker build \
             -t $ECR_REPOSITORY:$IMAGE_TAG .
+
+################################################################################
+# MODULE 6 - Tag Docker Image
+################################################################################
 
       - name: Tag Docker Image
         run: |
@@ -47,23 +89,36 @@ jobs:
             $ECR_REPOSITORY:$IMAGE_TAG \
             ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
+################################################################################
+# MODULE 7 - Push Docker Image to Amazon ECR
+################################################################################
+
       - name: Push Docker Image
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
+################################################################################
+# MODULE 8 - Pull Docker Image
+################################################################################
+
       - name: Pull Docker Image
         run: |
           docker pull \
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Build Android App
+################################################################################
+# MODULE 9 - Build Android App inside Docker
+################################################################################
+
+      - name: Build Android Application
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/app \
             -w /app \
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+            ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG \
             bash -c "
+
               chmod +x android/gradlew
 
               npm ci
@@ -76,5 +131,98 @@ jobs:
 
               ./gradlew assembleRelease
 
-              ./gradlew bundleRelease
+              if [ '${{ github.event.inputs.build_target }}' = 'APK_AND_AAB' ] || [ '${{ github.event_name }}' = 'push' ]; then
+                  ./gradlew bundleRelease
+              fi
+
             "
+
+################################################################################
+# MODULE 10 - Rename APK
+################################################################################
+
+      - name: Rename APK
+        run: |
+          cp \
+          android/app/build/outputs/apk/release/app-release.apk \
+          ${APP_NAME}-${IMAGE_TAG}.apk
+
+################################################################################
+# MODULE 11 - Rename AAB
+################################################################################
+
+      - name: Rename AAB
+        run: |
+          if [ -f android/app/build/outputs/bundle/release/app-release.aab ]; then
+            cp \
+            android/app/build/outputs/bundle/release/app-release.aab \
+            ${APP_NAME}-${IMAGE_TAG}.aab
+          fi
+
+################################################################################
+# MODULE 12 - Verify Artifacts
+################################################################################
+
+      - name: Verify Artifacts
+        run: |
+          ls -lh *.apk
+          ls -lh *.aab || true
+
+################################################################################
+# MODULE 13 - Upload APK Artifact
+################################################################################
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rider-APK
+          path: ${{ env.APP_NAME }}-${{ env.IMAGE_TAG }}.apk
+          if-no-files-found: error
+
+################################################################################
+# MODULE 14 - Upload AAB Artifact
+################################################################################
+
+      - name: Upload AAB
+        if: hashFiles(format('{0}-{1}.aab', env.APP_NAME, env.IMAGE_TAG)) != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rider-AAB
+          path: ${{ env.APP_NAME }}-${{ env.IMAGE_TAG }}.aab
+          if-no-files-found: error
+
+################################################################################
+# MODULE 15 - Upload APK to Amazon S3
+################################################################################
+
+      - name: Upload APK to Amazon S3
+        run: |
+          aws s3 cp \
+            ${APP_NAME}-${IMAGE_TAG}.apk \
+            s3://$S3_BUCKET/android-builds/${IMAGE_TAG}/
+
+################################################################################
+# MODULE 16 - Upload AAB to Amazon S3
+################################################################################
+
+      - name: Upload AAB to Amazon S3
+        run: |
+          if [ -f ${APP_NAME}-${IMAGE_TAG}.aab ]; then
+            aws s3 cp \
+              ${APP_NAME}-${IMAGE_TAG}.aab \
+              s3://$S3_BUCKET/android-builds/${IMAGE_TAG}/
+          fi
+
+################################################################################
+# MODULE 17 - Build Summary
+################################################################################
+
+      - name: Build Summary
+        run: |
+          echo "=========================================="
+          echo "Build Completed Successfully"
+          echo "Docker Image Tag : $IMAGE_TAG"
+          echo "Application      : $APP_NAME"
+          echo "ECR Repository   : $ECR_REPOSITORY"
+          echo "S3 Bucket        : $S3_BUCKET"
+          echo "=========================================="
