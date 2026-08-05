@@ -276,7 +276,7 @@ export default function WalletScreen({ navigation }) {
               settlementList.map((item, index) => (
                 <View style={styles.settlementListContainer} key={index}>
                   <Row title="Settlement Date" value={formatDate(item.settlementDate)} styles={styles} />
-                  {settlement.riderType === 'ZESTBOT_EMPLOYEE' ? (
+                  {((settlement.riderType === 'ZESTBOT_EMPLOYEE') || (settlement.riderType === 'COMPANY_EMPLOYEE')) ? (
                     <>
                       <Row title="Salary" value={item.salary} styles={styles} />
                       <Row title="Incentives" value={item.incentives} styles={styles} />
