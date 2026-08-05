@@ -43,6 +43,7 @@ import PaymentsScreen from '../screens/kitSelection/PaymentsScreen';
 import OfflinePaymentsScreen from '../screens/kitSelection/OfflinePaymentsScreen';
 import EmiPlanScreen from '../screens/kitSelection/EmiPlanScreen';
 import SuccessScreen from '../screens/kitSelection/SuccessScreen';
+import ComingSoonModal from '../components/kit/ComingSoonModal';
 
 import OrderDetailsScreen from '../screens/order/OrderDetailsScreen';
 import LiveTracking from '../screens/Home/LiveTracking';
@@ -112,6 +113,7 @@ const AppNavigator = () => {
       <Stack.Screen name="OfflinePaymentsScreen" component={OfflinePaymentsScreen} />
       <Stack.Screen name="EmiPlanScreen" component={EmiPlanScreen} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
+      <Stack.Screen name='ComingSoonModal' component={ComingSoonModal}/>
 
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
       <Stack.Screen name="SlotHistory" component={SlotHistory} />

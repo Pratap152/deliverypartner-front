@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
+import ComingSoonModal from '../../components/kit/ComingSoonModal';
 
 const DeliveryModeScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
@@ -27,6 +28,7 @@ const DeliveryModeScreen = ({ navigation, route }) => {
   const [deliveryMode, setDeliveryMode] = useState(
     riderKitData?.deliveryMode || 'online'
   );
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   useEffect(() => {
     if (!currentRiderId) return;
@@ -44,11 +46,7 @@ const DeliveryModeScreen = ({ navigation, route }) => {
 
   const handleContinue = () => {
     if (deliveryMode === 'online') {
-      navigation.navigate('DeliveryAddressScreen', {
-        source,
-        kitItems,
-        totalAmount,
-      });
+      setShowComingSoon(true);
       return;
     }
 
@@ -110,6 +108,11 @@ const DeliveryModeScreen = ({ navigation, route }) => {
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ComingSoonModal
+        visible={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+      />
     </SafeAreaView>
   );
 };
