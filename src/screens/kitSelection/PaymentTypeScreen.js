@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
+import ComingSoonModal from '../../components/kit/ComingSoonModal';
 
 const PaymentTypeScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
@@ -33,6 +34,7 @@ const PaymentTypeScreen = ({ navigation, route }) => {
   const [paymentType, setPaymentType] = useState(
     route?.params?.paymentType ?? riderKitData?.paymentType ?? null
   );
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const isHomeDelivery = deliveryMode === 'online';
 
@@ -84,6 +86,11 @@ const offlinePaymentSubtitle = isHomeDelivery
   if (!paymentType) return;
 
   if (paymentType === 'online') {
+    if (deliveryMode === 'offline') {
+      setShowComingSoon(true);
+      return;
+    }
+
     navigation.navigate('PaymentsScreen', {
       source,
       deliveryMode,
@@ -153,19 +160,19 @@ const offlinePaymentSubtitle = isHomeDelivery
         </TouchableOpacity>
 
         <TouchableOpacity
-  style={[styles.optionCard, paymentType === 'offline' && styles.optionCardActive]}
-  onPress={() => setPaymentType('offline')}
->
-  <View style={styles.row}>
-    <View style={{ flex: 1 }}>
-      <Text style={styles.optionTitle}>{offlinePaymentTitle}</Text>
-      <Text style={styles.optionSubtitle}>{offlinePaymentSubtitle}</Text>
-    </View>
-    <View style={[styles.radioOuter, paymentType === 'offline' && styles.radioOuterActive]}>
-      {paymentType === 'offline' ? <View style={styles.radioInner} /> : null}
-    </View>
-  </View>
-</TouchableOpacity>
+          style={[styles.optionCard, paymentType === 'offline' && styles.optionCardActive]}
+          onPress={() => setPaymentType('offline')}
+        >
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optionTitle}>{offlinePaymentTitle}</Text>
+              <Text style={styles.optionSubtitle}>{offlinePaymentSubtitle}</Text>
+            </View>
+            <View style={[styles.radioOuter, paymentType === 'offline' && styles.radioOuterActive]}>
+              {paymentType === 'offline' ? <View style={styles.radioInner} /> : null}
+            </View>
+          </View>
+        </TouchableOpacity>
 
         {/* <TouchableOpacity
           style={[styles.optionCard, paymentType === 'emi' && styles.optionCardActive]}
@@ -190,6 +197,11 @@ const offlinePaymentSubtitle = isHomeDelivery
           <Text style={styles.primaryBtnText}>Continue</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ComingSoonModal
+        visible={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+      />
     </SafeAreaView>
   );
 };
