@@ -150,20 +150,21 @@ export const RiderProvider = ({ children }) => {
 
 
   useEffect(() => {
-    const syncTracking = async () => {
-      try {
-        if (actuallyOnline) {
-          await gpsService.startTracking();
-        } else {
-          await gpsService.stopTracking();
-        }
-      } catch (e) {
-        console.log('[GpsService sync error]', e);
-      }
-    };
+  const startTracking = async () => {
+    const { accessToken } = await tokenService.get();
 
-    syncTracking();
-  }, [actuallyOnline]);
+    if (!accessToken) return;
+
+    try {
+      await gpsService.startTracking();
+      console.log("GPS Tracking Started");
+    } catch (e) {
+      console.log("[GpsService]", e);
+    }
+  };
+
+  startTracking();
+}, []);
  
 
   useEffect(() => {
@@ -192,7 +193,7 @@ const connectSocket = async () => {
     return;
   }
 
-  // ✅ Prevent multiple socket connections
+  // Prevent multiple socket connections
   if (
     socketRef.current &&
     (socketRef.current.readyState === WebSocket.OPEN ||
@@ -424,7 +425,7 @@ if (event.code === 4010) {
  
         setRiderStatus(res.riderStatus || null);
  
-        setActuallyOnline(false);
+
  
         disconnectSocket();
  
