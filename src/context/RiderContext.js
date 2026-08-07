@@ -157,7 +157,7 @@ export const RiderProvider = ({ children }) => {
 
     try {
       await gpsService.startTracking();
-      console.log("GPS Tracking Started");
+      // console.log("GPS Tracking Started");
     } catch (e) {
       console.log("[GpsService]", e);
     }
