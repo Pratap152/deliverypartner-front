@@ -454,6 +454,12 @@ if (event.code === 4010) {
     }
  
   };
+
+  const setOfflineForLogout = () => {
+    setActuallyOnline(false);
+    setIsActive(false);
+    disconnectSocket();
+  };
  
   const checkCurrentOrder = async () => {
 
@@ -686,7 +692,9 @@ status: "ASSIGNED",
         goOnline,
  
         goOffline,
- 
+        
+        setOfflineForLogout,
+        
         acceptOrder,
  
         rejectOrder,

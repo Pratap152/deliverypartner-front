@@ -23,10 +23,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 import { getAllDocuments } from '../../services/getAllDocuments';
 import { getRiderRatingWeekly } from '../../services/profile/profileApiService';
+import { useRider } from '../../context/RiderContext';
 
 
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
+
+  const { setOfflineForLogout } = useRider();
 
   const { data: profile } = useSelector(state => state.profile);
 
@@ -73,6 +76,7 @@ export default function ProfileScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              setOfflineForLogout();
               await authService.logout();
             } catch (error) {
               console.log('Logout error:', error);
