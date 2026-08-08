@@ -6,11 +6,9 @@ import {
   Text,
   StyleSheet,
   Image,
-  StatusBar,
   TouchableOpacity,
   ScrollView,
   Alert,
-  Linking,
   RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,15 +19,17 @@ import {
 } from 'react-native-responsive-screen';
 import DeviceInfo from 'react-native-device-info';
 import { authService } from '../../services/AuthService';
-import apiClient from '../../services/ApiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/slices/profileSlice';
 import { getAllDocuments } from '../../services/getAllDocuments';
 import { getRiderRatingWeekly } from '../../services/profile/profileApiService';
+import { useRider } from '../../context/RiderContext';
 
 
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
+
+  const { setOfflineForLogout } = useRider();
 
   const { data: profile } = useSelector(state => state.profile);
 
@@ -76,6 +76,7 @@ export default function ProfileScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              setOfflineForLogout();
               await authService.logout();
             } catch (error) {
               console.log('Logout error:', error);
@@ -109,11 +110,11 @@ export default function ProfileScreen({ navigation }) {
     try {
       const response = await getAllDocuments();
 
-      console.log('Documents API:', response.data);
+      // console.log('Documents API:', response.data);
 
       setSelfieUri(response.data?.selfie || null);
     } catch (error) {
-      console.log('Selfie Error:', error);
+      // console.log('Selfie Error:', error);
       setSelfieUri(null);
     }
   };

@@ -157,7 +157,7 @@ export const RiderProvider = ({ children }) => {
 
     try {
       await gpsService.startTracking();
-      console.log("GPS Tracking Started");
+      // console.log("GPS Tracking Started");
     } catch (e) {
       console.log("[GpsService]", e);
     }
@@ -454,6 +454,12 @@ if (event.code === 4010) {
     }
  
   };
+
+  const setOfflineForLogout = () => {
+    setActuallyOnline(false);
+    setIsActive(false);
+    disconnectSocket();
+  };
  
   const checkCurrentOrder = async () => {
 
@@ -686,7 +692,9 @@ status: "ASSIGNED",
         goOnline,
  
         goOffline,
- 
+        
+        setOfflineForLogout,
+        
         acceptOrder,
  
         rejectOrder,

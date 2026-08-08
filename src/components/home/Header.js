@@ -64,7 +64,7 @@ const fetchSelfie = async () => {
       setSelfieUri(response.data?.selfie || null);
     }
   } catch (error) {
-    console.log('Failed to fetch selfie:', error);
+    // console.log('Failed to fetch selfie:', error);
   }
 };
  

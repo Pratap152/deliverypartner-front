@@ -1,9 +1,5 @@
-import { tokenService } from './TokenService';
-import { navigateAndReset } from '../navigation/RootNavigation';
+import apiClient from '../services/ApiClient';
 
-export const logoutService = {
-  async forceLogout() {
-    await tokenService.clear();
-    navigateAndReset('LoginEntryScreen');
-  },
+export const logoutService = async () => {
+  return apiClient.delete('/api/rider/logout');
 };
