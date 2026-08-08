@@ -15,8 +15,7 @@ async function hydrateOnce() {
     AsyncStorage.getItem(ACCESS_KEY),
     AsyncStorage.getItem(REFRESH_KEY),
   ]);
-  console.log(access);
-  console.log(refresh);
+
 
   memoryAccessToken = access;
   memoryRefreshToken = refresh;
@@ -52,11 +51,11 @@ export const tokenService = {
   await AsyncStorage.setItem(ACCESS_KEY, accessToken);
   await AsyncStorage.setItem(REFRESH_KEY, refreshToken);
 
-//   console.log(
-//     "VERIFY STORAGE",
-//     await AsyncStorage.getItem(ACCESS_KEY),
-//     await AsyncStorage.getItem(REFRESH_KEY)
-//   );
+  // console.log(
+  //   "VERIFY STORAGE",
+  //   await AsyncStorage.getItem(ACCESS_KEY),
+  //   await AsyncStorage.getItem(REFRESH_KEY)
+  // );
   },
 
   async clear() {

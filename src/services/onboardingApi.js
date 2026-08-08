@@ -1,10 +1,10 @@
 import apiClient from './ApiClient';
 import api from './ApiClient';
-import axios from 'axios';
+
 
 export const getOnboardingStatus = async () => {
   const res = await api.get('/api/rider/onboarding-status');
-  console.log('ONBOARDING STATUS RESPONSE:', res.data);
+  // console.log('ONBOARDING STATUS RESPONSE:', res.data);
   return res.data;
 };
 

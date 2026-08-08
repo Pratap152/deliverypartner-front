@@ -8,7 +8,6 @@ import {
 } from 'react-native-responsive-dimensions';
 import { useOtp } from '../../hooks/useOtp';
 import OtpInput from '../../components/common/OTPInputBox';
-import { sendOTPApi } from './LoginEntryScreen';
 import { tokenService } from '../../services/TokenService';
 import apiClient from '../../services/ApiClient';
 
@@ -179,19 +178,21 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       }
 
       const { accessToken, refreshToken } = result.data;
+    
 
       if (!accessToken) {
         setError('Authentication failed. Try again.');
         return;
       }
 
-      console.log(result.data);
-      console.log("Access Token:", accessToken);
-      console.log("Refresh Token:", refreshToken);
+      // console.log(result.data);
+      // console.log("Access Token:", accessToken);
+      // console.log("Refresh Token:", refreshToken);
 
       await tokenService.set({ accessToken, refreshToken });
 
-      console.log("Tokens saved");
+      // console.log("Tokens saved");
+
 
 
       //  Let SplashScreen decide next route
@@ -335,185 +336,3 @@ const styles = StyleSheet.create({
 
 export default LoginVerifyScreen;
 
-
-
-
-// import React, { useEffect, useState } from 'react';
-// import { View, Text, TouchableOpacity, StyleSheet, BackHandler, Alert } from 'react-native';
-// import { useFocusEffect } from '@react-navigation/native';
-// import {
-//   responsiveWidth as rw,
-//   responsiveHeight as rh,
-//   responsiveFontSize as rf,
-// } from 'react-native-responsive-dimensions';
-// import { useOtp } from '../../hooks/useOtp';
-// import OtpInput from '../../components/common/OTPInputBox';
-// import { sendOTPApi } from './LoginEntryScreen';
-// import { tokenService } from '../../services/TokenService';
-// import apiClient from '../../services/ApiClient';
- 
-// const COLORS = {
-//   primary: "#1F3365",
-//   textDark: '#444',
-//   textLight: '#777',
-//   border: '#A5A5A5',
-//   white: '#fff',
-//   black: '#000',
-//   error: 'red',
-// };
- 
-// /* ================= VERIFY OTP API ================= */
-// const verifyOTPApi = async (phone, otp) => {
-//   try {
-//     const response = await apiClient.post(
-//       '/api/mobile/verify-static-otp',
-//       { phone, otp },
-//       { skipAuth: true },
-//     );
- 
-//     return { status: response.status, data: response.data };
-//   } catch (err) {
-//     if (err.response) {
-//       return {
-//         status: err.response.status,
-//         data: err.response.data || {},
-//       };
-//     }
-//     return { status: 500, data: { message: 'Network error' } };
-//   }
-// };
- 
-// const LoginVerifyScreen = ({ route, navigation }) => {
- 
-//   useFocusEffect(
-//     React.useCallback(() => {
-//       const onBackPress = () => {
-//         Alert.alert(
-//           "Exit App",
-//           "Are you sure you want to exit the app?",
-//           [
-//             {
-//               text: "No",
-//               style: "cancel",
-//             },
-//             {
-//               text: "Yes",
-//               onPress: () => BackHandler.exitApp(),
-//             },
-//           ]
-//         );
- 
-//         return true; // Prevent default behavior
-//       };
- 
-//       const subscription = BackHandler.addEventListener(
-//         "hardwareBackPress",
-//         onBackPress
-//       );
- 
-//       return () => subscription.remove();
-//     }, [])
-//   );
- 
-//   const phone = route?.params?.phone;
- 
-//   const {
-//     otp,
-//     inputRefs,
-//     handleChange,
-//     handleKeyPress,
-//     clearOtp,
-//     setOtpFromAutoFill,
-//   } = useOtp(6);
- 
-//   const [timer, setTimer] = useState(50);
-//   const [isResendEnabled, setIsResendEnabled] = useState(false);
-//   const [error, setError] = useState('');
-//   const [isVerifying, setIsVerifying] = useState(false);
-//   const [resendCount, setResendCount] = useState(0);
- 
-//   /* ================= TIMER ================= */
-//   useEffect(() => {
-//     if (timer === 0) {
-//       setIsResendEnabled(true);
-//       return;
-//     }
-//     const interval = setInterval(() => setTimer(t => t - 1), 1000);
-//     return () => clearInterval(interval);
-//   }, [timer]);
- 
-//   useFocusEffect(
-//     React.useCallback(() => {
-//       clearOtp();
-//       setError('');
-//     }, []),
-//   );
- 
-//   /* ================= VERIFY OTP ================= */
-//   const handleVerify = async () => {
-//     if (isVerifying) return;
- 
-//     const fullOtp = otp.join('');
-//     if (fullOtp.length < 6) {
-//       setError('Please enter a valid 6-digit OTP.');
-//       return;
-//     }
- 
-//     try {
-//       setIsVerifying(true);
-//       setError('');
- 
-//       const result = await verifyOTPApi(phone, fullOtp);
- 
-//       if (result.status !== 200) {
-//         setError('Invalid or expired OTP');
-//         return;
-//       }
- 
-//       const { accessToken, refreshToken } = result.data;
- 
-//       if (!accessToken) {
-//         setError('Authentication failed. Try again.');
-//         return;
-//       }
- 
-//       await tokenService.set({ accessToken, refreshToken });
-//       console.log(
-//         'OTP verified, tokens stored. accessToken:',
-//         accessToken,
-//         'refreshToken:',
-//         refreshToken,
-//       );
- 
-//       //  Let SplashScreen decide next route
-//       navigation.replace('SplashScreen');
-//     } catch (err) {
-//       setError('Something went wrong. Try again.');
-//     } finally {
-//       setIsVerifying(false);
-//     }
-//   };
- 
-//   /* ================= RESEND OTP ================= */
-//   const handleResendOtp = async () => {
-//     if (!isResendEnabled) return;
- 
-//     if (resendCount >= 3) {
-//       setError('You have reached the resend limit. Try again later.');
-//       return;
-//     }
- 
-//     const result = await sendOTPApi(phone);
- 
-//     if (result.status === 200) {
-//       setResendCount(prev => prev + 1);
-//       setTimer(50);
-//       setIsResendEnabled(false);
-//       clearOtp();
-//       setError('');
-//     } else {
-//       setError('Failed to resend OTP. Try again.');
-//     }
-//   };
- 
-  

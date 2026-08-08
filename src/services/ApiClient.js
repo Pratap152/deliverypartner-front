@@ -2,7 +2,7 @@ import axios from 'axios';
 import WEBSITE_URL from '../utils/host';
 import { tokenService } from './TokenService';
 import { authEvents, AUTH_EVENTS } from './AuthEvents';
-import { Platform } from 'react-native';
+
 
 let isRefreshing = false;
 let queue = [];
@@ -23,10 +23,6 @@ const apiClient = axios.create({
 
 /* ================= REQUEST ================= */
 apiClient.interceptors.request.use(config => {
-  // console.log("METHOD:", config.method);
-  // console.log("BASE URL:", config.baseURL);
-  // console.log("URL:", config.url);
-  // console.log("FULL URL:", `${config.baseURL}${config.url}`);
 
   if (config.skipAuth) return config;
 
@@ -43,16 +39,7 @@ apiClient.interceptors.request.use(config => {
 apiClient.interceptors.response.use(
   response => response,
   async error => {
-    // console.log("========== API ERROR ==========");
-    // console.log("URL:", error.config?.url);
-    // console.log("STATUS:", error.response?.status);
-    // console.log("RESPONSE:", error.response?.data);
-    // console.log("AUTH HEADER:", error.config?.headers?.Authorization);
-    // console.log("===============================");
-
     const originalRequest = error.config;
-
-
     if (
       error.response?.status === 401 &&
       !originalRequest?._retry &&

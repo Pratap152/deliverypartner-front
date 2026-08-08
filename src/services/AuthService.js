@@ -11,7 +11,7 @@ class AuthService {
       console.log('Logout API failed:', e.response?.data || e.message);
     } finally {
       await gpsService.stopTracking();
-      await tokenService.clear();
+      // await tokenService.clear();
       navigateAndReset('OnBoardingScreen');
     }
   }
@@ -19,7 +19,7 @@ class AuthService {
   async forceLogout() {
     await gpsService.stopTracking();
     await tokenService.clear();
-    // navigateAndReset('OnBoardingScreen');
+    navigateAndReset('OnBoardingScreen');
   }
 }
 
