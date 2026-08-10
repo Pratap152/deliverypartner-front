@@ -38,7 +38,9 @@ const submitVehicleType = async (vehicleType, evOwn) => {
   return res.data;
 };
 
-const VehicleSelectionScreen = ({ navigation }) => {
+const VehicleSelectionScreen = ({ navigation, route }) => {
+
+  const fromPreview = route?.params?.fromPreview;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -104,8 +106,11 @@ const VehicleSelectionScreen = ({ navigation }) => {
 
       await submitVehicleType(selectedVehicle, evOwn);
 
-      //  ALWAYS go through Splash
-      navigation.replace('SplashScreen');
+      if (fromPreview) {
+        navigation.goBack();
+      } else {
+        navigation.replace('SplashScreen');
+      }
     } catch (error) {
       console.log('Vehicle submit error:', error);
     } finally {

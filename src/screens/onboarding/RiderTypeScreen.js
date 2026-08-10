@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +6,8 @@ import {
   Image,
   Dimensions,
   BackHandler,
-  Alert
+  Alert,
+  Modal,
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -16,7 +16,7 @@ import {
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
-
+import React, { useState } from 'react';
 import { COLORS } from '../../utils/colors';
 import apiClient from '../../services/ApiClient';
 
@@ -60,6 +60,7 @@ const RiderTypeScreen = ({ navigation }) => {
 
   const [selectedType, setSelectedType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
 
   const riderTypes = [
     {
@@ -85,12 +86,18 @@ const RiderTypeScreen = ({ navigation }) => {
   const handleContinue = async () => {
     if (!selectedType) return;
 
+    // Company Employee is not available yet
+    if (selectedType === 'COMPANY_EMPLOYEE') {
+      setShowComingSoonModal(true);
+      return;
+    }
+
     try {
       setLoading(true);
 
       const payload = {
         riderType: selectedType,
-      }
+      };
 
       await riderType(payload);
 
@@ -99,8 +106,6 @@ const RiderTypeScreen = ({ navigation }) => {
         selectedType === 'ZESTBOT_EMPLOYEE'
       ) {
         navigation.navigate('SelectCityScreen');
-      } else {
-        navigation.navigate('EmployeeDetailsScreen');
       }
     } catch (err) {
       console.log(err?.response?.data || err);
@@ -116,7 +121,14 @@ const RiderTypeScreen = ({ navigation }) => {
       <TouchableOpacity
         key={item.id}
         style={[styles.card, isSelected && styles.cardSelected]}
-        onPress={() => setSelectedType(item.id)}
+        onPress={() => {
+          if (item.id === 'COMPANY_EMPLOYEE') {
+            setShowComingSoonModal(true);
+            return;
+          }
+
+          setSelectedType(item.id);
+        }}
         activeOpacity={0.8}
       >
         <View style={{ flex: 1 }}>
@@ -176,6 +188,41 @@ const RiderTypeScreen = ({ navigation }) => {
           {loading ? 'Please wait...' : 'Continue'}
         </Text>
       </TouchableOpacity>
+
+      <Modal
+        visible={showComingSoonModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowComingSoonModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+
+            <View style={styles.modalIconContainer}>
+              <Text style={styles.modalIcon}>i</Text>
+            </View>
+
+            <Text style={styles.modalTitle}>
+              Coming Soon
+            </Text>
+
+            <Text style={styles.modalMessage}>
+              This feature is coming soon. Stay tuned for upcoming updates.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowComingSoonModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalButtonText}>
+                Got it
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -283,6 +330,69 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: rf(2.2),
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: rw(8),
+  },
+
+  modalContainer: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: rw(5),
+    paddingHorizontal: rw(6),
+    paddingVertical: rh(3),
+    alignItems: 'center',
+  },
+
+  modalIconContainer: {
+    width: rw(14),
+    height: rw(14),
+    borderRadius: rw(7),
+    backgroundColor: '#F2F4FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: rh(1.5),
+  },
+
+  modalIcon: {
+    fontSize: rf(3),
+    fontWeight: '700',
+    color: '#1F3365',
+  },
+
+  modalTitle: {
+    fontSize: rf(2.6),
+    fontWeight: '700',
+    color: '#1B2238',
+    textAlign: 'center',
+    marginBottom: rh(1),
+  },
+
+  modalMessage: {
+    fontSize: rf(1.9),
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: rf(2.7),
+    marginBottom: rh(2.5),
+  },
+
+  modalButton: {
+    width: '100%',
+    backgroundColor: '#1F3365',
+    paddingVertical: rh(1.6),
+    borderRadius: rw(7),
+    alignItems: 'center',
+  },
+
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: rf(2),
     fontWeight: '600',
   },
 });

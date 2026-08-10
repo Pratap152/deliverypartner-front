@@ -3,114 +3,125 @@ import { getOnboardingStatus } from '../services/onboardingApi';
 export const resolveNextScreen = async () => {
   const res = await getOnboardingStatus();
 
-  console.log('ONBOARDING STATUS:', JSON.stringify(res, null, 2));
+  console.log(
+    'ONBOARDING STATUS:',
+    JSON.stringify(res, null, 2),
+  );
 
-  if (!res?.success) return 'LoginEntryScreen';
+  if (!res?.success) {
+    return 'LoginEntryScreen';
+  }
 
   const p = res?.onboardingProgress;
 
-  if (!p) return 'LoginEntryScreen';
+  if (!p) {
+    return 'LoginEntryScreen';
+  }
 
-  const isFalse = (val) => val === false;
+  const isFalse = value => value === false;
 
-  const stage = res.onboardingStage;
+  /* -------------------------------------------------------
+     COMPLETED
+  -------------------------------------------------------- */
 
-  // Rider has submitted KYC and waiting for admin review, ProcessingVerificationScreen
   if (
-    stage === 'KYC_SUBMITTED' ||
-    stage === 'KYC_UNDER_REVIEW' 
+    res.isFullyRegistered &&
+    p.kycCompleted &&
+    res.onboardingStage === 'COMPLETED'
   ) {
-    return 'ProcessingVerificationScreen';
-  }
-
-  // Admin rejected one or more documents
-  if (stage === 'KYC_REJECTED' || stage === 'KYC_APPROVAL_PENDING') {
-    return 'PreviewScreen';
-  }
-
-  // Everything approved
-  if (stage === 'COMPLETED') {
     return 'MainTabs';
   }
 
+  /* -------------------------------------------------------
+     BASIC ONBOARDING
+  -------------------------------------------------------- */
 
-
-  // Phone
   if (isFalse(p.phoneVerified)) {
-    return 'OtpVerificationScreen';
+    return 'LoginVerifyScreen';
   }
 
-  // App Permission
   if (isFalse(p.appPermissionDone)) {
     return 'AppPermissionScreen';
   }
 
-  // Rider Type
   if ('riderType' in p && isFalse(p.riderType)) {
     return 'RiderTypeScreen';
   }
 
-  // Individual / ZestBot Flow
-
-  // City
   if ('citySelected' in p && isFalse(p.citySelected)) {
     return 'SelectCityScreen';
   }
 
-  // Vehicle
   if ('vehicleSelected' in p && isFalse(p.vehicleSelected)) {
     return 'VehicleSelectionScreen';
   }
 
-  // Personal Info
-  if ('personalInfoSubmitted' in p && isFalse(p.personalInfoSubmitted)) {
+  if (
+    'personalInfoSubmitted' in p && isFalse(p.personalInfoSubmitted)
+  ) {
     return 'PersonalInfoScreen';
   }
 
-  // Selfie
-  if ('selfieUploaded' in p && isFalse(p.selfieUploaded)) {
+  if (
+    'selfieUploaded' in p && isFalse(p.selfieUploaded)
+  ) {
     return 'FaceInstructionScreen';
   }
 
-  // Aadhaar
-  if ('aadharVerified' in p && isFalse(p.aadharVerified)) {
+  if (
+    'aadharVerified' in p && isFalse(p.aadharVerified)
+  ) {
     return 'AadharEntryScreen';
   }
 
-  // PAN
-  if ('panUploaded' in p && isFalse(p.panUploaded)) {
+  if (
+    'panUploaded' in p && isFalse(p.panUploaded)
+  ) {
     return 'PanUploadScreen';
   }
 
-  // Driving License
-  if ('dlUploaded' in p && isFalse(p.dlUploaded)) {
+  if (
+    'dlUploaded' in p && isFalse(p.dlUploaded)
+  ) {
     return 'LicenseUploadScreen';
   }
 
-  // Company Employee Flow
+  /* -------------------------------------------------------
+     COMPANY EMPLOYEE FLOW
+  -------------------------------------------------------- */
 
-  // Employee Details
   if (
-    'employeeDetailsSubmitted' in p &&
-    isFalse(p.employeeDetailsSubmitted)
+    'employeeDetailsSubmitted' in p && isFalse(p.employeeDetailsSubmitted)
   ) {
     return 'EmployeeDetailsScreen';
   }
 
-  // Document Details
   if (
-    'documentDetailsSubmitted' in p &&
-    isFalse(p.documentDetailsSubmitted)
+    'documentDetailsSubmitted' in p && isFalse(p.documentDetailsSubmitted)
   ) {
     return 'DocumentDetailsScreen';
   }
 
-  // Preview Screen (Common for all rider types)
+  /* -------------------------------------------------------
+     PREVIEW
+     Rider has not submitted or needs resubmission
+  -------------------------------------------------------- */
+
   if (
-    'detailsConfirmed' in p &&
-    isFalse(p.detailsConfirmed)
+    'detailsConfirmed' in p && isFalse(p.detailsConfirmed)
   ) {
     return 'PreviewScreen';
+  }
+
+  /* -------------------------------------------------------
+     WAITING FOR ADMIN REVIEW
+     Rider has submitted.
+  -------------------------------------------------------- */
+
+  if (
+    p.detailsConfirmed && !p.underReview
+  ) {
+    return 'ProcessingVerificationScreen';
   }
 
   return 'MainTabs';
