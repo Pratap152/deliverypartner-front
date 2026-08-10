@@ -2,7 +2,7 @@ import axios from 'axios';
 import WEBSITE_URL from '../utils/host';
 import { tokenService } from './TokenService';
 import { authEvents, AUTH_EVENTS } from './AuthEvents';
-import { Platform } from 'react-native';
+
 
 let isRefreshing = false;
 let queue = [];
@@ -23,9 +23,11 @@ const apiClient = axios.create({
 
 /* ================= REQUEST ================= */
 apiClient.interceptors.request.use(config => {
+
   if (config.skipAuth) return config;
 
   const { accessToken } = tokenService.getSync();
+
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -38,7 +40,6 @@ apiClient.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
-
     if (
       error.response?.status === 401 &&
       !originalRequest?._retry &&
@@ -65,21 +66,26 @@ apiClient.interceptors.response.use(
         if (!refreshToken) throw new Error('NO_REFRESH_TOKEN');
 
         const res = await apiClient.post(
-          '/api/rider/mobile/refresh-token',
+          "/api/rider/auth/refresh-token",
           { refreshToken },
-          { skipAuth: true },
+          { skipAuth: true }
         );
 
-        const { accessToken, refreshToken: newRefresh } = res.data.data;
+        if (!res.data.success) {
+          throw new Error(res.data.message || "Refresh failed");
+        }
+
+        const accessToken = res.data.accessToken;
 
         await tokenService.set({
           accessToken,
-          refreshToken: newRefresh,
+          refreshToken, // keep the existing refresh token
         });
 
         processQueue(accessToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
         return apiClient(originalRequest);
       } catch (err) {
         processQueue(null, err);
@@ -106,17 +112,9 @@ apiClient.interceptors.response.use(
   },
 );
 
-/* ===================================================== */
-/* ================= FCM HELPERS (NEW) ================= */
-/* ===================================================== */
 
-/**
- * Save / update FCM token
- * Called on:
- * - login
- * - app launch
- * - token refresh
- */
+/* ================= FCM HELPERS (NEW) ================= */
+
 export const updateFcmToken = async ({
   fcmToken,
   appVersion,

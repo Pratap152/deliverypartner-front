@@ -47,7 +47,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
           setSelfieUri(response.data?.selfie || null);
         } catch (e) {
-          console.log('Documents Error:', e);
+          // console.log('Documents Error:', e);
         }
       };
 
@@ -77,13 +77,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const handleChange = (key, value) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
-  // const getSelfieUri = selfie => {
-  //   if (!selfie) return null;
-  //   if (typeof selfie === 'string') return selfie;
-  //   if (selfie?.url) return selfie.url;
-  //   if (selfie?.uri) return selfie.uri;
-  //   return null;
-  // };
 
  const pickImage = async () => {
   const res = await launchImageLibrary({

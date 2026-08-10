@@ -13,7 +13,6 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
-import apiClient from '../../services/ApiClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCities } from '../../services/onboardingApi';
 
@@ -25,7 +24,9 @@ const inputFont = isTablet ? 18 : 14;
 const cityFont = isTablet ? 18 : 16;
 const iconSize = isTablet ? 24 : 20;
 
-export default function SelectCityScreen({ navigation }) {
+export default function SelectCityScreen({ navigation, route }) {
+
+  const fromPreview = route?.params?.fromPreview ?? false;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -185,6 +186,7 @@ export default function SelectCityScreen({ navigation }) {
           onPress={() =>
             navigation.navigate('AreaSelectionScreen', {
               city: selectedCity,
+              fromPreview,
             })
           }
         >
