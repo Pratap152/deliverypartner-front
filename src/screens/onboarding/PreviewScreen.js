@@ -258,7 +258,7 @@ const PreviewScreen = () => {
                 onEdit={
                   canEdit('LOCATION')
                     ? () =>
-                      navigation.navigate('AreaSelectionScreen', {
+                      navigation.navigate('SelectCityScreen', {
                         city: location?.city,
                         fromPreview: true,
                       })
@@ -376,11 +376,6 @@ const PreviewScreen = () => {
                 <Text style={styles.value}>
                   <Text style={styles.label}>Email : </Text>
                   {profile.email}
-                </Text>
-
-                <Text style={styles.value}>
-                  <Text style={styles.label}>Primary Phone : </Text>
-                  {profile.primaryPhone}
                 </Text>
 
                 <Text style={styles.value}>
