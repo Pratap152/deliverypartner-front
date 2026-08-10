@@ -17,13 +17,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DeviceInfo from 'react-native-device-info';
-
-import apiClient from '../../services/ApiClient';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { personalInfo } from '../../services/onboardingApi';
 
-export default function PersonalInfoScreen({ navigation }) {
+export default function PersonalInfoScreen({ navigation, route }) {
+
+  const fromPreview = route?.params?.fromPreview ?? false;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -247,31 +247,35 @@ export default function PersonalInfoScreen({ navigation }) {
     console.log('submit', payload);
 
     try {
-  setSubmitting(true);
+      setSubmitting(true);
 
-  const res = await personalInfo(payload);
+      const res = await personalInfo(payload);
 
-  console.log('STATUS:', res.status);
-  console.log('BODY:', res.data);
+      console.log('STATUS:', res.status);
+      console.log('BODY:', res.data);
 
-  navigation.replace('SplashScreen');
+      if (fromPreview) {
+        navigation.goBack();
+      } else {
+        navigation.replace('SplashScreen');
+      }
 
-} catch (err) {
-  const apiMsg =
-    err.response?.data?.message ||
-    err.response?.data?.error ||
-    'Something went wrong. Please try again.';
+    } catch (err) {
+      const apiMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Something went wrong. Please try again.';
 
-  setErrors(prev => ({
-    ...prev,
-    secondaryPhone: apiMsg,
-  }));
+      setErrors(prev => ({
+        ...prev,
+        secondaryPhone: apiMsg,
+      }));
 
-  console.log('API ERROR:', err.response?.status, err.response?.data);
+      console.log('API ERROR:', err.response?.status, err.response?.data);
 
-} finally {
-  setSubmitting(false);
-}
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /* UI  */

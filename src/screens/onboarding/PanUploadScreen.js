@@ -36,7 +36,9 @@ const subtitleFont = isTablet ? 18 : 14;
 const inputFont = isTablet ? 18 : 16;
 const buttonFont = isTablet ? 20 : 20;
 
-const PanUploadScreen = ({ navigation }) => {
+const PanUploadScreen = ({ navigation, route }) => {
+
+  const fromPreview = route?.params?.fromPreview ?? false;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -79,23 +81,23 @@ const PanUploadScreen = ({ navigation }) => {
   const openOptions = () => actionSheetRef.current.show();
 
   const takePhoto = async () => {
-  try {
-    const { scannedImages } = await DocumentScanner.scanDocument({
-      maxNumDocuments: 1,
-      responseType: 'imageFilePath',
-    });
-
-    if (scannedImages && scannedImages.length > 0) {
-      setImage({
-        uri: scannedImages[0],
-        type: 'image/jpeg',
-        fileName: 'pan.jpg',
+    try {
+      const { scannedImages } = await DocumentScanner.scanDocument({
+        maxNumDocuments: 1,
+        responseType: 'imageFilePath',
       });
+
+      if (scannedImages && scannedImages.length > 0) {
+        setImage({
+          uri: scannedImages[0],
+          type: 'image/jpeg',
+          fileName: 'pan.jpg',
+        });
+      }
+    } catch (error) {
+      console.log('Document scan error:', error);
     }
-  } catch (error) {
-    console.log('Document scan error:', error);
-  }
-};
+  };
   const chooseFromGallery = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 1 }, res => {
       if (res.didCancel || res.errorCode) return;
@@ -138,8 +140,14 @@ const PanUploadScreen = ({ navigation }) => {
 
       Alert.alert('Success', 'PAN submitted for verification.', [
         {
-          text: 'Next',
-          onPress: () => navigation.replace('SplashScreen'),
+          text: 'OK',
+          onPress: () => {
+            if (fromPreview) {
+              navigation.goBack();
+            } else {
+              navigation.replace('SplashScreen');
+            }
+          },
         },
       ]);
     } catch (err) {

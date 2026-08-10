@@ -16,7 +16,7 @@ export const updateBankDetails = async (payload) => {
 };
 
 export const getCashBalance = async () => {
-    const response = await apiClient.get(`/api/rider/profile/bank-details`);
+    const response = await apiClient.get(`/api/rider/cashbalance`);
     return response;
 };
 

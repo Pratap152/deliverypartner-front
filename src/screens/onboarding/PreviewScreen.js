@@ -20,7 +20,6 @@ import PreviewCard from '../../components/onboarding/AppPermissions/PreviewCard'
 import {
   getOnboardingPreview,
   confirmOnboardingDetails,
-  resubmitKyc,
 } from '../../services/onboardingPreviewApi';
 import { getAllDocuments } from '../../services/getAllDocuments';
 
@@ -105,13 +104,8 @@ const PreviewScreen = () => {
     try {
       setSubmitting(true);
 
-      let response;
+      const response = await confirmOnboardingDetails(true);
 
-      if (isRejectedFlow) {
-        response = await resubmitKyc();
-      } else {
-        response = await confirmOnboardingDetails(true);
-      }
       if (response.success) {
         navigation.replace('ProcessingVerificationScreen');
       }
@@ -143,16 +137,24 @@ const PreviewScreen = () => {
   const kyc = rider?.kyc;
   const onboarding = rider?.onboarding;
 
-  const screenStatus = preview?.screen; // PENDING | REJECTED | APPROVED
-  const isRejectedFlow = screenStatus === 'REJECTED';
-  const isApprovedFlow = screenStatus === 'APPROVED';
-  const isReviewFlow = screenStatus === "REVIEW";
+  const isRejectedFlow =
+    onboarding?.detailsConfirmed === false &&
+    (
+      rider?.onboardingStage === 'KYC_REJECTED' ||
+      rider?.onboardingStage === 'KYC_UNDER_REVIEW'
+    );
 
-  const canEditSection = section => {
-    if (isReviewFlow) {
-      return true; // before submit
+  const canEdit = (key) => {
+    // Before first submit -> allow editing everything
+    if (!onboarding?.detailsConfirmed) {
+      return true;
     }
 
+    // After rejection -> allow only rejected/editable sections
+    return getSection(key)?.editable === true;
+  };
+
+  const canEditSection = section => {
     return section?.editable === true;
   };
 
@@ -161,29 +163,17 @@ const PreviewScreen = () => {
   const getSection = key =>
     sections.find(item => item.key === key);
 
+  const locationSection = getSection('LOCATION');
+  const personalInfoSection = getSection('PERSONAL_INFO');
   const panSection = getSection('PAN_UPLOAD');
   const dlSection = getSection('DL_UPLOAD');
-  const aadhaarSection = getSection('AADHAAR');
   const selfieSection = getSection('SELFIE');
   const documentSection = getSection('DOCUMENT_DETAILS');
-
-  const canEdit = status => {
-    // Initial onboarding
-    if (!isRejectedFlow && !isApprovedFlow) {
-      return true;
-    }
-
-    // Rejected flow
-    if (isRejectedFlow) {
-      return status?.toLowerCase() === 'rejected';
-    }
-
-    // Approved flow
-    return false;
-  };
+  const employeeSection = getSection('EMPLOYEE_DETAILS');
 
   const isCompanyEmployee =
     rider?.riderType === 'COMPANY_EMPLOYEE';
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -203,6 +193,30 @@ const PreviewScreen = () => {
             ? 'Please update the rejected details and resubmit your KYC.'
             : 'Review all your onboarding details before submitting.'}
         </Text>
+
+        {isRejectedFlow && (
+          <View style={styles.rejectionBanner}>
+            <View style={styles.rejectionIconContainer}>
+              <Ionicons
+                name="alert-circle"
+                size={24}
+                color="#DC2626"
+              />
+            </View>
+
+            <View style={styles.rejectionContent}>
+              <Text style={styles.rejectionTitle}>
+                Action Required
+              </Text>
+
+              <Text style={styles.rejectionMessage}>
+                Some of your submitted details were rejected. Please review the
+                highlighted sections below, make the required corrections, and
+                resubmit your application.
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* PHONE */}
 
@@ -240,10 +254,14 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Location"
                 icon="location-outline"
-                status="Completed"
+                status={locationSection?.status || 'Completed'}
                 onEdit={
-                  !isRejectedFlow && !isApprovedFlow
-                    ? () => navigation.navigate('SelectCityScreen')
+                  canEdit('LOCATION')
+                    ? () =>
+                      navigation.navigate('AreaSelectionScreen', {
+                        city: location?.city,
+                        fromPreview: true,
+                      })
                     : undefined
                 }
               >
@@ -278,8 +296,11 @@ const PreviewScreen = () => {
                 icon="bicycle-outline"
                 status={vehicle.status}
                 onEdit={
-                  !isRejectedFlow && !isApprovedFlow
-                    ? () => navigation.navigate('VehicleSelectionScreen')
+                  canEdit('VEHICLE')
+                    ? () =>
+                      navigation.navigate('VehicleSelectionScreen', {
+                        fromPreview: true,
+                      })
                     : undefined
                 }
               >
@@ -308,17 +329,33 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Personal Information"
                 icon="person-circle-outline"
-                status="Completed"
+                status={personalInfoSection?.status}
                 onEdit={
-                  canEdit(kyc?.personalInfoStatus)
-                    ? () => navigation.navigate('PersonalInfoScreen')
+                  canEdit('PERSONAL_INFO')
+                    ? () => navigation.navigate('PersonalInfoScreen', {
+                      fromPreview: true,
+                    })
                     : undefined
                 }
               >
-                {kyc?.personalInfoStatus === 'rejected' && (
-                  <Text style={styles.error}>
-                    Rejected Reason : {kyc?.personalInfoRejectedReason}
-                  </Text>
+                {personalInfoSection?.reason && (
+                  <View style={styles.rejectedReasonBox}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={18}
+                      color="#DC2626"
+                    />
+
+                    <View style={styles.rejectedReasonContent}>
+                      <Text style={styles.rejectedReasonTitle}>
+                        Rejected
+                      </Text>
+
+                      <Text style={styles.rejectedReasonText}>
+                        {personalInfoSection.reason}
+                      </Text>
+                    </View>
+                  </View>
                 )}
 
                 <Text style={styles.value}>
@@ -359,9 +396,9 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Selfie"
                 icon="camera-outline"
-                status={kyc?.selfieStatus}
+                status={selfieSection?.status}
                 onEdit={
-                  canEdit(kyc?.selfieStatus)
+                  canEdit('SELFIE')
                     ? () =>
                       navigation.navigate('FaceVerificationScreen', {
                         fromPreview: true,
@@ -375,34 +412,27 @@ const PreviewScreen = () => {
                   }}
                   style={styles.image}
                 />
-                {kyc?.selfieStatus === 'rejected' && (
-                  <Text style={styles.error}>
-                    Rejected Reason : {kyc?.selfieRejectedReason}
-                  </Text>
+                {selfieSection?.reason && (
+                  <View style={styles.rejectedReasonBox}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={18}
+                      color="#DC2626"
+                    />
+
+                    <View style={styles.rejectedReasonContent}>
+                      <Text style={styles.rejectedReasonTitle}>
+                        Rejected
+                      </Text>
+
+                      <Text style={styles.rejectedReasonText}>
+                        {selfieSection.reason}
+                      </Text>
+                    </View>
+                  </View>
                 )}
               </PreviewCard>
             )}
-
-            {/* AADHAAR
-
-            {kyc && (
-              <PreviewCard
-                title="Aadhaar"
-                icon="card-outline"
-                status={kyc?.aadharStatus}
-              >
-                <Text style={styles.value}>
-                  <Text style={styles.label}>Status : </Text>
-                  {aadhaarSection?.status || kyc.aadharStatus}
-                </Text>
-
-                {kyc?.aadharRejectedReason && (
-                  <Text style={styles.error}>
-                    Rejected Reason : {aadhaarSection.reason}
-                  </Text>
-                )}
-              </PreviewCard>
-            )} */}
 
             {/* PAN */}
 
@@ -410,10 +440,13 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="PAN Card"
                 icon="document-text-outline"
-                status={kyc?.panStatus}
+                status={panSection?.status}
                 onEdit={
-                  canEdit(kyc?.panStatus)
-                    ? () => navigation.navigate('PanUploadScreen')
+                  canEdit('PAN_UPLOAD')
+                    ? () =>
+                      navigation.navigate('PanUploadScreen', {
+                        fromPreview: true,
+                      })
                     : undefined
                 }
               >
@@ -422,10 +455,24 @@ const PreviewScreen = () => {
                   {kyc.panNumber}
                 </Text>
 
-                {kyc?.panRejectedReason && (
-                  <Text style={styles.error}>
-                    Rejected Reason : {panSection.reason}
-                  </Text>
+                {panSection?.reason && (
+                  <View style={styles.rejectedReasonBox}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={18}
+                      color="#DC2626"
+                    />
+
+                    <View style={styles.rejectedReasonContent}>
+                      <Text style={styles.rejectedReasonTitle}>
+                        Rejected
+                      </Text>
+
+                      <Text style={styles.rejectedReasonText}>
+                        {panSection.reason}
+                      </Text>
+                    </View>
+                  </View>
                 )}
 
                 {(documents.pan || kyc.panImage) && (
@@ -445,10 +492,12 @@ const PreviewScreen = () => {
               <PreviewCard
                 title="Driving License"
                 icon="car-outline"
-                status={kyc?.dlStatus}
+                status={dlSection?.status}
                 onEdit={
-                  canEdit(kyc?.dlStatus)
-                    ? () => navigation.navigate('LicenseUploadScreen')
+                  canEdit('DL_UPLOAD')
+                    ? () => navigation.navigate('LicenseUploadScreen', {
+                      fromPreview: true,
+                    })
                     : undefined
                 }
               >
@@ -457,10 +506,24 @@ const PreviewScreen = () => {
                   {kyc.dlNumber}
                 </Text>
 
-                {kyc?.dlRejectedReason && (
-                  <Text style={styles.error}>
-                    Rejected Reason : {dlSection.reason}
-                  </Text>
+                {dlSection?.reason && (
+                  <View style={styles.rejectedReasonBox}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={18}
+                      color="#DC2626"
+                    />
+
+                    <View style={styles.rejectedReasonContent}>
+                      <Text style={styles.rejectedReasonTitle}>
+                        Rejected
+                      </Text>
+
+                      <Text style={styles.rejectedReasonText}>
+                        {dlSection.reason}
+                      </Text>
+                    </View>
+                  </View>
                 )}
 
                 {(documents.dlFront || kyc.dlFrontImage) && (
@@ -502,7 +565,7 @@ const PreviewScreen = () => {
                 icon="person-circle-outline"
                 status="Completed"
                 onEdit={
-                  !isRejectedFlow && !isApprovedFlow
+                  canEditSection(employeeSection)
                     ? () => navigation.navigate('EmployeeDetailsScreen')
                     : undefined
                 }
@@ -582,7 +645,7 @@ const PreviewScreen = () => {
                 icon="document-text-outline"
                 status={documentSection?.status || "Completed"}
                 onEdit={
-                  canEditSection(documentSection)
+                  canEdit('DOCUMENT_DETAILS')
                     ? () =>
                       navigation.navigate("DocumentDetailsScreen", {
                         fromRejectedFlow: true,
@@ -765,5 +828,80 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+  },
+  rejectionBanner: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderLeftWidth: 5,
+    borderLeftColor: '#DC2626',
+
+    borderRadius: 14,
+    padding: 15,
+    marginBottom: 20,
+  },
+
+  rejectionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FEE2E2',
+
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    marginRight: 12,
+  },
+
+  rejectionContent: {
+    flex: 1,
+  },
+
+  rejectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#B91C1C',
+    marginBottom: 5,
+  },
+
+  rejectionMessage: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#7F1D1D',
+  },
+  rejectedReasonBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+
+    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+
+  rejectedReasonContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+
+  rejectedReasonTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#B91C1C',
+    marginBottom: 2,
+  },
+
+  rejectedReasonText: {
+    fontSize: 14,
+    color: '#7F1D1D',
+    lineHeight: 20,
   },
 });

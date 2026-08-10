@@ -12,17 +12,12 @@ import {
   BackHandler
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
-
 import ActionSheet from 'react-native-actionsheet';
 import { useDispatch } from 'react-redux';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import DeviceInfo from 'react-native-device-info';
-
-import apiClient from '../../services/ApiClient';
 import { verifyDocument } from '../../redux/slices/documentsVerificationSlice';
 import { saveDrivingLicense } from '../../services/onboardingApi';
 
@@ -44,7 +39,9 @@ const subtitleFont = isTablet ? 20 : 16;
 const inputFont = isTablet ? 18 : 16;
 const buttonFont = isTablet ? 20 : 18;
 
-const LicenseUploadScreen = ({ navigation }) => {
+const LicenseUploadScreen = ({ navigation, route }) => {
+
+  const fromPreview = route?.params?.fromPreview;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -295,11 +292,14 @@ const LicenseUploadScreen = ({ navigation }) => {
         'Driving License submitted for verification.',
         [
           {
-            text: 'Next',
-            onPress: () =>
-              navigation.replace(
-                'SplashScreen',
-              ),
+            text: 'OK',
+            onPress: () => {
+              if (fromPreview) {
+                navigation.goBack();
+              } else {
+                navigation.replace('SplashScreen');
+              }
+            },
           },
         ],
       );
