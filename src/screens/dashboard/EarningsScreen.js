@@ -79,53 +79,120 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
             </TouchableOpacity>
           </View>
         </SafeAreaView>
+        
+        {riderType === 'INDIVIDUAL_EMPLOYEE' ? (
+          <TouchableOpacity
+            style={styles.dailyCard}
+            onPress={() =>
+              navigation.navigate('EarningsHistoryScreen', {
+                mode: 'TODAY',
+              })
+            }
+            activeOpacity={0.7}
+          >
+            <View style={styles.dailyTopRow}>
+              <View>
+                <Text style={styles.dailyLabel}>Today's Earnings</Text>
 
-        <TouchableOpacity
-          style={styles.dailyCard}
-          onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'TODAY' })}
-          activeOpacity={0.7}>
-          <View style={styles.dailyTopRow}>
-            <View>
-              <Text style={styles.dailyLabel}>{riderType === 'INDIVIDUAL_EMPLOYEE' ? "Today's Earnings" : "Monthly Earnings"}</Text>
-              <Text style={styles.dailyTotal}>
-                ₹{formatMoney(todayEarnings?.total ?? 0)}
-              </Text>
+                <Text style={styles.dailyTotal}>
+                  ₹{formatMoney(todayEarnings?.total ?? 0)}
+                </Text>
+              </View>
+
+              <View style={styles.dailyIconWrap}>
+                <Ionicons
+                  name="cash-outline"
+                  size={isTablet ? 32 : 24}
+                  color="#10B981"
+                />
+              </View>
             </View>
 
-            <View style={styles.dailyIconWrap}>
-              <Ionicons name="cash-outline" size={isTablet ? 32 : 24} color="#10B981" />
+            <View style={styles.dailyDivider} />
+
+            <View style={styles.dailyStatsRow}>
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  ₹{formatMoney(todayEarnings?.baseEarnings ?? 0)}
+                </Text>
+                <Text style={styles.statLabel}>Base Earnings</Text>
+              </View>
+
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  ₹{formatMoney(todayEarnings?.incentives ?? 0)}
+                </Text>
+                <Text style={styles.statLabel}>Incentives</Text>
+              </View>
+
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  {todayEarnings?.orders ?? 0}
+                </Text>
+                <Text style={styles.statLabel}>Orders</Text>
+              </View>
+
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  ₹{formatMoney(todayEarnings?.tips ?? 0)}
+                </Text>
+                <Text style={styles.statLabel}>Tips</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.dailyCard}>
+            <View style={styles.dailyTopRow}>
+              <View>
+                <Text style={styles.dailyLabel}>Monthly Earnings</Text>
+
+                <Text style={styles.dailyTotal}>
+                  ₹{formatMoney(todayEarnings?.total ?? 0)}
+                </Text>
+              </View>
+
+              <View style={styles.dailyIconWrap}>
+                <Ionicons
+                  name="cash-outline"
+                  size={isTablet ? 32 : 24}
+                  color="#10B981"
+                />
+              </View>
+            </View>
+
+            <View style={styles.dailyDivider} />
+
+            <View style={styles.dailyStatsRow}>
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  ₹{formatMoney(todayEarnings?.baseEarnings ?? 0)}
+                </Text>
+                <Text style={styles.statLabel}>Base Earnings</Text>
+              </View>
+
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  ₹{formatMoney(todayEarnings?.incentives ?? 0)}
+                </Text>
+                <Text style={styles.statLabel}>Incentives</Text>
+              </View>
+
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  {todayEarnings?.orders ?? 0}
+                </Text>
+                <Text style={styles.statLabel}>Orders</Text>
+              </View>
+
+              <View style={styles.dailyStatItem}>
+                <Text style={styles.statValue}>
+                  ₹{formatMoney(todayEarnings?.tips ?? 0)}
+                </Text>
+                <Text style={styles.statLabel}>Tips</Text>
+              </View>
             </View>
           </View>
-
-          <View style={styles.dailyDivider} />
-
-          <View style={styles.dailyStatsRow}>
-            <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>
-                ₹{formatMoney(todayEarnings?.baseEarnings ?? 0)}
-              </Text>
-              <Text style={styles.statLabel}>Base Earnings</Text>
-            </View>
-
-            <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>₹{formatMoney(todayEarnings?.incentives ?? 0)}</Text>
-              <Text style={styles.statLabel}>Incentives</Text>
-            </View>
-
-            <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>
-                {todayEarnings?.orders ?? 0}
-              </Text>
-              <Text style={styles.statLabel}>Orders</Text>
-            </View>
-
-            <View style={styles.dailyStatItem}>
-              <Text style={styles.statValue}>₹{formatMoney(todayEarnings?.tips ?? 0)}</Text>
-              <Text style={styles.statLabel}>Tips</Text>
-            </View>
-
-          </View>
-        </TouchableOpacity>
+        )}
       </LinearGradient>
     </View>
   )

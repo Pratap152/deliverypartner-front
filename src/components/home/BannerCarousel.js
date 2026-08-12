@@ -1,11 +1,11 @@
-import React, { useRef, useEffect, useCallback } from 'react'; import {
+import React, { useRef, useEffect, useCallback } from 'react';
+import {
   View,
   Text,
   StyleSheet,
   FlatList,
   Pressable,
   ImageBackground,
-  Image,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -39,90 +39,51 @@ const BannerCarousel = ({ data }) => {
   );
 
   const kitCompleted = riderKitData?.kitCompleted ?? false;
-  const apiResponse = riderKitData?.apiResponse ?? null;
-  const deliveryMode = riderKitData?.deliveryMode ?? null;
-
-  const addressData = riderKitData?.addressData ?? null;
-  const selectedZone = riderKitData?.selectedZone ?? null;
-  const currentStep = riderKitData?.currentStep ?? null;
 
   const handleKitPress = () => {
-    const firstItem = apiResponse?.data?.[0];
-    const paymentStatus = firstItem?.Payment?.status ?? null;
-    const kitStatus = firstItem?.status ?? null;
-
-    const isPaid =
-      kitCompleted &&
-      (
-        paymentStatus === 'SUCCESS' ||
-        paymentStatus === 'COMPLETED' ||
-        kitStatus === 'READY_FOR_DISPATCH' ||
-        kitStatus === 'PAYMENT_COMPLETED'
-      );
-
-    if (isPaid || currentStep === 'SuccessScreen') {
+    if (kitCompleted) {
       navigation.navigate('SuccessScreen', {
-        apiResponse,
-        deliveryMode,
-      });
-      return;
-    }
-
-    if (currentStep === 'PaymentsScreen') {
-      navigation.navigate('PaymentsScreen', {
-        apiResponse,
-        deliveryMode,
-        addressData,
-        selectedZone,
-      });
-      return;
-    }
-
-    if (currentStep === 'KitPickupSelection') {
-      navigation.navigate('KitPickupSelection', {
-        apiResponse,
-        deliveryMode,
-        addressData,
-        selectedZone,
+        riderId: currentRiderId,
       });
       return;
     }
 
     navigation.navigate('KitSelectionScreen');
   };
+
   const handlePress = item => {
-  switch (item.type) {
-    case 'bank':
-      navigation.navigate('AddBankDetails');
-      break;
+    switch (item.type) {
+      case 'bank':
+        navigation.navigate('AddBankDetails');
+        break;
 
-    case 'kit':
-      handleKitPress();
-      break;
+      case 'kit':
+        handleKitPress();
+        break;
 
-    case 'referAndEarn':
-      navigation.navigate('ReferEarn');
-      break;
+      case 'referAndEarn':
+        navigation.navigate('ReferEarn');
+        break;
 
-    case 'dailyIncentive':
-      navigation.navigate('IncentiveDetails');
-      break;
+      case 'dailyIncentive':
+        navigation.navigate('IncentiveDetails');
+        break;
 
-    case 'joiningBonus':
-      navigation.navigate('JoiningBonusScreen');
-      break;
+      case 'joiningBonus':
+        navigation.navigate('JoiningBonusScreen');
+        break;
 
-    case 'promotional':
-        if(item.promoType === "EV Vs PETROL"){
-         navigation.navigate("EVScreen")
-      }
-      break;
+      case 'promotional':
+        if (item.promoType === 'EV Vs PETROL') {
+          navigation.navigate('EVScreen');
+        }
+        break;
 
-    default:
-      console.log('Banner clicked', item);
-      break;
-  }
-};
+      default:
+        console.log('Banner clicked', item);
+        break;
+    }
+  };
 
   const startAutoScroll = useCallback(() => {
     clearInterval(timerRef.current);
