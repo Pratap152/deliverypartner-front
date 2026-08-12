@@ -8,6 +8,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import { useOtp } from '../../hooks/useOtp';
 import OtpInput from '../../components/common/OTPInputBox';
+import { sendOTPApi } from './LoginEntryScreen';
 import { tokenService } from '../../services/TokenService';
 import apiClient from '../../services/ApiClient';
 
@@ -25,68 +26,20 @@ const COLORS = {
 const verifyOTPApi = async (phone, otp) => {
   try {
     const response = await apiClient.post(
-      "/api/rider/auth/verify-otp",
-      {
-        phoneNumber: phone,
-        otp,
-      },
-      {
-        skipAuth: true,
-      }
+      '/api/mobile/verify-static-otp',
+      { phone, otp },
+      { skipAuth: true },
     );
 
-    return {
-      status: response.status,
-      data: response.data,
-    };
-  } catch (error) {
-    if (error.response) {
+    return { status: response.status, data: response.data };
+  } catch (err) {
+    if (err.response) {
       return {
-        status: error.response.status,
-        data: error.response.data,
+        status: err.response.status,
+        data: err.response.data || {},
       };
     }
-
-    return {
-      status: 500,
-      data: {
-        success: false,
-        message: "Network error",
-      },
-    };
-  }
-};
-const resendOTPApi = async (phone) => {
-  try {
-    const response = await apiClient.post(
-      "/api/rider/auth/resend-otp",
-      {
-        phoneNumber: phone,
-      },
-      {
-        skipAuth: true,
-      }
-    );
-
-    return {
-      status: response.status,
-      data: response.data,
-    };
-  } catch (error) {
-    if (error.response) {
-      return {
-        status: error.response.status,
-        data: error.response.data,
-      };
-    }
-
-    return {
-      status: 500,
-      data: {
-        success: false,
-        message: "Network error",
-      },
-    };
+    return { status: 500, data: { message: 'Network error' } };
   }
 };
 
@@ -178,22 +131,19 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       }
 
       const { accessToken, refreshToken } = result.data;
-    
 
       if (!accessToken) {
         setError('Authentication failed. Try again.');
         return;
       }
 
-      // console.log(result.data);
-      // console.log("Access Token:", accessToken);
-      // console.log("Refresh Token:", refreshToken);
-
       await tokenService.set({ accessToken, refreshToken });
-
-      // console.log("Tokens saved");
-
-
+      console.log(
+        'OTP verified, tokens stored. accessToken:',
+        accessToken,
+        'refreshToken:',
+        refreshToken,
+      );
 
       //  Let SplashScreen decide next route
       navigation.replace('SplashScreen');
@@ -206,25 +156,26 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
   /* ================= RESEND OTP ================= */
   const handleResendOtp = async () => {
-  if (!isResendEnabled) return;
+    if (!isResendEnabled) return;
 
-  if (resendCount >= 3) {
-    setError("You have reached the resend limit. Try again later.");
-    return;
-  }
+    if (resendCount >= 3) {
+      setError('You have reached the resend limit. Try again later.');
+      return;
+    }
 
-  const result = await resendOTPApi(phone);
+    const result = await sendOTPApi(phone);
 
-  if (result.status === 200 && result.data.success) {
-    setResendCount(prev => prev + 1);
-    setTimer(50);
-    setIsResendEnabled(false);
-    clearOtp();
-    setError("");
-  } else {
-    setError(result.data.message || "Failed to resend OTP.");
-  }
-};
+    if (result.status === 200) {
+      setResendCount(prev => prev + 1);
+      setTimer(50);
+      setIsResendEnabled(false);
+      clearOtp();
+      setError('');
+    } else {
+      setError('Failed to resend OTP. Try again.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>
@@ -335,4 +286,3 @@ const styles = StyleSheet.create({
 });
 
 export default LoginVerifyScreen;
-
