@@ -266,13 +266,39 @@ export default function PersonalInfoScreen({ navigation, route }) {
         err.response?.data?.error ||
         'Something went wrong. Please try again.';
 
-      setErrors(prev => ({
-        ...prev,
-        secondaryPhone: apiMsg,
-      }));
+      const lowerMsg = apiMsg.toLowerCase();
 
-      console.log('API ERROR:', err.response?.status, err.response?.data);
+      if (
+        lowerMsg.includes('referral') ||
+        lowerMsg.includes('referral code')
+      ) {
+        setErrors(prev => ({
+          ...prev,
+          referralCode: apiMsg,
+        }));
+      } else if (
+        lowerMsg.includes('mobile') ||
+        lowerMsg.includes('phone') ||
+        lowerMsg.includes('secondary')
+      ) {
+        setErrors(prev => ({
+          ...prev,
+          secondaryPhone: apiMsg,
+        }));
+      } else if (lowerMsg.includes('email')) {
+        setErrors(prev => ({
+          ...prev,
+          email: apiMsg,
+        }));
+      } else {
+        Alert.alert('Error', apiMsg);
+      }
 
+      console.log(
+        'API ERROR:',
+        err.response?.status,
+        err.response?.data
+      );
     } finally {
       setSubmitting(false);
     }
