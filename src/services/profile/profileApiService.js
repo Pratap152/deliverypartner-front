@@ -21,7 +21,11 @@ export const getCashBalance = async () => {
 };
 
 export const getProfileDocuments = async () => {
-    await apiClient.get('/api/rider/profile/documents');
+    const response = await apiClient.get(
+        '/api/rider/profile/documents'
+    );
+
+    return response;
 };
 
 export const updateDocuments = async (formData) => {

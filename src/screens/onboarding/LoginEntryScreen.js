@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-
+import WEBSITE_URL from "../../utils/host";
+import axios from "axios";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -23,77 +24,40 @@ import {
   Keyboard,
 } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
-import apiClient from '../../services/ApiClient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-
-
-
-
+const BUTTON_BLUE = '#192A51';
 export const sendOTPApi = async (phone) => {
+  console.log("📤 Sending OTP to:", phone);
 
   try {
-
-    const response = await apiClient.post(
-
-      "/api/rider/auth/send-otp",
-
+    const response = await axios.post(
+      `${WEBSITE_URL}/api/mobile/send-static-otp`,
       {
-
-        phoneNumber: phone,
-
+        phone: phone,
       },
-
       {
-
-        skipAuth: true,
-
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-
     );
 
-
-
-    return {
-
-      status: response.status,
-
-      data: response.data,
-
-    };
-
+    console.log(response.data);
+    return { status: response.status, data: response.data };
   } catch (error) {
-
     if (error.response) {
-
       return {
-
         status: error.response.status,
-
         data: error.response.data,
-
       };
-
     }
-
-
-
+    // Network or unexpected error
     return {
-
       status: 500,
-
-      data: {
-
-        success: false,
-
-        message: "Something went wrong",
-
-      },
-
+      data: { message: "Something went wrong" },
     };
-
   }
-
 };
 
 
@@ -165,25 +129,25 @@ const LoginEntryScreen = ({ navigation }) => {
     const validationMessage = validateMobileNumber(filteredText);
     setError(validationMessage);
   };
-
   const handleSendOTP = async () => {
-  if (error || mobileNumber.length !== 10 || isSending) return;
+    if (error || mobileNumber.length !== 10 || isSending) return;
+    setIsSending(true);
+    setError(""); // reset any previous errors
 
-  setIsSending(true);
-  setError("");
-
-  const result = await sendOTPApi(mobileNumber);
-
-  setIsSending(false);
-
-  if (result.status === 200 && result.data.success) {
-    navigation.navigate("LoginVerifyScreen", {
-      phone: mobileNumber,
-    });
-  } else {
-    setError(result.data.message || "Failed to send OTP.");
-  }
-};
+    const result = await sendOTPApi(mobileNumber);
+    setIsSending(false);
+    if (result.status === 200) {
+      navigation.navigate("LoginVerifyScreen", {
+        phone: mobileNumber,
+      });
+    }
+    else if (result.status === 400) {
+      setError("Invalid phone number");   // From API
+    }
+    else {
+      setError("Failed to send OTP. Try again later.");
+    }
+  };
 
 
   const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked || isSending;
