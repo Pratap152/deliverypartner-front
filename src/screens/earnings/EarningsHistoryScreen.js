@@ -29,7 +29,7 @@ const isTablet = DeviceInfo.isTablet();
 
 
 
-export default function EarningsHistoryScreen({ navigation, route }) {
+export default function EarningsHistoryScreen({ navigation, route, riderType}) {
   const mode = route?.params?.mode || "TODAY";
 
   // STATE 
@@ -390,7 +390,7 @@ function getBackendWeekNumber(date) {
     if (view === "ORDER") {
       if (detail?.type === "INCENTIVE") return "Incentive Details";
       if (detail?.type === "DELIVERY") return "Delivery Details";
-      return "Transaction Details";
+      return "Delivery Details";
     }
 
     if (mode === "TODAY" && view === "DAY") {
@@ -509,57 +509,127 @@ function getBackendWeekNumber(date) {
 );
 
   const renderOrder = () => {
-    if (!orderData) return <EmptyState />;
+  if (!orderData) return <EmptyState />;
 
-    const transaction = orderData.transaction || orderData;
-    const isIncentive = transaction?.type === "INCENTIVE";
-    const b = orderData.breakup || {};
+  const transaction = orderData.transaction || orderData;
+  const b = orderData.breakup || {};
+  const riderType = orderData.riderType || transaction?.riderType;
+  const isZestbotEmployee = riderType === "ZESTBOT_EMPLOYEE";
 
-    if (isIncentive) {
-      return (
-        <View style={{ padding: 16 }}>
-          <TotalCard title="Incentive Amount" amount={formatMoney(transaction.amount) || 0} />
-          <View style={styles.box}>
-            <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
-              <Text style={{ fontSize: 16, fontWeight: "600" }}>Incentive</Text>
-              <Text style={{ marginLeft: 8, color: "#777" }}>
-                #{transaction.transactionId || ""}
-              </Text>
-            </View>
+  const targetProgress = orderData.targetProgress || {};
+  const targetCompletedByProgress =
+    targetProgress.targetOrders &&
+    targetProgress.completedOrders >= targetProgress.targetOrders;
 
-            <BreakRow label="Type" value={transaction.type} />
-            <BreakRow label="Status" value={transaction.status} />
-            <BreakRow label="Description" value={transaction.description} />
-            <BreakRow
-              label="Credited At"
-              value={
-                transaction.creditedAt
-                  ? new Date(transaction.creditedAt).toLocaleString()
-                  : "-"
-              }
-            />
-          </View>
-        </View>
-      );
-    }
+  const isTargetCompleted =
+    targetCompletedByProgress ||
+    (transaction?.type === "ORDER_EARNING" &&
+      transaction?.status === "CREDITED");
+
+  const prettyTime = (value) =>
+    value ? new Date(value).toLocaleString() : "-";
+
+  if (isZestbotEmployee) {
+    const amount = transaction?.amount ?? orderData.totalEarnings ?? orderData.amount ?? 0;
 
     return (
       <View style={{ padding: 16 }}>
-        <TotalCard title="Total Earnings" amount={formatMoney(orderData.totalEarnings) || 0} />
+        <TotalCard
+          title={isTargetCompleted ? "Target Completed" : "Target In Progress"}
+          amount={isTargetCompleted ? formatMoney(amount) : 0}
+        />
+
         <View style={styles.box}>
-          <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
-            <Text style={{ fontSize: 16, fontWeight: "600" }}>{orderData.store || "Store"}</Text>
-            <Text style={{ marginLeft: 8, color: "#777" }}>#{orderData.orderId || ""}</Text>
-          </View>
-          <BreakRow label="Base Fare" value={b.basePay} isAmount />
-          <BreakRow label="Distance Fare" value={formatMoney(b.distancePay)} isAmount />
-          <BreakRow label="Surge" value={b.surgePay} isAmount />
-          <BreakRow label="Tips" value={b.tips} isAmount />
+          <BreakRow label="Rider Type" value={riderType} />
+          <BreakRow
+            label="Order ID"
+            value={orderData.orderId || transaction?.referenceId || "-"}
+          />
+          <BreakRow label="Store" value={orderData.store || "-"} />
+
+          {isTargetCompleted && (
+            <>
+              <BreakRow
+                label="Amount"
+                value={`₹${formatMoney(amount)}`}
+              />
+            </>
+          )}
+
+          <BreakRow
+            label="Status"
+            value={orderData.status || transaction?.status || "-"}
+          />
+          <BreakRow
+            label="Time"
+            value={prettyTime(orderData.time || transaction?.time)}
+          />
         </View>
       </View>
     );
-  };
+  }
 
+  // INCENTIVE case 
+  const isIncentive = transaction?.type === "INCENTIVE";
+  if (isIncentive) {
+    return (
+      <View style={{ padding: 16 }}>
+        <TotalCard
+          title="Incentive Amount"
+          amount={formatMoney(transaction.amount) || 0}
+        />
+        <View style={styles.box}>
+          <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
+            <Text style={{ fontSize: 16, fontWeight: "600" }}>Incentive</Text>
+            <Text style={{ marginLeft: 8, color: "#777" }}>
+              #{transaction.transactionId || ""}
+            </Text>
+          </View>
+
+          <BreakRow label="Type" value={transaction.type} />
+          <BreakRow label="Status" value={transaction.status} />
+          <BreakRow label="Description" value={transaction.description} />
+          <BreakRow
+            label="Credited At"
+            value={
+              transaction.creditedAt
+                ? new Date(transaction.creditedAt).toLocaleString()
+                : "-"
+            }
+          />
+        </View>
+      </View>
+    );
+  }
+
+  // Normal delivery breakdown 
+  return (
+    <View style={{ padding: 16 }}>
+      <TotalCard
+        title="Total Earnings"
+        amount={formatMoney(orderData.totalEarnings) || 0}
+      />
+      <View style={styles.box}>
+        <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
+          <Text style={{ fontSize: 16, fontWeight: "600" }}>
+            {orderData.store || "Store"}
+          </Text>
+          <Text style={{ marginLeft: 8, color: "#777" }}>
+            #{orderData.orderId || ""}
+          </Text>
+        </View>
+        <BreakRow label="Base Fare" value={b.basePay} isAmount />
+        <BreakRow
+          label="Distance Fare"
+          value={formatMoney(b.distancePay)}
+          isAmount
+        />
+        <BreakRow label="Surge" value={b.surgePay} isAmount />
+        <BreakRow label="Tips" value={b.tips} isAmount />
+      </View>
+    </View>
+  );
+};
   const renderContent = () => {
   if (initialLoading) {
     return (

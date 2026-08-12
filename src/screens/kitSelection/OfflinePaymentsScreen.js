@@ -113,10 +113,8 @@ const OfflinePaymentScreen = ({ navigation, route }) => {
       );
 
       navigation.replace('SuccessScreen', {
-        apiResponse: kitResponse,
-        deliveryMode,
-        paymentType,
         source,
+        riderId,
       });
     } catch (error) {
       Alert.alert(
