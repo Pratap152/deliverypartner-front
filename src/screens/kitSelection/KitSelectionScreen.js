@@ -36,6 +36,9 @@ const KitSelectionScreen = ({ navigation, route }) => {
 
   const dispatch = useDispatch();
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+  const riderKitData = useSelector(state =>
+    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
+  );
   const source = route?.params?.source ?? 'homeBanner';
 
   const { getJoiningKit, loading } = useKitAddress();
@@ -49,24 +52,6 @@ const KitSelectionScreen = ({ navigation, route }) => {
   }, [kitData]);
 
   const handleBackNavigation = () => {
-    if (source === 'riderAssets') {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'MainTabs',
-            params: {
-              screen: 'Profile',
-              params: {
-                screen: 'ProfileScreen',
-              },
-            },
-          },
-        ],
-      });
-      return true;
-    }
-
     navigation.reset({
       index: 0,
       routes: [
@@ -105,8 +90,13 @@ const KitSelectionScreen = ({ navigation, route }) => {
   };
 
   useEffect(() => {
+    if (riderKitData?.kitCompleted) {
+      navigation.replace('SuccessScreen', { source, riderId: currentRiderId });
+      return;
+    }
+
     fetchJoiningKit();
-  }, []);
+  }, [riderKitData?.kitCompleted]);
 
   useEffect(() => {
     if (!currentRiderId) return;

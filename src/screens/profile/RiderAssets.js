@@ -15,7 +15,6 @@ import {
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from "react-native-responsive-dimensions";
-import apiClient from "../../services/ApiClient";
 import { useSelector } from "react-redux";
 import { getRiderAssets } from "../../services/profile/profileApiService";
 
@@ -26,19 +25,8 @@ const RiderAssets = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [assetsData, setAssetsData] = useState([]);
   const [totalAssets, setTotalAssets] = useState(0);
+  const [emptyMessage, setEmptyMessage] = useState("");
 
-  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
-
-  const riderKitData = useSelector(state =>
-    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
-  );
-
-  const kitCompleted = riderKitData?.kitCompleted ?? false;
-  const currentStep = riderKitData?.currentStep ?? null;
-  const apiResponse = riderKitData?.apiResponse ?? null;
-  const deliveryMode = riderKitData?.deliveryMode ?? null;
-  const addressData = riderKitData?.addressData ?? null;
-  const selectedZone = riderKitData?.selectedZone ?? null;
 
   useEffect(() => {
     fetchAssets();
@@ -49,6 +37,7 @@ const RiderAssets = ({ navigation }) => {
       const res = await getRiderAssets();
       setAssetsData(res?.data?.data || []);
       setTotalAssets(res?.data?.totalAssets || 0);
+      setEmptyMessage(res?.data?.message || "");
     } catch (err) {
       const status = err?.response?.status;
       const message = err?.response?.data?.message;
@@ -56,51 +45,18 @@ const RiderAssets = ({ navigation }) => {
       if (status === 404 && message === "No assets issued to this rider") {
         setAssetsData([]);
         setTotalAssets(0);
+        setEmptyMessage(message);
       } else {
         console.log("Assets error", err?.response || err);
         setAssetsData([]);
         setTotalAssets(0);
+        setEmptyMessage(message || "");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKitPressFromProfile = () => {
-    const source = "riderAssets";
-
-    if (!riderKitData) {
-      navigation.navigate("KitSelectionScreen", { source });
-      return;
-    }
-
-    if (kitCompleted || currentStep === "SuccessScreen") {
-      navigation.navigate("SuccessScreen", {
-        apiResponse,
-        deliveryMode,
-        source,
-      });
-      return;
-    }
-
-    if (currentStep === "PaymentsScreen") {
-      navigation.navigate("PaymentsScreen", { source });
-      return;
-    }
-
-    if (currentStep === "KitPickupSelection") {
-      navigation.navigate("KitPickupSelection", {
-        apiResponse,
-        deliveryMode,
-        addressData,
-        selectedZone,
-        source,
-      });
-      return;
-    }
-
-    navigation.navigate("KitSelectionScreen", { source });
-  };
 
   const handleBackFromRiderAssets = () => {
   if (navigation.canGoBack()) {
@@ -147,62 +103,19 @@ const RiderAssets = ({ navigation }) => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: rh(4) }}
+        contentContainerStyle={
+          isEmpty
+            ? { flexGrow: 1 }
+            : { paddingBottom: rh(4) }
+        }
       >
         {isEmpty ? (
           <View style={styles.emptyWrapper}>
             <View style={styles.illustrationBox}>
-              <Ionicons name="cube-outline" size={rf(8)} color="#192A51" />
+              <Ionicons name="cube-outline" size={rf(9)} color="#192A51" />
             </View>
 
-            <Text style={styles.emptyTitle}>No Rider Assets Found</Text>
-
-            <Text style={styles.emptySubtitle}>
-              You haven’t selected a delivery{"\n"}
-              kit yet. Choose your preferred{"\n"}
-              kit to continue onboarding.
-            </Text>
-
-            <View style={styles.infoCard}>
-              <Text style={styles.infoHeading}>How asset collection works</Text>
-
-              <View style={styles.infoItem}>
-                <Text style={styles.bullet}>•</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoTitle}>Online Delivery</Text>
-                  <Text style={styles.infoText}>
-                    Your rider kit can be delivered to your registered address.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.infoItem}>
-                <Text style={styles.bullet}>•</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoTitle}>Offline Pickup</Text>
-                  <Text style={styles.infoText}>
-                    You can collect your kit from the assigned delivery hub.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.infoItem}>
-                <Text style={styles.bullet}>•</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoTitle}>Verification Required</Text>
-                  <Text style={styles.infoText}>
-                    Asset approval may take some time after document verification.
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleKitPressFromProfile}
-            >
-              <Text style={styles.buttonText}>Choose Delivery Kit</Text>
-            </TouchableOpacity>
+            <Text style={styles.emptyTitle}>{emptyMessage}</Text>
           </View>
         ) : (
           <>
@@ -304,74 +217,29 @@ const styles = StyleSheet.create({
 
   /* EMPTY UI */
   emptyWrapper: {
-    paddingHorizontal: rw(5),
-    paddingTop: rh(4),
+    flex: 1,
+    paddingHorizontal: rw(8),
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: rh(-6),
   },
 
   illustrationBox: {
-    width: rw(28),
-    height: rw(28),
-    borderRadius: rw(14),
+    width: rw(32),
+    height: rw(32),
+    borderRadius: rw(16),
     backgroundColor: "#E8F9FC",
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
-    marginBottom: rh(2),
-  },
-
-  emptyTitle: {
-    fontSize: rf(2.4),
-    fontWeight: "700",
-    color: "#101828",
-    textAlign: "center",
-    marginBottom: rh(1),
-  },
-
-  emptySubtitle: {
-    fontSize: rf(1.7),
-    color: "#667085",
-    textAlign: "center",
-    lineHeight: rh(3),
     marginBottom: rh(3),
   },
 
-  infoCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: rw(4),
-    padding: rw(4),
-    elevation: 2,
-  },
-
-  infoHeading: {
-    fontSize: rf(1.9),
+  emptyTitle: {
+    fontSize: rf(2.2),
     fontWeight: "700",
     color: "#101828",
-    marginBottom: rh(2),
-  },
-
-  infoItem: {
-    flexDirection: "row",
-    marginBottom: rh(2),
-  },
-
-  bullet: {
-    fontSize: rf(2),
-    color: "#13ACBE",
-    marginRight: rw(2),
-    marginTop: rh(-0.2),
-  },
-
-  infoTitle: {
-    fontSize: rf(1.7),
-    fontWeight: "700",
-    color: "#101828",
-    marginBottom: rh(0.3),
-  },
-
-  infoText: {
-    fontSize: rf(1.5),
-    color: "#667085",
-    lineHeight: rh(2.6),
+    textAlign: "center",
+    lineHeight: rh(3.4),
   },
 
   /* SUMMARY */
