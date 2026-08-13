@@ -29,6 +29,7 @@ const PreviewScreen = () => {
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [documents, setDocuments] = useState({});
+  const [rejectedSectionKeys, setRejectedSectionKeys] = useState([]);
 
   const navigation = useNavigation();
 
@@ -83,7 +84,30 @@ const PreviewScreen = () => {
         ]);
 
       if (previewResult.status === 'fulfilled') {
-        setPreview(previewResult.value);
+        const previewData = previewResult.value;
+
+        setPreview(previewData);
+
+        const onboarding = previewData?.rider?.onboarding;
+        const stage = previewData?.rider?.onboardingStage;
+
+        // Capture the sections that were rejected
+        // only when entering the rejected flow.
+        if (
+          onboarding?.detailsConfirmed === false &&
+          stage === 'KYC_REJECTED'
+        ) {
+          const rejectedKeys = (previewData?.sections || [])
+            .filter(
+              section =>
+                section?.status?.toLowerCase() === 'rejected'
+            )
+            .map(section => section.key);
+
+          setRejectedSectionKeys(prev =>
+            prev.length > 0 ? prev : rejectedKeys
+          );
+        }
       }
       if (documentsResult.status === 'fulfilled') {
         setDocuments(documentsResult.value.data || {});
@@ -162,6 +186,17 @@ const PreviewScreen = () => {
 
   const getSection = key =>
     sections.find(item => item.key === key);
+
+  const rejectedDetailsUpdated =
+    rejectedSectionKeys.length > 0 &&
+    rejectedSectionKeys.every(key => {
+      const section = getSection(key);
+
+      return (
+        section &&
+        section.status?.toLowerCase() === 'pending'
+      );
+    });
 
   const locationSection = getSection('LOCATION');
   const personalInfoSection = getSection('PERSONAL_INFO');
@@ -696,9 +731,16 @@ const PreviewScreen = () => {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            !confirmed && styles.disabledButton,
+            (
+              !confirmed ||
+              (isRejectedFlow && !rejectedDetailsUpdated)
+            ) && styles.disabledButton,
           ]}
-          disabled={!confirmed || submitting}
+          disabled={
+            !confirmed ||
+            submitting ||
+            (isRejectedFlow && !rejectedDetailsUpdated)
+          }
           onPress={handleSubmit}
         >
           <Text style={styles.submitText}>
