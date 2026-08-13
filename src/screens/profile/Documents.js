@@ -27,17 +27,6 @@ import { getProfileDocuments, updateDocuments } from '../../services/profile/pro
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const DOCUMENT_UPLOAD_CONFIG = {
-  pan: {
-    images: 1,
-    hint: 'Upload PAN card image',
-  },
-  drivingLicense: {
-    images: 1,
-    hint: 'Upload FRONT and BACK images separately',
-  },
-};
-
 const DocumentsScreen = ({ navigation }) => {
   const [documents, setDocuments] = useState({});
   const [documentImages, setDocumentImages] = useState({});
@@ -125,140 +114,6 @@ const DocumentsScreen = ({ navigation }) => {
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const openGallery = count =>
-    new Promise((resolve, reject) => {
-      launchImageLibrary(
-        {
-          mediaType: 'photo',
-          selectionLimit: count,
-        },
-        res => {
-          if (res.didCancel) return reject();
-          if (res.errorCode) return reject(res.errorMessage);
-          resolve(res.assets);
-        },
-      );
-    });
-
-  const compressImage = async uri => {
-    const resized = await ImageResizer.createResizedImage(
-      uri,
-      1024,
-      1024,
-      'JPEG',
-      60,
-    );
-
-    return {
-      uri: resized.uri,
-      type: 'image/jpeg',
-      name: resized.name || `image_${Date.now()}.jpg`,
-    };
-  };
-
-  const uploadDocument = async (docKey, images, side = null) => {
-    try {
-      setUploadingKey(side ? `${docKey}_${side}` : docKey);
-
-      const formData = new FormData();
-
-      // ==========================================
-      // PAN
-      // ==========================================
-      if (docKey === 'pan') {
-        if (!images?.[0]?.uri) {
-          throw new Error('PAN image is required.');
-        }
-
-        const pan = await compressImage(images[0].uri);
-
-        formData.append('panImage', pan);
-      }
-
-      // ==========================================
-      // DRIVING LICENSE FRONT
-      // ==========================================
-      if (
-        docKey === 'drivingLicense' &&
-        side === 'front'
-      ) {
-        if (!images?.[0]?.uri) {
-          throw new Error(
-            'Driving License front image is required.',
-          );
-        }
-
-        const front = await compressImage(
-          images[0].uri,
-        );
-
-        formData.append('dlFrontImage', front);
-      }
-
-      // ==========================================
-      // DRIVING LICENSE BACK
-      // ==========================================
-      if (
-        docKey === 'drivingLicense' &&
-        side === 'back'
-      ) {
-        if (!images?.[0]?.uri) {
-          throw new Error(
-            'Driving License back image is required.',
-          );
-        }
-
-        const back = await compressImage(
-          images[0].uri,
-        );
-
-        formData.append('dlBackImage', back);
-      }
-
-      console.log(
-        'DOCUMENT UPLOAD SIDE:',
-        side,
-      );
-
-      const res = await updateDocuments(formData);
-
-      console.log(
-        'DOCUMENT UPDATE RESPONSE:',
-        JSON.stringify(res?.data, null, 2),
-      );
-
-      if (res.data?.success) {
-        Alert.alert(
-          'Success',
-          res.data?.message ||
-          'Document uploaded successfully.',
-        );
-
-        await fetchDocuments();
-      } else {
-        Alert.alert(
-          'Upload Failed',
-          res.data?.message ||
-          'Unable to upload document.',
-        );
-      }
-    } catch (e) {
-      console.log(
-        'DOCUMENT UPLOAD ERROR:',
-        e?.response?.data || e,
-      );
-
-      Alert.alert(
-        'Upload Failed',
-        e?.response?.data?.message ||
-        e?.message ||
-        'Something went wrong',
-      );
-    } finally {
-      setUploadingKey(null);
     }
   };
 
@@ -384,13 +239,6 @@ const DocumentsScreen = ({ navigation }) => {
 
               </View>
 
-              {/* HINT */}
-              {!!DOCUMENT_UPLOAD_CONFIG[item.key]?.hint && (
-                <Text style={styles.hintText}>
-                  {DOCUMENT_UPLOAD_CONFIG[item.key].hint}
-                </Text>
-              )}
-
 
               {/* DRIVING LICENSE */}
               {item.key === 'drivingLicense' ? (
@@ -459,49 +307,6 @@ const DocumentsScreen = ({ navigation }) => {
                           </Text>
                         </View>
                       )}
-
-                      {/* FRONT RE-UPLOAD */}
-                      <TouchableOpacity
-                        style={styles.dlSideUpdateBtn}
-                        disabled={
-                          uploadingKey ===
-                          'drivingLicense_front'
-                        }
-                        onPress={async () => {
-                          try {
-                            const imgs = await openGallery(1);
-
-                            if (!imgs || imgs.length < 1) {
-                              return;
-                            }
-
-                            await uploadDocument(
-                              'drivingLicense',
-                              imgs,
-                              'front',
-                            );
-                          } catch (error) {
-                            // User cancelled gallery
-                          }
-                        }}
-                      >
-                        {uploadingKey ===
-                          'drivingLicense_front' ? (
-                          <ActivityIndicator color="#fff" />
-                        ) : (
-                          <>
-                            <Ionicons
-                              name="cloud-upload-outline"
-                              size={rf(1.9)}
-                              color="#fff"
-                            />
-
-                            <Text style={styles.updateText}>
-                              Re-upload
-                            </Text>
-                          </>
-                        )}
-                      </TouchableOpacity>
                     </View>
 
                     {/* ==========================================
@@ -571,58 +376,11 @@ const DocumentsScreen = ({ navigation }) => {
                           </Text>
                         </View>
                       )}
-
-                      {/* BACK RE-UPLOAD */}
-                      <TouchableOpacity
-                        style={styles.dlSideUpdateBtn}
-                        disabled={
-                          uploadingKey ===
-                          'drivingLicense_back'
-                        }
-                        onPress={async () => {
-                          try {
-                            const imgs = await openGallery(1);
-
-                            if (!imgs || imgs.length < 1) {
-                              return;
-                            }
-
-                            await uploadDocument(
-                              'drivingLicense',
-                              imgs,
-                              'back',
-                            );
-                          } catch (error) {
-                            // User cancelled gallery
-                          }
-                        }}
-                      >
-                        {uploadingKey ===
-                          'drivingLicense_back' ? (
-                          <ActivityIndicator color="#fff" />
-                        ) : (
-                          <>
-                            <Ionicons
-                              name="cloud-upload-outline"
-                              size={rf(1.9)}
-                              color="#fff"
-                            />
-
-                            <Text style={styles.updateText}>
-                              Re-upload
-                            </Text>
-                          </>
-                        )}
-                      </TouchableOpacity>
                     </View>
 
                   </View>
                 </>
               ) : (
-
-                /* ==================================================
-                   PAN CARD
-                ================================================== */
                 <>
                   {documentImages?.pan ? (
                     <TouchableOpacity
@@ -665,52 +423,6 @@ const DocumentsScreen = ({ navigation }) => {
                       </Text>
                     </View>
                   )}
-
-                  {/* =========================
-    PAN RE-UPLOAD
-========================= */}
-                  <TouchableOpacity
-                    style={styles.panUpdateBtn}
-                    disabled={uploadingKey === item.key}
-                    onPress={async () => {
-                      try {
-                        const imgs = await openGallery(
-                          DOCUMENT_UPLOAD_CONFIG[item.key].images,
-                        );
-
-                        if (!imgs || imgs.length < 1) {
-                          Alert.alert(
-                            'Required',
-                            'Please select a PAN image.',
-                          );
-                          return;
-                        }
-
-                        await uploadDocument(
-                          item.key,
-                          imgs,
-                        );
-                      } catch (error) {
-                        // User cancelled gallery
-                      }
-                    }}
-                  >
-                    {uploadingKey === item.key ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <>
-                        <Ionicons
-                          name="cloud-upload-outline"
-                          size={rf(2)}
-                          color="#fff"
-                        />
-
-                        <Text style={styles.updateText}>
-                          Re-upload
-                        </Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
                 </>
               )}
             </View>
