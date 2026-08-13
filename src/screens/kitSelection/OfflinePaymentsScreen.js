@@ -117,23 +117,27 @@ const OfflinePaymentScreen = ({ navigation, route }) => {
         riderId,
       });
     } catch (error) {
-      const message = error?.response?.data?.message || error?.message || '';
+      const responseBody = error?.response?.data;
+      const message = responseBody?.message || error?.message || '';
       const normalizedMessage = message.toLowerCase();
 
-      // Backend returns 400 with "Validation error or joining kit already in
-      // progress" when this rider's kit request already exists server-side.
-      // Local state may have been wiped (reinstall, storage clear) without
-      // the server knowing — sync local state to completed instead of
-      // surfacing this as a failure.
+      // Backend returns 400 with success:false and the rider's existing
+      // pending items when a kit request is already in progress. Local
+      // state may have been wiped (reinstall, storage clear) without the
+      // server knowing — sync local state to completed using the real
+      // response instead of surfacing this as a failure.
       const isAlreadyRequested =
-        error?.response?.status === 400 &&
-        normalizedMessage.includes('joining kit already in progress');
+        responseBody?.success === false &&
+        Array.isArray(responseBody?.data) &&
+        responseBody.data.length > 0 &&
+        normalizedMessage.includes('already in progress');
 
       if (isAlreadyRequested) {
         dispatch(
           setKitCompleted({
             riderId: currentRiderId,
             kitCompleted: true,
+            apiResponse: responseBody,
             deliveryMode,
             currentStep: 'SuccessScreen',
             addressData,
