@@ -117,10 +117,38 @@ const OfflinePaymentScreen = ({ navigation, route }) => {
         riderId,
       });
     } catch (error) {
-      Alert.alert(
-        'Request failed',
-        error?.response?.data?.message || error?.message || 'Something went wrong'
-      );
+      const message = error?.response?.data?.message || error?.message || '';
+      const normalizedMessage = message.toLowerCase();
+
+      // Backend returns 400 with "Validation error or joining kit already in
+      // progress" when this rider's kit request already exists server-side.
+      // Local state may have been wiped (reinstall, storage clear) without
+      // the server knowing — sync local state to completed instead of
+      // surfacing this as a failure.
+      const isAlreadyRequested =
+        error?.response?.status === 400 &&
+        normalizedMessage.includes('joining kit already in progress');
+
+      if (isAlreadyRequested) {
+        dispatch(
+          setKitCompleted({
+            riderId: currentRiderId,
+            kitCompleted: true,
+            deliveryMode,
+            currentStep: 'SuccessScreen',
+            addressData,
+            selectedZone,
+          })
+        );
+
+        navigation.replace('SuccessScreen', {
+          source,
+          riderId: currentRiderId,
+        });
+        return;
+      }
+
+      Alert.alert('Request failed', message || 'Something went wrong');
     } finally {
       setSubmitting(false);
     }
