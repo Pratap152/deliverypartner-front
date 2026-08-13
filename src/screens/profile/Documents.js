@@ -9,21 +9,18 @@ import {
   Alert,
   Modal,
   Dimensions,
+  Image,
 } from 'react-native';
-
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import apiClient from '../../services/ApiClient';
 import { getAllDocuments } from '../../services/getAllDocuments';
 import { getProfileDocuments, updateDocuments } from '../../services/profile/profileApiService';
 
@@ -36,8 +33,8 @@ const DOCUMENT_UPLOAD_CONFIG = {
     hint: 'Upload PAN card image',
   },
   drivingLicense: {
-    images: 2,
-    hint: 'Upload FRONT image first, then BACK image',
+    images: 1,
+    hint: 'Upload FRONT and BACK images separately',
   },
 };
 
@@ -54,44 +51,83 @@ const DocumentsScreen = ({ navigation }) => {
   }, []);
 
   const fetchDocuments = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const [documentsResult, imagesResult] = await Promise.allSettled([
-      getProfileDocuments(),
-      getAllDocuments(),
-    ]);
+      const [documentsResult, imagesResult] =
+        await Promise.allSettled([
+          getProfileDocuments(),
+          getAllDocuments(),
+        ]);
 
-    // Documents API
-    if (
-      documentsResult.status === 'fulfilled' &&
-      documentsResult.value?.data?.success
-    ) {
-      setDocuments(documentsResult.value.data.data);
-    } else {
+      // -----------------------------------------
+      // DOCUMENT DETAILS + STATUS
+      // /api/rider/profile/documents
+      // -----------------------------------------
+      if (documentsResult.status === 'fulfilled') {
+        const response = documentsResult.value;
+
+        console.log(
+          'PROFILE DOCUMENTS RESPONSE:',
+          JSON.stringify(response, null, 2),
+        );
+
+        if (response?.data?.success) {
+          setDocuments(response.data.data || {});
+        } else {
+          console.log(
+            'Profile Documents API response failed:',
+            response?.data,
+          );
+        }
+      } else {
+        console.log(
+          'Profile Documents API failed:',
+          documentsResult.reason,
+        );
+      }
+
+      // -----------------------------------------
+      // IMAGES
+      // /api/rider/documents/all
+      // -----------------------------------------
+      if (imagesResult.status === 'fulfilled') {
+        const response = imagesResult.value;
+
+        console.log(
+          'ALL DOCUMENTS RESPONSE:',
+          JSON.stringify(response, null, 2),
+        );
+
+        if (response?.success) {
+          setDocumentImages(response.data || {});
+        } else {
+          console.log(
+            'All Documents API response failed:',
+            response,
+          );
+        }
+      } else {
+        console.log(
+          'All Documents API failed:',
+          imagesResult.reason,
+        );
+      }
+    } catch (error) {
       console.log(
-        'Documents API failed:',
-        documentsResult.reason ||
-          documentsResult.value?.data,
+        'FETCH DOCUMENTS ERROR:',
+        error?.response?.data || error,
       );
-    }
 
-    // Images API
-    if (imagesResult.status === 'fulfilled') {
-      setDocumentImages(imagesResult.value.data || {});
-    } else {
-      console.log(
-        'Images API failed:',
-        imagesResult.reason,
+      Alert.alert(
+        'Error',
+        'Unable to fetch documents',
       );
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.log(error);
-    Alert.alert('Error', 'Unable to fetch documents');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
   const openGallery = count =>
     new Promise((resolve, reject) => {
       launchImageLibrary(
@@ -123,80 +159,125 @@ const DocumentsScreen = ({ navigation }) => {
     };
   };
 
-  const uploadDocument = async (docKey, images) => {
+  const uploadDocument = async (docKey, images, side = null) => {
     try {
-      setUploadingKey(docKey);
+      setUploadingKey(side ? `${docKey}_${side}` : docKey);
 
       const formData = new FormData();
 
+      // ==========================================
+      // PAN
+      // ==========================================
       if (docKey === 'pan') {
+        if (!images?.[0]?.uri) {
+          throw new Error('PAN image is required.');
+        }
+
         const pan = await compressImage(images[0].uri);
+
         formData.append('panImage', pan);
       }
 
-      if (docKey === 'drivingLicense') {
-        const front = await compressImage(images[0].uri);
-        const back = await compressImage(images[1].uri);
+      // ==========================================
+      // DRIVING LICENSE FRONT
+      // ==========================================
+      if (
+        docKey === 'drivingLicense' &&
+        side === 'front'
+      ) {
+        if (!images?.[0]?.uri) {
+          throw new Error(
+            'Driving License front image is required.',
+          );
+        }
+
+        const front = await compressImage(
+          images[0].uri,
+        );
 
         formData.append('dlFrontImage', front);
+      }
+
+      // ==========================================
+      // DRIVING LICENSE BACK
+      // ==========================================
+      if (
+        docKey === 'drivingLicense' &&
+        side === 'back'
+      ) {
+        if (!images?.[0]?.uri) {
+          throw new Error(
+            'Driving License back image is required.',
+          );
+        }
+
+        const back = await compressImage(
+          images[0].uri,
+        );
+
         formData.append('dlBackImage', back);
       }
 
+      console.log(
+        'DOCUMENT UPLOAD SIDE:',
+        side,
+      );
+
       const res = await updateDocuments(formData);
+
+      console.log(
+        'DOCUMENT UPDATE RESPONSE:',
+        JSON.stringify(res?.data, null, 2),
+      );
 
       if (res.data?.success) {
         Alert.alert(
           'Success',
+          res.data?.message ||
           'Document uploaded successfully.',
         );
 
-        fetchDocuments();
+        await fetchDocuments();
       } else {
-        Alert.alert('Upload Failed');
+        Alert.alert(
+          'Upload Failed',
+          res.data?.message ||
+          'Unable to upload document.',
+        );
       }
     } catch (e) {
+      console.log(
+        'DOCUMENT UPLOAD ERROR:',
+        e?.response?.data || e,
+      );
+
       Alert.alert(
         'Upload Failed',
-        e?.response?.data?.message || 'Something went wrong',
+        e?.response?.data?.message ||
+        e?.message ||
+        'Something went wrong',
       );
     } finally {
       setUploadingKey(null);
     }
   };
 
-  const isVerified = status => status === 'approved';
-
   const docsArray = [
     {
       key: 'pan',
       title: 'PAN Card',
-      data: documents?.pan,
+      data: documents?.pan || {},
       number: documents?.pan?.number,
-      images: documentImages?.pan
-        ? [{ url: documentImages.pan }]
-        : [],
     },
+
     {
       key: 'drivingLicense',
       title: 'Driving License',
-      data: documents?.drivingLicense,
+      data: documents?.drivingLicense || {},
       number: documents?.drivingLicense?.number,
-      images: [
-        ...(documentImages?.dlFront
-          ? [{ url: documentImages.dlFront }]
-          : []),
-        ...(documentImages?.dlBack
-          ? [{ url: documentImages.dlBack }]
-          : []),
-      ],
     },
   ];
 
-  const verifiedCount = docsArray.filter(item =>
-    isVerified(item.data?.status),
-  ).length;
-
-  const pendingCount = docsArray.length - verifiedCount;
 
   if (loading) {
     return (
@@ -207,228 +288,484 @@ const DocumentsScreen = ({ navigation }) => {
   }
 
   return (
-  <SafeAreaView style={styles.container}>
-    {/* HEADER */}
-    <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={rf(2.6)} />
-      </TouchableOpacity>
-
-      <Text style={styles.headerTitle}>Documents</Text>
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate('HelpCenterList')}
-      >
-        <Ionicons
-          name="chatbubble-ellipses-outline"
-          size={isTablet ? 34 : 24}
-          color="#192A51"
-        />
-      </TouchableOpacity>
-    </View>
-
-    <ScrollView showsVerticalScrollIndicator={false}>
-      {/* SUMMARY */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Document Status</Text>
-
-        <View style={styles.summaryRow}>
-          <View style={[styles.summaryBox, styles.verifiedBox]}>
-            <Text style={styles.summaryCount}>
-              {verifiedCount}
-            </Text>
-            <Text style={styles.summaryLabel}>
-              Verified
-            </Text>
-          </View>
-
-          <View style={[styles.summaryBox, styles.pendingBox]}>
-            <Text style={styles.summaryCount}>
-              {pendingCount}
-            </Text>
-            <Text style={styles.summaryLabel}>
-              Pending
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {docsArray.map(item => (
-        <View
-          key={item.key}
-          style={styles.docCard}
-        >
-          <View style={styles.docHeader}>
-            <View style={styles.row}>
-              <View style={styles.docIcon}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={rf(2.2)}
-                  color="#12B76A"
-                />
-              </View>
-
-              <View>
-                <Text style={styles.docTitle}>
-                  {item.title}
-                </Text>
-
-                {item.number ? (
-                  <Text style={styles.numberText}>
-                    {item.number}
-                  </Text>
-                ) : null}
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <Ionicons
-                name={
-                  item.data?.status === 'approved'
-                    ? 'checkmark-circle'
-                    : 'time-outline'
-                }
-                size={rf(2)}
-                color={
-                  item.data?.status === 'approved'
-                    ? '#12B76A'
-                    : '#F79009'
-                }
-              />
-
-              <Text
-                style={[
-                  styles.statusText,
-                  {
-                    color:
-                      item.data?.status === 'approved'
-                        ? '#12B76A'
-                        : '#F79009',
-                  },
-                ]}
-              >
-                {item.data?.status === 'approved'
-                  ? 'Verified'
-                  : 'Pending'}
-              </Text>
-            </View>
-          </View>
-
-          {!!DOCUMENT_UPLOAD_CONFIG[item.key]?.hint && (
-            <Text style={styles.hintText}>
-              {DOCUMENT_UPLOAD_CONFIG[item.key].hint}
-            </Text>
-          )}
-
-          <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={styles.viewBtn}
-              onPress={() => {
-                if (item.images.length > 0) {
-                  setPreviewImages(item.images);
-                } else {
-                  Alert.alert(
-                    'No Image',
-                    'Document image not available',
-                  );
-                }
-              }}
-            >
-              <Ionicons
-                name="eye-outline"
-                size={rf(2)}
-              />
-              <Text style={styles.viewText}>
-                View
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.updateBtn}
-              disabled={uploadingKey === item.key}
-              onPress={async () => {
-                try {
-                  const imgs = await openGallery(
-                    DOCUMENT_UPLOAD_CONFIG[item.key]
-                      .images,
-                  );
-
-                  await uploadDocument(
-                    item.key,
-                    imgs,
-                  );
-                } catch {}
-              }}
-            >
-              {uploadingKey === item.key ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Ionicons
-                    name="cloud-upload-outline"
-                    size={rf(2)}
-                    color="#fff"
-                  />
-
-                  <Text style={styles.updateText}>
-                    Re-upload
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-
-      <View style={{ height: rh(3) }} />
-    </ScrollView>
-
-    <Modal
-      visible={previewImages.length > 0}
-      transparent={false}
-      animationType="fade"
-      onRequestClose={() =>
-        setPreviewImages([])
-      }
+    <SafeAreaView
+      style={styles.container}
+      edges={['top']}
     >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: '#fff',
-        }}
-      >
-        <ImageViewer
-          imageUrls={previewImages}
-          backgroundColor="#fff"
-          enableSwipeDown
-          useNativeDriver
-          onSwipeDown={() =>
-            setPreviewImages([])
-          }
-          loadingRender={() => (
-            <ActivityIndicator
-              size="large"
-              color="#192A51"
-            />
-          )}
-        />
+      {/* HEADER */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={rf(2.6)} />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Documents</Text>
 
         <TouchableOpacity
-          style={styles.modalClose}
-          onPress={() =>
-            setPreviewImages([])
-          }
+          onPress={() => navigation.navigate('HelpCenterList')}
         >
           <Ionicons
-            name="close"
-            size={rf(3)}
-            color="#000"
+            name="chatbubble-ellipses-outline"
+            size={isTablet ? 34 : 24}
+            color="#192A51"
           />
         </TouchableOpacity>
       </View>
-    </Modal>
-  </SafeAreaView>
-);
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {docsArray.map(item => {
+          const isApproved =
+            item.data?.status?.toLowerCase() === 'approved';
+
+          return (
+            <View
+              key={item.key}
+              style={styles.docCard}
+            >
+              {/* =========================
+          DOCUMENT HEADER
+      ========================== */}
+              <View style={styles.docHeader}>
+
+                <View style={styles.row}>
+                  <View style={styles.docIcon}>
+                    <Ionicons
+                      name="document-text-outline"
+                      size={rf(2.2)}
+                      color="#12B76A"
+                    />
+                  </View>
+
+                  <View>
+                    <Text style={styles.docTitle}>
+                      {item.title}
+                    </Text>
+
+                    {item.number ? (
+                      <Text style={styles.numberText}>
+                        {item.number}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+
+                {/* STATUS */}
+                {/* STATUS */}
+                <View style={styles.row}>
+                  <Ionicons
+                    name={
+                      isApproved
+                        ? 'checkmark-circle'
+                        : 'time-outline'
+                    }
+                    size={rf(2)}
+                    color={
+                      isApproved
+                        ? '#12B76A'
+                        : '#F79009'
+                    }
+                  />
+
+                  <Text
+                    style={[
+                      styles.statusText,
+                      {
+                        color: isApproved
+                          ? '#12B76A'
+                          : '#F79009',
+                      },
+                    ]}
+                  >
+                    {isApproved ? 'Verified' : 'Pending'}
+                  </Text>
+                </View>
+
+              </View>
+
+              {/* HINT */}
+              {!!DOCUMENT_UPLOAD_CONFIG[item.key]?.hint && (
+                <Text style={styles.hintText}>
+                  {DOCUMENT_UPLOAD_CONFIG[item.key].hint}
+                </Text>
+              )}
+
+
+              {/* DRIVING LICENSE */}
+              {item.key === 'drivingLicense' ? (
+                <>
+                  <View style={styles.dlImagesContainer}>
+
+                    {/* ==========================================
+          FRONT
+      ========================================== */}
+                    <View style={styles.dlImageItem}>
+
+                      <Text style={styles.imageLabel}>
+                        Front
+                      </Text>
+
+                      {documentImages?.dlFront ? (
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            const images = [];
+
+                            if (documentImages?.dlFront) {
+                              images.push({
+                                url: documentImages.dlFront,
+                              });
+                            }
+
+                            if (documentImages?.dlBack) {
+                              images.push({
+                                url: documentImages.dlBack,
+                              });
+                            }
+
+                            setPreviewImages(images);
+                          }}
+                        >
+                          <View style={styles.imagePreviewBox}>
+                            <Image
+                              source={{
+                                uri: documentImages.dlFront,
+                              }}
+                              style={styles.documentPreviewImage}
+                              resizeMode="cover"
+                            />
+
+                            {/* VIEW ICON */}
+                            <View style={styles.viewOverlay}>
+                              <Ionicons
+                                name="eye-outline"
+                                size={rf(2)}
+                                color="#FFFFFF"
+                              />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={styles.noDlImageContainer}>
+                          <Ionicons
+                            name="image-outline"
+                            size={rf(3)}
+                            color="#98A2B3"
+                          />
+
+                          <Text style={styles.noImageText}>
+                            Front image not available
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* FRONT RE-UPLOAD */}
+                      <TouchableOpacity
+                        style={styles.dlSideUpdateBtn}
+                        disabled={
+                          uploadingKey ===
+                          'drivingLicense_front'
+                        }
+                        onPress={async () => {
+                          try {
+                            const imgs = await openGallery(1);
+
+                            if (!imgs || imgs.length < 1) {
+                              return;
+                            }
+
+                            await uploadDocument(
+                              'drivingLicense',
+                              imgs,
+                              'front',
+                            );
+                          } catch (error) {
+                            // User cancelled gallery
+                          }
+                        }}
+                      >
+                        {uploadingKey ===
+                          'drivingLicense_front' ? (
+                          <ActivityIndicator color="#fff" />
+                        ) : (
+                          <>
+                            <Ionicons
+                              name="cloud-upload-outline"
+                              size={rf(1.9)}
+                              color="#fff"
+                            />
+
+                            <Text style={styles.updateText}>
+                              Re-upload
+                            </Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* ==========================================
+          BACK
+      ========================================== */}
+                    <View
+                      style={[
+                        styles.dlImageItem,
+                        { marginRight: 0 },
+                      ]}
+                    >
+
+                      <Text style={styles.imageLabel}>
+                        Back
+                      </Text>
+
+                      {documentImages?.dlBack ? (
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            const images = [];
+
+                            if (documentImages?.dlFront) {
+                              images.push({
+                                url: documentImages.dlFront,
+                              });
+                            }
+
+                            if (documentImages?.dlBack) {
+                              images.push({
+                                url: documentImages.dlBack,
+                              });
+                            }
+
+                            setPreviewImages(images);
+                          }}
+                        >
+                          <View style={styles.imagePreviewBox}>
+                            <Image
+                              source={{
+                                uri: documentImages.dlBack,
+                              }}
+                              style={styles.documentPreviewImage}
+                              resizeMode="cover"
+                            />
+
+                            {/* VIEW ICON */}
+                            <View style={styles.viewOverlay}>
+                              <Ionicons
+                                name="eye-outline"
+                                size={rf(2)}
+                                color="#FFFFFF"
+                              />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={styles.noDlImageContainer}>
+                          <Ionicons
+                            name="image-outline"
+                            size={rf(3)}
+                            color="#98A2B3"
+                          />
+
+                          <Text style={styles.noImageText}>
+                            Back image not available
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* BACK RE-UPLOAD */}
+                      <TouchableOpacity
+                        style={styles.dlSideUpdateBtn}
+                        disabled={
+                          uploadingKey ===
+                          'drivingLicense_back'
+                        }
+                        onPress={async () => {
+                          try {
+                            const imgs = await openGallery(1);
+
+                            if (!imgs || imgs.length < 1) {
+                              return;
+                            }
+
+                            await uploadDocument(
+                              'drivingLicense',
+                              imgs,
+                              'back',
+                            );
+                          } catch (error) {
+                            // User cancelled gallery
+                          }
+                        }}
+                      >
+                        {uploadingKey ===
+                          'drivingLicense_back' ? (
+                          <ActivityIndicator color="#fff" />
+                        ) : (
+                          <>
+                            <Ionicons
+                              name="cloud-upload-outline"
+                              size={rf(1.9)}
+                              color="#fff"
+                            />
+
+                            <Text style={styles.updateText}>
+                              Re-upload
+                            </Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+
+                  </View>
+                </>
+              ) : (
+
+                /* ==================================================
+                   PAN CARD
+                ================================================== */
+                <>
+                  {documentImages?.pan ? (
+                    <TouchableOpacity
+                      style={styles.panImageContainer}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setPreviewImages([
+                          {
+                            url: documentImages.pan,
+                          },
+                        ]);
+                      }}
+                    >
+                      <Text style={styles.imageLabel}>
+                        PAN Card
+                      </Text>
+
+                      <View style={styles.panImagePreviewBox}>
+                        <Image
+                          source={{
+                            uri: documentImages.pan,
+                          }}
+                          style={styles.documentPreviewImage}
+                          resizeMode="cover"
+                        />
+
+                        <View style={styles.viewOverlay}>
+                          <Ionicons
+                            name="eye-outline"
+                            size={rf(2)}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.noImageContainer}>
+                      <Text style={styles.noImageText}>
+                        PAN image not available
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* =========================
+    PAN RE-UPLOAD
+========================= */}
+                  <TouchableOpacity
+                    style={styles.panUpdateBtn}
+                    disabled={uploadingKey === item.key}
+                    onPress={async () => {
+                      try {
+                        const imgs = await openGallery(
+                          DOCUMENT_UPLOAD_CONFIG[item.key].images,
+                        );
+
+                        if (!imgs || imgs.length < 1) {
+                          Alert.alert(
+                            'Required',
+                            'Please select a PAN image.',
+                          );
+                          return;
+                        }
+
+                        await uploadDocument(
+                          item.key,
+                          imgs,
+                        );
+                      } catch (error) {
+                        // User cancelled gallery
+                      }
+                    }}
+                  >
+                    {uploadingKey === item.key ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="cloud-upload-outline"
+                          size={rf(2)}
+                          color="#fff"
+                        />
+
+                        <Text style={styles.updateText}>
+                          Re-upload
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          );
+        })}
+
+        <View style={{ height: rh(3) }} />
+      </ScrollView>
+
+      <Modal
+        visible={previewImages.length > 0}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() =>
+          setPreviewImages([])
+        }
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: '#fff',
+          }}
+        >
+          <ImageViewer
+            imageUrls={previewImages}
+            backgroundColor="#fff"
+            enableSwipeDown
+            useNativeDriver
+            onSwipeDown={() =>
+              setPreviewImages([])
+            }
+            loadingRender={() => (
+              <ActivityIndicator
+                size="large"
+                color="#192A51"
+              />
+            )}
+          />
+
+          <TouchableOpacity
+            style={styles.modalClose}
+            onPress={() =>
+              setPreviewImages([])
+            }
+          >
+            <Ionicons
+              name="close"
+              size={rf(3)}
+              color="#000"
+            />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
 
 };
 
@@ -438,6 +775,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F4F6F8',
+  },
+  scrollContent: {
+    paddingTop: rh(2),
   },
 
   header: {
@@ -460,54 +800,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  summaryCard: {
-    backgroundColor: '#FFFFFF',
-    margin: rw(4),
-    borderRadius: rw(3),
-    padding: rw(4),
-    elevation: 2,
-  },
-
-  summaryTitle: {
-    fontSize: rf(2),
-    fontWeight: '600',
-    marginBottom: rh(2),
-    color: '#111827',
-  },
-
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-
-  summaryBox: {
-    flex: 1,
-    marginHorizontal: rw(1),
-    borderRadius: rw(3),
-    alignItems: 'center',
-    paddingVertical: rh(2),
-  },
-
-  verifiedBox: {
-    backgroundColor: '#ECFDF3',
-  },
-
-  pendingBox: {
-    backgroundColor: '#FFFAEB',
-  },
-
-  summaryCount: {
-    fontSize: rf(3),
-    fontWeight: '700',
-    color: '#111827',
-  },
-
-  summaryLabel: {
-    fontSize: rf(1.7),
-    color: '#475467',
-    marginTop: 4,
   },
 
   docCard: {
@@ -564,40 +856,15 @@ const styles = StyleSheet.create({
     color: '#667085',
   },
 
-  actionsRow: {
-    flexDirection: 'row',
-    marginTop: rh(2),
-  },
-
-  viewBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: rw(6),
-    paddingVertical: rh(1.2),
-    marginRight: rw(2),
-    backgroundColor: '#FFFFFF',
-  },
-
-  viewText: {
-    marginLeft: rw(1),
-    fontSize: rf(1.7),
-    color: '#111827',
-    fontWeight: '500',
-  },
-
-  updateBtn: {
-    flex: 1,
+  panUpdateBtn: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#192A51',
     borderRadius: rw(6),
     paddingVertical: rh(1.2),
-    marginLeft: rw(2),
+    marginTop: rh(1),
   },
 
   updateText: {
@@ -618,6 +885,93 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
+  },
+  dlImagesContainer: {
+    flexDirection: 'row',
+    marginTop: rh(2),
+    marginBottom: rh(2),
+  },
+
+  dlImageItem: {
+    flex: 1,
+    marginRight: rw(2),
+  },
+
+  imageLabel: {
+    fontSize: rf(1.6),
+    fontWeight: '600',
+    color: '#344054',
+    marginBottom: rh(0.8),
+  },
+
+  imagePreviewBox: {
+    height: rh(12),
+    borderRadius: rw(2),
+    overflow: 'hidden',
+    backgroundColor: '#F2F4F7',
+    position: 'relative',
+  },
+
+  documentPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  viewOverlay: {
+    position: 'absolute',
+    right: rw(2),
+    bottom: rh(1),
+    width: rw(8),
+    height: rw(8),
+    borderRadius: rw(4),
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  panImageContainer: {
+    marginTop: rh(2),
+    marginBottom: rh(1),
+  },
+
+  panImagePreviewBox: {
+    height: rh(12),
+    borderRadius: rw(2),
+    overflow: 'hidden',
+    backgroundColor: '#F2F4F7',
+    position: 'relative',
+  },
+
+  noImageContainer: {
+    marginTop: rh(2),
+    paddingVertical: rh(3),
+    borderRadius: rw(2),
+    backgroundColor: '#F2F4F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  noImageText: {
+    fontSize: rf(1.5),
+    color: '#667085',
+  },
+  dlSideUpdateBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#192A51',
+    borderRadius: rw(5),
+    paddingVertical: rh(1),
+    marginTop: rh(1),
+  },
+
+  noDlImageContainer: {
+    height: rh(12),
+    borderRadius: rw(2),
+    backgroundColor: '#F2F4F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: rw(2),
   },
 });
 
