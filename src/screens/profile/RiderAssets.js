@@ -115,7 +115,7 @@ const RiderAssets = ({ navigation }) => {
               <Ionicons name="cube-outline" size={rf(9)} color="#192A51" />
             </View>
 
-            <Text style={styles.emptyTitle}>{emptyMessage}</Text>
+            <Text style={styles.emptyTitle}>Kit Requested Successfully</Text>
           </View>
         ) : (
           <>

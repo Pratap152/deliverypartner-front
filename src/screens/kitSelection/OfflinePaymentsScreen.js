@@ -117,10 +117,42 @@ const OfflinePaymentScreen = ({ navigation, route }) => {
         riderId,
       });
     } catch (error) {
-      Alert.alert(
-        'Request failed',
-        error?.response?.data?.message || error?.message || 'Something went wrong'
-      );
+      const responseBody = error?.response?.data;
+      const message = responseBody?.message || error?.message || '';
+      const normalizedMessage = message.toLowerCase();
+
+      // Backend returns 400 with success:false and the rider's existing
+      // pending items when a kit request is already in progress. Local
+      // state may have been wiped (reinstall, storage clear) without the
+      // server knowing — sync local state to completed using the real
+      // response instead of surfacing this as a failure.
+      const isAlreadyRequested =
+        responseBody?.success === false &&
+        Array.isArray(responseBody?.data) &&
+        responseBody.data.length > 0 &&
+        normalizedMessage.includes('already in progress');
+
+      if (isAlreadyRequested) {
+        dispatch(
+          setKitCompleted({
+            riderId: currentRiderId,
+            kitCompleted: true,
+            apiResponse: responseBody,
+            deliveryMode,
+            currentStep: 'SuccessScreen',
+            addressData,
+            selectedZone,
+          })
+        );
+
+        navigation.replace('SuccessScreen', {
+          source,
+          riderId: currentRiderId,
+        });
+        return;
+      }
+
+      Alert.alert('Request failed', message || 'Something went wrong');
     } finally {
       setSubmitting(false);
     }

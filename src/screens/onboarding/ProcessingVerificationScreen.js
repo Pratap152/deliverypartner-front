@@ -90,6 +90,15 @@ const ProcessingVerificationScreen = () => {
 
       if (
         res?.success &&
+        res?.onboardingProgress?.detailsConfirmed === false
+      ) {
+        clearInterval(intervalRef.current);
+        navigation.replace('PreviewScreen');
+        return;
+      }
+
+      if (
+        res?.success &&
         res?.onboardingProgress?.kycCompleted &&
         res?.isFullyRegistered
       ) {
