@@ -26,6 +26,7 @@ const RiderAssets = ({ navigation }) => {
   const [assetsData, setAssetsData] = useState([]);
   const [totalAssets, setTotalAssets] = useState(0);
   const [emptyMessage, setEmptyMessage] = useState("");
+  const [showPendingMessage, setShowPendingMessage] = useState(false);
 
 
   useEffect(() => {
@@ -35,9 +36,22 @@ const RiderAssets = ({ navigation }) => {
   const fetchAssets = async () => {
     try {
       const res = await getRiderAssets();
-      setAssetsData(res?.data?.data || []);
-      setTotalAssets(res?.data?.totalAssets || 0);
-      setEmptyMessage(res?.data?.message || "");
+      const body = res?.data || {};
+      const items = body?.data || [];
+
+      const isStillPending =
+        Boolean(body?.hasRequestedKit) &&
+        items.length > 0 &&
+        items.every(item => item?.status !== "COMPLETED");
+
+      setAssetsData(items);
+      setTotalAssets(body?.totalItems ?? body?.totalAssets ?? 0);
+      setShowPendingMessage(isStillPending);
+      setEmptyMessage(
+        isStillPending
+          ? "Kit Requested Successfully"
+          : body?.message || ""
+      );
     } catch (err) {
       const status = err?.response?.status;
       const message = err?.response?.data?.message;
@@ -45,11 +59,13 @@ const RiderAssets = ({ navigation }) => {
       if (status === 404 && message === "No assets issued to this rider") {
         setAssetsData([]);
         setTotalAssets(0);
+        setShowPendingMessage(false);
         setEmptyMessage(message);
       } else {
         console.log("Assets error", err?.response || err);
         setAssetsData([]);
         setTotalAssets(0);
+        setShowPendingMessage(false);
         setEmptyMessage(message || "");
       }
     } finally {
@@ -75,7 +91,7 @@ const RiderAssets = ({ navigation }) => {
     );
   }
 
-  const isEmpty = !assetsData || assetsData.length === 0;
+  const isEmpty = showPendingMessage || !assetsData || assetsData.length === 0;
 
   return (
      <SafeAreaView
@@ -115,7 +131,20 @@ const RiderAssets = ({ navigation }) => {
               <Ionicons name="cube-outline" size={rf(9)} color="#192A51" />
             </View>
 
-            <Text style={styles.emptyTitle}>Kit Requested Successfully</Text>
+            <Text style={styles.emptyTitle}>{emptyMessage}</Text>
+
+            {!showPendingMessage ? (
+              <TouchableOpacity
+                style={styles.requestKitButton}
+                onPress={() =>
+                  navigation.navigate('KitSelectionScreen', {
+                    source: 'riderAssets',
+                  })
+                }
+              >
+                <Text style={styles.requestKitButtonText}>Request Kit</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           <>
@@ -131,7 +160,7 @@ const RiderAssets = ({ navigation }) => {
             </View>
 
             {assetsData?.map((item, index) => (
-              <View key={index} style={styles.assetCard}>
+              <View key={item?.id ?? index} style={styles.assetCard}>
                 <View style={styles.assetIcon}>
                   <Ionicons name="cube-outline" size={rf(2.6)} color="#12B76A" />
                 </View>
@@ -142,16 +171,21 @@ const RiderAssets = ({ navigation }) => {
                       {item.assetType?.replaceAll("_", " ")}
                     </Text>
 
-                    <View style={styles.activeBadge}>
-                      <Text style={styles.activeText}>{item.status}</Text>
+                    <View
+                      style={[
+                        styles.activeBadge,
+                        item.status === "PENDING" && styles.pendingBadge,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.activeText,
+                          item.status === "PENDING" && styles.pendingText,
+                        ]}
+                      >
+                        {item.status}
+                      </Text>
                     </View>
-                  </View>
-
-                  <View style={styles.detailRow}>
-                    <Text style={styles.label}>Condition:</Text>
-                    <Text style={styles.conditionText}>
-                      {item.condition || "Good"}
-                    </Text>
                   </View>
 
                   <View style={styles.detailRow}>
@@ -159,12 +193,21 @@ const RiderAssets = ({ navigation }) => {
                     <Text style={styles.value}>{item.quantity}</Text>
                   </View>
 
-                  <View style={styles.detailRow}>
-                    <Text style={styles.label}>Issued Date:</Text>
-                    <Text style={styles.value}>
-                      {new Date(item.issuedDate).toLocaleDateString("en-GB")}
-                    </Text>
-                  </View>
+                  {item?.deliveryMode ? (
+                    <View style={styles.detailRow}>
+                      <Text style={styles.label}>Delivery:</Text>
+                      <Text style={styles.value}>
+                        {item.deliveryMode === "PICKUP" ? "Pickup" : "Home Delivery"}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {item?.createdAt ? (
+                    <View style={styles.detailRow}>
+                      <Text style={styles.label}>Requested:</Text>
+                      <Text style={styles.value}>{item.createdAt}</Text>
+                    </View>
+                  ) : null}
                 </View>
               </View>
             ))}
@@ -240,6 +283,21 @@ const styles = StyleSheet.create({
     color: "#101828",
     textAlign: "center",
     lineHeight: rh(3.4),
+  },
+
+  requestKitButton: {
+    backgroundColor: "#192A51",
+    marginTop: rh(3),
+    paddingHorizontal: rw(8),
+    paddingVertical: rh(1.8),
+    borderRadius: rw(3),
+    alignItems: "center",
+  },
+
+  requestKitButtonText: {
+    color: "#FFFFFF",
+    fontSize: rf(1.8),
+    fontWeight: "600",
   },
 
   /* SUMMARY */
@@ -333,6 +391,14 @@ const styles = StyleSheet.create({
     color: "#12B76A",
     fontSize: rf(1.3),
     fontWeight: "600",
+  },
+
+  pendingBadge: {
+    backgroundColor: "#FEF3C7",
+  },
+
+  pendingText: {
+    color: "#B45309",
   },
 
   detailRow: {
