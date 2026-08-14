@@ -2,6 +2,8 @@ import { tokenService } from './TokenService';
 import { navigateAndReset } from '../navigation/RootNavigation';
 import { gpsService } from '../services/gps/GpsService';
 import { logoutService } from '../services/LogoutService';
+import { store } from '../redux/store';
+import { clearProfile } from '../redux/slices/profileSlice';
 
 class AuthService {
   async logout() {
@@ -12,6 +14,7 @@ class AuthService {
     } finally {
       await gpsService.stopTracking();
       // await tokenService.clear();
+      store.dispatch(clearProfile());
       navigateAndReset('OnBoardingScreen');
     }
   }
@@ -19,6 +22,7 @@ class AuthService {
   async forceLogout() {
     await gpsService.stopTracking();
     await tokenService.clear();
+    store.dispatch(clearProfile());
     navigateAndReset('OnBoardingScreen');
   }
 }
