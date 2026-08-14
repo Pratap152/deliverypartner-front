@@ -15,6 +15,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setKitFlowStep } from '../../redux/slices/kitSlice';
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
+import { getRiderAssets } from '../../services/profile/profileApiService';
 
 import kitImage1 from '../../assets/kitSelectionBag.jpg';
 import kitImage2 from '../../assets/kitSelectionTshirt.png';
@@ -36,22 +37,38 @@ const KitSelectionScreen = ({ navigation, route }) => {
 
   const dispatch = useDispatch();
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
-  const riderKitData = useSelector(state =>
-    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
-  );
   const source = route?.params?.source ?? 'homeBanner';
 
-  const { getJoiningKit, loading } = useKitAddress();
+  const { getJoiningKit } = useKitAddress();
 
   const [kitData, setKitData] = useState([]);
   const [kitError, setKitError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const totalPrice = useMemo(() => {
     return kitData.reduce((sum, item) => sum + (Number(item?.price) || 0), 0);
   }, [kitData]);
 
   const handleBackNavigation = () => {
+    if (source === 'riderAssets') {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'MainTabs',
+            params: {
+              screen: 'Profile',
+              params: {
+                screen: 'ProfileScreen',
+              },
+            },
+          },
+        ],
+      });
+      return true;
+    }
+
     navigation.reset({
       index: 0,
       routes: [
@@ -76,7 +93,17 @@ const KitSelectionScreen = ({ navigation, route }) => {
 
   const fetchJoiningKit = async () => {
     try {
+      setLoading(true);
       setKitError(null);
+
+      const statusRes = await getRiderAssets();
+      const statusBody = statusRes?.data || {};
+
+      if (statusBody?.hasRequestedKit) {
+        navigation.replace('SuccessScreen', { source });
+        return;
+      }
+
       const response = await getJoiningKit();
       setKitData(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
@@ -86,17 +113,14 @@ const KitSelectionScreen = ({ navigation, route }) => {
           'Failed to fetch kit details'
       );
       setKitData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (riderKitData?.kitCompleted) {
-      navigation.replace('SuccessScreen', { source, riderId: currentRiderId });
-      return;
-    }
-
     fetchJoiningKit();
-  }, [riderKitData?.kitCompleted]);
+  }, []);
 
   useEffect(() => {
     if (!currentRiderId) return;
