@@ -20,7 +20,7 @@ export default function MonthlySummaryCard({ summary, riderType }) {
 
   const handlePress = () => {
     navigation.navigate('EarningsHistoryScreen', {
-      mode: 'TODAY',
+      mode: riderType === 'INDIVIDUAL_EMPLOYEE' ? 'MONTH' : 'TODAY',
     });
   };
 
@@ -81,19 +81,15 @@ export default function MonthlySummaryCard({ summary, riderType }) {
 
   return (
     <View style={styles.wrapper}>
-      {riderType === 'ZESTBOT_EMPLOYEE' ? (
-        <Pressable
-          onPress={handlePress}
-          style={({ pressed }) => [
-            styles.pressable,
-            pressed && styles.pressed,
-          ]}
-        >
-          <CardContent />
-        </Pressable>
-      ) : (
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => [
+          styles.pressable,
+          pressed && styles.pressed,
+        ]}
+      >
         <CardContent />
-      )}
+      </Pressable>
     </View>
   );
 }
