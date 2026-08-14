@@ -33,6 +33,7 @@ const BannerCarousel = ({ data }) => {
       : [];
 
   const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
+  const profileLoading = useSelector(state => state.profile?.loading ?? false);
 
   const riderKitData = useSelector(state =>
     currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
@@ -41,6 +42,12 @@ const BannerCarousel = ({ data }) => {
   const kitCompleted = riderKitData?.kitCompleted ?? false;
 
   const handleKitPress = () => {
+    // Profile hasn't resolved yet (e.g. right after login) — currentRiderId
+    // may be stale or null. Wait rather than risk routing on the wrong rider.
+    if (profileLoading || !currentRiderId) {
+      return;
+    }
+
     if (kitCompleted) {
       navigation.navigate('SuccessScreen', {
         riderId: currentRiderId,
