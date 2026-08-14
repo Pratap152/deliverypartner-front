@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,9 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
+import { getRiderAssets } from '../../services/profile/profileApiService';
 
 const isTablet = DeviceInfo.isTablet();
 
@@ -26,36 +26,32 @@ const BannerCarousel = ({ data }) => {
   const flatListRef = useRef(null);
   const currentIndex = useRef(data.length);
   const timerRef = useRef(null);
+  const [checkingKitStatus, setCheckingKitStatus] = useState(false);
 
   const infiniteData =
     data?.length > 0
       ? [...data, ...data, ...data]
       : [];
 
-  const currentRiderId = useSelector(state => state.profile?.data?._id ?? null);
-  const profileLoading = useSelector(state => state.profile?.loading ?? false);
+  const handleKitPress = async () => {
+    if (checkingKitStatus) return;
 
-  const riderKitData = useSelector(state =>
-    currentRiderId ? state.kit?.riders?.[currentRiderId] ?? null : null
-  );
+    try {
+      setCheckingKitStatus(true);
+      const res = await getRiderAssets();
+      const body = res?.data || {};
 
-  const kitCompleted = riderKitData?.kitCompleted ?? false;
+      if (body?.hasRequestedKit) {
+        navigation.navigate('SuccessScreen');
+        return;
+      }
 
-  const handleKitPress = () => {
-    // Profile hasn't resolved yet (e.g. right after login) — currentRiderId
-    // may be stale or null. Wait rather than risk routing on the wrong rider.
-    if (profileLoading || !currentRiderId) {
-      return;
+      navigation.navigate('KitSelectionScreen');
+    } catch (error) {
+      navigation.navigate('KitSelectionScreen');
+    } finally {
+      setCheckingKitStatus(false);
     }
-
-    if (kitCompleted) {
-      navigation.navigate('SuccessScreen', {
-        riderId: currentRiderId,
-      });
-      return;
-    }
-
-    navigation.navigate('KitSelectionScreen');
   };
 
   const handlePress = item => {
