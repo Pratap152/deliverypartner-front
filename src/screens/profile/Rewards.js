@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -14,13 +14,16 @@ import {
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
+
 import useIncentives from '../../hooks/useIncentives';
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 
-
-
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
+
+/* =========================================================
+   REWARD SECTIONS
+   ========================================================= */
 
 const REWARD_SECTIONS = [
   {
@@ -34,6 +37,7 @@ const REWARD_SECTIONS = [
     badgeColor: '#00B2C9',
     badgeBg: '#E6F9FB',
   },
+
   {
     key: 'daily',
     title: 'Daily Incentive',
@@ -45,6 +49,7 @@ const REWARD_SECTIONS = [
     badgeColor: '#12B76A',
     badgeBg: '#ECFDF3',
   },
+
   {
     key: 'weekly',
     title: 'Weekly Incentive',
@@ -56,6 +61,7 @@ const REWARD_SECTIONS = [
     badgeColor: '#F79009',
     badgeBg: '#FFFAEB',
   },
+
   {
     key: 'refer',
     title: 'Refer & Earn',
@@ -67,6 +73,7 @@ const REWARD_SECTIONS = [
     badgeColor: '#7B61FF',
     badgeBg: '#F4F0FF',
   },
+
   {
     key: 'joining',
     title: 'Joining Bonus',
@@ -80,72 +87,210 @@ const REWARD_SECTIONS = [
   },
 ];
 
+/* =========================================================
+   SCREEN
+   ========================================================= */
+
 const RewardsScreen = ({ navigation }) => {
+
+  /* =======================================================
+     EARNINGS DASHBOARD
+     ======================================================= */
+
+  const { data: earningsData } = useEarningsDashboard();
+
+  const incentives = earningsData?.incentives || [];
+
+  
+  const riderType = earningsData?.riderType || '';
+
+  const isZestbotEmployee =
+    riderType === 'ZESTBOT_EMPLOYEE';
+
+  const isIndividual =
+    riderType === 'INDIVIDUAL_EMPLOYEE';
+
+
+  /* =======================================================
+     INCENTIVE PROGRESS
+     ======================================================= */
+
   const {
     dailyIncentivesProgress,
     weeklyIncentivesProgress,
     peakIncentivesProgress,
+
     fetchDailyIncentivesProgress,
     fetchWeeklyIncentivesProgress,
     fetchPeakIncentivesProgress,
   } = useIncentives();
 
-  const { data } = useEarningsDashboard();
-  const incentives = data?.incentives || [];
 
 
   useEffect(() => {
+    if (!isIndividual) {
+      return;
+    }
+
     fetchDailyIncentivesProgress();
     fetchWeeklyIncentivesProgress();
     fetchPeakIncentivesProgress();
-  }, []);
+
+  }, [
+    isIndividual,
+    fetchDailyIncentivesProgress,
+    fetchWeeklyIncentivesProgress,
+    fetchPeakIncentivesProgress,
+  ]);
+
+
+  /* =======================================================
+     VISIBLE REWARD SECTIONS
+     ======================================================= */
+
+  const visibleRewardSections = isZestbotEmployee
+    ? REWARD_SECTIONS.filter(
+        item =>
+          item.key === 'refer' ||
+          item.key === 'joining'
+      )
+    : REWARD_SECTIONS;
+
+
+  /* =======================================================
+     HANDLE REWARD CARD PRESS
+     ======================================================= */
 
   const handlePress = (item) => {
+
+    /* -------------------------------------------------------
+       PEAK
+       ------------------------------------------------------- */
+
     if (item.key === 'peak') {
-      const peakItem = incentives.find(i => i.type === 'peak');
-      navigation.navigate('PeakHourBonusScreen', { ...peakItem, peakIncentivesProgress });
+
+      const peakItem = incentives.find(
+        i => i.type === 'peak'
+      );
+
+      navigation.navigate(
+        'PeakHourBonusScreen',
+        {
+          ...peakItem,
+          peakIncentivesProgress,
+        }
+      );
+
       return;
     }
+
+
+    /* -------------------------------------------------------
+       DAILY
+       ------------------------------------------------------- */
 
     if (item.key === 'daily') {
-      const dailyItem = incentives.find(i => i.type === 'daily');
-      navigation.navigate('DailyGuarentee', { ...dailyItem, dailyIncentivesProgress });
+
+      const dailyItem = incentives.find(
+        i => i.type === 'daily'
+      );
+
+      navigation.navigate(
+        'DailyGuarentee',
+        {
+          ...dailyItem,
+          dailyIncentivesProgress,
+        }
+      );
+
       return;
     }
+
+
+    /* -------------------------------------------------------
+       WEEKLY
+       ------------------------------------------------------- */
 
     if (item.key === 'weekly') {
-      const weeklyItem = incentives.find(i => i.type === 'weekly');
-      navigation.navigate('WeekEarnings', { ...weeklyItem, weeklyIncentivesProgress });
+
+      const weeklyItem = incentives.find(
+        i => i.type === 'weekly'
+      );
+
+      navigation.navigate(
+        'WeekEarnings',
+        {
+          ...weeklyItem,
+          weeklyIncentivesProgress,
+        }
+      );
+
       return;
     }
+
+
+    /* -------------------------------------------------------
+       REFER & EARN
+       ------------------------------------------------------- */
 
     if (item.key === 'refer') {
+
       navigation.navigate('ReferEarn');
+
       return;
     }
 
+
+    /* -------------------------------------------------------
+       JOINING BONUS
+       ------------------------------------------------------- */
+
     if (item.key === 'joining') {
+
       navigation.navigate('JoiningBonusScreen');
+
       return;
     }
   };
+
+
+  /* =======================================================
+     UI
+     ======================================================= */
 
   return (
     <SafeAreaView
       style={styles.container}
       edges={['top']}
     >
-      {/* HEADER */}
+
+      {/* ===================================================
+          HEADER
+          =================================================== */}
+
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={rf(2.6)} />
+
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={rf(2.6)}
+            color="#101828"
+          />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Rewards</Text>
+
+        <Text style={styles.headerTitle}>
+          Rewards
+        </Text>
+
 
         <TouchableOpacity
           style={styles.rightIconWrapper}
-          onPress={() => navigation.navigate('HelpCenterList')}
+          onPress={() =>
+            navigation.navigate('HelpCenterList')
+          }
         >
           <Ionicons
             name="chatbubble-ellipses-outline"
@@ -153,60 +298,158 @@ const RewardsScreen = ({ navigation }) => {
             color="#192A51"
           />
         </TouchableOpacity>
+
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ height: rh(1.5) }} />
 
-        {/* REWARD CARDS */}
-        {REWARD_SECTIONS.map((item) => (
+      {/* ===================================================
+          CONTENT
+          =================================================== */}
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+
+        <View
+          style={{
+            height: rh(1.5),
+          }}
+        />
+
+
+        {/* =================================================
+            REWARD CARDS
+            ================================================= */}
+
+        {visibleRewardSections.map(item => (
+
           <TouchableOpacity
             key={item.key}
             style={styles.card}
             activeOpacity={0.7}
             onPress={() => handlePress(item)}
           >
-            {/* Icon */}
-            <View style={[styles.iconBox, { backgroundColor: item.iconBg }]}>
-              <Ionicons name={item.icon} size={rf(2.8)} color={item.iconColor} />
+
+            {/* ---------------------------------------------
+                ICON
+                --------------------------------------------- */}
+
+            <View
+              style={[
+                styles.iconBox,
+                {
+                  backgroundColor: item.iconBg,
+                },
+              ]}
+            >
+
+              <Ionicons
+                name={item.icon}
+                size={rf(2.8)}
+                color={item.iconColor}
+              />
+
             </View>
 
-            {/* Content */}
+
+            {/* ---------------------------------------------
+                CONTENT
+                --------------------------------------------- */}
+
             <View style={styles.content}>
+
               <View style={styles.rowBetween}>
-                <Text style={styles.title}>{item.title}</Text>
-                <View style={[styles.badge, { backgroundColor: item.badgeBg }]}>
-                  <Text style={[styles.badgeText, { color: item.badgeColor }]}>
+
+                <Text style={styles.title}>
+                  {item.title}
+                </Text>
+
+
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor: item.badgeBg,
+                    },
+                  ]}
+                >
+
+                  <Text
+                    style={[
+                      styles.badgeText,
+                      {
+                        color: item.badgeColor,
+                      },
+                    ]}
+                  >
                     {item.badge}
                   </Text>
+
                 </View>
+
               </View>
-              <Text style={styles.description}>{item.description}</Text>
+
+
+              <Text style={styles.description}>
+                {item.description}
+              </Text>
+
             </View>
 
-            {/* Arrow */}
+
+            {/* ---------------------------------------------
+                ARROW
+                --------------------------------------------- */}
+
             <Ionicons
               name="chevron-forward"
               size={rf(2.2)}
               color="#98A2B3"
               style={styles.arrow}
             />
+
           </TouchableOpacity>
+
         ))}
 
-        <View style={{ height: rh(4) }} />
+
+        <View
+          style={{
+            height: rh(4),
+          }}
+        />
+
       </ScrollView>
+
     </SafeAreaView>
   );
 };
 
+
 export default RewardsScreen;
 
+
+/* =========================================================
+   STYLES
+   ========================================================= */
+
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: '#F7F9FC',
   },
+
+
+  scrollContent: {
+    paddingBottom: rh(2),
+  },
+
+
+  /* =======================================================
+     HEADER
+     ======================================================= */
 
   header: {
     flexDirection: 'row',
@@ -218,93 +461,24 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
+
   headerTitle: {
     fontSize: rf(2.3),
     fontWeight: '700',
     color: '#101828',
   },
 
-  robotIcon: {
-    width: rw(7.5),
-    height: rw(7.5),
-    resizeMode: 'contain',
-  },
 
-  // Banner
-  banner: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: rw(4),
-    marginTop: rh(2),
-    borderRadius: rw(4),
-    padding: rw(5),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  rightIconWrapper: {
+    justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
   },
 
-  bannerLabel: {
-    fontSize: rf(1.7),
-    color: '#667085',
-    marginBottom: rh(0.4),
-  },
 
-  bannerAmount: {
-    fontSize: rf(3.8),
-    fontWeight: '700',
-    color: '#101828',
-  },
+  /* =======================================================
+     CARD
+     ======================================================= */
 
-  bannerSub: {
-    fontSize: rf(1.6),
-    color: '#98A2B3',
-    marginTop: rh(0.5),
-    maxWidth: rw(55),
-  },
-
-  // Tabs
-  tabsContainer: {
-    paddingHorizontal: rw(4),
-    paddingVertical: rh(1.8),
-    gap: rw(2),
-    flexDirection: 'row',
-  },
-
-  tab: {
-    paddingHorizontal: rw(4),
-    paddingVertical: rh(0.8),
-    borderRadius: rw(5),
-    borderWidth: 1,
-    borderColor: '#E4E7EC',
-    backgroundColor: '#FFFFFF',
-  },
-
-  tabActive: {
-    backgroundColor: '#101828',
-    borderColor: '#101828',
-  },
-
-  tabText: {
-    fontSize: rf(1.7),
-    fontWeight: '500',
-    color: '#667085',
-  },
-
-  tabTextActive: {
-    color: '#FFFFFF',
-  },
-
-  // Section label
-  sectionLabel: {
-    fontSize: rf(1.5),
-    fontWeight: '600',
-    color: '#98A2B3',
-    letterSpacing: 0.8,
-    marginHorizontal: rw(4),
-    marginBottom: rh(1),
-  },
-
-  // Card
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: rw(4),
@@ -317,6 +491,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
+
+  /* =======================================================
+     ICON
+     ======================================================= */
+
   iconBox: {
     width: rw(13),
     height: rw(13),
@@ -327,9 +506,15 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
 
+
+  /* =======================================================
+     CONTENT
+     ======================================================= */
+
   content: {
     flex: 1,
   },
+
 
   rowBetween: {
     flexDirection: 'row',
@@ -337,6 +522,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: rh(0.5),
   },
+
 
   title: {
     fontSize: rf(2),
@@ -346,10 +532,16 @@ const styles = StyleSheet.create({
     marginRight: rw(2),
   },
 
+
   description: {
     fontSize: rf(1.7),
     color: '#667085',
   },
+
+
+  /* =======================================================
+     BADGE
+     ======================================================= */
 
   badge: {
     paddingHorizontal: rw(2.5),
@@ -358,12 +550,19 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
 
+
   badgeText: {
     fontSize: rf(1.5),
     fontWeight: '600',
   },
 
+
+  /* =======================================================
+     ARROW
+     ======================================================= */
+
   arrow: {
     marginLeft: rw(2),
   },
+
 });
