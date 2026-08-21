@@ -317,9 +317,17 @@ const HomeDashboard = () => {
         )}
 
         {/* TODAY'S PROGRESS */}
-        <Text style={styles.sectionTitle}>
-          Today's Progress
-        </Text>
+        {riderType === 'INDIVIDUAL_EMPLOYEE' && (
+          <Text style={styles.sectionTitle}>
+            Today's Progress
+          </Text>
+        )}  
+
+        {riderType === 'ZESTBOT_EMPLOYEE' && (
+          <Text style={styles.sectionTitle}>
+            Monthly Progress
+          </Text>
+        )}
 
         <View style={styles.statsRow}>
           {todayStats.map(item => (
@@ -397,7 +405,6 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: hp('2%'),
   },
 
   weekCard: {

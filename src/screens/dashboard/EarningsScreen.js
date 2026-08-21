@@ -1,47 +1,49 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   StatusBar,
   ScrollView,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
+
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Fontisto from 'react-native-vector-icons/Fontisto';
-import { BlurView } from '@react-native-community/blur';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import useEarningsDashboard from '../../hooks/useEarningsDashboard';
+
 import WeeklyEarningsChart from '../../components/dashboard/earnings/WeeklyEarningsChart';
 import WeeklyEarningsChartZestBot from '../../components/dashboard/earnings/WeeklyEarningsChartZestBot';
 import IncentivesCards from '../../components/dashboard/earnings/IncentivesCards';
-import IncentiveCard from '../../components/dashboard/earnings/IncentiveCard';
 import MonthlySummaryCard from '../../components/dashboard/earnings/MonthlySummaryCard';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PremiumPressable from '../../components/common/PremiumPressable';
-import { formatMoney } from '../../utils/formatMoney';
-import { dashboardCache } from '../../hooks/useEarningsDashboard';
-import useIncentives from '../../hooks/useIncentives';
-import { Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
-import { getEarningsSummary, getWeeklyBarChart } from '../../services/earnings/earningsService';
-import apiClient from '../../services/ApiClient';
 
+import { formatMoney } from '../../utils/formatMoney';
+import useIncentives from '../../hooks/useIncentives';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const Header = ({ todayEarnings, riderType, navigation }) => {
+/* =========================================================
+   HEADER
+========================================================= */
+
+const Header = ({ earnings, riderType, navigation }) => {
+  const isIndividual = riderType === 'INDIVIDUAL_EMPLOYEE';
+  const isZestBot = riderType === 'ZESTBOT_EMPLOYEE';
+
   return (
     <View>
       <StatusBar
@@ -49,10 +51,12 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
         backgroundColor="transparent"
         barStyle="light-content"
       />
+
       <LinearGradient
         colors={['#065F46', '#10B981', '#34D399']}
         start={{ x: 0, y: 1 }}
-        end={{ x: 1, y: 0 }}>
+        end={{ x: 1, y: 0 }}
+      >
         <SafeAreaView style={styles.topBar}>
           <Text style={styles.title}>Earnings</Text>
 
@@ -60,13 +64,18 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
             <TouchableOpacity
               style={styles.iconBtn}
               onPress={() =>
-                navigation.navigate('EarningsHistoryScreen', { mode: 'HISTORY' })}>
+                navigation.navigate('EarningsHistoryScreen', {
+                  mode: 'HISTORY',
+                })
+              }
+            >
               <MaterialIcons
                 name="history"
                 size={isTablet ? 30 : 24}
                 color="#FFFFFF"
               />
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.iconBtn}
               onPress={() => navigation.navigate('HelpCenterList')}
@@ -74,13 +83,16 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
               <Ionicons
                 name="chatbubble-ellipses-outline"
                 size={isTablet ? 28 : 22}
-                color="#ffff"
+                color="#FFFFFF"
               />
             </TouchableOpacity>
           </View>
         </SafeAreaView>
-        
-        {riderType === 'INDIVIDUAL_EMPLOYEE' ? (
+
+        {/* =========================
+            INDIVIDUAL - TODAY
+        ========================= */}
+        {isIndividual && (
           <TouchableOpacity
             style={styles.dailyCard}
             onPress={() =>
@@ -92,10 +104,12 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
           >
             <View style={styles.dailyTopRow}>
               <View>
-                <Text style={styles.dailyLabel}>Today's Earnings</Text>
+                <Text style={styles.dailyLabel}>
+                  Today's Earnings
+                </Text>
 
                 <Text style={styles.dailyTotal}>
-                  ₹{formatMoney(todayEarnings?.total ?? 0)}
+                  ₹{formatMoney(earnings?.total ?? 0)}
                 </Text>
               </View>
 
@@ -113,41 +127,56 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
             <View style={styles.dailyStatsRow}>
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  ₹{formatMoney(todayEarnings?.baseEarnings ?? 0)}
+                  ₹{formatMoney(earnings?.baseEarnings ?? 0)}
                 </Text>
-                <Text style={styles.statLabel}>Base Earnings</Text>
+                <Text style={styles.statLabel}>
+                  Base Earnings
+                </Text>
               </View>
 
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  ₹{formatMoney(todayEarnings?.incentives ?? 0)}
+                  ₹{formatMoney(earnings?.incentives ?? 0)}
                 </Text>
-                <Text style={styles.statLabel}>Incentives</Text>
+                <Text style={styles.statLabel}>
+                  Incentives
+                </Text>
               </View>
 
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  {todayEarnings?.orders ?? 0}
+                  ₹{formatMoney(earnings?.tips ?? 0)}
                 </Text>
-                <Text style={styles.statLabel}>Orders</Text>
+                <Text style={styles.statLabel}>
+                  Tips
+                </Text>
               </View>
 
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  ₹{formatMoney(todayEarnings?.tips ?? 0)}
+                  {earnings?.orders ?? 0}
                 </Text>
-                <Text style={styles.statLabel}>Tips</Text>
+                <Text style={styles.statLabel}>
+                  Orders
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
-        ) : (
+        )}
+
+        {/* =========================
+            ZESTBOT - MONTHLY
+        ========================= */}
+        {isZestBot && (
           <View style={styles.dailyCard}>
             <View style={styles.dailyTopRow}>
               <View>
-                <Text style={styles.dailyLabel}>Monthly Earnings</Text>
+                <Text style={styles.dailyLabel}>
+                  Total Month Earnings
+                </Text>
 
                 <Text style={styles.dailyTotal}>
-                  ₹{formatMoney(todayEarnings?.total ?? 0)}
+                  ₹{formatMoney(earnings?.total ?? 0)}
                 </Text>
               </View>
 
@@ -165,76 +194,108 @@ const Header = ({ todayEarnings, riderType, navigation }) => {
             <View style={styles.dailyStatsRow}>
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  ₹{formatMoney(todayEarnings?.baseEarnings ?? 0)}
+                  ₹{formatMoney(earnings?.attendanceAmount ?? 0)}
                 </Text>
-                <Text style={styles.statLabel}>Base Earnings</Text>
+                <Text style={styles.statLabel}>
+                  Month Salary
+                </Text>
               </View>
 
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  ₹{formatMoney(todayEarnings?.incentives ?? 0)}
+                  ₹{formatMoney(earnings?.incentives ?? 0)}
                 </Text>
-                <Text style={styles.statLabel}>Incentives</Text>
+                <Text style={styles.statLabel}>
+                  Incentives
+                </Text>
               </View>
 
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  {todayEarnings?.orders ?? 0}
+                  ₹{formatMoney(earnings?.tips ?? 0)}
                 </Text>
-                <Text style={styles.statLabel}>Orders</Text>
+                <Text style={styles.statLabel}>
+                  Tips
+                </Text>
               </View>
-
+              
               <View style={styles.dailyStatItem}>
                 <Text style={styles.statValue}>
-                  ₹{formatMoney(todayEarnings?.tips ?? 0)}
+                  {earnings?.orders ?? 0}
                 </Text>
-                <Text style={styles.statLabel}>Tips</Text>
+                <Text style={styles.statLabel}>
+                  Orders
+                </Text>
               </View>
             </View>
           </View>
         )}
       </LinearGradient>
     </View>
-  )
-}
+  );
+};
 
-const Graph = (
-  {
-    todayEarnings,
-    navigation,
-    CARD_WIDTH,
-    CARD_PADDING,
-    riderType,
-    isEligibleForIncentives,
-    weeklyTotal,
-    weeklyBarChart,
-    wallet,
-    weeklyOrders,
-    earningsDataLoading
-  }) => {
+/* =========================================================
+   GRAPH + WALLET
+========================================================= */
 
+const Graph = ({
+  todayEarnings,
+  navigation,
+  CARD_WIDTH,
+  CARD_PADDING,
+  riderType,
+  isEligibleForIncentives,
+  weeklyTotal,
+  weeklyBarChart,
+  wallet,
+  weeklyOrders,
+  earningsDataLoading,
+}) => {
   const formatOrderLabel = count => {
     return `${count} ${count === 1 ? 'order' : 'orders'}`;
   };
 
   return (
     <View style={{ backgroundColor: '#F4F6F8' }}>
-      {/* WEEKLY CARD */}
-      <View style={[styles.card, { width: CARD_WIDTH, padding: CARD_PADDING }]}>
-        <PremiumPressable onPress={() => navigation.navigate('EarningsHistoryScreen', { mode: 'WEEK' })}>
+
+      {/* =========================
+          WEEKLY CARD
+      ========================= */}
+      <View
+        style={[
+          styles.card,
+          {
+            width: CARD_WIDTH,
+            padding: CARD_PADDING,
+          },
+        ]}
+      >
+        <PremiumPressable
+          onPress={() =>
+            navigation.navigate('EarningsHistoryScreen', {
+              mode: 'WEEK',
+            })
+          }
+        >
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>This Week</Text>
+            <Text style={styles.cardTitle}>
+              Week Earnings
+            </Text>
+
             <Text style={styles.cardValue}>
               {riderType === 'ZESTBOT_EMPLOYEE'
-                ? (isEligibleForIncentives
-                  ? `₹${formatMoney(weeklyTotal ?? 0)}`
-                  : `${formatOrderLabel(weeklyOrders ?? 0)}`)
+                ? (
+                  isEligibleForIncentives
+                    ? `₹${formatMoney(weeklyTotal ?? 0)}`
+                    : `${formatOrderLabel(weeklyOrders ?? 0)}`
+                )
                 : `₹${formatMoney(weeklyTotal ?? 0)}`
               }
             </Text>
           </View>
 
-          {/* INDIVIDUAL, COMPANY — earnings bar chart only */}
+          {/* INDIVIDUAL */}
           {riderType === 'INDIVIDUAL_EMPLOYEE' && (
             <WeeklyEarningsChart
               data={weeklyBarChart}
@@ -244,8 +305,9 @@ const Graph = (
             />
           )}
 
-          {/* ZESTBOT — only after target met */}
-          {(riderType === 'ZESTBOT_EMPLOYEE' || riderType === 'COMPANY_EMPLOYEE') && (
+          {/* ZESTBOT / COMPANY */}
+          {(riderType === 'ZESTBOT_EMPLOYEE' ||
+            riderType === 'COMPANY_EMPLOYEE') && (
             <WeeklyEarningsChartZestBot
               data={weeklyBarChart}
               width={CARD_WIDTH - CARD_PADDING * 2}
@@ -257,62 +319,94 @@ const Graph = (
               earningsDataLoading={earningsDataLoading}
             />
           )}
-
         </PremiumPressable>
       </View>
 
-      {/* WALLET */}
+      {/* =========================
+          WALLET
+      ========================= */}
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => navigation.navigate('Wallet')}>
+        onPress={() => navigation.navigate('Wallet')}
+      >
         <LinearGradient
           colors={['#4338CA', '#6366F1', '#818CF8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.walletCard}>
+          style={styles.walletCard}
+        >
           <View style={styles.walletTop}>
             <View>
-              <Text style={styles.walletLabel}>Wallet Balance</Text>
+              <Text style={styles.walletLabel}>
+                Wallet Balance
+              </Text>
+
               <Text style={styles.walletBalance}>
                 ₹{formatMoney(wallet.balance ?? 0)}
               </Text>
             </View>
+
             <View style={styles.walletIconWrap}>
-              <Ionicons name="wallet" size={isTablet ? 32 : 26} color="#6366F1" />
+              <Ionicons
+                name="wallet"
+                size={isTablet ? 32 : 26}
+                color="#6366F1"
+              />
             </View>
           </View>
+
           <View style={styles.walletActions}>
-            <TouchableOpacity style={styles.walletBtn}
+            <TouchableOpacity
+              style={styles.walletBtn}
               activeOpacity={0.9}
-              onPress={() => navigation.navigate('Wallet')}>
+              onPress={() => navigation.navigate('Wallet')}
+            >
               <Ionicons
                 name="arrow-up-circle-outline"
                 size={isTablet ? 24 : 18}
                 color="#6366F1"
               />
-              <Text style={styles.walletBtnText}>Withdraw</Text>
+
+              <Text style={styles.walletBtnText}>
+                Withdraw
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.walletBtnOutline}
+
+            <TouchableOpacity
+              style={styles.walletBtnOutline}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('Wallet')}>
+              onPress={() => navigation.navigate('Wallet')}
+            >
               <Ionicons
                 name="time-outline"
                 size={isTablet ? 24 : 18}
-                color="#fff"
+                color="#FFFFFF"
               />
-              <Text style={styles.walletBtnTextOutline}>History</Text>
+
+              <Text style={styles.walletBtnTextOutline}>
+                History
+              </Text>
             </TouchableOpacity>
           </View>
+
           <View style={styles.walletDivider} />
+
           <View style={styles.walletStats}>
             <View>
-              <Text style={styles.walletStatLabel}>Total Earned</Text>
+              <Text style={styles.walletStatLabel}>
+                Total Earned
+              </Text>
+
               <Text style={styles.walletStatValue}>
                 ₹{formatMoney(wallet.totalEarned ?? 0)}
               </Text>
             </View>
+
             <View>
-              <Text style={styles.walletStatLabel}>Total Withdrawn</Text>
+              <Text style={styles.walletStatLabel}>
+                Total Withdrawn
+              </Text>
+
               <Text style={styles.walletStatValue}>
                 ₹{formatMoney(wallet.totalWithdrawn ?? 0)}
               </Text>
@@ -324,61 +418,44 @@ const Graph = (
   );
 };
 
-const Footer = ({ month, riderType }) => {
+/* =========================================================
+   FOOTER
+========================================================= */
+
+const Footer = ({ summary, riderType }) => {
   return (
-    <View style={{ marginBottom: hp(4) }} >
-      <MonthlySummaryCard summary={month} riderType={riderType} />
+    <View style={{ marginBottom: hp(4) }}>
+      <MonthlySummaryCard
+        summary={summary}
+        riderType={riderType}
+      />
     </View>
   );
 };
 
+/* =========================================================
+   MAIN SCREEN
+========================================================= */
+
 export default function EarningsScreen({ navigation }) {
-  // const riderTypeFromRedux = useSelector((state) => state.profile.data?.riderType?.trim());
-  const { data, loading, refreshing, onRefresh } = useEarningsDashboard();
-  const { weeklyIncentivesProgress, dailyIncentivesProgress, peakIncentivesProgress, load, fetchWeeklyIncentivesProgress, fetchDailyIncentivesProgress, fetchPeakIncentivesProgress } = useIncentives();
-  const { riderIncentivesTarget, fetchRiderIncentivesTarget } = useIncentives();
-  const [earningsDataLoading, setEarningsDataLoading] = useState(false);
-  const [earningsData, setEarningsData] = useState(null);
-  const [todayEarningsData, setTodayEarningsData] = useState(null);
-  const [monthlyEarningsData, setMonthlyEarningsData] = useState(null);
-  const [barChartData, setBarChartData] = useState(null);
-  const [barChartArray, setBarChartArray] = useState([]);
+  const {
+    data,
+    loading,
+    refreshing,
+    onRefresh,
+  } = useEarningsDashboard();
 
-  useEffect(() => {
-    const fetchBarChart = async () => {
-      try {
-        setEarningsDataLoading(true);
-        const res = await getWeeklyBarChart();
-        setBarChartData(res);
-        setBarChartArray(res.week);
-      } catch (error) {
-        console.log("Error fetching bar chart: ", error);
-      } finally {
-        setEarningsDataLoading(false);
-      }
-    }
-
-    fetchBarChart();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setEarningsDataLoading(true);
-        const summaryData = await getEarningsSummary();
-        setEarningsData(summaryData);
-        setMonthlyEarningsData(summaryData?.month);
-        setTodayEarningsData(summaryData?.today);
-        // console.log('Fetched earnings summary:', summaryData);
-      } catch (error) {
-        console.error('Error fetching earnings summary:', error);
-      } finally {
-        setEarningsDataLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const {
+    weeklyIncentivesProgress,
+    dailyIncentivesProgress,
+    peakIncentivesProgress,
+    load,
+    fetchWeeklyIncentivesProgress,
+    fetchDailyIncentivesProgress,
+    fetchPeakIncentivesProgress,
+    riderIncentivesTarget,
+    fetchRiderIncentivesTarget,
+  } = useIncentives();
 
   useEffect(() => {
     fetchWeeklyIncentivesProgress();
@@ -387,92 +464,154 @@ export default function EarningsScreen({ navigation }) {
     fetchRiderIncentivesTarget();
   }, []);
 
-  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
-  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
-  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
-
-  const completedDays =
-    weeklyIncentivesProgress?.overallProgress
-      ?.completedDays || 0;
-
-  const totalDays =
-    weeklyIncentivesProgress?.overallProgress
-      ?.totalDays || 0;
-
-  const weeklyProgressPercentage =
-    totalDays > 0
-      ? (completedDays / totalDays) * 100
-      : 0;
-
   const {
     todayEarnings = {},
     earningsSummary = {},
     weeklyBarChart = [],
-    riderType = "",
+    riderType = '',
     weeklyTotal = 0,
     weeklyOrders = 0,
     wallet = {},
     incentives = [],
   } = data;
 
-  // console.log("weekly: ", weeklyBarChart);
 
-  const isEligibleForIncentives = todayEarnings?.eligible;
+
+ const todayEarningsData = {
+    ...(earningsSummary?.today ?? todayEarnings ?? {}),
+    attendanceAmount:
+      earningsSummary?.today?.attendanceAmount ??
+      todayEarnings?.attendanceAmount ??
+      0,
+  };
+
+  const monthlyEarningsData =
+    earningsSummary?.month ?? {};
+
+  const isEligibleForIncentives =
+    todayEarnings?.eligible ?? false;
 
   const CARD_WIDTH = isTablet ? wp(97) : wp(95);
   const CARD_PADDING = wp(4);
 
-  // NAVIGATIONS TO INCENTIVE PAGES
-  const handleItemPress = (item) => {
+  /* =========================
+     INCENTIVE PROGRESS
+  ========================= */
+
+  const weeklyCompletedOrders =
+    weeklyIncentivesProgress?.ruleType !== 'TASK'
+      ? weeklyIncentivesProgress?.ordersCompleted ?? 0
+      : 0;
+
+  const dailyCompletedOrders =
+    dailyIncentivesProgress?.ruleType !== 'TASK'
+      ? dailyIncentivesProgress?.ordersCompleted ?? 0
+      : 0;
+
+  const peakCompletedOrders =
+    peakIncentivesProgress?.ordersCompleted ?? 0;
+
+  const completedDays =
+    weeklyIncentivesProgress?.overallProgress?.completedDays ?? 0;
+
+  const totalDays =
+    weeklyIncentivesProgress?.overallProgress?.totalDays ?? 0;
+
+  const weeklyProgressPercentage =
+    totalDays > 0
+      ? (completedDays / totalDays) * 100
+      : 0;
+
+  /* =========================
+     INCENTIVE NAVIGATION
+  ========================= */
+
+  const handleItemPress = item => {
     if (item?.type === 'peak') {
-      navigation.navigate('PeakHourBonusScreen', { ...item, peakIncentivesProgress });
+      navigation.navigate('PeakHourBonusScreen', {
+        ...item,
+        peakIncentivesProgress,
+      });
       return;
     }
+
     if (item?.type === 'weekly') {
-      navigation.navigate('WeekEarnings', { ...item, weeklyIncentivesProgress });
+      navigation.navigate('WeekEarnings', {
+        ...item,
+        weeklyIncentivesProgress,
+      });
       return;
     }
+
     if (item?.type === 'daily') {
-      navigation.navigate('DailyGuarentee', { ...item, dailyIncentivesProgress });
-      return;
+      navigation.navigate('DailyGuarentee', {
+        ...item,
+        dailyIncentivesProgress,
+      });
     }
   };
 
-  if (load || loading || earningsDataLoading) {
+  /* =========================
+     LOADING
+  ========================= */
+
+  if (load || loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#1F3365" />
+      <View style={styles.loader}>
+        <ActivityIndicator
+          size="large"
+          color="#1F3365"
+        />
       </View>
-    )
+    );
   }
 
-  // UI
+  /* =========================
+     UI
+  ========================= */
+
   return (
     <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={['#1F3365']} // Android
-          tintColor="#1F3365"  // iOS
+        style={styles.screenContainer}
+        contentContainerStyle={styles.scrollContent}
+        overScrollMode="never"
+        bounces={false}
+        alwaysBounceVertical={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1F3365']}
+            tintColor="#1F3365"
+          />
+        }
+      >
+
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
+      {/* INDIVIDUAL → TODAY */}
+      {riderType === 'INDIVIDUAL_EMPLOYEE' && (
+        <Header
+          earnings={todayEarningsData}
+          riderType={riderType}
+          navigation={navigation}
         />
-      }
-      style={{ flex: 1 }}>
+      )}
 
-
-      {riderType === "INDIVIDUAL_EMPLOYEE" &&
+      {/* ZESTBOT → MONTH */}
+      {riderType === 'ZESTBOT_EMPLOYEE' && (
         <Header
-          todayEarnings={todayEarnings}
+          earnings={monthlyEarningsData}
           riderType={riderType}
           navigation={navigation}
-        />}
+        />
+      )}
 
-      {riderType !== "INDIVIDUAL_EMPLOYEE" &&
-        <Header
-          todayEarnings={monthlyEarningsData}
-          riderType={riderType}
-          navigation={navigation}
-        />}
+      {/* =================================================
+          GRAPH + WALLET
+      ================================================= */}
 
       <Graph
         todayEarnings={todayEarnings}
@@ -482,15 +621,22 @@ export default function EarningsScreen({ navigation }) {
         riderType={riderType}
         isEligibleForIncentives={isEligibleForIncentives}
         weeklyTotal={weeklyTotal}
-        weeklyBarChart={barChartArray}
+        weeklyBarChart={weeklyBarChart}
         wallet={wallet}
         weeklyOrders={weeklyOrders}
-        earningsDataLoading={earningsDataLoading}
+        earningsDataLoading={loading}
       />
 
-      {riderType === "INDIVIDUAL_EMPLOYEE" &&
+      {/* =================================================
+          INDIVIDUAL INCENTIVES
+      ================================================= */}
+
+      {riderType === 'INDIVIDUAL_EMPLOYEE' && (
         <View>
-          <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
+          <Text style={styles.incentiveTitle}>
+            Extra Earnings Offers
+          </Text>
+
           <View style={styles.incentivesCards}>
             <IncentivesCards
               item={incentives[0]}
@@ -520,57 +666,99 @@ export default function EarningsScreen({ navigation }) {
             />
           </View>
         </View>
-      }
+      )}
 
-      {riderType !== "INDIVIDUAL_EMPLOYEE" &&
+      {/* =================================================
+          ZESTBOT / COMPANY SLABS
+      ================================================= */}
+
+      {riderType !== 'INDIVIDUAL_EMPLOYEE' && (
         <View>
-          <Text style={styles.incentiveTitle}>Extra Earnings Offers</Text>
+          <Text style={styles.incentiveTitle}>
+            Extra Earnings Offers
+          </Text>
+
           <View style={styles.slabsContainer}>
-            {riderIncentivesTarget?.slabs?.map((item, index) => {
-              const colors = [
-                '#E8F5E9', // Light Green
-                '#E3F2FD', // Light Blue
-                '#FFF3E0', // Light Orange
-                '#F3E5F5', // Light Purple
-              ];
+            {riderIncentivesTarget?.slabs?.map(
+              (item, index) => {
+                const colors = [
+                  '#E8F5E9',
+                  '#E3F2FD',
+                  '#FFF3E0',
+                  '#F3E5F5',
+                ];
 
-              return (
-                <View
-                  key={item.id}
-                  style={[
-                    styles.slabCard,
-                    { backgroundColor: colors[index % colors.length] },
-                  ]}>
-                  <View>
-                    <Text style={styles.ordersLabel}>Monthly Orders</Text>
-                    <Text style={styles.ordersText}>
-                      {item.toOrders
-                        ? `${item.fromOrders} - ${item.toOrders}`
-                        : `${item.fromOrders}+`}
-                    </Text>
-                  </View>
+                return (
+                  <View
+                    key={item.id}
+                    style={[
+                      styles.slabCard,
+                      {
+                        backgroundColor:
+                          colors[index % colors.length],
+                      },
+                    ]}
+                  >
+                    <View>
+                      <Text style={styles.ordersLabel}>
+                        Monthly Orders
+                      </Text>
 
-                  <View style={styles.rewardContainer}>
-                    <Text style={styles.rewardLabel}>Reward</Text>
-                    <Text style={styles.rewardText}>
-                      ₹{item.amountPerOrder}
-                    </Text>
-                    <Text style={styles.perOrder}>per order</Text>
+                      <Text style={styles.ordersText}>
+                        {item.toOrders
+                          ? `${item.fromOrders} - ${item.toOrders}`
+                          : `${item.fromOrders}+`}
+                      </Text>
+                    </View>
+
+                    <View style={styles.rewardContainer}>
+                      <Text style={styles.rewardLabel}>
+                        Reward
+                      </Text>
+
+                      <Text style={styles.rewardText}>
+                        ₹{item.amountPerOrder}
+                      </Text>
+
+                      <Text style={styles.perOrder}>
+                        per order
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              );
-            })}
+                );
+              }
+            )}
           </View>
-        </View>}
+        </View>
+      )}
 
-      {riderType === "INDIVIDUAL_EMPLOYEE" && <Footer month={monthlyEarningsData} riderType={riderType} />}
+      {/* =================================================
+          FOOTER / SUMMARY
+      ================================================= */}
 
-      {riderType !== "INDIVIDUAL_EMPLOYEE" && <Footer month={todayEarningsData} riderType={riderType} />}
+      {/* INDIVIDUAL → MONTHLY SUMMARY */}
+      {riderType === 'INDIVIDUAL_EMPLOYEE' && (
+        <Footer
+          summary={monthlyEarningsData}
+          riderType={riderType}
+        />
+      )}
+
+      {/* ZESTBOT → TODAY SUMMARY */}
+      {riderType === 'ZESTBOT_EMPLOYEE' && (
+        <Footer
+          summary={todayEarningsData}
+          riderType={riderType}
+        />
+      )}
 
     </ScrollView>
-
   );
 }
+
+/* =========================================================
+   STYLES
+========================================================= */
 
 const styles = StyleSheet.create({
   loader: {
@@ -578,43 +766,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+
   title: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: isTablet ? 34 : wp(6),
     fontWeight: '700',
     flex: 1,
     marginLeft: wp(2),
   },
-  chat_icon: {
-    width: wp(6),
-    height: wp(5),
-  },
+
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: isTablet ? wp(4) : wp(3),
   },
+
   topBarIcons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   iconBtn: {
     backgroundColor: 'rgba(255,255,255,0.15)',
     paddingVertical: isTablet ? hp(1.2) : hp(1),
     paddingHorizontal: isTablet ? wp(1.5) : wp(2),
     borderRadius: isTablet ? wp(2) : wp(3),
     marginLeft: wp(2),
-  },
-  chatIcon: {
-    width: wp(5),
-    height: wp(5),
-    tintColor: '#FFFFFF',
   },
 
   dailyCard: {
@@ -666,6 +844,7 @@ const styles = StyleSheet.create({
 
   dailyStatItem: {
     alignItems: 'center',
+    flex: 1,
   },
 
   statValue: {
@@ -678,10 +857,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
     fontSize: wp(3.3),
     marginTop: 2,
+    textAlign: 'center',
   },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     alignSelf: 'center',
     borderRadius: wp(5),
     marginTop: hp(2),
@@ -689,45 +869,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 5,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
   },
+
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: hp(3)
+    marginBottom: hp(3),
   },
+
   cardTitle: {
     fontSize: wp(5),
     fontWeight: '500',
   },
+
   cardValue: {
     fontSize: wp(5),
     fontWeight: '600',
   },
 
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: wp(2),
-    paddingVertical: 32,
-    paddingHorizontal: wp(4),
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-
-    marginHorizontal: 16,
-    marginBottom: wp(3),
-
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-  },
   slabsContainer: {
     marginTop: 12,
     marginHorizontal: 15,
@@ -776,30 +939,6 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginTop: 2,
   },
-  emptyIconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 10,
-  },
 
   walletCard: {
     width: isTablet ? wp(97) : wp(95),
@@ -807,7 +946,6 @@ const styles = StyleSheet.create({
     marginTop: hp(3),
     borderRadius: wp(5),
     padding: wp(4),
-
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 18,
@@ -823,7 +961,6 @@ const styles = StyleSheet.create({
   walletLabel: {
     color: '#FFFFFF',
     fontSize: wp(5),
-
   },
 
   walletBalance: {
@@ -844,32 +981,36 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
     justifyContent: 'space-between',
   },
+
   walletBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: isTablet ? wp(4) : wp(4),
+    paddingHorizontal: wp(4),
     paddingVertical: isTablet ? hp(1.5) : hp(1),
     borderRadius: isTablet ? wp(2) : wp(3),
   },
+
   walletBtnText: {
     marginLeft: wp(2),
     fontWeight: '600',
     color: '#6366F1',
     fontSize: isTablet ? 18 : 14,
   },
+
   walletBtnOutline: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.5)',
-    paddingHorizontal: isTablet ? wp(4) : wp(4),
+    paddingHorizontal: wp(4),
     paddingVertical: isTablet ? hp(1.5) : hp(1),
     borderRadius: isTablet ? wp(2) : wp(3),
   },
+
   walletBtnTextOutline: {
     marginLeft: wp(2),
-    color: '#fff',
+    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: isTablet ? 18 : 14,
   },
@@ -896,54 +1037,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: hp(0.3),
   },
+
   incentiveTitle: {
     fontSize: wp(5),
     fontWeight: '600',
     marginLeft: wp(5),
     marginTop: hp(4),
-    marginBottom: hp(1)
+    marginBottom: hp(1),
   },
-  overlayLoader: {
-    position: 'absolute',
-    top: hp(4),
-    bottom: 0,
-    left: 0,
-    right: 0,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.25)',
-  },
+
   incentivesCards: {
     paddingVertical: 20,
   },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  lockImage: {
-    height: 100,
-    width: 100,
-  },
-  lockContent: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  lockText: {
-    backgroundColor: '#192A51',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: '600',
-    marginTop: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    borderRadius: 10,
-  }
+
+  screenContainer: {
+  flex: 1,
+  backgroundColor: '#F4F6F8',
+},
+
+scrollContent: {
+  flexGrow: 1,
+  backgroundColor: '#F4F6F8',
+},
 });

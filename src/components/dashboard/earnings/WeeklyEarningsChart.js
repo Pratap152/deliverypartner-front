@@ -133,20 +133,44 @@ export default function WeeklyEarningsChart({ data, width: chartWidth, height: c
   ]);
 
   const panResponder = require('react-native').PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (_, g) => {
-      const i = Math.floor((g.x0 - PADDING_LEFT) / barGroupWidth);
-      if (i >= 0 && i < weekData.length) setActiveIndex(i);
-    },
-    onPanResponderMove: (_, g) => {
-      const i = Math.floor((g.moveX - PADDING_LEFT) / barGroupWidth);
-      if (i >= 0 && i < weekData.length) setActiveIndex(i);
-    },
-    onPanResponderRelease: () => setActiveIndex(null),
-    onPanResponderTerminate: () => setActiveIndex(null),
-  });
+  onStartShouldSetPanResponder: () => false,
 
+  onMoveShouldSetPanResponder: (_, gestureState) => {
+    // Only capture horizontal swipes
+    return (
+      Math.abs(gestureState.dx) >
+      Math.abs(gestureState.dy) * 1.5
+    );
+  },
+
+  onPanResponderGrant: (_, g) => {
+    const i = Math.floor(
+      (g.x0 - PADDING_LEFT) / barGroupWidth
+    );
+
+    if (i >= 0 && i < weekData.length) {
+      setActiveIndex(i);
+    }
+  },
+
+  onPanResponderMove: (_, g) => {
+    const i = Math.floor(
+      (g.moveX - PADDING_LEFT) / barGroupWidth
+    );
+
+    if (i >= 0 && i < weekData.length) {
+      setActiveIndex(i);
+    }
+  },
+
+  onPanResponderRelease: () => {
+    setActiveIndex(null);
+  },
+
+  onPanResponderTerminate: () => {
+    setActiveIndex(null);
+  },
+});
   const yLabel = (value) => {
     if (value === 0) return '0';
     if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;

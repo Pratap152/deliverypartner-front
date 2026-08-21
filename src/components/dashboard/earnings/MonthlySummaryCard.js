@@ -6,11 +6,14 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
+
 import LinearGradient from 'react-native-linear-gradient';
+
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+
 import SummaryItem from './SummaryItem';
 import { formatMoney } from '../../../utils/formatMoney';
 import { useNavigation } from '@react-navigation/native';
@@ -18,11 +21,43 @@ import { useNavigation } from '@react-navigation/native';
 export default function MonthlySummaryCard({ summary, riderType }) {
   const navigation = useNavigation();
 
+  const isIndividual = riderType === 'INDIVIDUAL_EMPLOYEE';
+  const isZestBot = riderType === 'ZESTBOT_EMPLOYEE';
+
   const handlePress = () => {
     navigation.navigate('EarningsHistoryScreen', {
-      mode: riderType === 'INDIVIDUAL_EMPLOYEE' ? 'MONTH' : 'TODAY',
+      mode: isIndividual ? 'MONTH' : 'TODAY',
     });
   };
+
+  /*
+   * INDIVIDUAL
+   * ----------------
+   * This Month:
+   *   orders
+   *   baseEarnings
+   *   tips
+   *   incentives
+   *   total
+   *
+   * ZESTBOT
+   * ----------------
+   * Today:
+   *   orders
+   *   attendanceAmount -> Salary
+   *   tips
+   *   incentives
+   *   total
+   */
+
+  const salary = isZestBot
+    ? summary?.attendanceAmount ?? 0
+    : summary?.baseEarnings ?? 0;
+
+  const total = summary?.total ?? 0;
+  const orders = summary?.orders ?? 0;
+  const tips = summary?.tips ?? 0;
+  const incentives = summary?.incentives ?? 0;
 
   const CardContent = () => (
     <LinearGradient
@@ -31,48 +66,66 @@ export default function MonthlySummaryCard({ summary, riderType }) {
       end={{ x: 1, y: 1 }}
       style={styles.card}
     >
+      {/* =========================
+          HEADER
+      ========================= */}
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.headerTitle}>
-            {riderType === 'INDIVIDUAL_EMPLOYEE'
-              ? 'This Month'
-              : 'Today'}
+            {isIndividual ? 'This Month' : 'Today'}
           </Text>
 
-          <Text style={styles.headerSub}>Summary</Text>
+          <Text style={styles.headerSub}>
+            Summary
+          </Text>
         </View>
 
         <View style={styles.totalBox}>
-          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalLabel}>
+            {isIndividual
+              ? 'Total Earnings'
+              : 'Total Earnings'}
+          </Text>
 
           <Text style={styles.totalValue}>
-            ₹{formatMoney(summary?.total)}
+            ₹{formatMoney(total)}
           </Text>
         </View>
       </View>
 
+      {/* =========================
+          METRICS
+      ========================= */}
       <View style={styles.metrics}>
+
+        {/* ROW 1 */}
         <View style={styles.metricRow}>
           <SummaryItem
             label="Orders"
-            value={summary?.orders ?? 0}
+            value={orders}
           />
 
           <SummaryItem
-            label="Base Earnings"
-            value={`₹${formatMoney(summary?.baseEarnings)}`}
+            label={isZestBot ? 'Salary' : 'Base Earnings'}
+            value={`₹${formatMoney(salary)}`}
           />
         </View>
 
-        <View style={[styles.metricRow, { marginTop: hp(1) }]}>
+        {/* ROW 2 */}
+        <View
+          style={[
+            styles.metricRow,
+            { marginTop: hp(1) },
+          ]}
+        >
           <SummaryItem
             label="Tips"
-            value={`₹${formatMoney(summary?.tips)}`}
+            value={`₹${formatMoney(tips)}`}
           />
 
           <SummaryItem
             label="Incentives"
-            value={`₹${formatMoney(summary?.incentives)}`}
+            value={`₹${formatMoney(incentives)}`}
           />
         </View>
       </View>
@@ -153,11 +206,12 @@ const styles = StyleSheet.create({
     padding: wp(3),
     borderRadius: wp(2),
     alignItems: 'flex-start',
+    maxWidth: wp(48),
   },
 
   totalLabel: {
     color: '#E8FDFB',
-    fontSize: wp(4),
+    fontSize: wp(3.5),
     fontWeight: '500',
   },
 
@@ -165,6 +219,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: wp(5),
     fontWeight: '800',
+    marginTop: hp(0.3),
   },
 
   metrics: {
