@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,38 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../utils/colors';
-import { setKitCompleted } from '../../redux/slices/kitSlice';
 
 const SuccessScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const dispatch = useDispatch();
 
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
   const styles = getStyles(isTablet);
 
-  const { source, riderId } = route?.params || {};
-
-  useEffect(() => {
-    if (!riderId) return;
-
-    dispatch(
-      setKitCompleted({
-        riderId,
-        kitCompleted: true,
-        currentStep: 'SuccessScreen',
-      })
-    );
-  }, [dispatch, riderId]);
+  const { source } = route?.params || {};
 
   const handleGoHome = () => {
+    if (source === 'riderAssets') {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'MainTabs',
+            params: {
+              screen: 'Profile',
+              params: {
+                screen: 'ProfileScreen',
+              },
+            },
+          },
+        ],
+      });
+      return;
+    }
+
     navigation.reset({
       index: 0,
       routes: [{ name: 'MainTabs' }],
@@ -55,7 +58,7 @@ const SuccessScreen = () => {
 
         <TouchableOpacity style={styles.secondaryButton} onPress={handleGoHome}>
           <Text style={styles.secondaryButtonText}>
-            Go to Home
+            {source === 'riderAssets' ? 'Go to Profile' : 'Go to Home'}
           </Text>
         </TouchableOpacity>
       </View>

@@ -39,7 +39,7 @@ const PeakHourBonusScreen = ({ route, navigation }) => {
   const ruleType = data.peak_data.data[0]?.ruleType;
   const title = data.peak_data.data[0]?.name;
   const city = data.peak_data.data[0]?.cityName;
-  const status = data.peak_data.data[0]?.isActive ? "RUNNING" : "NOT STARTED";
+  const status = data.peak_data.data[0]?.isUpcoming ? "NOT STARTED" : "RUNNING";
   const peakSlotStart = data.peak_data.data[0]?.slots[0].startTime;
   const peakSlotEnd = data.peak_data.data[0]?.slots[0].endTime;
   const rewardAmount = data.peak_data.data[0]?.slots[0].reward?.amount;
