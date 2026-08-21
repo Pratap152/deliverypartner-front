@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -6,330 +6,463 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
-} from "react-native";
-import LinearGradient from "react-native-linear-gradient";
-import Ionicons from "react-native-vector-icons/Ionicons";
+} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+} from 'react-native-responsive-screen';
+
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import DeviceInfo from 'react-native-device-info';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
+
 import {
   getPeakHourIncentives,
   getDailyIncentives,
   getWeeklyIncentives,
-} from "../../services/earnings/incentiveService";
-import useIncentives from "../../hooks/useIncentives";
-import { SafeAreaView } from "react-native-safe-area-context";
-import DeviceInfo from 'react-native-device-info';
+} from '../../services/earnings/incentiveService';
 
+import useIncentives from '../../hooks/useIncentives';
 
 const isTablet = DeviceInfo.isTablet();
-export default function IncentiveDetails({ navigation }) {
+
+const formatTime = time => {
+  if (!time) return '';
+
+  const match = String(time).match(/(\d{1,2}):(\d{2})/);
+
+  if (!match) return time;
+
+  let hour = Number(match[1]);
+  const minute = match[2];
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+
+  hour = hour % 12 || 12;
+
+  return `${hour}:${minute} ${period}`;
+};
+
+const formatTimeRange = value => {
+  if (!value) return '';
+
+  const parts = String(value)
+    .split('-')
+    .map(item => item.trim());
+
+  if (parts.length === 2) {
+    return `${formatTime(parts[0])} - ${formatTime(parts[1])}`;
+  }
+
+  return formatTime(value);
+};
+
+const getPeakTime = program => {
+  if (!program) return '';
+
+  if (program.startTime && program.endTime) {
+    return `${formatTime(program.startTime)} - ${formatTime(
+      program.endTime,
+    )}`;
+  }
+
+  if (program.start_time && program.end_time) {
+    return `${formatTime(program.start_time)} - ${formatTime(
+      program.end_time,
+    )}`;
+  }
+
+  if (program.time) {
+    return formatTimeRange(program.time);
+  }
+
+  if (program.startTime && program.endTime) {
+    return `${formatTime(program.startTime)} - ${formatTime(
+      program.endTime,
+    )}`;
+  }
+
+  return '';
+};
+
+export default function IncentiveDetails({navigation}) {
   const [loading, setLoading] = useState(true);
+
   const [peakData, setPeakData] = useState(null);
   const [dailyData, setDailyData] = useState(null);
   const [weeklyData, setWeeklyData] = useState(null);
-  const { weeklyIncentivesProgress, dailyIncentivesProgress, peakIncentivesProgress, load, fetchWeeklyIncentivesProgress, fetchDailyIncentivesProgress, fetchPeakIncentivesProgress } = useIncentives();
 
-  useEffect(() => {
-    fetchAllIncentives();
-    fetchWeeklyIncentivesProgress();
-    fetchDailyIncentivesProgress();
-    fetchPeakIncentivesProgress();
-  }, []);
+  const {
+    dailyIncentivesProgress,
+    weeklyIncentivesProgress,
+    peakIncentivesProgress,
+    fetchWeeklyIncentivesProgress,
+    fetchDailyIncentivesProgress,
+    fetchPeakIncentivesProgress,
+  } = useIncentives();
 
-  const isPeakEmpty = peakData?.data?.[0] ? false : true;
-  const isDailyEmpty = dailyData?.data?.[0] ? false : true;
-  const isWeeklyEmpty = weeklyData?.data?.[0] ? false : true;
+  /*
+   * Refresh every time this screen becomes active.
+   * This fixes stale daily/weekly/peak progress.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
 
-  const weeklyCompletedOrders = weeklyIncentivesProgress?.ruleType !== "TASK" ? weeklyIncentivesProgress?.ordersCompleted : 0;
-  const dailyCompletedOrders = dailyIncentivesProgress?.ruleType !== "TASK" ? dailyIncentivesProgress?.ordersCompleted : 0;
-  const peakCompletedOrders = peakIncentivesProgress?.ordersCompleted;
-
-  const weeklyMinimumOrders = !isWeeklyEmpty ?
-    weeklyData?.data[0]?.ruleType === "HYBRID" ?
-      weeklyData?.data[0]?.conditions?.minOrders :
-      weeklyData?.data[0]?.ruleType === "FIXED_TARGET" ?
-        weeklyData?.data[0]?.target?.orders :
-        weeklyData?.data[0]?.ruleType === "SLAB" ?
-          weeklyData?.data[0]?.slabs[0]?.minOrders : 0
-    : 0;
-  const dailyMinimumOrders = !isDailyEmpty ?
-    dailyData?.data[0]?.ruleType === "HYBRID" ?
-      dailyData?.data[0]?.conditions?.minOrders :
-      dailyData?.data[0]?.ruleType === "FIXED_TARGET" ?
-        dailyData?.data[0]?.target?.orders :
-        dailyData?.data[0]?.ruleType === "SLAB" ?
-          dailyData?.data[0]?.slabs[0]?.minOrders : 0
-    : 0;
-
-  const peakMinimumOrders = !isPeakEmpty ?
-    peakData?.data?.[0].ruleType === "HYBRID" ?
-      peakData?.data[0]?.slots[0]?.conditions?.minOrders :
-      peakData?.data[0]?.ruleType === "FIXED_TARGET" ?
-        peakData?.data[0]?.slots[0]?.target?.orders :
-        peakData?.data[0]?.ruleType === "SLAB" ?
-          peakData?.data[0]?.slots[0]?.slabs[0]?.minOrders : 0
-    : 0;
-
-  const weeklyRewardEarned = weeklyIncentivesProgress?.rewardEarned || 0;
-  const dailyRewardEarned = dailyIncentivesProgress?.rewardEarned || 0;
-  const peakRewardEarned = peakIncentivesProgress?.rewardAmount || 0;
-
-
-
-  console.log("peak: ", peakIncentivesProgress);
-  /* ================= FETCH ALL INCENTIVES ================= */
-  const fetchAllIncentives = async () => {
-    try {
-      setLoading(true);
-
-      // PEAK
-      let peakRes = null;
-      try {
-        peakRes = await getPeakHourIncentives();
-        console.log('PEAK Response:', JSON.stringify(peakRes, null, 2));
-        if (peakRes?.data[0]) {
-          setPeakData(peakRes);
-        } else {
-          setPeakData({ emptyData: true });
+      const loadData = async () => {
+        if (mounted) {
+          setLoading(true);
         }
-      } catch (e) {
-        console.log('PEAK Error:', e.response?.data || e.message);
-      }
 
-      // DAILY
-      let dailyRes = null;
-      try {
-        dailyRes = await getDailyIncentives();
-        console.log('DAILY Response:', JSON.stringify(dailyRes, null, 2));
-        // Daily API returns data directly, not nested in .data
-        if (dailyRes?.success) {
-          setDailyData(dailyRes);
+        const results = await Promise.allSettled([
+          getPeakHourIncentives(),
+          getDailyIncentives(),
+          getWeeklyIncentives(),
+          fetchPeakIncentivesProgress(),
+          fetchDailyIncentivesProgress(),
+          fetchWeeklyIncentivesProgress(),
+        ]);
+
+        if (!mounted) return;
+
+        const [peakResult, dailyResult, weeklyResult] =
+          results;
+
+        if (
+          peakResult.status === 'fulfilled' &&
+          peakResult.value?.data?.[0]
+        ) {
+          setPeakData(peakResult.value);
         } else {
-          setDailyData({ emptyData: true });
+          setPeakData({emptyData: true});
         }
-      } catch (e) {
-        console.log('DAILY Error:', e.response?.data || e.message);
-      }
 
-      // WEEKLY
-      let weeklyRes = null;
-      try {
-        weeklyRes = await getWeeklyIncentives();
-        console.log('WEEKLY Response:', JSON.stringify(weeklyRes, null, 2));
-        if (weeklyRes?.data) {
-          setWeeklyData(weeklyRes);
+        if (
+          dailyResult.status === 'fulfilled' &&
+          dailyResult.value?.success &&
+          dailyResult.value?.data?.[0]
+        ) {
+          setDailyData(dailyResult.value);
         } else {
-          setWeeklyData({ emptyData: true });
+          setDailyData({emptyData: true});
         }
-      } catch (e) {
-        console.log('WEEKLY Error:', e.response?.data || e.message);
-      }
 
-    } catch (error) {
-      console.log("GENERAL ERROR:", error);
-      Alert.alert("Error", "Failed to load incentives");
-    } finally {
-      setLoading(false);
+        if (
+          weeklyResult.status === 'fulfilled' &&
+          weeklyResult.value?.success &&
+          weeklyResult.value?.data?.[0]
+        ) {
+          setWeeklyData(weeklyResult.value);
+        } else {
+          setWeeklyData({emptyData: true});
+        }
+
+        setLoading(false);
+      };
+
+      loadData();
+
+      return () => {
+        mounted = false;
+      };
+    }, [
+      fetchPeakIncentivesProgress,
+      fetchDailyIncentivesProgress,
+      fetchWeeklyIncentivesProgress,
+    ]),
+  );
+
+  const isPeakEmpty = !peakData?.data?.[0];
+  const isDailyEmpty = !dailyData?.data?.[0];
+  const isWeeklyEmpty = !weeklyData?.data?.[0];
+
+  /* =========================
+     DAILY
+  ========================= */
+
+  const dailyProgram = dailyData?.data?.[0] || null;
+  const dailyRuleType = dailyProgram?.ruleType || '';
+
+  const dailyCompletedOrders = Number(
+    dailyIncentivesProgress?.ordersCompleted ??
+      dailyIncentivesProgress?.completedOrders ??
+      0,
+  );
+
+  const dailyRewardEarned = Number(
+  dailyProgram?.slabs?.[0]?.rewardAmount ?? 0,
+);
+  let dailyMinimumOrders = 0;
+
+  if (dailyRuleType === 'SLAB') {
+    dailyMinimumOrders = Number(
+      dailyProgram?.slabs?.[0]?.minOrders ?? 0,
+    );
+  } else if (dailyRuleType === 'FIXED_TARGET') {
+    dailyMinimumOrders = Number(
+      dailyProgram?.target?.orders ?? 0,
+    );
+  } else if (dailyRuleType === 'HYBRID') {
+    dailyMinimumOrders = Number(
+      dailyProgram?.conditions?.minOrders ?? 0,
+    );
+  } else if (dailyRuleType === 'PER_ORDER') {
+    dailyMinimumOrders = Number(
+      dailyProgram?.reward?.maxOrders ??
+        dailyProgram?.maxOrders ??
+        0,
+    );
+  }
+
+  const dailyProgress =
+    dailyMinimumOrders > 0
+      ? Math.min(
+          (dailyCompletedOrders / dailyMinimumOrders) * 100,
+          100,
+        )
+      : 0;
+
+  /* =========================
+     WEEKLY
+  ========================= */
+
+  const weeklyProgram = weeklyData?.data?.[0] || null;
+  const weeklyRuleType = weeklyProgram?.ruleType || '';
+
+  const weeklyProgressData =
+    weeklyIncentivesProgress || null;
+
+  const weeklyCompletedDays = Number(
+    weeklyProgressData?.overallProgress?.completedDays ??
+      0,
+  );
+
+  const weeklyTotalDays = Number(
+    weeklyProgressData?.overallProgress?.totalDays ??
+      0,
+  );
+
+  const weeklyRewardEarned = Number(
+    weeklyProgressData?.overallProgress?.earnedAmount ??
+      0,
+  );
+
+  const weeklyRemainingAmount = Number(
+    weeklyProgressData?.overallProgress?.remainingAmount ??
+      0,
+  );
+
+  const weeklyMaxReward = Number(
+    weeklyProgram?.maxReward ??
+      weeklyProgressData?.maxReward ??
+      0,
+  );
+
+  const weeklyProgress =
+    weeklyRuleType === 'TASK'
+      ? weeklyTotalDays > 0
+        ? Math.min(
+            (weeklyCompletedDays / weeklyTotalDays) * 100,
+            100,
+          )
+        : 0
+      : 0;
+
+  /* =========================
+     PEAK
+  ========================= */
+
+  const peakCompletedOrders = Number(
+    peakIncentivesProgress?.ordersCompleted ??
+      peakIncentivesProgress?.completedOrders ??
+      0,
+  );
+
+  let peakMinimumOrders = 0;
+  const peakProgram = peakData?.data?.[0];
+  const peakSlot = peakProgram?.slots?.[0];
+
+  if (!isPeakEmpty) {
+
+    if (peakProgram?.ruleType === 'HYBRID') {
+      peakMinimumOrders = Number(
+        peakSlot?.conditions?.minOrders ?? 0,
+      );
+    } else if (peakProgram?.ruleType === 'FIXED_TARGET') {
+      peakMinimumOrders = Number(
+        peakSlot?.target?.orders ?? 0,
+      );
+    } else if (peakProgram?.ruleType === 'SLAB') {
+      peakMinimumOrders = Number(
+        peakSlot?.slabs?.[0]?.minOrders ?? 0,
+      );
     }
-  };
+  }
 
-  /* ================= NAVIGATION HANDLERS ================= */
+  const peakRewardEarned = Number(
+    peakSlot?.slabs?.[0]?.rewardAmount ?? 0,
+  );
+
+  const peakProgress =
+    peakMinimumOrders > 0
+      ? Math.min(
+          (peakCompletedOrders / peakMinimumOrders) * 100,
+          100,
+        )
+      : 0;
+
+  /* =========================
+     NAVIGATION
+  ========================= */
+
   const navigateToPeakHour = () => {
-    if (!peakData) {
-      Alert.alert("No Data", "Peak hour data is not available");
-      return;
-    }
-    navigation.navigate("PeakHourBonusScreen", {
+    if (!peakData || isPeakEmpty) return;
+
+    navigation.navigate('PeakHourBonusScreen', {
       peak_data: peakData,
       peakIncentivesProgress,
-      minOrders: peakMinimumOrders
+      minOrders: peakMinimumOrders,
     });
   };
 
   const navigateToDaily = () => {
-    if (!dailyData) {
-      Alert.alert("No Data", "Daily incentive data is not available");
-      return;
-    }
-    navigation.navigate("DailyGuarentee", {
+    if (!dailyData || isDailyEmpty) return;
+
+    navigation.navigate('DailyGuarentee', {
       daily_data: dailyData,
       dailyIncentivesProgress,
-      minOrders: dailyMinimumOrders
+      minOrders: dailyMinimumOrders,
     });
   };
 
   const navigateToWeekly = () => {
-    if (!weeklyData) {
-      Alert.alert("No Data", "Weekly incentive data is not available");
-      return;
-    }
-    navigation.navigate("WeekEarnings", {
+    if (!weeklyData || isWeeklyEmpty) return;
+
+    navigation.navigate('WeekEarnings', {
       weekly_data: weeklyData,
       weeklyIncentivesProgress,
-      minOrders: weeklyMinimumOrders
+      minOrders: 0,
     });
   };
 
-  console.log("📊 Current Data State:", {
-    peak: peakData ? "✅" : "❌",
-    daily: dailyData ? "✅" : "❌",
-    weekly: weeklyData ? "✅" : "❌"
-  });
+  /* =========================
+     LOADING
+  ========================= */
 
-  /* ================= RENDER ================= */
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        {/* HEADER EVEN DURING LOADING */}
         <LinearGradient
-          colors={["#6366F1", "#4F46E5"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.headerGradient}
-        >
+          colors={['#6366F1', '#4F46E5']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
+          style={styles.headerGradient}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={isTablet ? 30 : 24} color="#FFF" />
+            style={styles.backButton}>
+            <Ionicons
+              name="arrow-back"
+              size={isTablet ? 30 : 24}
+              color="#FFF"
+            />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Incentive Details</Text>
+
+          <Text style={styles.headerTitle}>
+            Incentive Details
+          </Text>
         </LinearGradient>
 
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#6366F1" />
-          <Text style={styles.loadingText}>Loading incentives...</Text>
+          <ActivityIndicator
+            size="large"
+            color="#6366F1"
+          />
+
+          <Text style={styles.loadingText}>
+            Loading incentives...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Calculate progress for each incentive
-  const dailyProgress = Math.min(
-    (dailyCompletedOrders /
-      dailyMinimumOrders) *
-    100,
-    100
-  )
-    || 0;
-
-  const peakProgress = Math.min(
-    (peakCompletedOrders / peakMinimumOrders) * 100,
-    100
-  )
-    || 0;
-
-  const weeklyProgress = weeklyIncentivesProgress.ruleType === "TASK" ?
-    Math.min(
-      (weeklyIncentivesProgress?.overallProgress.completedDays /
-        weeklyIncentivesProgress?.overallProgress.totalDays) *
-      100,
-      100
-    )
-    :
-    Math.min(
-      (weeklyCompletedOrders /
-        weeklyMinimumOrders) *
-      100,
-      100
-    );
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* PURPLE GRADIENT HEADER */}
+      {/* HEADER */}
+
       <LinearGradient
-        colors={["#6366F1", "#4F46E5"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.headerGradient}
-      >
+        colors={['#6366F1', '#4F46E5']}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}
+        style={styles.headerGradient}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
+          style={styles.backButton}>
+          <Ionicons
+            name="arrow-back"
+            size={isTablet ? 30 : 24}
+            color="#FFF"
+          />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Incentive Details</Text>
-      
+
+        <Text style={styles.headerTitle}>
+          Incentive Details
+        </Text>
       </LinearGradient>
 
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* TODAY'S TARGET - DAILY INCENTIVE */}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+
+        {/* AVAILABLE INCENTIVES */}
+
+        <View style={styles.sectionHeader}>
+          <Ionicons
+            name="gift-outline"
+            size={22}
+            color="#6366F1"
+          />
+
+          <Text style={styles.sectionTitle}>
+            Available Incentives
+          </Text>
+        </View>
+
+        {/* DAILY */}
+
         {!isDailyEmpty ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToDaily}
-            style={styles.todayCard}
-          >
-            <LinearGradient
-              colors={["#14B8C4", "#0E929D"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.todayGradient}
-            >
-              <Text style={styles.todayTitle}>Today's Target</Text>
-              <Text style={styles.todayAmount}>
-                ₹{dailyRewardEarned}
-              </Text>
+            style={styles.incentiveCard}>
 
-              {/* Progress Bar */}
-              <View style={styles.todayProgressContainer}>
-                <View style={styles.todayTrack}>
-                  <View
-                    style={[styles.todayFill, { width: `${dailyProgress}%` }]}
-                  />
-                </View>
-              </View>
-
-              <Text style={styles.todayText}>
-                {dailyCompletedOrders} of{" "}
-                {dailyMinimumOrders}{" "}
-                orders completed
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.emptyCard}>
-            <Ionicons name="calendar-outline" size={40} color="#CCC" />
-            <Text style={styles.emptyCardText}>No daily target available</Text>
-          </View>
-        )}
-
-        {/* SECTION HEADER */}
-        <View style={styles.sectionHeader}>
-          <Ionicons name="gift-outline" size={22} color="#6366F1" />
-          <Text style={styles.sectionTitle}>Available Incentives</Text>
-        </View>
-
-        {/* DAILY INCENTIVE CARD */}
-        {isDailyEmpty === false ? (
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={navigateToDaily}
-            style={styles.incentiveCard}
-          >
             <View style={styles.cardRow}>
               <View style={styles.cardLeft}>
                 <View
-                  style={[styles.iconCircle, { backgroundColor: "#F5F3FF" }]}
-                >
-                  <Ionicons name="checkmark-done" size={20} color="#6366F1" />
+                  style={[
+                    styles.iconCircle,
+                    {
+                      backgroundColor: '#F5F3FF',
+                    },
+                  ]}>
+                  <Ionicons
+                    name="checkmark-done"
+                    size={20}
+                    color="#6366F1"
+                  />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{dailyData.data[0]?.name}</Text>
-                  {/* <Text style={styles.cardSubtitle}>
-                    {dailyData.eligible
-                      ? "Target achieved"
-                      : "Daily target in progress"}
-                  </Text> */}
-                </View>
+
+                <Text
+                  style={styles.cardTitle}
+                  numberOfLines={2}>
+                  {dailyProgram?.name ||
+                    'Daily Incentive'}
+                </Text>
               </View>
+
               <Text style={styles.cardReward}>
                 ₹{dailyRewardEarned}
               </Text>
@@ -337,358 +470,442 @@ export default function IncentiveDetails({ navigation }) {
 
             <View style={styles.progressContainer}>
               <LinearGradient
-                colors={["#6366F1", "#4F46E5"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.progressFill, { width: `${dailyProgress}%` }]}
+                colors={['#6366F1', '#4F46E5']}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${dailyProgress}%`,
+                  },
+                ]}
               />
             </View>
 
             <Text style={styles.progressText}>
-              {Math.round(dailyProgress)}% completed
+              {dailyCompletedOrders} / {dailyMinimumOrders}{' '}
+              orders completed
             </Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.incentiveCardEmpty}>
-            <Ionicons name="checkmark-done" size={24} color="#DDD" />
-            <Text style={styles.emptyText}>Daily incentive not available</Text>
+            <Ionicons
+              name="checkmark-done"
+              size={24}
+              color="#DDD"
+            />
+
+            <Text style={styles.emptyText}>
+              Daily incentive not available
+            </Text>
           </View>
         )}
 
-        {/* PEAK HOUR INCENTIVE CARD */}
-        {isPeakEmpty === false ? (
+        {/* PEAK */}
+
+        {!isPeakEmpty ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToPeakHour}
-            style={styles.incentiveCard}
-          >
+            style={styles.incentiveCard}>
+
             <View style={styles.cardRow}>
               <View style={styles.cardLeft}>
                 <View
-                  style={[styles.iconCircle, { backgroundColor: "#FFF7ED" }]}
-                >
-                  <Ionicons name="flash" size={20} color="#FF9500" />
+                  style={[
+                    styles.iconCircle,
+                    {
+                      backgroundColor: '#FFF7ED',
+                    },
+                  ]}>
+                  <Ionicons
+                    name="flash"
+                    size={20}
+                    color="#FF9500"
+                  />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>
-                    {peakData.data[0]?.name}
+
+                <View style={styles.titleContainer}>
+                  <Text
+                    style={styles.cardTitle}
+                    numberOfLines={2}>
+                    {peakData?.data?.[0]?.name ||
+                      'Peak Hour Bonus'}
                   </Text>
-                  {/* <Text style={styles.cardSubtitle}>
-                    Peak Slot: {peakData.slotRule || "N/A"}
-                  </Text> */}
+
+                  {!!getPeakTime(
+                    peakData?.data?.[0],
+                  ) && (
+                    <Text style={styles.cardSubtitle}>
+                      {getPeakTime(
+                        peakData?.data?.[0],
+                      )}
+                    </Text>
+                  )}
                 </View>
               </View>
-              <Text style={[styles.cardReward, { color: "#FF9500" }]}>
+
+              <Text
+                style={[
+                  styles.cardReward,
+                  {
+                    color: '#FF9500',
+                  },
+                ]}>
                 ₹{peakRewardEarned}
               </Text>
             </View>
 
             <View style={styles.progressContainer}>
               <LinearGradient
-                colors={["#FF9500", "#FF7A00"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.progressFill, { width: `${peakProgress}%` }]}
+                colors={['#FF9500', '#FF7A00']}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${peakProgress}%`,
+                  },
+                ]}
               />
             </View>
 
             <Text style={styles.progressText}>
-              {peakCompletedOrders} /{" "}
-              {peakMinimumOrders} completed
+              {peakCompletedOrders} / {peakMinimumOrders}{' '}
+              completed
             </Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.incentiveCardEmpty}>
-            <Ionicons name="flash" size={24} color="#DDD" />
-            <Text style={styles.emptyText}>Peak hour bonus not available</Text>
+            <Ionicons
+              name="flash"
+              size={24}
+              color="#DDD"
+            />
+
+            <Text style={styles.emptyText}>
+              Peak hour bonus not available
+            </Text>
           </View>
         )}
 
-        {/* WEEKLY BONUS CARD */}
-        {isWeeklyEmpty === false ? (
+        {/* WEEKLY */}
+
+        {!isWeeklyEmpty ? (
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={navigateToWeekly}
-            style={styles.incentiveCard}
-          >
+            style={styles.incentiveCard}>
+
             <View style={styles.cardRow}>
               <View style={styles.cardLeft}>
                 <View
-                  style={[styles.iconCircle, { backgroundColor: "#EFF6FF" }]}
-                >
-                  <Ionicons name="calendar" size={20} color="#3B82F6" />
+                  style={[
+                    styles.iconCircle,
+                    {
+                      backgroundColor: '#EFF6FF',
+                    },
+                  ]}>
+                  <Ionicons
+                    name="calendar"
+                    size={20}
+                    color="#3B82F6"
+                  />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>
-                    {weeklyData.data[0].name || ""}
-                  </Text>
-                  {/* <Text style={styles.cardSubtitle}>
-                    {weeklyData.progress?.eligibleDays || 0}/
-                    {weeklyData.progress?.totalDaysRequired || 7} days
-                    completed
-                  </Text> */}
-                </View>
+
+                <Text
+                  style={styles.cardTitle}
+                  numberOfLines={2}>
+                  {weeklyProgram?.name ||
+                    'Weekly Bonus'}
+                </Text>
               </View>
-              <Text style={[styles.cardReward, { color: "#3B82F6" }]}>
+
+              <Text
+                style={[
+                  styles.cardReward,
+                  {
+                    color: '#3B82F6',
+                  },
+                ]}>
                 ₹{weeklyRewardEarned}
               </Text>
             </View>
 
-            <View style={styles.progressContainer}>
-              <LinearGradient
-                colors={["#3B82F6", "#2563EB"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.progressFill, { width: `${weeklyProgress}%` }]}
-              />
-            </View>
+            {/* TASK = DAYS */}
 
-            <Text style={styles.progressText}>
-              {Math.round(weeklyProgress)}% completed
-            </Text>
+            {weeklyRuleType === 'TASK' ? (
+              <>
+                <View style={styles.progressContainer}>
+                  <LinearGradient
+                    colors={['#3B82F6', '#2563EB']}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${weeklyProgress}%`,
+                      },
+                    ]}
+                  />
+                </View>
+
+                <Text style={styles.progressText}>
+                  {weeklyCompletedDays} / {weeklyTotalDays}{' '}
+                  days completed
+                </Text>
+
+                <Text style={styles.weeklyRewardText}>
+                  ₹{weeklyRewardEarned} earned
+                  {'  '}•{'  '}
+                  ₹{weeklyRemainingAmount} remaining
+                </Text>
+              </>
+            ) : (
+              <>
+                <View style={styles.progressContainer}>
+                  <LinearGradient
+                    colors={['#3B82F6', '#2563EB']}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${weeklyProgress}%`,
+                      },
+                    ]}
+                  />
+                </View>
+
+                <Text style={styles.progressText}>
+                  {weeklyCompletedDays} / {weeklyTotalDays}{' '}
+                  days completed
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         ) : (
           <View style={styles.incentiveCardEmpty}>
-            <Ionicons name="calendar" size={24} color="#DDD" />
-            <Text style={styles.emptyText}>Weekly bonus not available</Text>
+            <Ionicons
+              name="calendar"
+              size={24}
+              color="#DDD"
+            />
+
+            <Text style={styles.emptyText}>
+              Weekly bonus not available
+            </Text>
           </View>
         )}
 
-        {/* All Empty State */}
-        {isDailyEmpty === true && isPeakEmpty === true && isWeeklyEmpty === true && (
-          <View style={styles.emptyStateContainer}>
-            <Ionicons name="gift-outline" size={60} color="#CCC" />
-            <Text style={styles.emptyStateTitle}>
-              No Incentives Available
-            </Text>
-            <Text style={styles.emptyStateText}>
-              Check back later for new incentive opportunities
-            </Text>
-          </View>
-        )}
+        {/* ALL EMPTY */}
+
+        {isDailyEmpty &&
+          isPeakEmpty &&
+          isWeeklyEmpty && (
+            <View style={styles.emptyStateContainer}>
+              <Ionicons
+                name="gift-outline"
+                size={60}
+                color="#CCC"
+              />
+
+              <Text style={styles.emptyStateTitle}>
+                No Incentives Available
+              </Text>
+
+              <Text style={styles.emptyStateText}>
+                Check back later for new incentive
+                opportunities
+              </Text>
+            </View>
+          )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-/* ================= STYLES ================= */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: '#F8F8F8',
   },
 
-  /* Header */
   headerGradient: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
-    gap:10
+    gap: 10,
   },
+
   backButton: {
     padding: 8,
   },
+
   headerTitle: {
     fontSize: wp(6),
-    fontWeight: "700",
-    color: "#FFF",
+    fontWeight: '700',
+    color: '#FFF',
   },
 
-  /* Loading */
   loader: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+
   loadingText: {
     marginTop: hp(2),
     fontSize: wp(4),
-    color: "#666",
+    color: '#666',
   },
 
   scrollView: {
     flex: 1,
   },
 
-  /* Today's Target Card */
-  todayCard: {
-    margin: wp(5),
-    marginBottom: hp(2),
-    borderRadius: wp(4),
-    overflow: "hidden",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  todayGradient: {
-    padding: wp(5),
-  },
-  todayTitle: {
-    color: "#FFF",
-    fontSize: wp(4),
-    fontWeight: "600",
-  },
-  todayAmount: {
-    color: "#FFF",
-    fontSize: wp(8),
-    fontWeight: "700",
-    marginVertical: hp(1),
-  },
-  todayProgressContainer: {
-    marginVertical: hp(1.5),
-  },
-  todayTrack: {
-    height: 6,
-    backgroundColor: "rgba(255,255,255,0.3)",
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  todayFill: {
-    height: "100%",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-  },
-  todayText: {
-    color: "#E6FFFF",
-    fontSize: wp(3.5),
-    marginTop: hp(0.5),
+  scrollContent: {
+    paddingTop: hp(2.5),
+    paddingBottom: hp(4),
   },
 
-  /* Empty Card */
-  emptyCard: {
-    margin: wp(5),
-    marginBottom: hp(2),
-    padding: wp(8),
-    borderRadius: wp(4),
-    backgroundColor: "#FFF",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderStyle: "dashed",
-  },
-  emptyCardText: {
-    marginTop: hp(1),
-    fontSize: wp(3.5),
-    color: "#999",
-  },
-
-  /* Section Header */
   sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: wp(5),
     marginBottom: hp(2),
   },
+
   sectionTitle: {
     fontSize: wp(4.5),
-    fontWeight: "700",
-    color: "#000",
+    fontWeight: '700',
+    color: '#000',
   },
 
-  /* Incentive Cards */
   incentiveCard: {
-    backgroundColor: "#FFF",
+    backgroundColor: '#FFF',
     borderRadius: wp(4),
     padding: wp(4),
     marginHorizontal: wp(5),
     marginBottom: hp(2),
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.05,
     shadowRadius: 4,
   },
+
   cardRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: hp(1.5),
   },
+
   cardLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
     gap: 12,
+    paddingRight: 10,
   },
+
+  titleContainer: {
+    flex: 1,
+  },
+
   iconCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+
   cardTitle: {
+    flex: 1,
     fontSize: wp(4),
-    fontWeight: "600",
-    color: "#000",
+    fontWeight: '600',
+    color: '#000',
   },
+
   cardSubtitle: {
     fontSize: wp(3.2),
-    color: "#666",
-    marginTop: 2,
+    color: '#6B7280',
+    marginTop: 3,
   },
+
   cardReward: {
     fontSize: wp(4.5),
-    fontWeight: "700",
-    color: "#6366F1",
+    fontWeight: '700',
+    color: '#6366F1',
   },
 
-  /* Progress */
   progressContainer: {
     height: 6,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: '#E5E7EB',
     borderRadius: 10,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: hp(0.8),
   },
+
   progressFill: {
-    height: "100%",
+    height: '100%',
     borderRadius: 10,
   },
+
   progressText: {
     fontSize: wp(3),
-    color: "#6B7280",
+    color: '#6B7280',
   },
 
-  /* Empty Card State */
+  weeklyRewardText: {
+    fontSize: wp(3),
+    color: '#6B7280',
+    marginTop: hp(0.7),
+  },
+
   incentiveCardEmpty: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: '#F9FAFB',
     borderRadius: wp(4),
     padding: wp(4),
     marginHorizontal: wp(5),
     marginBottom: hp(2),
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderStyle: "dashed",
-  },
-  emptyText: {
-    fontSize: wp(3.5),
-    color: "#999",
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
   },
 
-  /* All Empty State */
+  emptyText: {
+    fontSize: wp(3.5),
+    color: '#999',
+  },
+
   emptyStateContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: hp(10),
   },
+
   emptyStateTitle: {
     marginTop: hp(2),
     fontSize: wp(5),
-    fontWeight: "600",
-    color: "#666",
+    fontWeight: '600',
+    color: '#666',
   },
+
   emptyStateText: {
     marginTop: hp(1),
     fontSize: wp(3.5),
-    color: "#999",
-    textAlign: "center",
+    color: '#999',
+    textAlign: 'center',
   },
 });

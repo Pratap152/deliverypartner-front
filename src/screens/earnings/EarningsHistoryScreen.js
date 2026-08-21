@@ -22,6 +22,7 @@ import {
 
 import { formatMoney } from "../../utils/formatMoney";
 import useEarningsHistory from "../../hooks/useEarningsHistory";
+import SalaryDetails from "./SalaryDetailsScreen";
 
 const isTablet = DeviceInfo.isTablet();
 const ZESTBOT = "ZESTBOT_EMPLOYEE";
@@ -34,43 +35,39 @@ export default function EarningsHistoryScreen({
   const mode = route?.params?.mode || "TODAY";
 
   const {
-    view,
-    loading,
-    initialLoading,
-    refreshing,
-    error,
-    offline,
-
-    weekData,
-    dayData,
-    orderData,
-
-    selectedYear,
-    setSelectedYear,
-    selectedWeek,
-    setSelectedWeek,
-    selectedDay,
-
-    ledgerItems,
-    currentRiderType,
-    isZestbot,
-
-    currentWeek,
-    years,
-    weeks,
-
-    loadHistoryWeek,
-    loadDay,
-    loadTransaction,
-    getZestbotAmount,
-    getZestbotBreakdown,
-    getWeeklyTotal,
-
-    refresh,
-    back,
-    bootstrap,
-    weeklyDailyData
-  } = useEarningsHistory({
+  view,
+  loading,
+  initialLoading,
+  refreshing,
+  error,
+  offline,
+  weekData,
+  dayData,
+  orderData,
+  selectedYear,
+  setSelectedYear,
+  selectedWeek,
+  setSelectedWeek,
+  selectedDay,
+  ledgerItems,
+  currentRiderType,
+  isZestbot,
+  currentWeek,
+  years,
+  weeks,
+  loadHistoryWeek,
+  loadDay,
+  loadTransaction,
+  getZestbotAmount,
+  getZestbotBreakdown,
+  getWeeklyTotal,
+  refresh,
+  back,
+  bootstrap,
+  weeklyDailyData,
+  loadSalary,
+  salaryData
+} = useEarningsHistory({
     navigation,
     mode,
     riderType,
@@ -120,17 +117,22 @@ export default function EarningsHistoryScreen({
       />
 
       {error ? (
-        <ErrorBox
-          text={error}
-          retry={bootstrap}
-        />
-      ) : view === "ORDER" ? (
-        <OrderDetails
-          data={orderData}
-          riderType={currentRiderType}
-          loading={loading}
-        />
-      ) : view === "DAY" ? (
+  <ErrorBox
+    text={error}
+    retry={bootstrap}
+  />
+) : view === "ORDER" ? (
+  <OrderDetails
+    data={orderData}
+    riderType={currentRiderType}
+    loading={loading}
+  />
+) : view === "SALARY" ? (
+  <SalaryDetails
+    data={salaryData}
+    onBack={back}
+  />
+) : view === "DAY" ? (
         <DailyScreen
           data={dayData}
           items={ledgerItems}
@@ -144,6 +146,7 @@ export default function EarningsHistoryScreen({
             loadDay(selectedDay, false)
           }
           onOrder={loadTransaction}
+          onSalary={loadSalary}
         />
       ) : (
         <WeeklyScreen
@@ -401,6 +404,7 @@ function DailyScreen({
   onRefresh,
   onLoadMore,
   onOrder,
+  onSalary,
 }) {
   if (loading && !data) {
     return (
@@ -490,6 +494,7 @@ function DailyScreen({
               title="Salary"
               subtitle={formatTime(item.time)}
               amount={Number(item.amount || 0)}
+              onPress={() => onSalary(item)}
             />
           );
         }

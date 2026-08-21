@@ -41,6 +41,15 @@ export default function useEarningsHistory({
     riderType || null
   );
 
+  const [salaryData, setSalaryData] = useState(null);
+
+  const loadSalary = (salary) => {
+  if (!salary) return;
+
+  setSalaryData(salary);
+  setView("SALARY");
+};
+
   const isZestbot = currentRiderType === ZESTBOT;
 
   /* =========================================================
@@ -745,23 +754,27 @@ export default function useEarningsHistory({
   ========================================================= */
 
   const back = () => {
-    if (view === "ORDER") {
-      setView("DAY");
-      return;
+  if (view === "ORDER") {
+    setView("DAY");
+    return;
+  }
+
+  if (view === "SALARY") {
+    setView("DAY");
+    return;
+  }
+
+  if (view === "DAY") {
+    if (mode === "TODAY") {
+      navigation.goBack();
+    } else {
+      setView("ROOT");
     }
+    return;
+  }
 
-    if (view === "DAY") {
-      if (mode === "TODAY") {
-        navigation.goBack();
-      } else {
-        setView("ROOT");
-      }
-
-      return;
-    }
-
-    navigation.goBack();
-  };
+  navigation.goBack();
+};
 
   /* =========================================================
      RETURN
@@ -812,6 +825,8 @@ export default function useEarningsHistory({
     refresh,
     back,
     bootstrap,
+    salaryData,
+    loadSalary,
   };
 };
 
