@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+
 import {
   View,
   Text,
@@ -6,796 +11,1267 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
-  RefreshControl
+  RefreshControl,
+  Modal,
+  BackHandler,
 } from "react-native";
+
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { SafeAreaView } from "react-native-safe-area-context";
-import NetInfo from "@react-native-community/netinfo";
+
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { formatMoney } from '../../utils/formatMoney';
-import { EarningsNewAPI } from '../../services/earnings/earningsHistoryService';
-import { EarningsCache } from "../../utils/earningsCache";
-import { Analytics } from "../../utils/analytics";
-import SelectModal from "../../components/dashboard/earnings/SelectModal";
+
 import DeviceInfo from "react-native-device-info";
+
 import {
   responsiveFontSize,
-  responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 
+import { formatMoney } from "../../utils/formatMoney";
+
+import useEarningsHistory from "../../hooks/useEarningsHistory";
+
+import SalaryDetails from "./SalaryDetailsScreen";
+
 const isTablet = DeviceInfo.isTablet();
 
+const ZESTBOT = "ZESTBOT_EMPLOYEE";
 
+export default function EarningsHistoryScreen({
+  navigation,
+  route,
+  riderType,
+}) {
+  const mode =
+    route?.params?.mode || "TODAY";
 
-export default function EarningsHistoryScreen({ navigation, route, riderType}) {
-  const mode = route?.params?.mode || "TODAY";
+  const {
+    view,
+    loading,
+    initialLoading,
+    refreshing,
+    error,
+    offline,
 
-  // STATE 
-  const [view, setView] = useState("ROOT");
+    weekData,
+    dayData,
+    orderData,
 
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
-  const [isOffline, setIsOffline] = useState(false);
+    selectedYear,
+    setSelectedYear,
 
-  const [weekData, setWeekData] = useState(null);
-  const [dayData, setDayData] = useState(null);
-  const [orderData, setOrderData] = useState(null);
+    selectedWeek,
+    setSelectedWeek,
 
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedWeek, setSelectedWeek] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
+    selectedDay,
 
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [ledgerItems, setLedgerItems] = useState([]);
+    ledgerItems,
 
-  // Modals
-  const [yearModal, setYearModal] = useState(false);
-  const [weekModal, setWeekModal] = useState(false);
-  const [calendarVisible, setCalendarVisible] = useState(false);
+    currentRiderType,
+    isZestbot,
 
-  const cameFromToday = mode === "TODAY";
+    currentWeek,
+    years,
+    weeks,
 
-  const currentWeekNumber = useMemo(() => getBackendWeekNumber(new Date()), []);
+    loadHistoryWeek,
+    loadDay,
+    loadTransaction,
 
-  // CONSTANTS
-  const years = useMemo(() => {
-    const now = new Date().getFullYear();
-    return [now, now - 1, now - 2];
-  }, []);
+    getZestbotAmount,
+    getZestbotBreakdown,
+    getWeeklyTotal,
+    getWeeklyDayAmount,
 
-  const weeks = useMemo(() => {
-  const allWeeks = getWeeksOfYear_BackendCompatible(selectedYear);
-  const now = new Date();
+    refresh,
+    back,
+    bootstrap,
 
-  if (selectedYear === now.getFullYear()) {
-    return allWeeks
-      .filter((item) => item.week <= getBackendWeekNumber(now))
-      .reverse();
-  }
+    weeklyDailyData,
 
-  return allWeeks.reverse();
-}, [selectedYear]);
+    loadSalary,
+    salaryData,
+  } = useEarningsHistory({
+    navigation,
+    mode,
+    riderType,
+  });
 
-  // NETWORK 
+  const [modal, setModal] =
+    useState(null);
+
+  const [calendar, setCalendar] =
+    useState(false);
+
   useEffect(() => {
-    const unsub = NetInfo.addEventListener((state) => {
-      setIsOffline(!state.isConnected);
-    });
-    return () => unsub();
-  }, []);
+    const onBackPress = () => {
+      back();
+      return true;
+    };
 
-  // SAFE API WITH CACHE 
-  const safeApiCached = useCallback(
-    async (key, fn, force = false) => {
-      setError(null);
+    const subscription =
+      BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
 
-      if (!force) {
-        const cached = await EarningsCache.get(key);
-        if (cached) return cached;
-      }
+    return () =>
+      subscription.remove();
+  }, [back]);
 
-      if (isOffline) {
-        const cached = await EarningsCache.get(key);
-        if (cached) return cached;
-        setError("No internet connection");
-        return null;
-      }
-
-      try {
-        const res = await fn();
-        const data = res?.data;
-        if (data) {
-          await EarningsCache.set(key, data);
-        }
-        return data;
-      } catch (e) {
-        console.error("API ERROR:", e?.response?.status, e?.message);
-        if (e?.response?.status === 401) {
-          Alert.alert("Session expired", "Please login again.");
-        } else {
-          setError("Something went wrong. Please try again.");
-        }
-
-        const cached = await EarningsCache.get(key);
-        if (cached) return cached;
-        return null;
-      }
-    },
-    [isOffline]
-  );
-
-  // BOOTSTRAP 
-  useEffect(() => {
-    bootstrap();
-  }, []);
-
-  function getOrdinalSuffix(day) {
-  if (day > 3 && day < 21) return "th";
-
-  switch (day % 10) {
-    case 1:
-      return "st";
-    case 2:
-      return "nd";
-    case 3:
-      return "rd";
-    default:
-      return "th";
-  }
-}
-
-function formatPrettyDate(dateString) {
-  const date = new Date(dateString);
-  const day = date.getDate();
-  const month = date.toLocaleString("en-US", { month: "short" });
-
-  return `${month} ${day}${getOrdinalSuffix(day)}`;
-}
-
-  const bootstrap = async () => {
-    Analytics.track("earnings_screen_open", { mode });
-    setInitialLoading(true)
-
-    if (mode === "TODAY") await loadToday(true);
-    else if (mode === "WEEK") await loadCurrentWeek(true);
-    else if (mode === "HISTORY") {
-      const w = getWeekNumber(new Date());
-      setSelectedWeek(w);
-      await loadHistoryWeek(w, selectedYear, true);
-    }
-    setInitialLoading(false);
-  };
-
-  // LOADERS 
-  const loadToday = async (force = false) => {
-    setLoading(true);
-    const data = await safeApiCached("today", () => EarningsNewAPI.getToday(), force);
-    setLoading(false);
-
-    if (data) {
-      setDayData(data);
-      setLedgerItems(data.items || []);
-      setHasMore(false);
-      setView("DAY");
-    }
-  };
-
-  const loadCurrentWeek = async (force = false) => {
-    setLoading(true);
-    const data = await safeApiCached("currentWeek", () => EarningsNewAPI.getCurrentWeek(), force);
-    setLoading(false);
-
-    if (data) {
-      setWeekData(data);
-      setView("ROOT");
-    }
-  };
-
-  const loadHistoryWeek = async (week, year, force = false) => {
-    setLoading(true);
-    const key = `week_${year}_${week}`;
-    const data = await safeApiCached(key, () => EarningsNewAPI.getWeekByNumber(week, year), force);
-    setLoading(false);
-
-    if (data) {
-      setWeekData(data);
-      setView("ROOT");
-      prefetchNextWeek(week, year);
-    }
-  };
-
-  const loadDay = async (date, reset = true, force = false) => {
-    const nextPage = reset ? 1 : page;
-
-    if (reset) {
-      setSelectedDay(date);
-      setPage(1);
-      setLedgerItems([]);
-      setHasMore(true);
-    } else if (!hasMore) {
-      return;
-    }
-    setLoading(true);
-
-    const key = `day_${date}_${nextPage}`;
-    const data = await safeApiCached(
-      key,
-      () => EarningsNewAPI.getDailyByDate(date, nextPage),
-      force
-    );
-    setLoading(false);
-
-    if (data) {
-      const items = data.items || [];
-      setDayData(data);
-      setLedgerItems(prev => (reset ? items : [...prev, ...items]));
-      setHasMore(items.length >= 20);
-      setPage(nextPage + 1);
-      setView("DAY");
-
-      if (reset) {
-        setSelectedDay(date);
-      }
-      prefetchNextDay(date);
-    }
-  };
-
-  const loadTransactionDetails = async (id) => {
-    Analytics.track("earnings_open_transaction", { id });
-
-    setLoading(true);
-    const key = `transaction_${id}`;
-    const data = await safeApiCached(key, () => EarningsNewAPI.getOrder(id));
-    setLoading(false);
-
-    if (data) {
-      setOrderData(data);
-      setView("ORDER");
-    }
-  };
-
-  // PREFETCH 
-  const prefetchNextWeek = async (week, year) => {
-    const nextWeek = week + 1;
-    if (nextWeek > 53) return;
-    const key = `week_${year}_${nextWeek}`;
-    const cached = await EarningsCache.get(key);
-    if (cached) return;
-
-    safeApiCached(key, () => EarningsNewAPI.getWeekByNumber(nextWeek, year));
-  };
-
-  const prefetchNextDay = async (dateStr) => {
-    const d = new Date(dateStr);
-    d.setDate(d.getDate() + 1);
-    const next = d.toISOString().split("T")[0];
-
-    const key = `day_${next}_1`;
-    const cached = await EarningsCache.get(key);
-    if (cached) return;
-
-    safeApiCached(key, () => EarningsNewAPI.getDailyByDate(next, 1));
-  };
-
-  //PULL TO REFRESH 
-  const onRefresh = async () => {
-  Analytics.track("earnings_refresh", { mode, view });
-  setRefreshing(true);
-
-  try {
-    if (view === "DAY" && selectedDay) {
-      await loadDay(selectedDay, true, true);
-    } else if (view === "ORDER") {
-      // optional: no refresh, or re-fetch transaction if needed
-    } else if (mode === "TODAY") {
-      await loadToday(true);
-    } else if (mode === "WEEK") {
-      await loadCurrentWeek(true);
-    } else if (mode === "HISTORY" && selectedWeek) {
-      await loadHistoryWeek(selectedWeek, selectedYear, true);
-    }
-  } finally {
-    setRefreshing(false);
-  }
-};
-
-  // BACK 
-  const onBack = () => {
+  const title = useMemo(() => {
     if (view === "ORDER") {
-      setView("DAY");
-      return;
-    }
-    if (view === "DAY") {
-      if (cameFromToday) {
-        navigation.goBack();
-        return;
-      }
-      setView("ROOT");
-      return;
-    }
-    navigation.goBack();
-  };
-
-  function getWeeksOfYear_BackendCompatible(year) {
-  const weeks = [];
-
-  // Find Jan 1
-  const jan1 = new Date(year, 0, 1);
-
-  // Find Monday of the week that contains Jan 1
-  const day = jan1.getDay(); // 0=Sun,1=Mon,etc
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const firstWeekStart = new Date(jan1);
-  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
-
-  let current = new Date(firstWeekStart);
-  let week = 1;
-
-  while (true) {
-    const start = new Date(current);
-    const end = new Date(current);
-    end.setDate(end.getDate() + 6);
-
-    // Stop if this week is completely after the year
-    if (start.getFullYear() > year && end.getFullYear() > year) {
-      break;
+      return "Order Details";
     }
 
-    const today = new Date();
-    const isFuture = start > today;
-
-    weeks.push({
-        week,
-        startDate: start.toISOString().split("T")[0],
-        endDate: end.toISOString().split("T")[0],
-        startLabel: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        endLabel: end.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        isFuture,
-      });
-      current.setDate(current.getDate() + 7);
-      week++;
-    }
-    return weeks;
-  }
-
-function getBackendWeekNumber(date) {
-  const d = new Date(date);
-
-  const year = d.getFullYear();
-  const jan1 = new Date(year, 0, 1);
-
-  // Find Monday of week containing Jan 1
-  const day = jan1.getDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const firstWeekStart = new Date(jan1);
-  firstWeekStart.setDate(jan1.getDate() + diffToMonday);
-
-  const diffDays = Math.floor(
-    (d.setHours(0,0,0,0) - firstWeekStart.setHours(0,0,0,0)) / 86400000
-  );
-
-  return Math.floor(diffDays / 7) + 1;
-}
-
-
-  // HEADER
-  const headerTitle = useMemo(() => {
-    const detail = orderData?.transaction || orderData;
-
-    if (view === "ORDER") {
-      if (detail?.type === "INCENTIVE") return "Incentive Details";
-      if (detail?.type === "DELIVERY") return "Delivery Details";
-      return "Delivery Details";
-    }
-
-    if (mode === "TODAY" && view === "DAY") {
+    if (mode === "TODAY") {
       return "Today's Earnings";
     }
 
-    if (view === "DAY") return "Daily Earnings";
-    if (mode === "WEEK") return "Weekly Earnings";
-    if (mode === "HISTORY") return "Earnings History";
-
-    return "Earnings";
-  }, [mode, view, orderData]);
-
-
-  // UI RENDERERS 
-  const renderHistorySelectors = () => (
-    <View style={styles.selectorRow}>
-      <Dropdown label={`Year: ${selectedYear}`} onPress={() => {
-        Analytics.track("earnings_open_year_selector");
-        setYearModal(true);
-      }} />
-      <Dropdown label={`Week: ${selectedWeek}`} onPress={() => {
-        Analytics.track("earnings_open_week_selector");
-        setWeekModal(true);
-      }} />
-      <Dropdown
-            label={selectedDay ? `Day: ${formatPrettyDate(selectedDay)}` : "Pick Day"}
-            onPress={() => {
-              Analytics.track("earnings_open_day_picker");
-              setCalendarVisible(true);
-            }}
-          />
-    </View>
-  );
-
-  const renderWeekRoot = () => {
-  if (!weekData) return <EmptyState />;
-  return (
-    <FlatList
-      data={weekData.days || []}
-      keyExtractor={(item) => item.date}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={["#9c50ff"]}
-          tintColor="#9c50ff"
-        />
-      }
-      ListHeaderComponent={
-        <>
-          {mode === "HISTORY" && renderHistorySelectors()}
-          <TotalCard title="Total" amount={formatMoney(weekData.total) || 0} />
-        </>
-      }
-      renderItem={({ item }) => (
-        <Row
-          title={`${item.day} (${formatPrettyDate(item.date)})`}
-          subtitle={`${item.orders || 0} orders`}
-          right={`₹${formatMoney(item.amount) || 0}`}
-          onPress={() => {
-            Analytics.track("earnings_select_day", { date: item.date });
-            loadDay(item.date, true, true);
-          }}
-        />
-      )}
-    />
-  );
-};
-
-
-  const renderDay = () => (
-  <FlatList
-    data={ledgerItems}
-    extraData={{ dayData, selectedDay, hasMore, page, loading }}
-    keyExtractor={(item, idx) => (item.orderId || idx) + "_" + idx}
-    refreshing={refreshing}
-    onRefresh={onRefresh}
-    refreshControl={
-      <RefreshControl
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        colors={["#9c50ff"]}
-        tintColor="#9c50ff"
-      />
+    if (view === "DAY") {
+      return "Daily Earnings";
     }
-    ListHeaderComponent={
-      <TotalCard title="Total Earnings" amount={formatMoney(dayData?.totalEarnings) || 0} />
+
+    if (mode === "WEEK") {
+      return "Weekly Earnings";
     }
-    ListEmptyComponent={<EmptyState />}
-    onEndReached={() => loadDay(selectedDay, false)}
-    onEndReachedThreshold={0.5}
-    ListFooterComponent={
-      loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} /> : null
-    }
-    renderItem={({ item }) => (
-      <Row
-        title={item.type}
-        subtitle={item.time ? new Date(item.time).toLocaleTimeString() : ""}
-        right={`₹${formatMoney(item.amount) || 0}`}
-        onPress={() => {
-          if (item.type === "DELIVERY" && item.orderId) {
-            loadTransactionDetails(item.orderId);
-            return;
-          }
 
-          if (item.type === "INCENTIVE" && item.transactionId) {
-            loadTransactionDetails(item.transactionId);
-          }
-        }}
-      />
-    )}
-  />
-);
+    return "Earnings History";
+  }, [mode, view]);
 
-  const renderOrder = () => {
-  if (!orderData) return <EmptyState />;
-
-  const transaction = orderData.transaction || orderData;
-  const b = orderData.breakup || {};
-  const riderType = orderData.riderType || transaction?.riderType;
-  const isZestbotEmployee = riderType === "ZESTBOT_EMPLOYEE";
-
-  const targetProgress = orderData.targetProgress || {};
-  const targetCompletedByProgress =
-    targetProgress.targetOrders &&
-    targetProgress.completedOrders >= targetProgress.targetOrders;
-
-  const isTargetCompleted =
-    targetCompletedByProgress ||
-    (transaction?.type === "ORDER_EARNING" &&
-      transaction?.status === "CREDITED");
-
-  const prettyTime = (value) =>
-    value ? new Date(value).toLocaleString() : "-";
-
-  if (isZestbotEmployee) {
-    const amount = transaction?.amount ?? orderData.totalEarnings ?? orderData.amount ?? 0;
-
-    return (
-      <View style={{ padding: 16 }}>
-        <TotalCard
-          title={isTargetCompleted ? "Target Completed" : "Target In Progress"}
-          amount={isTargetCompleted ? formatMoney(amount) : 0}
-        />
-
-        <View style={styles.box}>
-          <BreakRow label="Rider Type" value={riderType} />
-          <BreakRow
-            label="Order ID"
-            value={orderData.orderId || transaction?.referenceId || "-"}
-          />
-          <BreakRow label="Store" value={orderData.store || "-"} />
-
-          {isTargetCompleted && (
-            <>
-              <BreakRow
-                label="Amount"
-                value={`₹${formatMoney(amount)}`}
-              />
-            </>
-          )}
-
-          <BreakRow
-            label="Status"
-            value={orderData.status || transaction?.status || "-"}
-          />
-          <BreakRow
-            label="Time"
-            value={prettyTime(orderData.time || transaction?.time)}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  // INCENTIVE case 
-  const isIncentive = transaction?.type === "INCENTIVE";
-  if (isIncentive) {
-    return (
-      <View style={{ padding: 16 }}>
-        <TotalCard
-          title="Incentive Amount"
-          amount={formatMoney(transaction.amount) || 0}
-        />
-        <View style={styles.box}>
-          <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
-            <Text style={{ fontSize: 16, fontWeight: "600" }}>Incentive</Text>
-            <Text style={{ marginLeft: 8, color: "#777" }}>
-              #{transaction.transactionId || ""}
-            </Text>
-          </View>
-
-          <BreakRow label="Type" value={transaction.type} />
-          <BreakRow label="Status" value={transaction.status} />
-          <BreakRow label="Description" value={transaction.description} />
-          <BreakRow
-            label="Credited At"
-            value={
-              transaction.creditedAt
-                ? new Date(transaction.creditedAt).toLocaleString()
-                : "-"
-            }
-          />
-        </View>
-      </View>
-    );
-  }
-
-  // Normal delivery breakdown 
-  return (
-    <View style={{ padding: 16 }}>
-      <TotalCard
-        title="Total Earnings"
-        amount={formatMoney(orderData.totalEarnings) || 0}
-      />
-      <View style={styles.box}>
-        <View style={{ flexDirection: "column", alignItems: "center", padding: 7 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>
-            {orderData.store || "Store"}
-          </Text>
-          <Text style={{ marginLeft: 8, color: "#777" }}>
-            #{orderData.orderId || ""}
-          </Text>
-        </View>
-        <BreakRow label="Base Fare" value={b.basePay} isAmount />
-        <BreakRow
-          label="Distance Fare"
-          value={formatMoney(b.distancePay)}
-          isAmount
-        />
-        <BreakRow label="Surge" value={b.surgePay} isAmount />
-        <BreakRow label="Tips" value={b.tips} isAmount />
-      </View>
-    </View>
-  );
-};
-  const renderContent = () => {
   if (initialLoading) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#9c50ff" />
-        <Text style={styles.loaderText}>Loading earnings...</Text>
-      </View>
+      <SafeAreaView
+        style={styles.container}
+      >
+        <Loader />
+      </SafeAreaView>
     );
   }
 
-  if (error) {
-    return (
-      <ErrorBox
-        text={error}
-        onRetry={() => {
-          Analytics.track("earnings_retry", { mode, view });
-          bootstrap();
-        }}
-      />
-    );
-  }
-
-  if (view === "ORDER") return renderOrder();
-  if (view === "DAY") return renderDay();
-  return renderWeekRoot();
-};
-
-  // UI 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={isTablet ? 30 : 24} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{headerTitle}</Text>
-        {isOffline && <Text style={{ color: "red", marginLeft: 8 }}>Offline</Text>}
-      </View>
+    <SafeAreaView
+      style={styles.container}
+    >
+      <Header
+        title={title}
+        offline={offline}
+        onBack={back}
+      />
 
-      {renderContent()}
+      {error ? (
+        <ErrorBox
+          text={error}
+          retry={bootstrap}
+        />
+      ) : view === "ORDER" ? (
+        <OrderDetails
+          data={orderData}
+          riderType={currentRiderType}
+          loading={loading}
+        />
+      ) : view === "SALARY" ? (
+        <SalaryDetails
+          data={salaryData}
+          onBack={back}
+        />
+      ) : view === "DAY" ? (
+        <DailyScreen
+          data={dayData}
+          items={ledgerItems}
+          isZestbot={isZestbot}
+          loading={loading}
+          refreshing={refreshing}
+          getBreakdown={
+            getZestbotBreakdown
+          }
+          onRefresh={refresh}
+          onLoadMore={() =>
+            selectedDay &&
+            loadDay(
+              selectedDay,
+              false
+            )
+          }
+          onOrder={loadTransaction}
+          onSalary={loadSalary}
+        />
+      ) : (
+        <WeeklyScreen
+          data={weekData}
+          isZestbot={isZestbot}
+          weeklyTotal={getWeeklyTotal()}
+          weeklyDailyData={
+            weeklyDailyData
+          }
+          getZestbotAmount={
+            getZestbotAmount
+          }
+          getWeeklyDayAmount={
+            getWeeklyDayAmount
+          }
+          selectedYear={selectedYear}
+          selectedWeek={selectedWeek}
+          currentWeek={currentWeek}
+          mode={mode}
+          loading={loading}
+          refreshing={refreshing}
+          onRefresh={refresh}
+          onDay={(date) =>
+            loadDay(
+              date,
+              true,
+              true
+            )
+          }
+          onYear={() =>
+            setModal("YEAR")
+          }
+          onWeek={() =>
+            setModal("WEEK")
+          }
+          onDayPicker={() =>
+            setCalendar(true)
+          }
+        />
+      )}
 
-      {/* Year Modal */}
-      <SelectModal
-        visible={yearModal}
+      <SimpleModal
+        visible={modal === "YEAR"}
         title="Select Year"
         data={years}
-        onClose={() => setYearModal(false)}
-        onSelect={(y) => {
-          Analytics.track("earnings_select_year", { year: y });
-          setYearModal(false);
-          setSelectedYear(y);
-          loadHistoryWeek(selectedWeek, y, true);
+        label={(item) =>
+          String(item)
+        }
+        onClose={() =>
+          setModal(null)
+        }
+        onSelect={(year) => {
+          setSelectedYear(year);
+          setModal(null);
+
+          if (selectedWeek) {
+            loadHistoryWeek(
+              selectedWeek,
+              year,
+              true
+            );
+          }
         }}
       />
 
-      {/* Week Modal */}
-      <SelectModal
-        visible={weekModal}
+      <SimpleModal
+        visible={modal === "WEEK"}
         title="Select Week"
         data={weeks}
-        keyExtractor={(item) => String(item.week)}
-        labelExtractor={(item) =>
+        label={(item) =>
           `Week ${item.week} (${item.startLabel} - ${item.endLabel})`
         }
-        selectedValue={selectedWeek}
-        isItemHighlighted={(item) => item.week === currentWeekNumber}
-        onClose={() => setWeekModal(false)}
+        selected={(item) =>
+          item.week === selectedWeek
+        }
+        highlight={(item) =>
+          item.week === currentWeek
+        }
+        onClose={() =>
+          setModal(null)
+        }
         onSelect={(item) => {
-          Analytics.track("earnings_select_week", {
-            week: item.week,
-            year: selectedYear,
-          });
-          setSelectedWeek(item.week);
-          loadHistoryWeek(item.week, selectedYear, true);
+          setSelectedWeek(
+            item.week
+          );
+
+          setModal(null);
+
+          loadHistoryWeek(
+            item.week,
+            selectedYear,
+            true
+          );
         }}
       />
 
-      {/* Calendar */}
       <DateTimePickerModal
-        isVisible={calendarVisible}
+        isVisible={calendar}
         mode="date"
         onConfirm={(date) => {
-          setCalendarVisible(false);
-          const d = date.toISOString().split("T")[0];
-          Analytics.track("earnings_select_day", { date: d });
-          setSelectedDay(d);
-          loadDay(d, true, true);
+          setCalendar(false);
+
+          loadDay(
+            date
+              .toISOString()
+              .split("T")[0],
+            true,
+            true
+          );
         }}
-        onCancel={() => setCalendarVisible(false)}
+        onCancel={() =>
+          setCalendar(false)
+        }
       />
     </SafeAreaView>
   );
 }
 
-// SMALL UI 
-function Dropdown({ label, onPress }) {
-  return (
-    <TouchableOpacity style={styles.dropdown} onPress={onPress}>
-      <Text>{label}</Text>
-      <Ionicons name="chevron-down" size={18} />
-    </TouchableOpacity>
-  );
-}
+/* =========================================================
+   HEADER
+========================================================= */
 
-function TotalCard({ title, amount}) {
+function Header({
+  title,
+  offline,
+  onBack,
+}) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardLabel}>{title}</Text>
-      <Text style={styles.cardAmount}>₹{amount}</Text>
+    <View style={styles.header}>
+      <TouchableOpacity
+        onPress={onBack}
+        style={styles.back}
+      >
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="#111"
+        />
+      </TouchableOpacity>
+
+      <Text
+        style={styles.headerTitle}
+      >
+        {title}
+      </Text>
+
+      {offline && (
+        <Text style={styles.offline}>
+          Offline
+        </Text>
+      )}
     </View>
   );
 }
 
-function Row({ title, subtitle, right, onPress }) {
+/* =========================================================
+   WEEKLY SCREEN
+========================================================= */
+
+function WeeklyScreen({
+  data,
+  isZestbot,
+  weeklyTotal,
+
+  selectedYear,
+  selectedWeek,
+  currentWeek,
+  mode,
+
+  loading,
+  refreshing,
+
+  onRefresh,
+  onDay,
+  onYear,
+  onWeek,
+  onDayPicker,
+
+  weeklyDailyData,
+  getZestbotAmount,
+  getWeeklyDayAmount,
+}) {
+  if (!data) {
+    return <Empty />;
+  }
+
   return (
-    <TouchableOpacity onPress={onPress} style={styles.row}>
-      <View>
-        <Text style={styles.rowTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
-      </View>
-      <Text style={styles.rowRight}>{right}</Text>
-    </TouchableOpacity>
+    <FlatList
+      data={data.days || []}
+      keyExtractor={(item) =>
+        item.date
+      }
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#9c50ff"]}
+        />
+      }
+      ListHeaderComponent={
+        <>
+          {(mode === "HISTORY" ||
+            mode === "WEEK") && (
+            <View
+              style={styles.filters}
+            >
+              <Filter
+                text={`Year: ${selectedYear}`}
+                onPress={onYear}
+              />
+
+              <Filter
+                text={`Week: ${
+                  selectedWeek || "-"
+                }`}
+                onPress={onWeek}
+              />
+
+              <Filter
+                text="Pick Day"
+                onPress={onDayPicker}
+              />
+            </View>
+          )}
+
+          <TotalCard
+            title="Total Earnings"
+            amount={weeklyTotal}
+          />
+        </>
+      }
+      renderItem={({ item }) => {
+        const daily =
+          weeklyDailyData?.[
+            item.date
+          ];
+
+        /*
+         * IMPORTANT:
+         *
+         * For BOTH Individual and ZestBot,
+         * prefer the daily API totalEarnings.
+         *
+         * Example:
+         *
+         * Thursday weekly API:
+         *     ₹360.56
+         *
+         * Thursday daily API:
+         *     ₹1860.56
+         *
+         * The difference is the ₹1500 Joining Bonus.
+         */
+        const amount =
+          getWeeklyDayAmount(
+            daily,
+            item
+          );
+
+        return (
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() =>
+              onDay(item.date)
+            }
+          >
+            <View
+              style={styles.rowText}
+            >
+              <Text
+                style={styles.rowTitle}
+              >
+                {item.day} (
+                {prettyDate(
+                  item.date
+                )}
+                )
+              </Text>
+
+              <Text
+                style={styles.rowSub}
+              >
+                {item.orders || 0}{" "}
+                {Number(
+                  item.orders || 0
+                ) === 1
+                  ? "order"
+                  : "orders"}
+              </Text>
+            </View>
+
+            <Text
+              style={styles.amount}
+            >
+              ₹{formatMoney(amount)}
+            </Text>
+          </TouchableOpacity>
+        );
+      }}
+    />
   );
 }
 
-function BreakRow({ label, value, isAmount = false }) {
+/* =========================================================
+   DAILY SCREEN
+========================================================= */
+
+function DailyScreen({
+  data,
+  items,
+  isZestbot,
+  loading,
+  refreshing,
+  onRefresh,
+  onLoadMore,
+  onOrder,
+  onSalary,
+}) {
+  if (loading && !data) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator
+          size="large"
+          color="#9c50ff"
+        />
+
+        <Text
+          style={styles.loaderText}
+        >
+          Loading earnings...
+        </Text>
+      </View>
+    );
+  }
+
+  const visibleItems =
+    items.filter(
+      (item) =>
+        item.type !== "ATTENDANCE"
+    );
+
+  /*
+   * totalEarnings is the canonical daily
+   * total and includes Joining Bonus.
+   */
+  const total = Number(
+    data?.totalEarnings ?? 0
+  );
+
   return (
-    <View style={styles.breakRow}>
-      <Text>{label}</Text>
-      <Text style={{ color: "#0A9F5A", fontWeight: "700" }}>
-        {isAmount ? `₹${value || 0}` : value || "-"}
+    <FlatList
+      data={visibleItems}
+      keyExtractor={(item, index) =>
+        `${
+          item.orderId ||
+          item.transactionId ||
+          item.type
+        }-${index}`
+      }
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#9c50ff"]}
+        />
+      }
+      ListHeaderComponent={
+        <TotalCard
+          title="Total Earnings"
+          amount={total}
+        />
+      }
+      renderItem={({ item }) => {
+        if (
+          item.type ===
+          "INCENTIVE"
+        ) {
+          return (
+            <Row
+              title="Joining Bonus"
+              subtitle={formatTime(
+                item.time
+              )}
+              amount={Number(
+                item.amount || 0
+              )}
+            />
+          );
+        }
+
+        if (
+          isZestbot &&
+          item.type === "SALARY"
+        ) {
+          return (
+            <Row
+              title="Salary"
+              subtitle={formatTime(
+                item.time
+              )}
+              amount={Number(
+                item.amount || 0
+              )}
+              onPress={() =>
+                onSalary(item)
+              }
+            />
+          );
+        }
+
+        if (
+          isZestbot &&
+          item.type ===
+            "DELIVERY"
+        ) {
+          const incentive =
+            Number(
+              item.incentive || 0
+            );
+
+          const tips = Number(
+            item.tips || 0
+          );
+
+          return (
+            <Row
+              title="Delivery"
+              subtitle={formatTime(
+                item.time
+              )}
+              amount={
+                incentive + tips
+              }
+              onPress={() =>
+                onOrder(
+                  item.orderId
+                )
+              }
+            />
+          );
+        }
+
+        return (
+          <Row
+            title={item.type}
+            subtitle={formatTime(
+              item.time
+            )}
+            amount={Number(
+              item.amount ??
+                item.incentive ??
+                0
+            )}
+            onPress={() => {
+              if (
+                item.type ===
+                  "DELIVERY" &&
+                item.orderId
+              ) {
+                onOrder(
+                  item.orderId
+                );
+              }
+            }}
+          />
+        );
+      }}
+      onEndReached={onLoadMore}
+      onEndReachedThreshold={0.5}
+      ListEmptyComponent={
+        !loading ? (
+          <Empty />
+        ) : null
+      }
+      ListFooterComponent={
+        loading ? (
+          <LoaderSmall />
+        ) : null
+      }
+    />
+  );
+}
+
+/* =========================================================
+   ORDER DETAILS
+========================================================= */
+
+function OrderDetails({
+  data,
+  riderType,
+  loading,
+}) {
+  if (!data) {
+    return <Empty />;
+  }
+
+  const transaction =
+    data.transaction || data;
+
+  const currentRiderType =
+    data.riderType || riderType;
+
+  const isZestbotEmployee =
+    currentRiderType === ZESTBOT;
+
+  if (isZestbotEmployee) {
+    const incentive =
+      Number(
+        transaction.incentive ??
+          data.incentive ??
+          0
+      );
+
+    const tips =
+      Number(
+        transaction.tips ??
+          data.tips ??
+          0
+      );
+
+    const total =
+      incentive + tips;
+
+    const orderId =
+      data.orderId ||
+      transaction.orderId ||
+      transaction.referenceId ||
+      "-";
+
+    const store =
+      data.store || "-";
+
+    const timestamp =
+      transaction.time ||
+      transaction.creditedAt ||
+      data.time ||
+      "-";
+
+    const status =
+      transaction.status ||
+      data.status ||
+      "-";
+
+    return (
+      <FlatList
+        data={[]}
+        renderItem={null}
+        ListHeaderComponent={
+          <View style={styles.details}>
+            <TotalCard
+              title="Total Earnings"
+              amount={total}
+            />
+
+            <View style={styles.box}>
+              <BreakRow
+                label="Rider Type"
+                value={
+                  currentRiderType
+                }
+                text
+              />
+
+              <BreakRow
+                label="Order ID"
+                value={orderId}
+                text
+              />
+
+              <BreakRow
+                label="Store"
+                value={store}
+                text
+              />
+
+              <BreakRow
+                label="Incentive"
+                value={incentive}
+              />
+
+              <BreakRow
+                label="Tips"
+                value={tips}
+              />
+
+              <BreakRow
+                label="Time"
+                value={formatDateTime(
+                  timestamp
+                )}
+                text
+              />
+
+              <BreakRow
+                label="Status"
+                value={status}
+                text
+              />
+            </View>
+
+            {loading && (
+              <LoaderSmall />
+            )}
+          </View>
+        }
+      />
+    );
+  }
+
+  return (
+    <FlatList
+      data={[]}
+      renderItem={null}
+      ListHeaderComponent={
+        <View style={styles.details}>
+          <TotalCard
+            title="Total Earnings"
+            amount={Number(
+              data.totalEarnings || 0
+            )}
+          />
+
+          <View style={styles.box}>
+            <BreakRow
+              label="Store"
+              value={
+                data.store || "-"
+              }
+              text
+            />
+
+            <BreakRow
+              label="Order ID"
+              value={
+                data.orderId || "-"
+              }
+              text
+            />
+
+            <BreakRow
+              label="Base Fare"
+              value={Number(
+                transaction.basePay ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Distance Fare"
+              value={Number(
+                transaction.distancePay ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Surge"
+              value={Number(
+                transaction.surgePay ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Tips"
+              value={Number(
+                transaction.tips ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Time"
+              value={formatDateTime(
+                transaction.time ||
+                  transaction.creditedAt ||
+                  data.time
+              )}
+              text
+            />
+
+            <BreakRow
+              label="Status"
+              value={
+                transaction.status ||
+                data.status ||
+                "-"
+              }
+              text
+            />
+          </View>
+
+          {loading && (
+            <LoaderSmall />
+          )}
+        </View>
+      }
+    />
+  );
+}
+
+/* =========================================================
+   ROW
+========================================================= */
+
+function Row({
+  title,
+  subtitle,
+  amount,
+  onPress,
+}) {
+  const content = (
+    <>
+      <View style={styles.rowText}>
+        <Text
+          style={styles.rowTitle}
+        >
+          {title}
+        </Text>
+
+        {!!subtitle && (
+          <Text
+            style={styles.rowSub}
+          >
+            {subtitle}
+          </Text>
+        )}
+      </View>
+
+      <Text style={styles.amount}>
+        ₹{formatMoney(amount || 0)}
+      </Text>
+    </>
+  );
+
+  return onPress ? (
+    <TouchableOpacity
+      style={styles.row}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {content}
+    </TouchableOpacity>
+  ) : (
+    <View style={styles.row}>
+      {content}
+    </View>
+  );
+}
+
+/* =========================================================
+   BREAKDOWN ROW
+========================================================= */
+
+function BreakRow({
+  label,
+  value,
+  text = false,
+}) {
+  return (
+    <View
+      style={styles.breakRow}
+    >
+      <Text
+        style={styles.breakLabel}
+      >
+        {label}
+      </Text>
+
+      <Text
+        style={styles.breakValue}
+      >
+        {text
+          ? value || "-"
+          : `₹${formatMoney(
+              value || 0
+            )}`}
       </Text>
     </View>
   );
 }
 
+/* =========================================================
+   TOTAL CARD
+========================================================= */
 
-
-function EmptyState() {
+function TotalCard({
+  title,
+  amount,
+}) {
   return (
-    <View style={{ padding: 40, alignItems: "center" }}>
-      <Text style={{ color: "#777" }}>No data available</Text>
+    <View style={styles.card}>
+      <Text
+        style={styles.cardLabel}
+      >
+        {title}
+      </Text>
+
+      <Text
+        style={styles.cardAmount}
+      >
+        ₹{formatMoney(
+          amount || 0
+        )}
+      </Text>
     </View>
   );
 }
 
-function ErrorBox({ text, onRetry }) {
+/* =========================================================
+   FILTER
+========================================================= */
+
+function Filter({
+  text,
+  onPress,
+}) {
   return (
-    <View style={styles.errorBox}>
-      <Text style={styles.errorText}>{text}</Text>
-      <TouchableOpacity onPress={onRetry}>
-        <Text style={{ color: "#007AFF", marginTop: 8 }}>Retry</Text>
+    <TouchableOpacity
+      style={styles.filter}
+      onPress={onPress}
+    >
+      <Text>{text}</Text>
+
+      <Ionicons
+        name="chevron-down"
+        size={16}
+      />
+    </TouchableOpacity>
+  );
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function SimpleModal({
+  visible,
+  title,
+  data,
+  label,
+  selected,
+  highlight,
+  onClose,
+  onSelect,
+}) {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <Modal
+      visible
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View
+        style={
+          styles.modalOverlay
+        }
+      >
+        <View style={styles.modal}>
+          <View
+            style={
+              styles.modalHeader
+            }
+          >
+            <Text
+              style={
+                styles.modalTitle
+              }
+            >
+              {title}
+            </Text>
+
+            <TouchableOpacity
+              onPress={onClose}
+            >
+              <Ionicons
+                name="close"
+                size={24}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={data}
+            keyExtractor={(
+              item,
+              index
+            ) =>
+              String(
+                item?.week ??
+                  item ??
+                  index
+              )
+            }
+            renderItem={({
+              item,
+            }) => {
+              const active =
+                selected?.(item);
+
+              const current =
+                highlight?.(item);
+
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    active &&
+                      styles.modalSelected,
+                    current &&
+                      styles.modalCurrent,
+                  ]}
+                  onPress={() =>
+                    onSelect(item)
+                  }
+                >
+                  <Text>
+                    {label(item)}
+                  </Text>
+
+                  {active && (
+                    <Ionicons
+                      name="checkmark"
+                      size={20}
+                      color="#9c50ff"
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+/* =========================================================
+   LOADERS
+========================================================= */
+
+function Loader() {
+  return (
+    <View style={styles.loader}>
+      <ActivityIndicator
+        size="large"
+        color="#9c50ff"
+      />
+
+      <Text
+        style={styles.loaderText}
+      >
+        Loading earnings...
+      </Text>
+    </View>
+  );
+}
+
+function LoaderSmall() {
+  return (
+    <View
+      style={styles.loaderSmall}
+    >
+      <ActivityIndicator
+        size="small"
+        color="#9c50ff"
+      />
+    </View>
+  );
+}
+
+/* =========================================================
+   EMPTY / ERROR
+========================================================= */
+
+function Empty() {
+  return (
+    <View style={styles.empty}>
+      <Text
+        style={styles.emptyText}
+      >
+        No data available
+      </Text>
+    </View>
+  );
+}
+
+function ErrorBox({
+  text,
+  retry,
+}) {
+  return (
+    <View style={styles.error}>
+      <Text
+        style={styles.errorText}
+      >
+        {text}
+      </Text>
+
+      <TouchableOpacity
+        onPress={retry}
+      >
+        <Text
+          style={styles.retry}
+        >
+          Retry
+        </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-// UTILS 
-function getWeekNumber(d) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+/* =========================================================
+   DATE HELPERS
+========================================================= */
+
+function formatTime(value) {
+  if (!value) return "";
+
+  return new Date(
+    value
+  ).toLocaleTimeString();
 }
 
+function formatDateTime(value) {
+  if (!value || value === "-") {
+    return "-";
+  }
 
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }
+  );
+}
+
+function prettyDate(value) {
+  const date = new Date(value);
+
+  const day = date.getDate();
+
+  const suffix =
+    day > 3 && day < 21
+      ? "th"
+      : ["th", "st", "nd", "rd"][
+          day % 10
+        ] || "th";
+
+  return `${date.toLocaleString(
+    "en-US",
+    { month: "short" }
+  )} ${day}${suffix}`;
+}
+
+/* =========================================================
+   STYLES
+========================================================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -804,151 +1280,245 @@ const styles = StyleSheet.create({
   },
 
   header: {
+    height: 58,
     flexDirection: "row",
     alignItems: "center",
-    padding: isTablet ? responsiveWidth(2.5) : 12,
+    paddingHorizontal: 12,
     backgroundColor: "#FFF",
   },
 
-  backBtn: {
-    padding: isTablet ? responsiveWidth(1) : 8,
+  back: {
+    padding: 8,
   },
 
   headerTitle: {
     fontSize: isTablet
       ? responsiveFontSize(1.9)
-      : 24,
-
+      : 23,
     fontWeight: "700",
-    marginLeft: 8,
+    marginLeft: 5,
+  },
+
+  offline: {
+    color: "red",
+    marginLeft: 10,
   },
 
   card: {
     margin: 16,
-    padding: isTablet ? responsiveWidth(2.5) : 20,
+    padding: isTablet
+      ? responsiveWidth(2.2)
+      : 18,
     borderRadius: 12,
     backgroundColor: "#9c50ff",
   },
 
   cardLabel: {
-    color: "#fff",
-
+    color: "#FFF",
     fontSize: isTablet
       ? responsiveFontSize(1.2)
-      : responsiveFontSize(1.5),
+      : 15,
   },
 
   cardAmount: {
+    marginTop: 3,
+    color: "#FFF",
     fontSize: isTablet
       ? responsiveFontSize(2.2)
-      : 28,
-
+      : 27,
     fontWeight: "800",
-    color: "#fff",
   },
 
   row: {
-    padding: isTablet ? responsiveWidth(2.2) : 16,
-
-    borderWidth: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent:
+      "space-between",
     marginHorizontal: 16,
     marginBottom: 8,
-
-    flexDirection: "row",
-    justifyContent: "space-between",
-
-    borderRadius: 10,
+    padding: isTablet
+      ? responsiveWidth(1.8)
+      : 14,
+    borderWidth: 1.5,
     borderColor: "#e5b6fd",
+    borderRadius: 10,
+    backgroundColor: "#FFF",
+  },
+
+  rowText: {
+    flex: 1,
   },
 
   rowTitle: {
     fontSize: isTablet
       ? responsiveFontSize(1.25)
       : 15,
-
     fontWeight: "600",
   },
 
   rowSub: {
-    fontSize: isTablet
-      ? responsiveFontSize(1)
-      : 12,
-
+    marginTop: 3,
     color: "#777",
-    marginTop: 4,
+    fontSize: 12,
   },
 
-  rowRight: {
+  amount: {
+    marginLeft: 12,
+    color: "#24c77b",
+    fontWeight: "700",
     fontSize: isTablet
       ? responsiveFontSize(1.25)
       : 15,
+  },
 
-    fontWeight: "700",
-    color: "#24c77b",
+  box: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e5b6fd",
+    borderRadius: 10,
+    backgroundColor: "#FFF",
+    overflow: "hidden",
   },
 
   breakRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    padding: isTablet ? responsiveWidth(2.2) : 16,
+    alignItems: "center",
+    justifyContent:
+      "space-between",
+    minHeight: 48,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
 
-  box: {
-    backgroundColor: "#fff",
-    borderColor: "#e5b6fd",
-    borderWidth: 1,
-    borderRadius: 10,
-    marginTop: 16,
-    overflow: "hidden",
+  breakLabel: {
+    color: "#333",
+    fontSize: 14,
   },
 
-  selectorRow: {
+  breakValue: {
+    maxWidth: "60%",
+    textAlign: "right",
+    color: "#0A9F5A",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+
+  filters: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    padding: isTablet ? responsiveWidth(1.5) : 8,
+    justifyContent:
+      "space-around",
+    padding: 8,
   },
 
-  dropdown: {
+  filter: {
     flexDirection: "row",
     alignItems: "center",
-
-    paddingVertical: isTablet
-      ? responsiveHeight(0.9)
-      : 8,
-
-    paddingHorizontal: isTablet
-      ? responsiveWidth(1.5)
-      : 8,
-
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderRadius: 8,
     borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "#FFF",
   },
 
-  errorBox: {
-    margin: 16,
-    padding: 16,
-    backgroundColor: "#FFECEC",
-    borderRadius: 10,
+  details: {
+    paddingTop: 1,
+  },
+
+  loader: {
+    flex: 1,
+    justifyContent:
+      "center",
     alignItems: "center",
+  },
+
+  loaderText: {
+    marginTop: 10,
+    color: "#777",
+  },
+
+  loaderSmall: {
+    padding: 20,
+    alignItems: "center",
+  },
+
+  empty: {
+    padding: 40,
+    alignItems: "center",
+  },
+
+  emptyText: {
+    color: "#777",
+  },
+
+  error: {
+    margin: 16,
+    padding: 18,
+    alignItems: "center",
+    borderRadius: 10,
+    backgroundColor: "#FFECEC",
   },
 
   errorText: {
     color: "#C00",
-
-    fontSize: isTablet
-      ? responsiveFontSize(1.1)
-      : 14,
+    textAlign: "center",
   },
-  loaderContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-},
 
-loaderText: {
-  marginTop: 12,
-  color: "#777",
-  fontSize: 14,
-},
+  retry: {
+    marginTop: 8,
+    color: "#007AFF",
+    fontWeight: "600",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor:
+      "rgba(0,0,0,0.45)",
+  },
+
+  modal: {
+    maxHeight: "75%",
+    borderRadius: 14,
+    backgroundColor: "#FFF",
+    overflow: "hidden",
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent:
+      "space-between",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+
+  modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent:
+      "space-between",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  modalSelected: {
+    backgroundColor: "#F5ECFF",
+  },
+
+  modalCurrent: {
+    borderLeftWidth: 3,
+    borderLeftColor: "#9c50ff",
+  },
 });

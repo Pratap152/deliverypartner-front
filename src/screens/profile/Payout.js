@@ -20,7 +20,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import apiClient from '../../services/ApiClient';
 import { getBankDetails, getWalletData, getSettlementBreakdown, getTransactions } from '../../services/profile/profileApiService';
 
-export default function WalletScreen({ navigation }) {
+export default function PayoutScreen({ navigation }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
 

@@ -18,6 +18,7 @@ import Tips from "../screens/Home/Tips"
 import SlotBookingScreen from "../screens/dashboard/SlotBookingScreen";
 import SlotHistoryScreen from '../screens/slots/SlotHistoryScreen';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
+import EarningsScreen from '../screens/dashboard/EarningsScreen';
 
 const Stack = createNativeStackNavigator();
 function HomeNavigator() {
@@ -40,6 +41,7 @@ function HomeNavigator() {
                 <Stack.Screen name="SlotHistory" component={SlotHistory} />
                 <Stack.Screen name="OrderHistory" component={OrderHistory} />
                 <Stack.Screen name="OrderHistoryDetails" component={OrderHistoryDetails} />
+                <Stack.Screen name='EarningsScreen' component={EarningsScreen}/>
                 <Stack.Screen name="EarningsHistoryScreen" component={EarningsHistoryScreen} />
                 <Stack.Screen name="Tips" component={Tips} />
                 <Stack.Screen name="KitSelectionScreen" component={KitSelectionScreen} />

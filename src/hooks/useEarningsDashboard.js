@@ -1,292 +1,309 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+
 import {
-  getDailyEarnings,
   getEarningsSummary,
   getWeeklyBarChart,
 } from '../services/earnings/earningsService';
-import { getWalletDetails } from '../services/earnings/walletService';
-import {
-  getPeakHourIncentives,
-  getDailyIncentives,
-  getWeeklyIncentives,
-} from '../services/earnings/incentiveService';
 
+import { getWalletDetails } from '../services/earnings/earningsWalletService';
 
-
-/* CACHE */
 let dashboardCache = null;
 let dashboardLoaded = false;
 
+const initialData = {
+  todayEarnings: {},
+
+  earningsSummary: {
+    today: {},
+    week: {},
+    month: {},
+  },
+
+  riderType: '',
+
+  weeklyBarChart: [],
+  weeklyTotal: 0,
+  weeklyOrders: 0,
+
+  weeklySalary: 0,
+  weeklyTips: 0,
+  weeklyIncentives: 0,
+
+  monthlySalary: 0,
+  monthlyTips: 0,
+  monthlyIncentives: 0,
+  monthlyOrders: 0,
+  monthlyTotal: 0,
+
+  wallet: {},
+};
+
+const mapDailyEarnings = res => ({
+  riderType: res?.riderType ?? '',
+  attendanceAmount: Number(res?.attendanceAmount ?? 0),
+  baseEarnings: Number(res?.baseEarnings ?? 0),
+  total: Number(res?.total ?? 0),
+  incentives: Number(res?.incentives ?? 0),
+  orders: Number(res?.orders ?? 0),
+  tips: Number(res?.tips ?? 0),
+  eligible: res?.eligible ?? false,
+  monthlyTarget: Number(res?.monthlyTarget ?? 0),
+  totalCompletedOrders: Number(res?.completedOrders ?? 0),
+  remainingOrders: Number(res?.remainingOrders ?? 0),
+  completionPercentage: Number(res?.completionPercentage ?? 0),
+});
+
+const mapWeeklySummary = res => ({
+  orders: Number(res?.orders ?? 0),
+  attendanceAmount: Number(res?.attendanceAmount ?? 0),
+  incentives: Number(res?.incentives ?? 0),
+  tips: Number(res?.tips ?? 0),
+  total: Number(res?.total ?? 0),
+});
+
+const mapMonthlySummary = res => ({
+  baseEarnings: Number(res?.baseEarnings ?? 0),
+  attendanceAmount: Number(res?.attendanceAmount ?? 0),
+  orders: Number(res?.orders ?? 0),
+  incentives: Number(res?.incentives ?? 0),
+  tips: Number(res?.tips ?? 0),
+  total: Number(res?.total ?? 0),
+  earnings: Number(res?.total ?? 0),
+});
+
+const mapWeeklyChart = res => {
+  if (!Array.isArray(res?.week)) {
+    return {
+      chart: [],
+      total: 0,
+      total_orders: 0,
+    };
+  }
+
+  const chart = res.week.map((item, index) => ({
+    ...item,
+    key: `${item?.day ?? 'day'}-${index}`,
+    day: item?.day ?? '',
+    amount: Number(item?.amount ?? 0),
+    orders: Number(item?.orders ?? 0),
+    label: item?.day ?? '',
+    value: Number(item?.amount ?? 0),
+  }));
+
+  return {
+    chart,
+    total: chart.reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0,
+    ),
+    total_orders: chart.reduce(
+      (sum, item) => sum + Number(item.orders || 0),
+      0,
+    ),
+  };
+};
+
+const mapWallet = res => ({
+  riderType: res?.data?.riderType ?? '',
+  totalAmount: Number(res?.data?.totalAmount ?? 0),
+  availableBalance: Number(res?.data?.availableBalance ?? 0),
+  holdAmount: Number(res?.data?.holdAmount ?? 0),
+  withdrawDate: res?.data?.withdrawDate ?? null,
+  todayEarning: Number(res?.data?.todayEarning ?? 0),
+  incentives: Number(res?.data?.incentives ?? 0),
+  tips: Number(res?.data?.tips ?? 0),
+});
+
 export default function useEarningsDashboard() {
-  const [loading, setLoading] = useState(!dashboardLoaded);
+  const [data, setData] = useState(
+    dashboardCache || initialData,
+  );
+
+  const [loading, setLoading] = useState(
+    !dashboardLoaded,
+  );
+
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [data, setData] = useState(
-    dashboardCache || {
-      todayEarnings: {},
-      earningsSummary: {},
-      riderType: "",
-      weeklyBarChart: [],
-      weeklyTotal: 0,
-      weeklyOrders: 0,
-      wallet: {},
-      incentives: [],
-    });
-
 
   const mounted = useRef(false);
 
-  const fetchDashboard = async (force = false) => {
-    if (mounted.current && !force) return;
-    if (!force) {
-      mounted.current = true;
+  const fetchDashboard = useCallback(async (force = false) => {
+    if (mounted.current && !force) {
+      return;
     }
+
+    mounted.current = true;
+    setError(null);
+
+    if (!dashboardCache) {
+      setLoading(true);
+    }
+
     try {
-      const summaryData = await getEarningsSummary();
-      const daily = {
-        riderType: summaryData?.riderType,
-        baseEarnings: summaryData?.today?.baseEarnings,
-        incentives: summaryData?.today?.incentives,
-        orders: summaryData?.today?.orders,
-        tips: summaryData?.today?.tips,
-        total: summaryData?.today?.total,
-        eligible: summaryData?.target?.eligible,
-        monthlyTarget: summaryData?.target?.monthlyTarget,
-        totalCompletedOrders: summaryData?.target?.completedOrders
-      };
-      setData(prev => ({
-        ...prev,
-        todayEarnings: mapDailyEarnings(daily),
-      }));
-      setLoading(false);
+      const [
+        summaryResult,
+        weeklyResult,
+        walletResult,
+      ] = await Promise.allSettled([
+        getEarningsSummary(),
+        getWeeklyBarChart(),
+        getWalletDetails(),
+      ]);
 
+      setData(prev => {
+        const next = {
+          ...prev,
+          earningsSummary: {
+            ...(prev?.earningsSummary || {}),
+          },
+        };
 
-      getEarningsSummary()
-        .then(summary => {
-          setData(prev => {
-            const updated = {
-              ...prev,
-              earningsSummary: mapEarningsSummary(summary),
-            };
-            dashboardCache = updated;
-            return updated;
+        if (summaryResult.status === 'fulfilled') {
+          const summary = summaryResult.value;
+
+          const today = mapDailyEarnings({
+            riderType: summary?.riderType,
+
+            attendanceAmount:
+              summary?.today?.attendanceAmount,
+
+            baseEarnings:
+              summary?.today?.baseEarnings,
+
+            total:
+              summary?.today?.total,
+
+            incentives:
+              summary?.today?.incentives,
+
+            orders:
+              summary?.today?.orders,
+
+            tips:
+              summary?.today?.tips,
+
+            eligible:
+              summary?.target?.eligible,
+
+            monthlyTarget:
+              summary?.target?.monthlyTarget,
+
+            completedOrders:
+              summary?.target?.completedOrders,
+
+            remainingOrders:
+              summary?.target?.remainingOrders,
+
+            completionPercentage:
+              summary?.target?.completionPercentage,
           });
-        })
-        .catch(() => { });
 
+          const week = mapWeeklySummary(
+            summary?.week,
+          );
 
-      getWeeklyBarChart()
-        .then(res => {
-          const weekly = mapWeeklyChart(res);
-          setData(prev => {
-            const updated = {
-              ...prev,
-              riderType: res?.riderType,
-              weeklyBarChart: weekly.chart,
-              weeklyTotal: weekly.total,
-              weeklyOrders: weekly.total_orders,
-            };
-            dashboardCache = updated;
-            return updated;
-          });
-        })
-        .catch(() => { });
+          const month = mapMonthlySummary(
+            summary?.month,
+          );
 
+          next.riderType =
+            summary?.riderType ??
+            next.riderType ??
+            '';
 
-      getWalletDetails()
-        .then(res => {
-          setData(prev => {
-            const updated = {
-              ...prev,
-              wallet: mapWallet(res),
-            };
-            dashboardCache = updated;
-            return updated;
-          });
-        })
-        .catch(() => { });
+          next.todayEarnings = today;
 
+          next.earningsSummary = {
+            today,
+            week,
+            month,
+          };
 
-      setTimeout(() => {
-        Promise.allSettled([
-          getPeakHourIncentives(),
-          getDailyIncentives(),
-          getWeeklyIncentives(),
-        ])
-          .then(([peak, daily, weekly]) => {
-            setData(prev => {
-              const updated = {
-                ...prev,
-                incentives: mapIncentives(
-                  peak.status === "fulfilled" ? peak.value : null,
-                  weekly.status === "fulfilled" ? weekly.value : null,
-                  daily.status === "fulfilled" ? daily.value : null,
-                )
-              };
-              dashboardCache = updated;
-              dashboardLoaded = true;
-              return updated;
-            });
-          });
-      }, 1000);
-    }
+          next.weeklySalary =
+            week.attendanceAmount;
 
-    catch {
-      setLoading(false);
-    }
-  };
+          next.weeklyTips =
+            week.tips;
 
-  
-  // DAILY EARNINGS
-  const mapDailyEarnings = (res) => {
-    return {
-      riderType: res?.riderType,
-      baseEarnings: res?.baseEarnings ?? 0,
-      total: res?.total ?? 0,
-      incentives: res?.incentives ?? 0,
-      orders: res?.orders,
-      tips: res?.tips,
-      eligible: res?.eligible,
-      monthlyTarget: res?.monthlyTarget,
-      totalCompletedOrders: res?.totalCompletedOrders
-    };
-  };
+          next.weeklyIncentives =
+            week.incentives;
 
-  // MONTHLY SUMMARY
-  const mapEarningsSummary = (res) => {
-    return {
-      month: {
-        baseEarnings: res.month?.baseEarnings ?? 0,
-        incentives: res.month?.incentives ?? 0,
-        tips: res.month?.tips ?? 0,
-        earnings: res.month?.total ?? 0,
-        orders: res.month.orders ?? 0
-      }
-    };
-  };
+          next.weeklyTotal =
+            week.total;
 
-  // WEEKLY BAR CHART 
-  const mapWeeklyChart = (res) => {
-    if (!Array.isArray(res?.week)) {
-      return {
-        chart: [],
-        total,
-        total_orders: 0
-      };
-    }
-    
-    const chart = res.week.map(item => ({
-        label: item.day,
-        value: item.amount || 0,
-        orders: item.orders,
-      }));
-     
-    const total = chart.reduce((sum, d) => sum + Number(d.value || 0), 0);
-    const total_orders = chart.reduce((sum_ord, d) => sum_ord + (d.orders || 0), 0);
-    return {
-      chart,
-      total,
-      total_orders
-    };
-  };
+          next.weeklyOrders =
+            week.orders;
 
-  // WALLET
-  const mapWallet = res => ({
-    balance: res.data?.balance ?? 0,
-    totalEarned: res.data?.totalEarned ?? 0,
-    totalWithdrawn: res.data?.totalWithdrawn ?? 0,
-  });
+          next.monthlySalary =
+            month.attendanceAmount;
 
-  // INCENTIVES 
-  const mapIncentives = (
-    peakRes,
-    weeklyRes,
-    dailyRes
-  ) => {
-    const incentives = [];
+          next.monthlyTips =
+            month.tips;
 
-    // PEAK SLOT INCENTIVE
-    if (peakRes?.data[0]) {
-      incentives.push({
-        id: 'peak-slot',
-        type: 'peak',
-        title: peakRes.data[0]?.name || "FRED",
-        minOrders: peakRes?.data[0].ruleType === "HYBRID" ?
-          peakRes.data[0]?.slots[0]?.conditions?.minOrders :
-          peakRes.data[0]?.ruleType === "FIXED_TARGET" ?
-            peakRes.data[0]?.slots[0]?.target?.orders :
-            peakRes.data[0]?.ruleType === "SLAB" ?
-              peakRes.data[0]?.slots[0]?.slabs[0]?.minOrders : 0,
-        accentColor: '#FFF7ED',
-        peak_data: peakRes
-      })
-    } else {
-      incentives.push({
-        id: 'peak-slot',
-        type: 'peak',
-        emptyData: true,
-      })
-    }
+          next.monthlyIncentives =
+            month.incentives;
 
-    // WEEKLY INCENTIVE
-    if (weeklyRes?.data[0]) {
-      incentives.push({
-        id: 'weekly-incentive',
-        type: 'weekly',
-        title: weeklyRes.data[0]?.name,
-        minOrders: weeklyRes?.data[0].ruleType === "HYBRID" ?
-          weeklyRes.data[0]?.conditions?.minOrders :
-          weeklyRes.data[0]?.ruleType === "FIXED_TARGET" ?
-            weeklyRes.data[0]?.target?.orders :
-            weeklyRes.data[0]?.ruleType === "SLAB" ?
-              weeklyRes.data[0]?.slabs[0]?.minOrders : 0,
-        accentColor: '#EFF6FF',
-        weekly_data: weeklyRes
+          next.monthlyOrders =
+            month.orders;
+
+          next.monthlyTotal =
+            month.total;
+        }
+
+        if (weeklyResult.status === 'fulfilled') {
+          const weekly = mapWeeklyChart(
+            weeklyResult.value,
+          );
+
+          next.weeklyBarChart =
+            weekly.chart;
+        }
+
+        if (walletResult.status === 'fulfilled') {
+          next.wallet = mapWallet(
+            walletResult.value,
+          );
+        }
+
+        dashboardCache = next;
+
+        return next;
       });
-    } else {
-      incentives.push({
-        id: 'weekly-incentive',
-        type: 'weekly',
-        emptyData: true,
-      })
-    }
 
-    // DAILY INCENTIVE
-    if (dailyRes?.data[0]) {
-      incentives.push({
-        id: 'daily-incentive',
-        type: 'daily',
-        title: dailyRes.data[0]?.name,
-        minOrders: dailyRes?.data[0].ruleType === "HYBRID" ?
-          dailyRes?.data[0]?.conditions?.minOrders :
-          dailyRes?.data[0]?.ruleType === "FIXED_TARGET" ?
-            dailyRes.data[0]?.target?.orders :
-            dailyRes.data[0]?.ruleType === "SLAB" ?
-              dailyRes.data[0]?.slabs[0]?.minOrders : 0,
-        accentColor: '#F5F3FF',
-        daily_data: dailyRes
-      });
-    } else {
-      incentives.push({
-        id: 'daily-incentive',
-        type: 'daily',
-        emptyData: true,
-      })
-    }
+      dashboardLoaded = true;
+    } catch (err) {
+      console.error(
+        'Earnings dashboard error:',
+        err,
+      );
 
-    return incentives;
-  };
+      setError(err);
+      dashboardLoaded = true;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+
+    return () => {
+      mounted.current = false;
+    };
+  }, [fetchDashboard]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+
     mounted.current = false;
-    await fetchDashboard(true);
-    setRefreshing(false);
-  }, []);
+
+    try {
+      await fetchDashboard(true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchDashboard]);
 
   return {
     data,
