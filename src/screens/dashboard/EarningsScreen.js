@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect,useCallback} from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -653,40 +654,48 @@ export default function EarningsScreen({
      LOAD INCENTIVES
   ========================================================= */
 
-  useEffect(() => {
-  if (!riderType) return;
-
-  const loadEarningsIncentives = async () => {
-    try {
-      if (riderType === 'INDIVIDUAL_EMPLOYEE') {
-        await Promise.all([
-          fetchIndividualIncentives(),
-          fetchWeeklyIncentivesProgress(),
-          fetchDailyIncentivesProgress(),
-          fetchPeakIncentivesProgress(),
-        ]);
-      }
-
-      if (riderType === 'ZESTBOT_EMPLOYEE') {
-        await fetchZestbotIncentives();
-      }
-    } catch (error) {
-      console.log(
-        'Earnings Incentives Error:',
-        error,
-      );
+  useFocusEffect(
+  useCallback(() => {
+    if (!riderType) {
+      return;
     }
-  };
 
-  loadEarningsIncentives();
-}, [
-  riderType,
-  fetchIndividualIncentives,
-  fetchZestbotIncentives,
-  fetchWeeklyIncentivesProgress,
-  fetchDailyIncentivesProgress,
-  fetchPeakIncentivesProgress,
-]);
+    let mounted = true;
+
+    const loadEarningsIncentives = async () => {
+      try {
+        if (
+          riderType === 'INDIVIDUAL_EMPLOYEE'
+        ) {
+          await fetchIndividualIncentives();
+        }
+
+        if (
+          riderType === 'ZESTBOT_EMPLOYEE'
+        ) {
+          await fetchZestbotIncentives();
+        }
+      } catch (error) {
+        if (mounted) {
+          console.log(
+            'Earnings Incentives Error:',
+            error,
+          );
+        }
+      }
+    };
+
+    loadEarningsIncentives();
+
+    return () => {
+      mounted = false;
+    };
+  }, [
+    riderType,
+    fetchIndividualIncentives,
+    fetchZestbotIncentives,
+  ]),
+);
   /* =========================================================
      REFRESH
   ========================================================= */
@@ -735,91 +744,42 @@ export default function EarningsScreen({
 
   const cardPadding = wp(4);
 
-  /* =========================================================
-     WEEKLY PROGRESS
-  ========================================================= */
 
-  const weeklyTasks =
-    weeklyIncentivesProgress?.tasks ??
-    weeklyIncentivesProgress?.progress?.tasks ??
-    [];
+/* =========================================================
+   WEEKLY DAYS
+========================================================= */
 
-  const activeWeeklyTask =
-    weeklyTasks.find(task => {
-      const status = String(
-        task?.progress?.status ??
-          task?.status ??
-          '',
-      ).toUpperCase();
+const weeklyProgressSource =
+  weeklyIncentivesProgress?.overallProgress ??
+  weeklyIncentivesProgress?.progress?.overallProgress ??
+  weeklyIncentivesProgress?.progress ??
+  weeklyIncentivesProgress ??
+  {};
 
-      return (
-        status === 'RUNNING' ||
-        status === 'IN_PROGRESS'
-      );
-    }) ||
-    weeklyTasks.find(task => {
-      const status = String(
-        task?.progress?.status ??
-          task?.status ??
-          '',
-      ).toUpperCase();
-
-      return status === 'PENDING';
-    }) ||
-    weeklyTasks[0] ||
-    null;
-
-  const weeklyTaskProgress =
-    activeWeeklyTask?.progress ??
-    activeWeeklyTask ??
-    {};
-
-  const weeklyCompletedOrders =
-    getCompletedOrders(
-      weeklyTaskProgress,
-    );
-
-  const weeklyTargetOrders = Number(
-    weeklyTaskProgress?.targetOrders ??
-      activeWeeklyTask?.targetOrders ??
-      activeWeeklyTask?.target?.orders ??
-      0,
-  );
-
-  const weeklyProgressPercentage =
-    weeklyTargetOrders > 0
-      ? Math.min(
-          (weeklyCompletedOrders /
-            weeklyTargetOrders) *
-            100,
-          100,
-        )
-      : weeklyTaskProgress?.isCompleted
-        ? 100
-        : 0;
-
-  /* =========================================================
-     WEEKLY DAYS
-  ========================================================= */
-
-  const completedDaysFromMain =
-    getCompletedDays(
-      weeklyIncentivesProgress,
-    );
-
-  const completedDaysFromTask =
-    getCompletedDays(
-      weeklyTaskProgress,
-    );
-
-
-const completedDays = getWeeklyCompletedDays(
-  weeklyIncentivesProgress,
+const completedDays = Number(
+  weeklyProgressSource?.completedDays ??
+    weeklyIncentivesProgress?.completedDays ??
+    weeklyIncentivesProgress?.daysCompleted ??
+    0,
 );
 
-const totalDays = getWeeklyTotalDays(
-  weeklyIncentivesProgress,
+const totalDays = Number(
+  weeklyProgressSource?.totalDays ??
+    weeklyIncentivesProgress?.totalDays ??
+    weeklyIncentivesProgress?.daysRequired ??
+    7,
 );
+
+const weeklyProgressPercentage =
+  totalDays > 0
+    ? Math.min(
+        Math.max(
+          (completedDays / totalDays) * 100,
+          0,
+        ),
+        100,
+      )
+    : 0;
 
   /* =========================================================
      PEAK PROGRESS
@@ -1141,9 +1101,7 @@ const totalDays = getWeeklyTotalDays(
                 key={item.id}
                 item={item}
                 onPress={handleItemPress}
-                weeklyCompletedOrders={
-                  weeklyCompletedOrders
-                }
+      
                 dailyCompletedOrders={
                   dailyCompletedOrders
                 }
