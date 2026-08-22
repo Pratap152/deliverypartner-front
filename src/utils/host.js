@@ -5,6 +5,9 @@ export default WEBSITE_URL;
 
 // const WEBSOCKET_URL="delivarypartner.onrender.com";
 // export default WEBSOCKET_URL;
+<<<<<<< HEAD
 // https://rider-api.swachvega.com/ for dev
+=======
+>>>>>>> origin/merge-final-dev
 
 export const WEBSOCKET_URL = "wss://rider-module.onrender.com";
