@@ -8,7 +8,6 @@ import IncentiveCard from './IncentiveCard';
  const IncentivesCards = ({
   item,
   onPress,
-  weeklyCompletedOrders,
   dailyCompletedOrders,
   peakCompletedOrders,
   peakProgressPercentage = 0,
@@ -37,7 +36,6 @@ import IncentiveCard from './IncentiveCard';
       <PremiumPressable onPress={() => onPress(item)}>
         <IncentiveCard
             item={item}
-            weeklyCompletedOrders={weeklyCompletedOrders}
             dailyCompletedOrders={dailyCompletedOrders}
             peakCompletedOrders={peakCompletedOrders}
             peakProgressPercentage={peakProgressPercentage}
