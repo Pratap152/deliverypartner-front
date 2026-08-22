@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+
+
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,37 +13,42 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
-import DeviceInfo from "react-native-device-info";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import DeviceInfo from "react-native-device-info";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   responsiveFontSize as rf,
   responsiveHeight as rh,
   responsiveWidth as rw,
 } from "react-native-responsive-dimensions";
+
+const isTablet = DeviceInfo.isTablet();
+
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Clipboard from "@react-native-clipboard/clipboard";
 
 import ReferralBanner from "../Home/ReferralBanner";
+
 import {
   getReferralsList,
   shareRefer,
 } from "../../services/referralService";
 
-const isTablet = DeviceInfo.isTablet();
-const TABS = ["ALL", "PENDING", "COMPLETED"];
+import apiClient from "../../services/ApiClient";
 
 export default function ReferEarn({ navigation }) {
-  const insets = useSafeAreaInsets();
-
   const [data, setData] = useState(null);
   const [tab, setTab] = useState("ALL");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchReferrals();
+  }, []);
 
   const fetchReferrals = async () => {
     try {
@@ -50,21 +57,18 @@ export default function ReferEarn({ navigation }) {
       const res = await getReferralsList();
 
       if (res?.data?.success) {
-        setData(res.data?.data || res.data);
+        const apiData = res.data?.data || res.data;
+        setData(apiData);
       }
     } catch (error) {
       console.log(
         "Referral API error:",
-        error?.response?.data || error?.message
+        error?.response?.data || error.message
       );
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchReferrals();
-  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -72,6 +76,7 @@ export default function ReferEarn({ navigation }) {
     setRefreshing(false);
   }, []);
 
+  // Loader
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -83,9 +88,15 @@ export default function ReferEarn({ navigation }) {
   if (!data || Object.keys(data).length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="people-outline" size={70} color="#CBD5E1" />
+        <Ionicons
+          name="people-outline"
+          size={70}
+          color="#CBD5E1"
+        />
 
-        <Text style={styles.emptyTitle}>No Referral Data</Text>
+        <Text style={styles.emptyTitle}>
+          No Referral Data
+        </Text>
 
         <Text style={styles.emptySubtitle}>
           Start inviting friends and earn rewards.
@@ -95,20 +106,15 @@ export default function ReferEarn({ navigation }) {
           style={styles.emptyButton}
           onPress={() => navigation.navigate("ReferFrd")}
         >
-          <Text style={styles.emptyButtonText}>Refer Now</Text>
+          <Text style={styles.emptyButtonText}>
+            Refer Now
+          </Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   const referralCode = data?.partnerId || "";
-  const riders = data?.referrals || [];
-
-  const filteredData = riders.filter(({ status }) => {
-    if (tab === "COMPLETED") return status === "COMPLETED";
-    if (tab === "PENDING") return status !== "COMPLETED";
-    return true;
-  });
 
   const copyToClipboard = () => {
     Clipboard.setString(referralCode);
@@ -117,22 +123,26 @@ export default function ReferEarn({ navigation }) {
 
   const shareReferralCode = async () => {
     try {
-      const res = await shareRefer({ partnerId: referralCode });
+      const payload = {
+        partnerId: referralCode,
+      };
 
-      if (!res?.data?.success) {
+      const res = await shareRefer(payload);
+
+      if (res?.data?.success) {
+        const shareData = res.data.data;
+
+        await Share.share({
+          message: shareData.shareMessage,
+          url: shareData.shareLink,
+        });
+      } else {
         throw new Error("Invalid response");
       }
-
-      const shareData = res.data.data;
-
-      await Share.share({
-        message: shareData.shareMessage,
-        url: shareData.shareLink,
-      });
-    } catch (error) {
+    } catch (err) {
       console.log(
         "Share error:",
-        error?.response?.data || error?.message
+        err?.response?.data || err.message
       );
 
       await Share.share({
@@ -141,9 +151,31 @@ export default function ReferEarn({ navigation }) {
     }
   };
 
+  // Filter logic
+  const riders = data?.referrals || [];
+
+  const filteredData = riders.filter((item) => {
+    const status = item?.progress?.status;
+
+    if (tab === "PENDING") {
+      return status !== "COMPLETED";
+    }
+
+    if (tab === "COMPLETED") {
+      return status === "COMPLETED";
+    }
+
+    return true;
+  });
+
+  // Empty UI
   const renderEmpty = () => (
     <View style={styles.listEmptyContainer}>
-      <Ionicons name="gift-outline" size={55} color="#CBD5E1" />
+      <Ionicons
+        name="gift-outline"
+        size={55}
+        color="#CBD5E1"
+      />
 
       <Text style={styles.emptyTitle}>
         {tab === "PENDING"
@@ -160,44 +192,61 @@ export default function ReferEarn({ navigation }) {
   );
 
   const renderItem = ({ item }) => {
-    const completed = item?.status === "COMPLETED";
+    const isCompleted =
+      item?.progress?.status === "COMPLETED";
 
     return (
       <View style={styles.refItem}>
+
+        {/* LEFT */}
         <View style={styles.leftRow}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={18} color="#fff" />
+            <Ionicons
+              name="person"
+              size={18}
+              color="#fff"
+            />
           </View>
 
-          <View style={styles.refInfo}>
+          <View
+            style={{
+              flex: 1,
+              marginRight: 10,
+            }}
+          >
             <Text style={styles.name}>
               {item?.referee?.name || "New Rider"}
             </Text>
 
             <Text style={styles.date}>
-              Referral ID: {item?.referralId?.slice(0, 8) || "N/A"}
+              Partner ID: {item?.referee?.partnerId || "--"}
             </Text>
           </View>
         </View>
 
-        <View style={styles.refRight}>
+        {/* RIGHT */}
+        <View style={{ alignItems: "flex-end" }}>
           <Text style={styles.amount}>
-            ₹{item?.earnedAmount || 0}
+            ₹{item?.earnings?.referrer?.amount || 0}
           </Text>
 
           <Text style={styles.progressPercent}>
-            {item?.progressPercentage || 0}% Progress
+            {item?.progress?.progressPercentage || 0}% Progress
           </Text>
 
           <Text
             style={[
               styles.status,
               {
-                color: completed ? "#16A34A" : "#F59E0B",
+                color: isCompleted
+                  ? "#16A34A"
+                  : "#F59E0B",
               },
             ]}
           >
-            {completed ? "Completed" : "In Progress"}
+            {isCompleted
+              ? "Completed"
+              : "In Progress"}
           </Text>
         </View>
       </View>
@@ -205,19 +254,9 @@ export default function ReferEarn({ navigation }) {
   };
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "left", "right", "bottom"]}
-    >
-      {/* TOP BANNER */}
-      <View
-        style={[
-          styles.topBanner,
-          {
-            paddingTop: insets.top,
-          },
-        ]}
-      >
+    <SafeAreaView style={styles.safeArea}>
+
+      <View style={styles.topBanner}>
         <View style={styles.backButtonContainer}>
           <TouchableOpacity
             style={styles.backButton}
@@ -234,11 +273,11 @@ export default function ReferEarn({ navigation }) {
         <ReferralBanner />
       </View>
 
-      {/* CONTENT */}
+      {/* SCROLLABLE CONTENT */}
       <ScrollView
         style={styles.container}
         contentContainerStyle={{
-          paddingTop: hp("26%") + insets.top,
+          paddingTop: hp("26%"),
           paddingBottom: 100,
         }}
         refreshControl={
@@ -248,69 +287,101 @@ export default function ReferEarn({ navigation }) {
           />
         }
       >
-        {/* TITLE */}
+
+        {/* Title */}
         <View style={styles.titleRow}>
           <View style={styles.line} />
-          <Text style={styles.title}>Refer & Earn</Text>
+
+          <Text style={styles.title}>
+            Refer & Earn
+          </Text>
+
           <View style={styles.line} />
         </View>
 
-        {/* SUMMARY CARDS */}
+        {/* Cards */}
         <View style={styles.cardRow}>
-          <View style={[styles.card, styles.greenCard]}>
+
+          <View
+            style={[
+              styles.card,
+              styles.greenCard,
+            ]}
+          >
             <Ionicons
               name="people"
               size={22}
               color="#166534"
             />
 
-            <Text style={[styles.cardValue, styles.greenText]}>
-              {data?.summary?.totalReferrals || 0}
+            <Text style={styles.cardValue1}>
+              {data.summary.totalReferrals || 0}
             </Text>
 
-            <Text style={[styles.cardLabel, styles.greenText]}>
+            <Text style={styles.cardLabel1}>
               Joined people
             </Text>
           </View>
 
-          <View style={[styles.card, styles.orangeCard]}>
+          <View
+            style={[
+              styles.card,
+              styles.orangeCard,
+            ]}
+          >
             <Ionicons
               name="wallet"
               size={22}
               color="#9A3412"
             />
 
-            <Text style={[styles.cardValue, styles.orangeText]}>
+            <Text style={styles.cardValue2}>
               ₹{data?.summary?.totalRewards || 0}
             </Text>
 
-            <Text style={[styles.cardLabel, styles.orangeText]}>
+            <Text style={styles.cardLabel2}>
               Total Earnings
             </Text>
           </View>
+
         </View>
 
-        {/* REFERRAL CODE */}
+        {/* Referral Code */}
         <View style={styles.codeBox}>
-          <Text style={styles.codeText}>{referralCode}</Text>
+
+          <Text style={styles.codeText}>
+            {referralCode}
+          </Text>
 
           <View style={styles.iconRow}>
-            <TouchableOpacity onPress={copyToClipboard}>
+
+            <TouchableOpacity
+              onPress={copyToClipboard}
+            >
               <MaterialIcons
                 name="content-copy"
                 size={22}
               />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={shareReferralCode}>
-              <MaterialIcons name="share" size={22} />
+            <TouchableOpacity
+              onPress={shareReferralCode}
+            >
+              <MaterialIcons
+                name="share"
+                size={22}
+              />
             </TouchableOpacity>
+
           </View>
         </View>
 
-        {/* HOW IT WORKS */}
+        {/* How it works */}
         <View style={styles.howBox}>
-          <Text style={styles.howTitle}>Refer & Earn</Text>
+
+          <Text style={styles.howTitle}>
+            Refer & Earn
+          </Text>
 
           <Text style={styles.howItem}>
             • Invite your friends using referral code
@@ -323,53 +394,69 @@ export default function ReferEarn({ navigation }) {
           <Text style={styles.howItem}>
             • Track referral progress and earnings
           </Text>
+
         </View>
 
-        {/* REFERRALS */}
-        <Text style={styles.sectionTitle}>My Referrals</Text>
+        {/* Tabs */}
+        <Text style={styles.sectionTitle}>
+          My Referrals
+        </Text>
 
         <View style={styles.tabs}>
-          {TABS.map((item) => (
-            <TouchableOpacity
-              key={item}
-              onPress={() => setTab(item)}
-              style={[
-                styles.tab,
-                tab === item && styles.activeTab,
-              ]}
-            >
-              <Text
+          {["ALL", "PENDING", "COMPLETED"].map(
+            (t) => (
+              <TouchableOpacity
+                key={t}
+                onPress={() => setTab(t)}
                 style={[
-                  styles.tabText,
-                  tab === item && styles.activeTabText,
+                  styles.tab,
+                  tab === t && styles.activeTab,
                 ]}
               >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={
+                    tab === t
+                      ? { color: "#f3f0f0" }
+                      : undefined
+                  }
+                >
+                  {t}
+                </Text>
+              </TouchableOpacity>
+            )
+          )}
         </View>
 
         <FlatList
           data={filteredData}
           keyExtractor={(item, index) =>
-            `${item?.referralId || "referral"}-${index}`
+            String(
+              item?.referralId ||
+              item?.referee?.riderId ||
+              `referral-${index}`
+            )
           }
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
           scrollEnabled={false}
         />
+
       </ScrollView>
 
-      {/* FIXED BUTTON */}
+      {/* Fixed Refer Button */}
       <View style={styles.fixedButtonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate("ReferFrd")}
+          onPress={() =>
+            navigation.navigate("ReferFrd")
+          }
         >
-          <Text style={styles.buttonText}>Refer Now</Text>
+          <Text style={styles.buttonText}>
+            Refer Now
+          </Text>
         </TouchableOpacity>
       </View>
+
     </SafeAreaView>
   );
 }
@@ -406,12 +493,18 @@ const styles = StyleSheet.create({
     height: 25,
     borderRadius: 21,
     backgroundColor: "rgba(255,255,255,0.95)",
+
     justifyContent: "center",
     alignItems: "center",
+
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
     elevation: 5,
   },
 
@@ -424,7 +517,9 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: isTablet ? rh(2) : 3,
+    marginVertical: isTablet
+      ? rh(2)
+      : 3,
     paddingHorizontal: 16,
   },
 
@@ -437,7 +532,11 @@ const styles = StyleSheet.create({
   title: {
     marginHorizontal: 10,
     fontWeight: "700",
-    fontSize: isTablet ? rf(1.6) : 16,
+
+    fontSize: isTablet
+      ? rf(1.6)
+      : 16,
+
     color: "#1E293B",
   },
 
@@ -450,8 +549,12 @@ const styles = StyleSheet.create({
 
   card: {
     width: "48%",
-    padding: isTablet ? rw(2.5) : 16,
+    padding: isTablet
+      ? rw(2.5)
+      : 16,
+
     borderRadius: 16,
+
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 10,
@@ -466,35 +569,64 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFE4D5",
   },
 
-  cardValue: {
-    fontSize: isTablet ? rf(1.8) : 20,
+  cardValue1: {
+    color: "#166534",
+
+    fontSize: isTablet
+      ? rf(1.8)
+      : 20,
+
     fontWeight: "700",
     marginTop: 6,
   },
 
-  cardLabel: {
-    fontSize: isTablet ? rf(1.1) : 12,
+  cardValue2: {
+    color: "#9A3412",
+
+    fontSize: isTablet
+      ? rf(1.8)
+      : 20,
+
+    fontWeight: "700",
+    marginTop: 6,
+  },
+
+  cardLabel1: {
+    color: "#166534",
+
+    fontSize: isTablet
+      ? rf(1.1)
+      : 12,
+
     marginTop: 4,
   },
 
-  greenText: {
-    color: "#166534",
-  },
-
-  orangeText: {
+  cardLabel2: {
     color: "#9A3412",
+
+    fontSize: isTablet
+      ? rf(1.1)
+      : 12,
+
+    marginTop: 4,
   },
 
   codeBox: {
     margin: 16,
-    padding: isTablet ? rw(2) : 14,
+
+    padding: isTablet
+      ? rw(2)
+      : 14,
+
     borderRadius: 14,
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#E2E8F0",
+
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -503,20 +635,30 @@ const styles = StyleSheet.create({
 
   codeText: {
     fontWeight: "700",
-    fontSize: isTablet ? rf(1.5) : 16,
+
+    fontSize: isTablet
+      ? rf(1.5)
+      : 16,
+
     letterSpacing: 1,
     color: "#0F172A",
   },
 
   iconRow: {
     flexDirection: "row",
-    gap: isTablet ? rw(2) : 16,
+    gap: isTablet
+      ? rw(2)
+      : 16,
   },
 
   howBox: {
     marginHorizontal: 16,
     backgroundColor: "#fff",
-    padding: isTablet ? rw(2.2) : 14,
+
+    padding: isTablet
+      ? rw(2.2)
+      : 14,
+
     borderRadius: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -524,22 +666,42 @@ const styles = StyleSheet.create({
 
   howTitle: {
     fontWeight: "700",
+
     marginBottom: 8,
-    fontSize: isTablet ? rf(1.3) : 16,
+
+    fontSize: isTablet
+      ? rf(1.3)
+      : 16,
+
     color: "#0F172A",
   },
 
   howItem: {
     marginVertical: 3,
     color: "#475569",
-    fontSize: isTablet ? rf(1.15) : 15,
+
+    fontSize: isTablet
+      ? rf(1.15)
+      : 15,
+  },
+
+  howItem1: {
+    fontSize: isTablet
+      ? rf(1.5)
+      : 18,
+    fontWeight: "800",
   },
 
   sectionTitle: {
     marginTop: 16,
     marginHorizontal: 16,
+
     fontWeight: "700",
-    fontSize: isTablet ? rf(1.4) : 15,
+
+    fontSize: isTablet
+      ? rf(1.4)
+      : 15,
+
     color: "#0F172A",
   },
 
@@ -553,7 +715,11 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     marginHorizontal: 4,
-    paddingVertical: isTablet ? rh(1) : 8,
+
+    paddingVertical: isTablet
+      ? rh(1)
+      : 8,
+
     backgroundColor: "#E2E8F0",
     borderRadius: 20,
     alignItems: "center",
@@ -563,22 +729,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#19A7CE",
   },
 
-  tabText: {
-    color: "#0F172A",
-  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 20,
 
-  activeTabText: {
-    color: "#fff",
+    fontSize: isTablet
+      ? rf(1.2)
+      : 14,
+
+    color: "#94A3B8",
   },
 
   refItem: {
     flexDirection: "row",
     justifyContent: "space-between",
+
     marginHorizontal: 16,
     marginTop: 10,
-    padding: isTablet ? rw(2.2) : 14,
+
+    padding: isTablet
+      ? rw(2.2)
+      : 14,
+
     borderRadius: 14,
     backgroundColor: "#fff",
+
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -592,51 +767,67 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: isTablet ? rw(5) : 38,
-    height: isTablet ? rw(5) : 38,
+    width: isTablet
+      ? rw(5)
+      : 38,
+
+    height: isTablet
+      ? rw(5)
+      : 38,
+
     borderRadius: 20,
-    backgroundColor: "#74C4DA",
+    backgroundColor: "#74c4da",
+
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
-  },
 
-  refInfo: {
-    flex: 1,
     marginRight: 10,
-  },
-
-  refRight: {
-    alignItems: "flex-end",
   },
 
   name: {
     fontWeight: "600",
-    fontSize: isTablet ? rf(1.3) : 15,
+
+    fontSize: isTablet
+      ? rf(1.3)
+      : 15,
+
     color: "#0F172A",
   },
 
   date: {
-    fontSize: isTablet ? rf(1.15) : 14,
+    fontSize: isTablet
+      ? rf(1.15)
+      : 14,
+
     color: "#515863",
     marginTop: 3,
   },
 
   amount: {
     fontWeight: "700",
-    fontSize: isTablet ? rf(1.5) : 14,
+
+    fontSize: isTablet
+      ? rf(1.5)
+      : 14,
+
     color: "#16A34A",
   },
 
-  progressPercent: {
-    fontSize: isTablet ? rf(1) : 12,
-    color: "#0284C7",
-    marginTop: 4,
-    fontWeight: "600",
+  progress: {
+    fontWeight: "700",
+
+    fontSize: isTablet
+      ? rf(1.20)
+      : 14,
+
+    color: "#F59E0B",
   },
 
   status: {
-    fontSize: isTablet ? rf(1.05) : 12,
+    fontSize: isTablet
+      ? rf(1.05)
+      : 12,
+
     marginTop: 2,
   },
 
@@ -645,17 +836,27 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+
     backgroundColor: "#F8FAFC",
-    padding: isTablet ? rw(1.8) : 10,
+
+    padding: isTablet
+      ? rw(1.8)
+      : 10,
+
     borderTopWidth: 1,
     borderColor: "#E2E8F0",
   },
 
   button: {
     backgroundColor: "#19A7CE",
-    padding: isTablet ? rh(1.6) : 16,
+
+    padding: isTablet
+      ? rh(1.6)
+      : 16,
+
     borderRadius: 30,
     alignItems: "center",
+
     shadowColor: "#1E3A8A",
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -665,7 +866,30 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: isTablet ? rf(1.3) : 15,
+
+    fontSize: isTablet
+      ? rf(1.3)
+      : 15,
+  },
+
+  taskProgress: {
+    fontSize: isTablet
+      ? rf(1.07)
+      : 13,
+
+    color: "#0284C7",
+    marginTop: 4,
+    fontWeight: "600",
+  },
+
+  progressPercent: {
+    fontSize: isTablet
+      ? rf(1)
+      : 12,
+
+    color: "#0284C7",
+    marginTop: 4,
+    fontWeight: "600",
   },
 
   emptyContainer: {
@@ -678,7 +902,11 @@ const styles = StyleSheet.create({
 
   emptyTitle: {
     marginTop: 16,
-    fontSize: isTablet ? rf(1.8) : 20,
+
+    fontSize: isTablet
+      ? rf(1.8)
+      : 20,
+
     fontWeight: "700",
     color: "#0F172A",
     textAlign: "center",
@@ -686,7 +914,11 @@ const styles = StyleSheet.create({
 
   emptySubtitle: {
     marginTop: 8,
-    fontSize: isTablet ? rf(1.2) : 14,
+
+    fontSize: isTablet
+      ? rf(1.2)
+      : 14,
+
     color: "#64748B",
     textAlign: "center",
     lineHeight: 22,
@@ -703,7 +935,10 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: isTablet ? rf(1.2) : 15,
+
+    fontSize: isTablet
+      ? rf(1.2)
+      : 15,
   },
 
   listEmptyContainer: {
