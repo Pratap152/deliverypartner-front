@@ -6,185 +6,261 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 import ProgressBar from './ProgressBar';
 
-export default function IncentiveCard({ item, weeklyCompletedOrders, dailyCompletedOrders, peakCompletedOrders, weeklyProgressPercentage }) {
-  // console.log("ITEMMMM: ", item);
+const formatTime = time => {
+  if (!time) return '';
+
+  const match = String(time).match(/(\d{1,2}):(\d{2})/);
+  if (!match) return time;
+
+  let hour = Number(match[1]);
+  const minute = match[2];
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12;
+
+  return `${hour}:${minute} ${period}`;
+};
+
+const formatTimeRange = value => {
+  if (!value) return '';
+
+  const parts = String(value)
+    .split('-')
+    .map(item => item.trim());
+
+  if (parts.length === 2) {
+    return `${formatTime(parts[0])} - ${formatTime(parts[1])}`;
+  }
+
+  return formatTime(value);
+};
+
+export default function IncentiveCard({
+  item,
+  dailyCompletedOrders,
+  peakCompletedOrders,
+  peakProgressPercentage,
+  weeklyProgressPercentage,
+}) {
   const isPeak = item?.type === 'peak';
   const isWeekly = item?.type === 'weekly';
   const isDaily = item?.type === 'daily';
 
-  const GREEN_THEME = {
-    primary: '#10B981',     // main fill
-    deep: '#065F46',        // text accent
-    soft: '#D1FAE5',        // light bg
-    border: '#A7F3D0',      // soft border
-  };
-
   const metaIcons = {
-    peak: { label: 'Peak', icon: require('../../../assets/peak.png') },
-    weekly: { label: 'Weekly', icon: require('../../../assets/weekly.png') },
-    daily: { label: 'Daily', icon: require('../../../assets/daily.png') },
-    surge: { label: 'Surge', icon: require('../../../assets/surge.png') },
+    peak: {
+      label: 'Peak',
+      icon: require('../../../assets/peak.png'),
+    },
+    weekly: {
+      label: 'Weekly',
+      icon: require('../../../assets/weekly.png'),
+    },
+    daily: {
+      label: 'Daily',
+      icon: require('../../../assets/daily.png'),
+    },
+    surge: {
+      label: 'Surge',
+      icon: require('../../../assets/surge.png'),
+    },
   };
 
   const meta = metaIcons[item?.type] ?? metaIcons.daily;
 
+  const dailyOrders = Number(dailyCompletedOrders ?? 0);
+  const peakOrders = Number(peakCompletedOrders ?? 0);
+
+  const dailyTarget = Number(item?.minOrders ?? 0);
+  const peakTarget = Number(item?.minOrders ?? 0);
+
+  const peakProgress =
+    peakTarget > 0
+      ? Math.min((peakOrders / peakTarget) * 100, 100)
+      : 0;
+
+  const dailyProgress =
+    dailyTarget > 0
+      ? Math.min((dailyOrders / dailyTarget) * 100, 100)
+      : 0;
+
+  const weeklyIsTask =
+    item?.weekly_data?.data?.[0]?.ruleType === 'TASK';
+
+  const peakTime =
+    item?.startTime && item?.endTime
+      ? `${formatTime(item.startTime)} - ${formatTime(item.endTime)}`
+      : item?.time
+        ? formatTimeRange(item.time)
+        : item?.subtitle;
+
+
+  
   return (
     <View
       style={[
         styles.card,
         {
-          backgroundColor:
-            item?.type === 'peak'
-              ? '#FFF7ED'
-              : item?.type === 'weekly'
-                ? '#FAF5FF'
-                : '#EFF6FF',
-          borderColor:
-            item?.type === 'peak'
-              ? '#FFD6A7'
-              : item?.type === 'weekly'
-                ? '#E9D4FF'
-                : '#BEDBFF',
-          borderWidth: 1,
+          backgroundColor: isPeak
+            ? '#FFF7ED'
+            : isWeekly
+              ? '#FAF5FF'
+              : '#EFF6FF',
+
+          borderColor: isPeak
+            ? '#FFD6A7'
+            : isWeekly
+              ? '#E9D4FF'
+              : '#BEDBFF',
         },
       ]}>
 
       <View style={styles.topRow}>
         <View style={styles.left}>
-          <View
-            style={[
-              styles.labelChip,
-              {
-                backgroundColor: '#FFFFFF',
-              },
-            ]}
-          >
-            <Text style={[styles.chipText, {
-              color: item?.type === 'peak'
-                ? '#F54900'
-                : item?.type === 'weekly'
-                  ? '#9810FA'
-                  : '#155DFC'
-            }]}>{meta.label}</Text>
+          <View style={styles.labelChip}>
+            <Text
+              style={[
+                styles.chipText,
+                {
+                  color: isPeak
+                    ? '#F54900'
+                    : isWeekly
+                      ? '#9810FA'
+                      : '#155DFC',
+                },
+              ]}>
+              {meta.label}
+            </Text>
           </View>
-          <Text style={styles.title}>{item?.title}</Text>
-          <Text style={styles.subtitle}>{item?.subtitle}</Text>
+
+          <Text style={styles.title}>
+            {item?.title}
+          </Text>
+
+          <Text style={styles.subtitle}>
+            {isPeak ? peakTime : item?.subtitle}
+          </Text>
         </View>
+
         <View style={styles.right}>
-          {
-            isWeekly && (
-              <Image source={require('../../../assets/weekly.png')} style={styles.icon} />
-            )
-          }
-          {
-            isDaily && (
-              <Image source={require('../../../assets/daily.png')} style={styles.icon} />
-            )
-          }
-          {
-            isPeak && (
-              <Image source={require('../../../assets/peak.png')} style={styles.icon} />
-            )
-          }
+          <Image
+            source={meta.icon}
+            style={styles.icon}
+          />
         </View>
       </View>
 
-      {/* Peak: multi-level UI */}
-      {(isPeak && !item?.emptyData) && (
-        <>
-          {item?.minOrders !== 0 &&
-            <View style={{ marginTop: hp(1) }}>
-              {/* Normal Slot Progress */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                <Text style={styles.progressText}>
-                  Orders
-                </Text>
-                <Text style={styles.progressText}>
-                  {peakCompletedOrders}/{item?.minOrders}
-                </Text>
-              </View>
+      {/* PEAK */}
 
-              <ProgressBar
-                progress={(peakCompletedOrders / item?.minOrders) * 100}
-                progressColor="#FFD6A7"
-              />
-            </View>
-          }
-        </>
+      {isPeak && !item?.emptyData && (
+        <View style={styles.peakProgressContainer}>
+          <View style={styles.peakProgressHeader}>
+            <Text style={styles.progressText}>
+              Orders
+            </Text>
+
+            <Text style={styles.progressText}>
+              {peakOrders} / {peakTarget}
+            </Text>
+          </View>
+
+          <View style={styles.peakProgressTrack}>
+            <View
+              style={[
+                styles.peakProgressFill,
+                {
+                  width: `${peakProgress}%`,
+                },
+              ]}
+            />
+          </View>
+
+          <Text style={styles.peakProgressPercentage}>
+            {Math.round(peakProgress)}% completed
+          </Text>
+        </View>
       )}
 
-      {(isDaily && !item?.emptyData &&
-        (item?.daily_data?.data[0].ruleType !== "TASK" && item?.daily_data?.data[0].ruleType !== "PER_ORDER")
-      ) &&
-        (
-          <View style={{ marginTop: hp(1) }}>
-            {/* Normal Slot Progress */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+      {/* DAILY */}
+
+      {isDaily &&
+        !item?.emptyData &&
+        dailyTarget > 0 &&
+        item?.daily_data?.data?.[0]?.ruleType !==
+          'PER_ORDER' && (
+          <View style={styles.dailyProgressContainer}>
+            <View style={styles.progressHeader}>
               <Text style={styles.progressText}>
                 Orders
               </Text>
+
               <Text style={styles.progressText}>
-                {dailyCompletedOrders}/{item?.minOrders}
+                {dailyOrders} / {dailyTarget}
               </Text>
             </View>
 
             <ProgressBar
-              progress={(dailyCompletedOrders / item?.minOrders) * 100}
-              progressColor="#BEDBFF"
+              progress={dailyProgress}
+              progressColor="#65a9fc"
             />
           </View>
         )}
 
-      {/* Weekly or fallback single progress bar */}
-      {isWeekly && !item?.emptyData && (
-        <>
-          {(item?.minOrders > 0) && (
-            <>
-              <View style={styles.progressRow}>
+      {/* WEEKLY */}        
+        {isWeekly && !item?.emptyData && (
+          <View style={styles.weeklyContainer}>
+            <View style={styles.taskProgress}>
+              <View style={styles.progressHeader}>
                 <Text style={styles.progressText}>
-                  {weeklyCompletedOrders}/{item?.minOrders}
+                  Progress
+                </Text>
+
+                <Text style={styles.progressText}>
+                  {Math.round(
+                    Number(weeklyProgressPercentage ?? 0),
+                  )}%
                 </Text>
               </View>
 
               <ProgressBar
-                progress={Math.round((weeklyCompletedOrders / item?.minOrders) * 100)}
-                progressColor="#E9D4FF"
-              />
-            </>
-          )}
-
-          {item?.weekly_data?.data[0]?.ruleType === "TASK" &&
-            <View>
-              <Text style={[styles.progressText, { marginBottom: 5 }]}>Progress: {Math.round(weeklyProgressPercentage)}%</Text>
-              <ProgressBar
-                progress={weeklyProgressPercentage}
-                progressColor="#E9D4FF"
+                progress={Math.min(
+                  Math.max(
+                    Number(weeklyProgressPercentage ?? 0),
+                    0,
+                  ),
+                  100,
+                )}
+                progressColor="#B470FC"
               />
             </View>
-          }
-        </>
-      )}
-      {
-        item?.emptyData && (
-          <Text>
-            Incentives not found, please come back later
-          </Text>
-        )
-      }
+          </View>
+        )}
 
-      {/* reward / CTA */}
+      {/* EMPTY */}
+
+      {item?.emptyData && (
+        <Text style={styles.emptyText}>
+          Incentives not found, please come back later
+        </Text>
+      )}
+
+      {/* REWARD */}
+
       <View style={styles.bottomRow}>
         {item?.type !== 'peak' && (
-          <Text style={styles.rewardValue}>{item?.value}</Text>
+          <Text style={styles.rewardValue}>
+            {item?.value}
+          </Text>
         )}
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   card: {
@@ -193,37 +269,152 @@ const styles = StyleSheet.create({
     borderRadius: wp(4),
     padding: wp(4),
     marginBottom: wp(3),
-    // card shadow
+    borderWidth: 1,
+
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 8 } },
-      android: { elevation: 6 },
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: {
+          width: 0,
+          height: 8,
+        },
+      },
+      android: {
+        elevation: 6,
+      },
     }),
   },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  left: { flex: 1, paddingRight: wp(2) },
-  right: { backgroundColor: '#FFF', padding: 10, borderRadius: 15 },
-  labelChip: { backgroundColor: '#ffffff', paddingHorizontal: wp(2), paddingVertical: hp(0.3), borderRadius: wp(1.5), alignSelf: 'flex-start', marginBottom: hp(0.4) },
-  chipText: { fontSize: 14, fontWeight: '700' },
-  title: { fontSize: wp(4.2), fontWeight: '600', color: '#111' },
-  subtitle: { fontSize: wp(3.3), color: '#6B7280', marginTop: hp(0.3) },
-  icon: { width: wp(8), height: wp(8), resizeMode: 'contain' },
 
-  slabsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: hp(1) },
-  slab: { flex: 1, backgroundColor: 'rgba(0,0,0,0.03)', padding: wp(2), marginHorizontal: wp(0.5), borderRadius: wp(2), alignItems: 'center' },
-  slabOrders: { fontSize: wp(3.2), color: '#374151' },
-  slabReward: { fontSize: wp(3.4), fontWeight: '700', marginTop: hp(0.3) },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
 
-  progressRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: hp(1) },
-  progressText: { fontSize: wp(3.5), fontWeight: '500' },
-  progressMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(1) },
+  left: {
+    flex: 1,
+    paddingRight: wp(2),
+  },
 
-  smallMuted: { color: '#6B7280', fontSize: wp(3) },
-  bottomRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: hp(1) },
-  rewardLabel: { fontSize: wp(3.2), color: '#6B7280' },
+  right: {
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 15,
+  },
+
+  labelChip: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.3),
+    borderRadius: wp(1.5),
+    alignSelf: 'flex-start',
+    marginBottom: hp(0.4),
+  },
+
+  chipText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+
+  title: {
+    fontSize: wp(4.2),
+    fontWeight: '600',
+    color: '#111',
+  },
+
+  subtitle: {
+    fontSize: wp(3.3),
+    color: '#505254',
+    marginTop: hp(0.3),
+  },
+
+  icon: {
+    width: wp(8),
+    height: wp(8),
+    resizeMode: 'contain',
+  },
+
+  dailyProgressContainer: {
+    marginTop: hp(1),
+  },
+
+  weeklyContainer: {
+    marginTop: hp(1),
+  },
+
+  taskProgress: {
+    marginTop: hp(0.5),
+  },
+
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 5,
+  },
+
+  progressText: {
+    fontSize: wp(3.5),
+    fontWeight: '500',
+    color: '#374151',
+  },
+
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: hp(1),
+  },
+
   rewardValue: {
     fontSize: wp(4.2),
     fontWeight: '700',
     color: '#065F46',
-  }
+  },
 
+  emptyText: {
+    marginTop: hp(1.5),
+    color: '#6B7280',
+    fontSize: wp(3.2),
+  },
+
+  peakProgressContainer: {
+    marginTop: hp(1.5),
+  },
+
+  peakProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(0.7),
+  },
+
+  peakProgressTrack: {
+    width: '100%',
+    height: hp(1.5),
+    backgroundColor: '#FED7AA',
+    borderRadius: wp(2),
+    overflow: 'hidden',
+  },
+
+  peakProgressFill: {
+    height: '100%',
+    backgroundColor: '#F97316',
+    borderRadius: wp(2),
+  },
+
+  peakProgressPercentage: {
+    fontSize: wp(3),
+    color: '#9A3412',
+    fontWeight: '500',
+    marginTop: hp(0.5),
+  },
 });

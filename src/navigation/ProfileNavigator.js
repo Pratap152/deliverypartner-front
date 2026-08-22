@@ -5,7 +5,7 @@ import PersonalDetails from '../screens/profile/PersonalDetails';
 import RiderAssets from '../screens/profile/RiderAssets';
 import Documents from '../screens/profile/Documents';
 import Insurance from '../screens/profile/Insurance';
-import Wallet from '../screens/profile/Wallet';
+import Wallet from '../screens/profile/Payout';
 import CashBalance from '../screens/profile/CashBalance';
 import AttendanceScreen from '../screens/profile/AttendanceScreen';
 import AttendanceDetailsScreen from '../screens/profile/AttendanceDetailsScreen';

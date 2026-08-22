@@ -5,400 +5,140 @@ import {
   getWeeklyBarChart,
 } from '../services/earnings/earningsService';
 
-import { getWalletDetails } from '../services/earnings/walletService';
-
-import {
-  getPeakHourIncentives,
-  getDailyIncentives,
-  getWeeklyIncentives,
-} from '../services/earnings/incentiveService';
-
-/* =========================================================
-   CACHE
-========================================================= */
+import { getWalletDetails } from '../services/earnings/earningsWalletService';
 
 let dashboardCache = null;
 let dashboardLoaded = false;
 
-/* =========================================================
-   HOOK
-========================================================= */
+const initialData = {
+  todayEarnings: {},
 
-export default function useEarningsDashboard() {
-  const [loading, setLoading] = useState(!dashboardLoaded);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
+  earningsSummary: {
+    today: {},
+    week: {},
+    month: {},
+  },
 
-  const [data, setData] = useState(
-    dashboardCache || {
-      todayEarnings: {},
+  riderType: '',
 
-      earningsSummary: {
-        today: {},
-        week: {},
-        month: {},
-      },
+  weeklyBarChart: [],
+  weeklyTotal: 0,
+  weeklyOrders: 0,
 
-      riderType: '',
+  weeklySalary: 0,
+  weeklyTips: 0,
+  weeklyIncentives: 0,
 
-      weeklyBarChart: [],
-      weeklyTotal: 0,
-      weeklyOrders: 0,
+  monthlySalary: 0,
+  monthlyTips: 0,
+  monthlyIncentives: 0,
+  monthlyOrders: 0,
+  monthlyTotal: 0,
 
-      /*
-       * These are specifically from
-       * earningsSummary.week
-       */
-      weeklySalary: 0,
-      weeklyTips: 0,
-      weeklyIncentives: 0,
+  wallet: {},
+};
 
-      /*
-       * Monthly values
-       */
-      monthlySalary: 0,
-      monthlyTips: 0,
-      monthlyIncentives: 0,
-      monthlyOrders: 0,
-      monthlyTotal: 0,
+const mapDailyEarnings = res => ({
+  riderType: res?.riderType ?? '',
+  attendanceAmount: Number(res?.attendanceAmount ?? 0),
+  baseEarnings: Number(res?.baseEarnings ?? 0),
+  total: Number(res?.total ?? 0),
+  incentives: Number(res?.incentives ?? 0),
+  orders: Number(res?.orders ?? 0),
+  tips: Number(res?.tips ?? 0),
+  eligible: res?.eligible ?? false,
+  monthlyTarget: Number(res?.monthlyTarget ?? 0),
+  totalCompletedOrders: Number(res?.completedOrders ?? 0),
+  remainingOrders: Number(res?.remainingOrders ?? 0),
+  completionPercentage: Number(res?.completionPercentage ?? 0),
+});
 
-      wallet: {},
-      incentives: [],
-    }
-  );
+const mapWeeklySummary = res => ({
+  orders: Number(res?.orders ?? 0),
+  attendanceAmount: Number(res?.attendanceAmount ?? 0),
+  incentives: Number(res?.incentives ?? 0),
+  tips: Number(res?.tips ?? 0),
+  total: Number(res?.total ?? 0),
+});
 
-  const mounted = useRef(false);
+const mapMonthlySummary = res => ({
+  baseEarnings: Number(res?.baseEarnings ?? 0),
+  attendanceAmount: Number(res?.attendanceAmount ?? 0),
+  orders: Number(res?.orders ?? 0),
+  incentives: Number(res?.incentives ?? 0),
+  tips: Number(res?.tips ?? 0),
+  total: Number(res?.total ?? 0),
+  earnings: Number(res?.total ?? 0),
+});
 
-  /* =========================================================
-     TODAY
-  ========================================================= */
-
-  const mapDailyEarnings = res => {
+const mapWeeklyChart = res => {
+  if (!Array.isArray(res?.week)) {
     return {
-      riderType: res?.riderType ?? '',
-
-      attendanceAmount:
-        Number(res?.attendanceAmount ?? 0),
-
-      baseEarnings:
-        Number(res?.baseEarnings ?? 0),
-
-      total:
-        Number(res?.total ?? 0),
-
-      incentives:
-        Number(res?.incentives ?? 0),
-
-      orders:
-        Number(res?.orders ?? 0),
-
-      tips:
-        Number(res?.tips ?? 0),
-
-      eligible:
-        res?.eligible ?? false,
-
-      monthlyTarget:
-        Number(res?.monthlyTarget ?? 0),
-
-      totalCompletedOrders:
-        Number(res?.completedOrders ?? 0),
-
-      remainingOrders:
-        Number(res?.remainingOrders ?? 0),
-
-      completionPercentage:
-        Number(res?.completionPercentage ?? 0),
+      chart: [],
+      total: 0,
+      total_orders: 0,
     };
-  };
+  }
 
-  /* =========================================================
-     WEEKLY SUMMARY
-     
-     IMPORTANT:
-     These values come from:
-     
-     summary.week
-     
-     They must NOT come from:
-     - month
-     - weekly chart
-     ========================================================= */
+  const chart = res.week.map((item, index) => ({
+    ...item,
+    key: `${item?.day ?? 'day'}-${index}`,
+    day: item?.day ?? '',
+    amount: Number(item?.amount ?? 0),
+    orders: Number(item?.orders ?? 0),
+    label: item?.day ?? '',
+    value: Number(item?.amount ?? 0),
+  }));
 
-  const mapWeeklySummary = res => {
-    return {
-      orders:
-        Number(res?.orders ?? 0),
-
-      attendanceAmount:
-        Number(res?.attendanceAmount ?? 0),
-
-      incentives:
-        Number(res?.incentives ?? 0),
-
-      tips:
-        Number(res?.tips ?? 0),
-
-      total:
-        Number(res?.total ?? 0),
-    };
-  };
-
-  /* =========================================================
-     MONTHLY SUMMARY
-     
-     IMPORTANT:
-     These values remain completely separate
-     from weekly values.
-  ========================================================= */
-
-  const mapMonthlySummary = res => {
   return {
-    // INDIVIDUAL_EMPLOYEE
-    baseEarnings:
-      Number(res?.baseEarnings ?? 0),
-
-    // ZESTBOT_EMPLOYEE
-    // Keep this exactly for ZESTBOT salary
-    attendanceAmount:
-      Number(res?.attendanceAmount ?? 0),
-
-    orders:
-      Number(res?.orders ?? 0),
-
-    incentives:
-      Number(res?.incentives ?? 0),
-
-    tips:
-      Number(res?.tips ?? 0),
-
-    total:
-      Number(res?.total ?? 0),
-
-    earnings:
-      Number(res?.total ?? 0),
+    chart,
+    total: chart.reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0,
+    ),
+    total_orders: chart.reduce(
+      (sum, item) => sum + Number(item.orders || 0),
+      0,
+    ),
   };
 };
 
-  /* =========================================================
-     WEEKLY BAR CHART
-  ========================================================= */
+const mapWallet = res => ({
+  riderType: res?.data?.riderType ?? '',
+  totalAmount: Number(res?.data?.totalAmount ?? 0),
+  availableBalance: Number(res?.data?.availableBalance ?? 0),
+  holdAmount: Number(res?.data?.holdAmount ?? 0),
+  withdrawDate: res?.data?.withdrawDate ?? null,
+  todayEarning: Number(res?.data?.todayEarning ?? 0),
+  incentives: Number(res?.data?.incentives ?? 0),
+  tips: Number(res?.data?.tips ?? 0),
+});
 
-  const mapWeeklyChart = res => {
-    if (!Array.isArray(res?.week)) {
-      return {
-        chart: [],
-        total: 0,
-        total_orders: 0,
-      };
-    }
+export default function useEarningsDashboard() {
+  const [data, setData] = useState(
+    dashboardCache || initialData,
+  );
 
-    const chart = res.week.map(item => ({
-      ...item,
+  const [loading, setLoading] = useState(
+    !dashboardLoaded,
+  );
 
-      day: item?.day ?? '',
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
-      amount:
-        Number(item?.amount ?? 0),
+  const mounted = useRef(false);
 
-      orders:
-        Number(item?.orders ?? 0),
-
-      label:
-        item?.day ?? '',
-
-      value:
-        Number(item?.amount ?? 0),
-    }));
-
-    const total = chart.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
-
-    const total_orders = chart.reduce(
-      (sum, item) =>
-        sum + Number(item.orders || 0),
-      0
-    );
-
-    return {
-      chart,
-      total,
-      total_orders,
-    };
-  };
-
-  /* =========================================================
-     WALLET
-  ========================================================= */
-
-  const mapWallet = res => ({
-    balance:
-      Number(res?.data?.balance ?? 0),
-
-    totalEarned:
-      Number(res?.data?.totalEarned ?? 0),
-
-    totalWithdrawn:
-      Number(res?.data?.totalWithdrawn ?? 0),
-  });
-
-  /* =========================================================
-     INCENTIVES
-  ========================================================= */
-
-  const mapIncentives = (
-    peakRes,
-    weeklyRes,
-    dailyRes
-  ) => {
-    const incentives = [];
-
-    /* =====================================================
-       PEAK
-    ===================================================== */
-
-    const peakItem =
-      peakRes?.data?.[0];
-
-    if (peakItem) {
-      incentives.push({
-        id: 'peak-slot',
-        type: 'peak',
-
-        title:
-          peakItem?.name || 'FRED',
-
-        minOrders:
-          peakItem?.ruleType === 'HYBRID'
-            ? peakItem?.slots?.[0]?.conditions
-                ?.minOrders ?? 0
-
-            : peakItem?.ruleType === 'FIXED_TARGET'
-              ? peakItem?.slots?.[0]?.target
-                  ?.orders ?? 0
-
-              : peakItem?.ruleType === 'SLAB'
-                ? peakItem?.slots?.[0]?.slabs?.[0]
-                    ?.minOrders ?? 0
-
-                : 0,
-
-        accentColor: '#FFF7ED',
-
-        peak_data: peakRes,
-      });
-    } else {
-      incentives.push({
-        id: 'peak-slot',
-        type: 'peak',
-        emptyData: true,
-      });
-    }
-
-    /* =====================================================
-       WEEKLY INCENTIVE
-    ===================================================== */
-
-    const weeklyItem =
-      weeklyRes?.data?.[0];
-
-    if (weeklyItem) {
-      incentives.push({
-        id: 'weekly-incentive',
-        type: 'weekly',
-
-        title:
-          weeklyItem?.name,
-
-        minOrders:
-          weeklyItem?.ruleType === 'HYBRID'
-            ? weeklyItem?.conditions
-                ?.minOrders ?? 0
-
-            : weeklyItem?.ruleType === 'FIXED_TARGET'
-              ? weeklyItem?.target
-                  ?.orders ?? 0
-
-              : weeklyItem?.ruleType === 'SLAB'
-                ? weeklyItem?.slabs?.[0]
-                    ?.minOrders ?? 0
-
-                : 0,
-
-        accentColor: '#EFF6FF',
-
-        weekly_data: weeklyRes,
-      });
-    } else {
-      incentives.push({
-        id: 'weekly-incentive',
-        type: 'weekly',
-        emptyData: true,
-      });
-    }
-
-    /* =====================================================
-       DAILY INCENTIVE
-    ===================================================== */
-
-    const dailyItem =
-      dailyRes?.data?.[0];
-
-    if (dailyItem) {
-      incentives.push({
-        id: 'daily-incentive',
-        type: 'daily',
-
-        title:
-          dailyItem?.name,
-
-        minOrders:
-          dailyItem?.ruleType === 'HYBRID'
-            ? dailyItem?.conditions
-                ?.minOrders ?? 0
-
-            : dailyItem?.ruleType === 'FIXED_TARGET'
-              ? dailyItem?.target
-                  ?.orders ?? 0
-
-              : dailyItem?.ruleType === 'SLAB'
-                ? dailyItem?.slabs?.[0]
-                    ?.minOrders ?? 0
-
-                : 0,
-
-        accentColor: '#F5F3FF',
-
-        daily_data: dailyRes,
-      });
-    } else {
-      incentives.push({
-        id: 'daily-incentive',
-        type: 'daily',
-        emptyData: true,
-      });
-    }
-
-    return incentives;
-  };
-
-  /* =========================================================
-     FETCH DASHBOARD
-  ========================================================= */
-
-  const fetchDashboard = async (force = false) => {
+  const fetchDashboard = useCallback(async (force = false) => {
     if (mounted.current && !force) {
       return;
     }
 
-    if (!force) {
-      mounted.current = true;
-    }
-
+    mounted.current = true;
     setError(null);
+
+    if (!dashboardCache) {
+      setLoading(true);
+    }
 
     try {
       const [
@@ -411,40 +151,25 @@ export default function useEarningsDashboard() {
         getWalletDetails(),
       ]);
 
-      /*
-       * IMPORTANT:
-       * Start from current state/cache.
-       *
-       * This prevents monthly data from disappearing
-       * when another API finishes.
-       */
+      setData(prev => {
+        const next = {
+          ...prev,
+          earningsSummary: {
+            ...(prev?.earningsSummary || {}),
+          },
+        };
 
-      let updatedData = {
-        ...(dashboardCache || {}),
-      };
+        if (summaryResult.status === 'fulfilled') {
+          const summary = summaryResult.value;
 
-      /* =====================================================
-         SUMMARY API
-      ===================================================== */
-
-      if (summaryResult.status === 'fulfilled') {
-        const summary =
-          summaryResult.value;
-
-        /* ================= TODAY ================= */
-
-        const today =
-          mapDailyEarnings({
-            riderType:
-              summary?.riderType,
+          const today = mapDailyEarnings({
+            riderType: summary?.riderType,
 
             attendanceAmount:
-              summary?.today
-                ?.attendanceAmount,
+              summary?.today?.attendanceAmount,
 
             baseEarnings:
-              summary?.today
-                ?.baseEarnings,
+              summary?.today?.baseEarnings,
 
             total:
               summary?.today?.total,
@@ -471,280 +196,114 @@ export default function useEarningsDashboard() {
               summary?.target?.remainingOrders,
 
             completionPercentage:
-              summary?.target
-                ?.completionPercentage,
+              summary?.target?.completionPercentage,
           });
 
-        /* ================= WEEK ================= */
-
-        const week =
-          mapWeeklySummary(
-            summary?.week
+          const week = mapWeeklySummary(
+            summary?.week,
           );
 
-        /* ================= MONTH ================= */
-
-        const month =
-          mapMonthlySummary(
-            summary?.month
+          const month = mapMonthlySummary(
+            summary?.month,
           );
 
-        /*
-         * IMPORTANT:
-         *
-         * Today, Week and Month are
-         * completely separate objects.
-         */
-
-        updatedData = {
-          ...updatedData,
-
-          riderType:
+          next.riderType =
             summary?.riderType ??
-            updatedData.riderType ??
-            '',
+            next.riderType ??
+            '';
 
-          todayEarnings:
-            today,
+          next.todayEarnings = today;
 
-          earningsSummary: {
+          next.earningsSummary = {
             today,
             week,
             month,
-          },
+          };
 
-          /* ================= WEEK ================= */
+          next.weeklySalary =
+            week.attendanceAmount;
 
-          weeklySalary:
-            week.attendanceAmount,
+          next.weeklyTips =
+            week.tips;
 
-          weeklyTips:
-            week.tips,
+          next.weeklyIncentives =
+            week.incentives;
 
-          weeklyIncentives:
-            week.incentives,
+          next.weeklyTotal =
+            week.total;
 
-          /*
-           * Use summary.week for weekly
-           * total and orders.
-           */
+          next.weeklyOrders =
+            week.orders;
 
-          weeklyTotal:
-            week.total,
+          next.monthlySalary =
+            month.attendanceAmount;
 
-          weeklyOrders:
-            week.orders,
+          next.monthlyTips =
+            month.tips;
 
-          /* ================= MONTH ================= */
+          next.monthlyIncentives =
+            month.incentives;
 
-          monthlySalary:
-            month.attendanceAmount,
+          next.monthlyOrders =
+            month.orders;
 
-          monthlyTips:
-            month.tips,
+          next.monthlyTotal =
+            month.total;
+        }
 
-          monthlyIncentives:
-            month.incentives,
-
-          monthlyOrders:
-            month.orders,
-
-          monthlyTotal:
-            month.total,
-        };
-      }
-
-      /* =====================================================
-         WEEKLY BAR CHART
-         
-         IMPORTANT:
-         This API is ONLY for chart data.
-         
-         It must NOT replace:
-         - weeklyTotal
-         - weeklyOrders
-         - weeklySalary
-         - weeklyTips
-         - weeklyIncentives
-         ===================================================== */
-
-      if (
-        weeklyResult.status ===
-        'fulfilled'
-      ) {
-        const weeklyResponse =
-          weeklyResult.value;
-
-        const weekly =
-          mapWeeklyChart(
-            weeklyResponse
+        if (weeklyResult.status === 'fulfilled') {
+          const weekly = mapWeeklyChart(
+            weeklyResult.value,
           );
 
-        updatedData = {
-          ...updatedData,
+          next.weeklyBarChart =
+            weekly.chart;
+        }
 
-          riderType:
-            weeklyResponse?.riderType ??
-            updatedData.riderType ??
-            '',
-
-          weeklyBarChart:
-            weekly.chart,
-
-          /*
-           * DO NOT set weeklyTotal here.
-           *
-           * Summary API's week.total
-           * is the authoritative weekly
-           * earnings value.
-           */
-        };
-      }
-
-      /* =====================================================
-         WALLET
-      ===================================================== */
-
-      if (
-        walletResult.status ===
-        'fulfilled'
-      ) {
-        updatedData = {
-          ...updatedData,
-
-          wallet:
-            mapWallet(
-              walletResult.value
-            ),
-        };
-      }
-
-      /* =====================================================
-         SAVE DASHBOARD
-      ===================================================== */
-
-      setData(prev => {
-        const next = {
-          ...prev,
-          ...updatedData,
-
-          /*
-           * Make absolutely sure nested
-           * earningsSummary is preserved.
-           */
-          earningsSummary: {
-            ...(prev?.earningsSummary || {}),
-            ...(updatedData?.earningsSummary || {}),
-          },
-        };
+        if (walletResult.status === 'fulfilled') {
+          next.wallet = mapWallet(
+            walletResult.value,
+          );
+        }
 
         dashboardCache = next;
 
         return next;
       });
 
-      setLoading(false);
-
-      /* =====================================================
-         INCENTIVES
-      ===================================================== */
-
-      setTimeout(() => {
-        Promise.allSettled([
-          getPeakHourIncentives(),
-          getDailyIncentives(),
-          getWeeklyIncentives(),
-        ])
-          .then(
-            ([
-              peak,
-              daily,
-              weekly,
-            ]) => {
-              const mappedIncentives =
-                mapIncentives(
-                  peak.status ===
-                    'fulfilled'
-                    ? peak.value
-                    : null,
-
-                  weekly.status ===
-                    'fulfilled'
-                    ? weekly.value
-                    : null,
-
-                  daily.status ===
-                    'fulfilled'
-                    ? daily.value
-                    : null
-                );
-
-              setData(prev => {
-                const updated = {
-                  ...prev,
-
-                  /*
-                   * Preserve ALL existing
-                   * monthly/weekly data.
-                   */
-                  incentives:
-                    mappedIncentives,
-                };
-
-                dashboardCache =
-                  updated;
-
-                dashboardLoaded =
-                  true;
-
-                return updated;
-              });
-            }
-          )
-          .catch(() => {
-            dashboardLoaded =
-              true;
-          });
-      }, 500);
-
+      dashboardLoaded = true;
     } catch (err) {
       console.error(
         'Earnings dashboard error:',
-        err
+        err,
       );
 
       setError(err);
-      setLoading(false);
       dashboardLoaded = true;
+    } finally {
+      setLoading(false);
     }
-  };
-
-  /* =========================================================
-     INITIAL LOAD
-  ========================================================= */
+  }, []);
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
 
-  /* =========================================================
-     REFRESH
-  ========================================================= */
-
-  const onRefresh =
-    useCallback(async () => {
-      setRefreshing(true);
-
+    return () => {
       mounted.current = false;
+    };
+  }, [fetchDashboard]);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    mounted.current = false;
+
+    try {
       await fetchDashboard(true);
-
+    } finally {
       setRefreshing(false);
-    }, []);
-
-  /* =========================================================
-     RETURN
-  ========================================================= */
+    }
+  }, [fetchDashboard]);
 
   return {
     data,

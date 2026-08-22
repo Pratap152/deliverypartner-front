@@ -65,11 +65,12 @@ import DailyGuarentee from '../screens/incentives/DailyGuarentee';
 import PeakHourBonusScreen from '../screens/incentives/PeakHourBonusScreen';
 // import Timer from '../screens/Home/Timer';
 import ReferFrd from '../screens/Home/ReferFrd';
-import WalletScreen from '../screens/profile/Wallet';
+import PayoutScreen from '../screens/profile/Payout';
 import BankAC from '../screens/profile/BankAC';
 import ReferEarn from '../screens/Home/ReferEarn';
 import JoiningBonusScreen from '../screens/joiningBonus/JoiningBonusScreen';
 import EVScreen from '../screens/Home/EVScreen';
+import SalaryDetails from '../screens/earnings/SalaryDetailsScreen';
 
 
 
@@ -141,11 +142,12 @@ const AppNavigator = () => {
       <Stack.Screen name="PeakHourBonusScreen" component={PeakHourBonusScreen} />
 
       <Stack.Screen name="ReferFrd" component={ReferFrd} />
-      <Stack.Screen name="Wallet" component={WalletScreen} />
+      <Stack.Screen name="Payout" component={PayoutScreen} />
       <Stack.Screen name="BankAC" component={BankAC} />
       <Stack.Screen name='ReferEarn' component={ReferEarn} />
       <Stack.Screen name="JoiningBonusScreen" component={JoiningBonusScreen} />
       <Stack.Screen name="EVScreen" component={EVScreen} />
+      <Stack.Screen name="SalaryDetails" component={SalaryDetails} />
     </Stack.Navigator>
   );
 };
