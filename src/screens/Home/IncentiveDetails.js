@@ -463,9 +463,6 @@ export default function IncentiveDetails({navigation}) {
                 </Text>
               </View>
 
-              <Text style={styles.cardReward}>
-                ₹{dailyRewardEarned}
-              </Text>
             </View>
 
             <View style={styles.progressContainer}>
@@ -545,15 +542,6 @@ export default function IncentiveDetails({navigation}) {
                 </View>
               </View>
 
-              <Text
-                style={[
-                  styles.cardReward,
-                  {
-                    color: '#FF9500',
-                  },
-                ]}>
-                ₹{peakRewardEarned}
-              </Text>
             </View>
 
             <View style={styles.progressContainer}>
@@ -621,15 +609,6 @@ export default function IncentiveDetails({navigation}) {
                 </Text>
               </View>
 
-              <Text
-                style={[
-                  styles.cardReward,
-                  {
-                    color: '#3B82F6',
-                  },
-                ]}>
-                ₹{weeklyRewardEarned}
-              </Text>
             </View>
 
             {/* TASK = DAYS */}

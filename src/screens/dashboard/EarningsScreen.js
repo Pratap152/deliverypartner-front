@@ -634,6 +634,9 @@ export default function EarningsScreen({
     load,
     fetchIndividualIncentives,
     fetchZestbotIncentives,
+    fetchDailyIncentivesProgress,
+    fetchPeakIncentivesProgress,
+    fetchWeeklyIncentivesProgress
   } = useIncentives();
 
   const {
@@ -651,21 +654,39 @@ export default function EarningsScreen({
   ========================================================= */
 
   useEffect(() => {
-    if (!riderType) return;
+  if (!riderType) return;
 
-    if (riderType === 'INDIVIDUAL_EMPLOYEE') {
-      fetchIndividualIncentives();
+  const loadEarningsIncentives = async () => {
+    try {
+      if (riderType === 'INDIVIDUAL_EMPLOYEE') {
+        await Promise.all([
+          fetchIndividualIncentives(),
+          fetchWeeklyIncentivesProgress(),
+          fetchDailyIncentivesProgress(),
+          fetchPeakIncentivesProgress(),
+        ]);
+      }
+
+      if (riderType === 'ZESTBOT_EMPLOYEE') {
+        await fetchZestbotIncentives();
+      }
+    } catch (error) {
+      console.log(
+        'Earnings Incentives Error:',
+        error,
+      );
     }
+  };
 
-    if (riderType === 'ZESTBOT_EMPLOYEE') {
-      fetchZestbotIncentives();
-    }
-  }, [
-    riderType,
-    fetchIndividualIncentives,
-    fetchZestbotIncentives,
-  ]);
-
+  loadEarningsIncentives();
+}, [
+  riderType,
+  fetchIndividualIncentives,
+  fetchZestbotIncentives,
+  fetchWeeklyIncentivesProgress,
+  fetchDailyIncentivesProgress,
+  fetchPeakIncentivesProgress,
+]);
   /* =========================================================
      REFRESH
   ========================================================= */
@@ -674,9 +695,16 @@ export default function EarningsScreen({
     try {
       await onRefresh();
 
-      if (riderType === 'INDIVIDUAL_EMPLOYEE') {
-        await fetchIndividualIncentives();
+     
+       if (riderType === 'INDIVIDUAL_EMPLOYEE') {
+        await Promise.all([
+          fetchIndividualIncentives(),
+          fetchWeeklyIncentivesProgress(),
+          fetchDailyIncentivesProgress(),
+          fetchPeakIncentivesProgress(),
+        ]);
       }
+  
 
       if (riderType === 'ZESTBOT_EMPLOYEE') {
         await fetchZestbotIncentives();

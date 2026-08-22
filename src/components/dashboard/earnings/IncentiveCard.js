@@ -102,6 +102,8 @@ export default function IncentiveCard({
         ? formatTimeRange(item.time)
         : item?.subtitle;
 
+
+  
   return (
     <View
       style={[
@@ -207,7 +209,7 @@ export default function IncentiveCard({
 
             <ProgressBar
               progress={dailyProgress}
-              progressColor="#BEDBFF"
+              progressColor="#65a9fc"
             />
           </View>
         )}
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
 
   subtitle: {
     fontSize: wp(3.3),
-    color: '#6B7280',
+    color: '#505254',
     marginTop: hp(0.3),
   },
 

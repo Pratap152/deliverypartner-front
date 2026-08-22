@@ -1,4 +1,9 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+
 import {
   View,
   Text,
@@ -8,23 +13,32 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
-  BackHandler
+  BackHandler,
 } from "react-native";
+
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
+
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+
 import DeviceInfo from "react-native-device-info";
+
 import {
   responsiveFontSize,
-  responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 
 import { formatMoney } from "../../utils/formatMoney";
+
 import useEarningsHistory from "../../hooks/useEarningsHistory";
+
 import SalaryDetails from "./SalaryDetailsScreen";
 
 const isTablet = DeviceInfo.isTablet();
+
 const ZESTBOT = "ZESTBOT_EMPLOYEE";
 
 export default function EarningsHistoryScreen({
@@ -32,84 +46,117 @@ export default function EarningsHistoryScreen({
   route,
   riderType,
 }) {
-  const mode = route?.params?.mode || "TODAY";
+  const mode =
+    route?.params?.mode || "TODAY";
 
   const {
-  view,
-  loading,
-  initialLoading,
-  refreshing,
-  error,
-  offline,
-  weekData,
-  dayData,
-  orderData,
-  selectedYear,
-  setSelectedYear,
-  selectedWeek,
-  setSelectedWeek,
-  selectedDay,
-  ledgerItems,
-  currentRiderType,
-  isZestbot,
-  currentWeek,
-  years,
-  weeks,
-  loadHistoryWeek,
-  loadDay,
-  loadTransaction,
-  getZestbotAmount,
-  getZestbotBreakdown,
-  getWeeklyTotal,
-  refresh,
-  back,
-  bootstrap,
-  weeklyDailyData,
-  loadSalary,
-  salaryData
-} = useEarningsHistory({
+    view,
+    loading,
+    initialLoading,
+    refreshing,
+    error,
+    offline,
+
+    weekData,
+    dayData,
+    orderData,
+
+    selectedYear,
+    setSelectedYear,
+
+    selectedWeek,
+    setSelectedWeek,
+
+    selectedDay,
+
+    ledgerItems,
+
+    currentRiderType,
+    isZestbot,
+
+    currentWeek,
+    years,
+    weeks,
+
+    loadHistoryWeek,
+    loadDay,
+    loadTransaction,
+
+    getZestbotAmount,
+    getZestbotBreakdown,
+    getWeeklyTotal,
+    getWeeklyDayAmount,
+
+    refresh,
+    back,
+    bootstrap,
+
+    weeklyDailyData,
+
+    loadSalary,
+    salaryData,
+  } = useEarningsHistory({
     navigation,
     mode,
     riderType,
   });
 
-  const [modal, setModal] = useState(null);
-  const [calendar, setCalendar] = useState(false);
+  const [modal, setModal] =
+    useState(null);
+
+  const [calendar, setCalendar] =
+    useState(false);
 
   useEffect(() => {
-  const onBackPress = () => {
-    back();
-    return true;
-  };
+    const onBackPress = () => {
+      back();
+      return true;
+    };
 
-  const subscription = BackHandler.addEventListener(
-    "hardwareBackPress",
-    onBackPress
-  );
+    const subscription =
+      BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
 
-  return () => subscription.remove();
-}, [back]);
+    return () =>
+      subscription.remove();
+  }, [back]);
 
   const title = useMemo(() => {
-    if (view === "ORDER") return "Order Details";
-    if (mode === "TODAY") return "Today's Earnings";
-    if (view === "DAY") return "Daily Earnings";
-    if (mode === "WEEK") return "Weekly Earnings";
+    if (view === "ORDER") {
+      return "Order Details";
+    }
+
+    if (mode === "TODAY") {
+      return "Today's Earnings";
+    }
+
+    if (view === "DAY") {
+      return "Daily Earnings";
+    }
+
+    if (mode === "WEEK") {
+      return "Weekly Earnings";
+    }
+
     return "Earnings History";
   }, [mode, view]);
 
-
-
   if (initialLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+      >
         <Loader />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+    >
       <Header
         title={title}
         offline={offline}
@@ -117,69 +164,92 @@ export default function EarningsHistoryScreen({
       />
 
       {error ? (
-  <ErrorBox
-    text={error}
-    retry={bootstrap}
-  />
-) : view === "ORDER" ? (
-  <OrderDetails
-    data={orderData}
-    riderType={currentRiderType}
-    loading={loading}
-  />
-) : view === "SALARY" ? (
-  <SalaryDetails
-    data={salaryData}
-    onBack={back}
-  />
-) : view === "DAY" ? (
+        <ErrorBox
+          text={error}
+          retry={bootstrap}
+        />
+      ) : view === "ORDER" ? (
+        <OrderDetails
+          data={orderData}
+          riderType={currentRiderType}
+          loading={loading}
+        />
+      ) : view === "SALARY" ? (
+        <SalaryDetails
+          data={salaryData}
+          onBack={back}
+        />
+      ) : view === "DAY" ? (
         <DailyScreen
           data={dayData}
           items={ledgerItems}
           isZestbot={isZestbot}
           loading={loading}
           refreshing={refreshing}
-          getBreakdown={getZestbotBreakdown}
+          getBreakdown={
+            getZestbotBreakdown
+          }
           onRefresh={refresh}
           onLoadMore={() =>
             selectedDay &&
-            loadDay(selectedDay, false)
+            loadDay(
+              selectedDay,
+              false
+            )
           }
           onOrder={loadTransaction}
           onSalary={loadSalary}
         />
       ) : (
         <WeeklyScreen
-  data={weekData}
-  isZestbot={isZestbot}
-  weeklyTotal={getWeeklyTotal()}
-  weeklyDailyData={weeklyDailyData}
-  getZestbotAmount={getZestbotAmount}
-  getZestbotBreakdown={getZestbotBreakdown}
-  selectedYear={selectedYear}
-  selectedWeek={selectedWeek}
-  currentWeek={currentWeek}
-  mode={mode}
-  loading={loading}
-  refreshing={refreshing}
-  onRefresh={refresh}
-  onDay={(date) =>
-    loadDay(date, true, true)
-  }
-  onYear={() => setModal("YEAR")}
-  onWeek={() => setModal("WEEK")}
-  onDayPicker={() =>
-    setCalendar(true)
-  }
-/>
-)}
+          data={weekData}
+          isZestbot={isZestbot}
+          weeklyTotal={getWeeklyTotal()}
+          weeklyDailyData={
+            weeklyDailyData
+          }
+          getZestbotAmount={
+            getZestbotAmount
+          }
+          getWeeklyDayAmount={
+            getWeeklyDayAmount
+          }
+          selectedYear={selectedYear}
+          selectedWeek={selectedWeek}
+          currentWeek={currentWeek}
+          mode={mode}
+          loading={loading}
+          refreshing={refreshing}
+          onRefresh={refresh}
+          onDay={(date) =>
+            loadDay(
+              date,
+              true,
+              true
+            )
+          }
+          onYear={() =>
+            setModal("YEAR")
+          }
+          onWeek={() =>
+            setModal("WEEK")
+          }
+          onDayPicker={() =>
+            setCalendar(true)
+          }
+        />
+      )}
 
       <SimpleModal
         visible={modal === "YEAR"}
         title="Select Year"
         data={years}
-        label={(item) => String(item)}
-        onClose={() => setModal(null)}
+        label={(item) =>
+          String(item)
+        }
+        onClose={() =>
+          setModal(null)
+        }
         onSelect={(year) => {
           setSelectedYear(year);
           setModal(null);
@@ -207,9 +277,14 @@ export default function EarningsHistoryScreen({
         highlight={(item) =>
           item.week === currentWeek
         }
-        onClose={() => setModal(null)}
+        onClose={() =>
+          setModal(null)
+        }
         onSelect={(item) => {
-          setSelectedWeek(item.week);
+          setSelectedWeek(
+            item.week
+          );
+
           setModal(null);
 
           loadHistoryWeek(
@@ -227,18 +302,30 @@ export default function EarningsHistoryScreen({
           setCalendar(false);
 
           loadDay(
-            date.toISOString().split("T")[0],
+            date
+              .toISOString()
+              .split("T")[0],
             true,
             true
           );
         }}
-        onCancel={() => setCalendar(false)}
+        onCancel={() =>
+          setCalendar(false)
+        }
       />
     </SafeAreaView>
   );
 }
 
-function Header({ title, offline, onBack }) {
+/* =========================================================
+   HEADER
+========================================================= */
+
+function Header({
+  title,
+  offline,
+  onBack,
+}) {
   return (
     <View style={styles.header}>
       <TouchableOpacity
@@ -252,7 +339,9 @@ function Header({ title, offline, onBack }) {
         />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>
+      <Text
+        style={styles.headerTitle}
+      >
         {title}
       </Text>
 
@@ -265,23 +354,32 @@ function Header({ title, offline, onBack }) {
   );
 }
 
+/* =========================================================
+   WEEKLY SCREEN
+========================================================= */
+
 function WeeklyScreen({
   data,
   isZestbot,
   weeklyTotal,
+
   selectedYear,
   selectedWeek,
   currentWeek,
   mode,
+
   loading,
   refreshing,
+
   onRefresh,
   onDay,
   onYear,
   onWeek,
   onDayPicker,
+
   weeklyDailyData,
   getZestbotAmount,
+  getWeeklyDayAmount,
 }) {
   if (!data) {
     return <Empty />;
@@ -304,7 +402,9 @@ function WeeklyScreen({
         <>
           {(mode === "HISTORY" ||
             mode === "WEEK") && (
-            <View style={styles.filters}>
+            <View
+              style={styles.filters}
+            >
               <Filter
                 text={`Year: ${selectedYear}`}
                 onPress={onYear}
@@ -336,14 +436,27 @@ function WeeklyScreen({
             item.date
           ];
 
+        /*
+         * IMPORTANT:
+         *
+         * For BOTH Individual and ZestBot,
+         * prefer the daily API totalEarnings.
+         *
+         * Example:
+         *
+         * Thursday weekly API:
+         *     ₹360.56
+         *
+         * Thursday daily API:
+         *     ₹1860.56
+         *
+         * The difference is the ₹1500 Joining Bonus.
+         */
         const amount =
-          isZestbot
-            ? getZestbotAmount(
-                daily
-              )
-            : Number(
-                item.amount || 0
-              );
+          getWeeklyDayAmount(
+            daily,
+            item
+          );
 
         return (
           <TouchableOpacity
@@ -356,9 +469,7 @@ function WeeklyScreen({
               style={styles.rowText}
             >
               <Text
-                style={
-                  styles.rowTitle
-                }
+                style={styles.rowTitle}
               >
                 {item.day} (
                 {prettyDate(
@@ -368,9 +479,7 @@ function WeeklyScreen({
               </Text>
 
               <Text
-                style={
-                  styles.rowSub
-                }
+                style={styles.rowSub}
               >
                 {item.orders || 0}{" "}
                 {Number(
@@ -382,9 +491,7 @@ function WeeklyScreen({
             </View>
 
             <Text
-              style={
-                styles.amount
-              }
+              style={styles.amount}
             >
               ₹{formatMoney(amount)}
             </Text>
@@ -394,6 +501,10 @@ function WeeklyScreen({
     />
   );
 }
+
+/* =========================================================
+   DAILY SCREEN
+========================================================= */
 
 function DailyScreen({
   data,
@@ -414,59 +525,38 @@ function DailyScreen({
           color="#9c50ff"
         />
 
-        <Text style={styles.loaderText}>
+        <Text
+          style={styles.loaderText}
+        >
           Loading earnings...
         </Text>
       </View>
     );
   }
 
-  /*
-   * For ZESTBOT:
-   *
-   * Do NOT show separate ATTENDANCE or INCENTIVE cards.
-   *
-   * INCENTIVE is still preserved when it belongs
-   * to a DELIVERY transaction.
-   */
-  const visibleItems = items.filter(
-  (item) => item.type !== "INCENTIVE"
-);
-
-  /*
-   * TODAY TOTAL
-   *
-   * ZESTBOT:
-   * - Salary -> salary amount
-   * - Delivery -> incentive + tips
-   *
-   * This means your example:
-   *
-   * incentive = 30
-   * tips = 50
-   *
-   * Total = 80
-   */
-  const total = visibleItems.reduce((sum, item) => {
-  if (item.type === "SALARY") {
-    return sum + Number(item.amount || 0);
-  }
-
-  if (item.type === "DELIVERY") {
-    return (
-      sum +
-      Number(item.amount || 0)
+  const visibleItems =
+    items.filter(
+      (item) =>
+        item.type !== "ATTENDANCE"
     );
-  }
 
-  return sum;
-}, 0);
+  /*
+   * totalEarnings is the canonical daily
+   * total and includes Joining Bonus.
+   */
+  const total = Number(
+    data?.totalEarnings ?? 0
+  );
 
   return (
     <FlatList
       data={visibleItems}
       keyExtractor={(item, index) =>
-        `${item.orderId || item.transactionId || item.type}-${index}`
+        `${
+          item.orderId ||
+          item.transactionId ||
+          item.type
+        }-${index}`
       }
       refreshControl={
         <RefreshControl
@@ -482,9 +572,23 @@ function DailyScreen({
         />
       }
       renderItem={({ item }) => {
-        /*
-         * ZESTBOT SALARY
-         */
+        if (
+          item.type ===
+          "INCENTIVE"
+        ) {
+          return (
+            <Row
+              title="Joining Bonus"
+              subtitle={formatTime(
+                item.time
+              )}
+              amount={Number(
+                item.amount || 0
+              )}
+            />
+          );
+        }
+
         if (
           isZestbot &&
           item.type === "SALARY"
@@ -492,71 +596,71 @@ function DailyScreen({
           return (
             <Row
               title="Salary"
-              subtitle={formatTime(item.time)}
-              amount={Number(item.amount || 0)}
-              onPress={() => onSalary(item)}
-            />
-          );
-        }
-
-        /*
-         * ZESTBOT DELIVERY
-         *
-         * Keep incentive here.
-         *
-         * Example:
-         * incentive = 30
-         * tips = 50
-         *
-         * displayed amount = 80
-         */
-        if (
-          isZestbot &&
-          item.type === "DELIVERY"
-        ) {
-          const incentive = Number(
-            item.incentive || 0
-          );
-
-          const tips = Number(
-            item.tips || 0
-          );
-
-          const amount =
-            incentive + tips;
-
-          return (
-            <Row
-              title="Delivery"
-              subtitle={formatTime(item.time)}
-              amount={amount}
+              subtitle={formatTime(
+                item.time
+              )}
+              amount={Number(
+                item.amount || 0
+              )}
               onPress={() =>
-                onOrder(item.orderId)
+                onSalary(item)
               }
             />
           );
         }
 
-        /*
-         * INDIVIDUAL EMPLOYEE
-         *
-         * Keep existing behavior.
-         */
+        if (
+          isZestbot &&
+          item.type ===
+            "DELIVERY"
+        ) {
+          const incentive =
+            Number(
+              item.incentive || 0
+            );
+
+          const tips = Number(
+            item.tips || 0
+          );
+
+          return (
+            <Row
+              title="Delivery"
+              subtitle={formatTime(
+                item.time
+              )}
+              amount={
+                incentive + tips
+              }
+              onPress={() =>
+                onOrder(
+                  item.orderId
+                )
+              }
+            />
+          );
+        }
+
         return (
           <Row
             title={item.type}
-            subtitle={formatTime(item.time)}
-            amount={
+            subtitle={formatTime(
+              item.time
+            )}
+            amount={Number(
               item.amount ??
-              item.incentive ??
-              0
-            }
+                item.incentive ??
+                0
+            )}
             onPress={() => {
               if (
-                item.type === "DELIVERY" &&
+                item.type ===
+                  "DELIVERY" &&
                 item.orderId
               ) {
-                onOrder(item.orderId);
+                onOrder(
+                  item.orderId
+                );
               }
             }}
           />
@@ -565,23 +669,34 @@ function DailyScreen({
       onEndReached={onLoadMore}
       onEndReachedThreshold={0.5}
       ListEmptyComponent={
-        !loading ? <Empty /> : null
+        !loading ? (
+          <Empty />
+        ) : null
       }
       ListFooterComponent={
-        loading ? <LoaderSmall /> : null
+        loading ? (
+          <LoaderSmall />
+        ) : null
       }
     />
   );
 }
+
+/* =========================================================
+   ORDER DETAILS
+========================================================= */
 
 function OrderDetails({
   data,
   riderType,
   loading,
 }) {
-  if (!data) return <Empty />;
+  if (!data) {
+    return <Empty />;
+  }
 
-  const transaction = data.transaction || data;
+  const transaction =
+    data.transaction || data;
 
   const currentRiderType =
     data.riderType || riderType;
@@ -590,19 +705,22 @@ function OrderDetails({
     currentRiderType === ZESTBOT;
 
   if (isZestbotEmployee) {
-    const incentive = Number(
-      transaction.incentive ??
-      data.incentive ??
-      0
-    );
+    const incentive =
+      Number(
+        transaction.incentive ??
+          data.incentive ??
+          0
+      );
 
-    const tips = Number(
-      transaction.tips ??
-      data.tips ??
-      0
-    );
+    const tips =
+      Number(
+        transaction.tips ??
+          data.tips ??
+          0
+      );
 
-    const total = incentive + tips;
+    const total =
+      incentive + tips;
 
     const orderId =
       data.orderId ||
@@ -610,7 +728,8 @@ function OrderDetails({
       transaction.referenceId ||
       "-";
 
-    const store = data.store || "-";
+    const store =
+      data.store || "-";
 
     const timestamp =
       transaction.time ||
@@ -622,24 +741,6 @@ function OrderDetails({
       transaction.status ||
       data.status ||
       "-";
-  function formatDateTime(value) {
-        if (!value || value === "-") return "-";
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-          return value;
-        }
-
-        return date.toLocaleString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        });
-      }
 
     return (
       <FlatList
@@ -655,7 +756,9 @@ function OrderDetails({
             <View style={styles.box}>
               <BreakRow
                 label="Rider Type"
-                value={currentRiderType}
+                value={
+                  currentRiderType
+                }
                 text
               />
 
@@ -672,9 +775,10 @@ function OrderDetails({
               />
 
               <BreakRow
-              label="Incentive"
-              value={incentive}
-            />
+                label="Incentive"
+                value={incentive}
+              />
+
               <BreakRow
                 label="Tips"
                 value={tips}
@@ -682,7 +786,9 @@ function OrderDetails({
 
               <BreakRow
                 label="Time"
-                value={formatDateTime(timestamp)}
+                value={formatDateTime(
+                  timestamp
+                )}
                 text
               />
 
@@ -693,99 +799,110 @@ function OrderDetails({
               />
             </View>
 
-            {loading && <LoaderSmall />}
+            {loading && (
+              <LoaderSmall />
+            )}
           </View>
         }
       />
     );
   }
 
+  return (
+    <FlatList
+      data={[]}
+      renderItem={null}
+      ListHeaderComponent={
+        <View style={styles.details}>
+          <TotalCard
+            title="Total Earnings"
+            amount={Number(
+              data.totalEarnings || 0
+            )}
+          />
 
- /* =========================================================
-   INDIVIDUAL EMPLOYEE
-========================================================= */
+          <View style={styles.box}>
+            <BreakRow
+              label="Store"
+              value={
+                data.store || "-"
+              }
+              text
+            />
 
-return (
-  <FlatList
-    data={[]}
-    renderItem={null}
-    ListHeaderComponent={
-      <View style={styles.details}>
-        <TotalCard
-          title="Total Earnings"
-          amount={Number(
-            data.totalEarnings || 0
+            <BreakRow
+              label="Order ID"
+              value={
+                data.orderId || "-"
+              }
+              text
+            />
+
+            <BreakRow
+              label="Base Fare"
+              value={Number(
+                transaction.basePay ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Distance Fare"
+              value={Number(
+                transaction.distancePay ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Surge"
+              value={Number(
+                transaction.surgePay ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Tips"
+              value={Number(
+                transaction.tips ||
+                  0
+              )}
+            />
+
+            <BreakRow
+              label="Time"
+              value={formatDateTime(
+                transaction.time ||
+                  transaction.creditedAt ||
+                  data.time
+              )}
+              text
+            />
+
+            <BreakRow
+              label="Status"
+              value={
+                transaction.status ||
+                data.status ||
+                "-"
+              }
+              text
+            />
+          </View>
+
+          {loading && (
+            <LoaderSmall />
           )}
-        />
-
-        <View style={styles.box}>
-          <BreakRow
-            label="Store"
-            value={data.store || "-"}
-            text
-          />
-
-          <BreakRow
-            label="Order ID"
-            value={data.orderId || "-"}
-            text
-          />
-
-          <BreakRow
-            label="Base Fare"
-            value={Number(
-              transaction.basePay || 0
-            )}
-          />
-
-          <BreakRow
-            label="Distance Fare"
-            value={Number(
-              transaction.distancePay || 0
-            )}
-          />
-
-          <BreakRow
-            label="Surge"
-            value={Number(
-              transaction.surgePay || 0
-            )}
-          />
-
-          <BreakRow
-  label="Tips"
-  value={Number(
-    transaction.tips || 0
-  )}
-/>
-
-<BreakRow
-  label="Time"
-  value={formatDateTime(
-    transaction.time ||
-    transaction.creditedAt ||
-    data.time
-  )}
-  text
-/>
-
-<BreakRow
-  label="Status"
-  value={
-    transaction.status ||
-    data.status ||
-    "-"
-  }
-  text
-/>
         </View>
-
-        {loading && <LoaderSmall />}
-      </View>
-    }
-  />
-);
+      }
+    />
+  );
 }
+
+/* =========================================================
+   ROW
+========================================================= */
 
 function Row({
   title,
@@ -796,12 +913,16 @@ function Row({
   const content = (
     <>
       <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>
+        <Text
+          style={styles.rowTitle}
+        >
           {title}
         </Text>
 
         {!!subtitle && (
-          <Text style={styles.rowSub}>
+          <Text
+            style={styles.rowSub}
+          >
             {subtitle}
           </Text>
         )}
@@ -828,25 +949,41 @@ function Row({
   );
 }
 
+/* =========================================================
+   BREAKDOWN ROW
+========================================================= */
+
 function BreakRow({
   label,
   value,
   text = false,
 }) {
   return (
-    <View style={styles.breakRow}>
-      <Text style={styles.breakLabel}>
+    <View
+      style={styles.breakRow}
+    >
+      <Text
+        style={styles.breakLabel}
+      >
         {label}
       </Text>
 
-      <Text style={styles.breakValue}>
+      <Text
+        style={styles.breakValue}
+      >
         {text
           ? value || "-"
-          : `₹${formatMoney(value || 0)}`}
+          : `₹${formatMoney(
+              value || 0
+            )}`}
       </Text>
     </View>
   );
 }
+
+/* =========================================================
+   TOTAL CARD
+========================================================= */
 
 function TotalCard({
   title,
@@ -854,24 +991,38 @@ function TotalCard({
 }) {
   return (
     <View style={styles.card}>
-      <Text style={styles.cardLabel}>
+      <Text
+        style={styles.cardLabel}
+      >
         {title}
       </Text>
 
-      <Text style={styles.cardAmount}>
-        ₹{formatMoney(amount || 0)}
+      <Text
+        style={styles.cardAmount}
+      >
+        ₹{formatMoney(
+          amount || 0
+        )}
       </Text>
     </View>
   );
 }
 
-function Filter({ text, onPress }) {
+/* =========================================================
+   FILTER
+========================================================= */
+
+function Filter({
+  text,
+  onPress,
+}) {
   return (
     <TouchableOpacity
       style={styles.filter}
       onPress={onPress}
     >
       <Text>{text}</Text>
+
       <Ionicons
         name="chevron-down"
         size={16}
@@ -879,6 +1030,10 @@ function Filter({ text, onPress }) {
     </TouchableOpacity>
   );
 }
+
+/* =========================================================
+   MODAL
+========================================================= */
 
 function SimpleModal({
   visible,
@@ -890,7 +1045,9 @@ function SimpleModal({
   onClose,
   onSelect,
 }) {
-  if (!visible) return null;
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Modal
@@ -899,10 +1056,22 @@ function SimpleModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
+      <View
+        style={
+          styles.modalOverlay
+        }
+      >
         <View style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+          <View
+            style={
+              styles.modalHeader
+            }
+          >
+            <Text
+              style={
+                styles.modalTitle
+              }
+            >
               {title}
             </Text>
 
@@ -918,14 +1087,19 @@ function SimpleModal({
 
           <FlatList
             data={data}
-            keyExtractor={(item, index) =>
+            keyExtractor={(
+              item,
+              index
+            ) =>
               String(
                 item?.week ??
-                item ??
-                index
+                  item ??
+                  index
               )
             }
-            renderItem={({ item }) => {
+            renderItem={({
+              item,
+            }) => {
               const active =
                 selected?.(item);
 
@@ -966,6 +1140,10 @@ function SimpleModal({
   );
 }
 
+/* =========================================================
+   LOADERS
+========================================================= */
+
 function Loader() {
   return (
     <View style={styles.loader}>
@@ -973,7 +1151,10 @@ function Loader() {
         size="large"
         color="#9c50ff"
       />
-      <Text style={styles.loaderText}>
+
+      <Text
+        style={styles.loaderText}
+      >
         Loading earnings...
       </Text>
     </View>
@@ -982,7 +1163,9 @@ function Loader() {
 
 function LoaderSmall() {
   return (
-    <View style={styles.loaderSmall}>
+    <View
+      style={styles.loaderSmall}
+    >
       <ActivityIndicator
         size="small"
         color="#9c50ff"
@@ -991,10 +1174,16 @@ function LoaderSmall() {
   );
 }
 
+/* =========================================================
+   EMPTY / ERROR
+========================================================= */
+
 function Empty() {
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyText}>
+      <Text
+        style={styles.emptyText}
+      >
         No data available
       </Text>
     </View>
@@ -1007,12 +1196,18 @@ function ErrorBox({
 }) {
   return (
     <View style={styles.error}>
-      <Text style={styles.errorText}>
+      <Text
+        style={styles.errorText}
+      >
         {text}
       </Text>
 
-      <TouchableOpacity onPress={retry}>
-        <Text style={styles.retry}>
+      <TouchableOpacity
+        onPress={retry}
+      >
+        <Text
+          style={styles.retry}
+        >
           Retry
         </Text>
       </TouchableOpacity>
@@ -1020,14 +1215,47 @@ function ErrorBox({
   );
 }
 
+/* =========================================================
+   DATE HELPERS
+========================================================= */
+
 function formatTime(value) {
   if (!value) return "";
-  return new Date(value).toLocaleTimeString();
+
+  return new Date(
+    value
+  ).toLocaleTimeString();
+}
+
+function formatDateTime(value) {
+  if (!value || value === "-") {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }
+  );
 }
 
 function prettyDate(value) {
   const date = new Date(value);
+
   const day = date.getDate();
+
   const suffix =
     day > 3 && day < 21
       ? "th"
@@ -1041,11 +1269,16 @@ function prettyDate(value) {
   )} ${day}${suffix}`;
 }
 
+/* =========================================================
+   STYLES
+========================================================= */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F7F8FA",
   },
+
   header: {
     height: 58,
     flexDirection: "row",
@@ -1053,9 +1286,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: "#FFF",
   },
+
   back: {
     padding: 8,
   },
+
   headerTitle: {
     fontSize: isTablet
       ? responsiveFontSize(1.9)
@@ -1063,10 +1298,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginLeft: 5,
   },
+
   offline: {
     color: "red",
     marginLeft: 10,
   },
+
   card: {
     margin: 16,
     padding: isTablet
@@ -1075,12 +1312,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#9c50ff",
   },
+
   cardLabel: {
     color: "#FFF",
     fontSize: isTablet
       ? responsiveFontSize(1.2)
       : 15,
   },
+
   cardAmount: {
     marginTop: 3,
     color: "#FFF",
@@ -1089,10 +1328,12 @@ const styles = StyleSheet.create({
       : 27,
     fontWeight: "800",
   },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent:
+      "space-between",
     marginHorizontal: 16,
     marginBottom: 8,
     padding: isTablet
@@ -1103,20 +1344,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#FFF",
   },
+
   rowText: {
     flex: 1,
   },
+
   rowTitle: {
     fontSize: isTablet
       ? responsiveFontSize(1.25)
       : 15,
     fontWeight: "600",
   },
+
   rowSub: {
     marginTop: 3,
     color: "#777",
     fontSize: 12,
   },
+
   amount: {
     marginLeft: 12,
     color: "#24c77b",
@@ -1125,6 +1370,7 @@ const styles = StyleSheet.create({
       ? responsiveFontSize(1.25)
       : 15,
   },
+
   box: {
     marginHorizontal: 16,
     marginBottom: 12,
@@ -1134,19 +1380,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     overflow: "hidden",
   },
+
   breakRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent:
+      "space-between",
     minHeight: 48,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
+
   breakLabel: {
     color: "#333",
     fontSize: 14,
   },
+
   breakValue: {
     maxWidth: "60%",
     textAlign: "right",
@@ -1154,11 +1404,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 14,
   },
+
   filters: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent:
+      "space-around",
     padding: 8,
   },
+
   filter: {
     flexDirection: "row",
     alignItems: "center",
@@ -1170,29 +1423,37 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#FFF",
   },
+
   details: {
     paddingTop: 1,
   },
+
   loader: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent:
+      "center",
     alignItems: "center",
   },
+
   loaderText: {
     marginTop: 10,
     color: "#777",
   },
+
   loaderSmall: {
     padding: 20,
     alignItems: "center",
   },
+
   empty: {
     padding: 40,
     alignItems: "center",
   },
+
   emptyText: {
     color: "#777",
   },
+
   error: {
     margin: 16,
     padding: 18,
@@ -1200,50 +1461,62 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#FFECEC",
   },
+
   errorText: {
     color: "#C00",
     textAlign: "center",
   },
+
   retry: {
     marginTop: 8,
     color: "#007AFF",
     fontWeight: "600",
   },
+
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor:
+      "rgba(0,0,0,0.45)",
   },
+
   modal: {
     maxHeight: "75%",
     borderRadius: 14,
     backgroundColor: "#FFF",
     overflow: "hidden",
   },
+
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent:
+      "space-between",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
+
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
   },
+
   modalItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent:
+      "space-between",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
+
   modalSelected: {
     backgroundColor: "#F5ECFF",
   },
+
   modalCurrent: {
     borderLeftWidth: 3,
     borderLeftColor: "#9c50ff",

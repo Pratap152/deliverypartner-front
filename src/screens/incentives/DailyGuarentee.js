@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
+
+import {useFocusEffect} from '@react-navigation/native';
 
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,6 +21,10 @@ import FixedTargetRuleTypeIncentives from '../../components/dashboard/earnings/F
 import HybridRuleTypeIncentives from '../../components/dashboard/earnings/HybridRuleTypeIncentives';
 import PerOrderRuleTypeIncentives from '../../components/dashboard/earnings/PerOrderRuleTypeIncentives';
 
+import {
+  getDailyIncentivesProgress,
+} from '../../services/earnings/incentiveService';
+
 const DailyGuarentee = ({route, navigation}) => {
   const {width} = useWindowDimensions();
   const isTablet = DeviceInfo.isTablet();
@@ -28,8 +35,69 @@ const DailyGuarentee = ({route, navigation}) => {
   const program =
     params?.daily_data?.data?.[0] || null;
 
-  const progress =
-    params?.dailyIncentivesProgress || null;
+  const [progress, setProgress] = useState(
+    params?.dailyIncentivesProgress || null,
+  );
+
+  const [loading, setLoading] = useState(false);
+
+  /*
+   * Fetch fresh daily progress every time
+   * this screen comes into focus.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+
+      const fetchLatestProgress = async () => {
+        try {
+          setLoading(true);
+
+          console.log(
+            '🔥 DAILY PROGRESS API CALLED',
+          );
+
+          const response =
+            await getDailyIncentivesProgress();
+
+          console.log(
+            '🔥 DAILY PROGRESS RESPONSE:',
+            response,
+          );
+
+          if (!mounted) {
+            return;
+          }
+
+          const latestProgress =
+            Array.isArray(response?.data)
+              ? response.data[0] || null
+              : response?.data ||
+                response ||
+                null;
+
+          setProgress(latestProgress);
+        } catch (error) {
+          console.log(
+            '❌ DAILY PROGRESS API ERROR:',
+            error?.response?.data ||
+              error?.message ||
+              error,
+          );
+        } finally {
+          if (mounted) {
+            setLoading(false);
+          }
+        }
+      };
+
+      fetchLatestProgress();
+
+      return () => {
+        mounted = false;
+      };
+    }, []),
+  );
 
   console.log(
     'DAILY PROGRAM:',
@@ -61,7 +129,9 @@ const DailyGuarentee = ({route, navigation}) => {
     program.name || 'Daily Incentive';
 
   const city =
-    program.city || '--';
+    program.city ||
+    program.cityName ||
+    '--';
 
   const status =
     program.status || '';
@@ -123,19 +193,6 @@ const DailyGuarentee = ({route, navigation}) => {
   )
     ? program.slabs
     : [];
-
-  console.log(
-    'DAILY CALCULATED:',
-    {
-      ruleType,
-      ordersCompleted,
-      minOrders,
-      rewardEarned,
-      maxReward,
-      slabReward:
-        slabs?.[0]?.rewardAmount ?? 0,
-    },
-  );
 
   return (
     <ScrollView
@@ -217,7 +274,7 @@ const DailyGuarentee = ({route, navigation}) => {
               </Text>
 
               <Text style={styles.value}>
-                {status}
+                {progress?.status || status}
               </Text>
 
               <Text style={styles.value}>
@@ -229,6 +286,19 @@ const DailyGuarentee = ({route, navigation}) => {
               </Text>
             </View>
           </View>
+
+          {loading && (
+            <View style={styles.refreshRow}>
+              <ActivityIndicator
+                size="small"
+                color="#4F46E5"
+              />
+
+              <Text style={styles.refreshText}>
+                Updating progress...
+              </Text>
+            </View>
+          )}
         </View>
 
         {ruleType === 'SLAB' && (
@@ -277,8 +347,12 @@ const DailyGuarentee = ({route, navigation}) => {
               ordersCompleted
             }
             minOrders={minOrders}
-            rewardEarned={rewardEarned}
-            minEarnings={minEarnings}
+            rewardEarned={
+              rewardEarned
+            }
+            minEarnings={
+              minEarnings
+            }
             maxReward={maxReward}
             styles={styles}
             isTablet={isTablet}
@@ -438,5 +512,18 @@ const createStyles = (
       fontWeight: '700',
       color: '#111827',
       paddingTop: 8,
+    },
+
+    refreshRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 14,
+    },
+
+    refreshText: {
+      marginLeft: 8,
+      fontSize: isTablet ? 15 : 12,
+      color: '#6B7280',
+      fontWeight: '500',
     },
   });

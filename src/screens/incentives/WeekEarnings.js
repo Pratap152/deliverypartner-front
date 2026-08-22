@@ -28,20 +28,16 @@ const WeekEarnings = ({
   route,
   navigation,
 }) => {
-  const { width } =
-    useWindowDimensions();
+  const { width } = useWindowDimensions();
 
-  const isTablet =
-    DeviceInfo.isTablet();
+  const isTablet = DeviceInfo.isTablet();
 
-  const styles =
-    createStyles(
-      isTablet,
-      width,
-    );
+  const styles = createStyles(
+    isTablet,
+    width,
+  );
 
-  const params =
-    route?.params || {};
+  const params = route?.params || {};
 
   console.log(
     'Week Earnings params:',
@@ -54,14 +50,14 @@ const WeekEarnings = ({
     null;
 
   const rawProgress =
-  params?.weeklyIncentivesProgress ||
-  params?.progress ||
-  null;
+    params?.weeklyIncentivesProgress ||
+    params?.progress ||
+    null;
 
-const progress =
-  rawProgress?.data?.[0] ||
-  rawProgress ||
-  null;
+  const progress =
+    rawProgress?.data?.[0] ||
+    rawProgress ||
+    null;
 
   if (
     !program ||
@@ -69,24 +65,14 @@ const progress =
     progress?.emptyData
   ) {
     return (
-      <View
-        style={
-          styles.emptyContainer
-        }
-      >
+      <View style={styles.emptyContainer}>
         <Ionicons
           name="calendar-outline"
-          size={
-            isTablet ? 70 : 50
-          }
+          size={isTablet ? 70 : 50}
           color="#9CA3AF"
         />
 
-        <Text
-          style={
-            styles.emptyText
-          }
-        >
+        <Text style={styles.emptyText}>
           Please come again later
         </Text>
       </View>
@@ -208,8 +194,7 @@ const progress =
             }
             maxReward={
               task?.slabs?.[
-                task.slabs.length -
-                  1
+                task.slabs.length - 1
               ]?.rewardAmount ?? 0
             }
             styles={styles}
@@ -386,8 +371,7 @@ const progress =
 
           <View
             style={{
-              flexDirection:
-                'row',
+              flexDirection: 'row',
               marginTop: 10,
             }}
           >
@@ -439,8 +423,7 @@ const progress =
 
         {/* NORMAL RULE TYPE */}
 
-        {ruleType ===
-          'SLAB' && (
+        {ruleType === 'SLAB' && (
           <SlabRuleTypeIncentives
             title={title}
             status={status}
@@ -469,8 +452,7 @@ const progress =
           />
         )}
 
-        {ruleType ===
-          'HYBRID' && (
+        {ruleType === 'HYBRID' && (
           <HybridRuleTypeIncentives
             title={title}
             status={status}
@@ -497,12 +479,8 @@ const progress =
             ordersCompleted={
               ordersCompleted
             }
-            maxOrders={
-              maxOrders
-            }
-            maxReward={
-              maxReward
-            }
+            maxOrders={maxOrders}
+            maxReward={maxReward}
             styles={styles}
             isTablet={isTablet}
           />
@@ -525,6 +503,16 @@ const progress =
                       task?.dayNumber,
                   );
 
+                /*
+                 * Use dayName from the API.
+                 * task.dayName is preferred,
+                 * progressTask.dayName is fallback.
+                 */
+                const dayName =
+                  task?.dayName ||
+                  progressTask?.dayName ||
+                  '';
+
                 return (
                   <View
                     key={`day-${task.dayNumber}`}
@@ -540,9 +528,18 @@ const progress =
                         }
                       >
                         Day{' '}
-                        {
-                          task.dayNumber
-                        }
+                        {task.dayNumber}
+
+                        {!!dayName && (
+                          <Text
+                            style={
+                              styles.taskRuleTypeHeaderDayName
+                            }
+                          >
+                            {' • '}
+                            {dayName}
+                          </Text>
+                        )}
                       </Text>
 
                       <Text
@@ -632,8 +629,7 @@ const createStyles = (
     rewardPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf:
-        'flex-start',
+      alignSelf: 'flex-start',
       backgroundColor:
         'rgba(255,255,255,0.15)',
       paddingHorizontal:
@@ -729,6 +725,11 @@ const createStyles = (
         isTablet ? 18 : 15,
       fontWeight: '700',
       color: '#111827',
+    },
+
+    taskRuleTypeHeaderDayName: {
+      fontWeight: '500',
+      color: '#6B7280',
     },
 
     taskRuleTypeHeaderRuleType: {

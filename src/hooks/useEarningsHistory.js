@@ -44,40 +44,24 @@ export default function useEarningsHistory({
   const [salaryData, setSalaryData] = useState(null);
 
   const loadSalary = (salary) => {
-  if (!salary) return;
+    if (!salary) return;
 
-  setSalaryData(salary);
-  setView("SALARY");
-};
+    setSalaryData(salary);
+    setView("SALARY");
+  };
 
   const isZestbot = currentRiderType === ZESTBOT;
-
-  /* =========================================================
-     CURRENT WEEK
-  ========================================================= */
 
   const currentWeek = useMemo(
     () => getBackendWeekNumber(new Date()),
     []
   );
 
-  /* =========================================================
-     YEARS
-  ========================================================= */
-
   const years = useMemo(() => {
     const year = new Date().getFullYear();
 
-    return [
-      year,
-      year - 1,
-      year - 2,
-    ];
+    return [year, year - 1, year - 2];
   }, []);
-
-  /* =========================================================
-     WEEKS
-  ========================================================= */
 
   const weeks = useMemo(() => {
     const all = getWeeksOfYear(selectedYear);
@@ -87,41 +71,26 @@ export default function useEarningsHistory({
       ? all
           .filter(
             (w) =>
-              w.week <=
-              getBackendWeekNumber(now)
+              w.week <= getBackendWeekNumber(now)
           )
           .reverse()
       : all.reverse();
   }, [selectedYear]);
 
-  /* =========================================================
-     NETWORK
-  ========================================================= */
-
   useEffect(() => {
-    const unsub =
-      NetInfo.addEventListener((state) => {
-        setOffline(!state.isConnected);
-      });
+    const unsub = NetInfo.addEventListener((state) => {
+      setOffline(!state.isConnected);
+    });
 
     return unsub;
   }, []);
 
-  /* =========================================================
-     API WRAPPER
-  ========================================================= */
-
   const api = useCallback(
-    async (
-      key,
-      request,
-      force = false
-    ) => {
+    async (key, request, force = false) => {
       setError(null);
 
       if (!force) {
-        const cached =
-          await EarningsCache.get(key);
+        const cached = await EarningsCache.get(key);
 
         if (cached) {
           return cached;
@@ -129,30 +98,22 @@ export default function useEarningsHistory({
       }
 
       if (offline) {
-        const cached =
-          await EarningsCache.get(key);
+        const cached = await EarningsCache.get(key);
 
         if (cached) {
           return cached;
         }
 
-        setError(
-          "No internet connection"
-        );
-
+        setError("No internet connection");
         return null;
       }
 
       try {
         const res = await request();
-
         const data = res?.data;
 
         if (data) {
-          await EarningsCache.set(
-            key,
-            data
-          );
+          await EarningsCache.set(key, data);
         }
 
         return data;
@@ -160,13 +121,10 @@ export default function useEarningsHistory({
         console.error(
           "EARNINGS API:",
           e?.response?.status,
-          e?.response?.data ||
-            e?.message
+          e?.response?.data || e?.message
         );
 
-        if (
-          e?.response?.status === 401
-        ) {
+        if (e?.response?.status === 401) {
           Alert.alert(
             "Session expired",
             "Please login again."
@@ -183,19 +141,12 @@ export default function useEarningsHistory({
     [offline]
   );
 
-  /* =========================================================
-     BOOTSTRAP
-  ========================================================= */
-
   useEffect(() => {
     bootstrap();
   }, []);
 
   const bootstrap = async () => {
-    Analytics.track(
-      "earnings_screen_open",
-      { mode }
-    );
+    Analytics.track("earnings_screen_open", { mode });
 
     setInitialLoading(true);
 
@@ -204,10 +155,7 @@ export default function useEarningsHistory({
     } else if (mode === "WEEK") {
       await loadCurrentWeek(true);
     } else {
-      const week =
-        getBackendWeekNumber(
-          new Date()
-        );
+      const week = getBackendWeekNumber(new Date());
 
       setSelectedWeek(week);
 
@@ -221,15 +169,9 @@ export default function useEarningsHistory({
     setInitialLoading(false);
   };
 
-  /* =========================================================
-     RIDER TYPE
-  ========================================================= */
-
   const setRiderType = (data) => {
     if (data?.riderType) {
-      setCurrentRiderType(
-        data.riderType
-      );
+      setCurrentRiderType(data.riderType);
     }
   };
 
@@ -237,9 +179,7 @@ export default function useEarningsHistory({
      TODAY
   ========================================================= */
 
-  const loadToday = async (
-    force = false
-  ) => {
+  const loadToday = async (force = false) => {
     setLoading(true);
 
     const data = await api(
@@ -250,16 +190,12 @@ export default function useEarningsHistory({
 
     if (data) {
       setRiderType(data);
-
       setDayData(data);
 
-      setLedgerItems(
-        data.items || []
-      );
+      setLedgerItems(data.items || []);
 
       setPage(1);
       setHasMore(false);
-
       setView("DAY");
     }
 
@@ -270,22 +206,11 @@ export default function useEarningsHistory({
      CURRENT WEEK
   ========================================================= */
 
-  const loadCurrentWeek = async (
-    force = false
-  ) => {
+  const loadCurrentWeek = async (force = false) => {
     setLoading(true);
 
-    /*
-     * FIX:
-     * Set the current week immediately.
-     *
-     * This fixes:
-     * Week: -
-     */
     const thisWeek =
-      getBackendWeekNumber(
-        new Date()
-      );
+      getBackendWeekNumber(new Date());
 
     setSelectedWeek(thisWeek);
 
@@ -297,15 +222,9 @@ export default function useEarningsHistory({
 
     if (data) {
       setRiderType(data);
-
       setWeekData(data);
-
       setView("ROOT");
 
-      /*
-       * Some APIs may return a week number.
-       * Use it if available.
-       */
       const apiWeek =
         data?.week ??
         data?.weekNumber ??
@@ -313,11 +232,16 @@ export default function useEarningsHistory({
 
       setSelectedWeek(apiWeek);
 
-      if (
-        data.riderType === ZESTBOT
-      ) {
-        await loadWeekDays(data, force);
-      }
+      /*
+       * IMPORTANT:
+       * Load daily data for BOTH:
+       * - Individual
+       * - ZestBot
+       *
+       * The weekly API day amount may not contain
+       * Joining Bonus. Daily API totalEarnings does.
+       */
+      await loadWeekDays(data, force);
     }
 
     setLoading(false);
@@ -348,21 +272,15 @@ export default function useEarningsHistory({
 
     if (data) {
       setRiderType(data);
-
       setWeekData(data);
-
       setSelectedWeek(week);
-
       setView("ROOT");
 
-      if (
-        data.riderType === ZESTBOT
-      ) {
-        await loadWeekDays(
-          data,
-          force
-        );
-      }
+      /*
+       * IMPORTANT:
+       * Load daily data for BOTH rider types.
+       */
+      await loadWeekDays(data, force);
     }
 
     setLoading(false);
@@ -370,53 +288,44 @@ export default function useEarningsHistory({
 
   /* =========================================================
      LOAD DAILY DATA FOR WEEK
-     
-     VERY IMPORTANT:
-     Force fresh daily API data when loading
-     a weekly screen so the values match the
-     Daily Earnings screen.
   ========================================================= */
 
   const loadWeekDays = async (
     week,
     force = false
   ) => {
-    const days =
-      week?.days || [];
+    const days = week?.days || [];
 
-    const results =
-      await Promise.all(
-        days.map(async (day) => {
-          if (!day?.date) {
-            return null;
-          }
+    const results = await Promise.all(
+      days.map(async (day) => {
+        if (!day?.date) {
+          return null;
+        }
 
-          const data =
-            await api(
-              `day_${day.date}_1`,
-              () =>
-                EarningsNewAPI.getDailyByDate(
-                  day.date,
-                  1
-                ),
-              force
-            );
+        const data = await api(
+          `day_${day.date}_1`,
+          () =>
+            EarningsNewAPI.getDailyByDate(
+              day.date,
+              1
+            ),
+          force
+        );
 
-          return data
-            ? {
-                date: day.date,
-                data,
-              }
-            : null;
-        })
-      );
+        return data
+          ? {
+              date: day.date,
+              data,
+            }
+          : null;
+      })
+    );
 
     const map = {};
 
     results.forEach((item) => {
       if (item) {
-        map[item.date] =
-          item.data;
+        map[item.date] = item.data;
       }
     });
 
@@ -434,8 +343,7 @@ export default function useEarningsHistory({
   ) => {
     if (!date) return;
 
-    const requestedPage =
-      reset ? 1 : page;
+    const requestedPage = reset ? 1 : page;
 
     if (
       !reset &&
@@ -446,13 +354,9 @@ export default function useEarningsHistory({
 
     if (reset) {
       setSelectedDay(date);
-
       setPage(1);
-
       setLedgerItems([]);
-
       setHasMore(true);
-
       setView("DAY");
     }
 
@@ -471,27 +375,19 @@ export default function useEarningsHistory({
     if (data) {
       setRiderType(data);
 
-      const items =
-        data.items || [];
+      const items = data.items || [];
 
       setDayData(data);
 
       setLedgerItems((old) =>
         reset
           ? items
-          : [
-              ...old,
-              ...items,
-            ]
+          : [...old, ...items]
       );
 
-      setHasMore(
-        items.length >= 20
-      );
+      setHasMore(items.length >= 20);
 
-      setPage(
-        requestedPage + 1
-      );
+      setPage(requestedPage + 1);
     }
 
     setLoading(false);
@@ -501,109 +397,170 @@ export default function useEarningsHistory({
      ORDER DETAILS
   ========================================================= */
 
-  const loadTransaction =
-    async (orderId) => {
-      if (!orderId) return;
+  const loadTransaction = async (orderId) => {
+    if (!orderId) return;
 
-      Analytics.track(
-        "earnings_open_transaction",
-        { id: orderId }
-      );
+    Analytics.track(
+      "earnings_open_transaction",
+      { id: orderId }
+    );
 
-      setView("ORDER");
-      setLoading(true);
+    setView("ORDER");
+    setLoading(true);
 
-      const data = await api(
-        `transaction_${orderId}`,
-        () =>
-          EarningsNewAPI.getOrder(
-            orderId
-          )
-      );
+    const data = await api(
+      `transaction_${orderId}`,
+      () =>
+        EarningsNewAPI.getOrder(orderId)
+    );
 
-      if (data) {
-        setRiderType(data);
-
-        setOrderData(data);
-      }
-
-      setLoading(false);
-    };
-
-  /* =========================================================
-     ZESTBOT DAILY AMOUNT
-     
-     IMPORTANT:
-     
-     DO NOT use:
-       data.incentives
-     
-     because that value can be an aggregated
-     incentive amount such as ₹1500.
-     
-     Instead use the exact same items that
-     Daily Earnings uses.
-     
-     Daily:
-       Salary amount
-       +
-       Delivery incentive
-       +
-       Delivery tips
-  ========================================================= */
-
-  const getZestbotAmount = (
-    data
-  ) => {
-    if (!data) {
-      return 0;
+    if (data) {
+      setRiderType(data);
+      setOrderData(data);
     }
 
-    const items =
-      Array.isArray(data?.items)
-        ? data.items
-        : [];
+    setLoading(false);
+  };
+
+  /* =========================================================
+     JOINING BONUS
+  ========================================================= */
+
+  const getJoiningBonus = (data) => {
+    if (!data) return 0;
+
+    const items = Array.isArray(data?.items)
+      ? data.items
+      : [];
+
+    return items.reduce((sum, item) => {
+      const type = String(
+        item?.type || ""
+      ).toUpperCase();
+
+      const name = String(
+        item?.name ||
+          item?.title ||
+          item?.description ||
+          ""
+      ).toUpperCase();
+
+      const isJoiningBonus =
+        type === "JOINING_BONUS" ||
+        (
+          type === "INCENTIVE" &&
+          name.includes("JOINING BONUS")
+        ) ||
+        name.includes("JOINING BONUS");
+
+      if (!isJoiningBonus) {
+        return sum;
+      }
+
+      return (
+        sum +
+        Number(
+          item?.amount ??
+            item?.incentive ??
+            item?.value ??
+            0
+        )
+      );
+    }, 0);
+  };
+
+  /* =========================================================
+     ZESTBOT DAILY FALLBACK
+  ========================================================= */
+
+  const getZestbotAmount = (data) => {
+    if (!data) return 0;
+
+    /*
+     * Daily API totalEarnings is the preferred value.
+     * It already includes Joining Bonus.
+     */
+    if (
+      data?.totalEarnings !== undefined &&
+      data?.totalEarnings !== null
+    ) {
+      return Number(data.totalEarnings || 0);
+    }
+
+    const items = Array.isArray(data?.items)
+      ? data.items
+      : [];
+
+    const joiningBonus =
+      getJoiningBonus(data);
 
     return items.reduce(
       (sum, item) => {
-        if (
-          item?.type ===
-          "SALARY"
-        ) {
+        if (item?.type === "SALARY") {
           return (
             sum +
-            Number(
-              item?.amount || 0
-            )
+            Number(item?.amount || 0)
           );
         }
 
-        if (
-          item?.type ===
-          "DELIVERY"
-        ) {
+        if (item?.type === "DELIVERY") {
           return (
             sum +
-            Number(
-              item?.incentive || 0
-            ) +
-            Number(
-              item?.tips || 0
-            )
+            Number(item?.incentive || 0) +
+            Number(item?.tips || 0)
           );
         }
 
-        /*
-         * Do not add:
-         * ATTENDANCE
-         * INCENTIVE
-         *
-         * because those can be
-         * aggregate/summary records.
-         */
         return sum;
       },
-      0
+      joiningBonus
+    );
+  };
+
+  /* =========================================================
+     WEEKLY DAY AMOUNT
+  ========================================================= */
+
+  const getWeeklyDayAmount = (
+    daily,
+    weeklyDay
+  ) => {
+    /*
+     * Best source:
+     * Daily API totalEarnings.
+     *
+     * This includes:
+     * - Base earnings
+     * - Delivery incentives
+     * - Tips
+     * - Joining Bonus
+     */
+    if (
+      daily?.totalEarnings !== undefined &&
+      daily?.totalEarnings !== null
+    ) {
+      return Number(
+        daily.totalEarnings || 0
+      );
+    }
+
+    /*
+     * ZestBot fallback.
+     */
+    if (isZestbot) {
+      return getZestbotAmount(daily);
+    }
+
+    /*
+     * Individual fallback.
+     *
+     * weekData.days.amount may not contain
+     * Joining Bonus, so add it only when
+     * daily data is available.
+     */
+    return (
+      Number(weeklyDay?.amount || 0) +
+      getJoiningBonus(daily)
     );
   };
 
@@ -611,9 +568,7 @@ export default function useEarningsHistory({
      ZESTBOT BREAKDOWN
   ========================================================= */
 
-  const getZestbotBreakdown = (
-    data
-  ) => {
+  const getZestbotBreakdown = (data) => {
     if (!data) {
       return {
         attendance: 0,
@@ -623,35 +578,51 @@ export default function useEarningsHistory({
       };
     }
 
-    const items =
-      Array.isArray(data?.items)
-        ? data.items
-        : [];
+    const items = Array.isArray(data?.items)
+      ? data.items
+      : [];
 
     let attendance = 0;
     let incentives = 0;
     let tips = 0;
 
     items.forEach((item) => {
-      if (
-        item?.type ===
-        "SALARY"
-      ) {
+      if (item?.type === "SALARY") {
         attendance += Number(
           item?.amount || 0
         );
       }
 
-      if (
-        item?.type ===
-        "DELIVERY"
-      ) {
+      if (item?.type === "DELIVERY") {
         incentives += Number(
           item?.incentive || 0
         );
 
         tips += Number(
           item?.tips || 0
+        );
+      }
+
+      const type = String(
+        item?.type || ""
+      ).toUpperCase();
+
+      const name = String(
+        item?.name ||
+          item?.title ||
+          item?.description ||
+          ""
+      ).toUpperCase();
+
+      if (
+        type === "JOINING_BONUS" ||
+        name.includes("JOINING BONUS")
+      ) {
+        incentives += Number(
+          item?.amount ??
+            item?.incentive ??
+            item?.value ??
+            0
         );
       }
     });
@@ -669,25 +640,58 @@ export default function useEarningsHistory({
 
   /* =========================================================
      WEEKLY TOTAL
-     
-     Sum the exact daily values shown
-     on the Weekly screen.
   ========================================================= */
 
   const getWeeklyTotal = () => {
-    if (!isZestbot) {
-      return Number(
-        weekData?.total || 0
+    const dailyValues =
+      Object.values(
+        weeklyDailyData || {}
+      );
+
+    /*
+     * Daily API data is now loaded for both
+     * Individual and ZestBot.
+     *
+     * Therefore use daily totalEarnings.
+     * This prevents the Joining Bonus from
+     * being missed or added twice.
+     */
+    if (dailyValues.length > 0) {
+      return dailyValues.reduce(
+        (sum, day) => {
+          if (
+            day?.totalEarnings !==
+              undefined &&
+            day?.totalEarnings !== null
+          ) {
+            return (
+              sum +
+              Number(
+                day.totalEarnings || 0
+              )
+            );
+          }
+
+          return (
+            sum +
+            getWeeklyDayAmount(
+              day,
+              null
+            )
+          );
+        },
+        0
       );
     }
 
-    return Object.values(
-      weeklyDailyData
-    ).reduce(
-      (sum, day) =>
-        sum +
-        getZestbotAmount(day),
-      0
+    /*
+     * Fallback when daily API data is unavailable.
+     *
+     * The weekly API total should be used as-is
+     * because it may already contain Joining Bonus.
+     */
+    return Number(
+      weekData?.total || 0
     );
   };
 
@@ -712,32 +716,23 @@ export default function useEarningsHistory({
         view === "ORDER" &&
         orderData?.orderId
       ) {
-        const data =
-          await api(
-            `transaction_${orderData.orderId}`,
-            () =>
-              EarningsNewAPI.getOrder(
-                orderData.orderId
-              ),
-            true
-          );
+        const data = await api(
+          `transaction_${orderData.orderId}`,
+          () =>
+            EarningsNewAPI.getOrder(
+              orderData.orderId
+            ),
+          true
+        );
 
         if (data) {
           setOrderData(data);
         }
-      } else if (
-        mode === "TODAY"
-      ) {
+      } else if (mode === "TODAY") {
         await loadToday(true);
-      } else if (
-        mode === "WEEK"
-      ) {
-        await loadCurrentWeek(
-          true
-        );
-      } else if (
-        selectedWeek
-      ) {
+      } else if (mode === "WEEK") {
+        await loadCurrentWeek(true);
+      } else if (selectedWeek) {
         await loadHistoryWeek(
           selectedWeek,
           selectedYear,
@@ -754,31 +749,27 @@ export default function useEarningsHistory({
   ========================================================= */
 
   const back = () => {
-  if (view === "ORDER") {
-    setView("DAY");
-    return;
-  }
-
-  if (view === "SALARY") {
-    setView("DAY");
-    return;
-  }
-
-  if (view === "DAY") {
-    if (mode === "TODAY") {
-      navigation.goBack();
-    } else {
-      setView("ROOT");
+    if (view === "ORDER") {
+      setView("DAY");
+      return;
     }
-    return;
-  }
 
-  navigation.goBack();
-};
+    if (view === "SALARY") {
+      setView("DAY");
+      return;
+    }
 
-  /* =========================================================
-     RETURN
-  ========================================================= */
+    if (view === "DAY") {
+      if (mode === "TODAY") {
+        navigation.goBack();
+      } else {
+        setView("ROOT");
+      }
+      return;
+    }
+
+    navigation.goBack();
+  };
 
   return {
     view,
@@ -818,13 +809,16 @@ export default function useEarningsHistory({
     loadDay,
     loadTransaction,
 
+    getJoiningBonus,
     getZestbotAmount,
     getZestbotBreakdown,
+    getWeeklyDayAmount,
     getWeeklyTotal,
 
     refresh,
     back,
     bootstrap,
+
     salaryData,
     loadSalary,
   };
@@ -834,28 +828,21 @@ export default function useEarningsHistory({
    BACKEND WEEK NUMBER
 ========================================================= */
 
-function getBackendWeekNumber(
-  date
-) {
+function getBackendWeekNumber(date) {
   const d = new Date(date);
 
-  const jan1 =
-    new Date(
-      d.getFullYear(),
-      0,
-      1
-    );
+  const jan1 = new Date(
+    d.getFullYear(),
+    0,
+    1
+  );
 
-  const day =
-    jan1.getDay();
+  const day = jan1.getDay();
 
   const diff =
-    day === 0
-      ? -6
-      : 1 - day;
+    day === 0 ? -6 : 1 - day;
 
-  const firstMonday =
-    new Date(jan1);
+  const firstMonday = new Date(jan1);
 
   firstMonday.setDate(
     jan1.getDate() + diff
@@ -865,12 +852,7 @@ function getBackendWeekNumber(
     Math.floor(
       (
         new Date(
-          d.setHours(
-            0,
-            0,
-            0,
-            0
-          )
+          d.setHours(0, 0, 0, 0)
         ) -
         new Date(
           firstMonday.setHours(
@@ -891,51 +873,39 @@ function getBackendWeekNumber(
    WEEKS OF YEAR
 ========================================================= */
 
-function getWeeksOfYear(
-  year
-) {
+function getWeeksOfYear(year) {
   const result = [];
 
-  const jan1 =
-    new Date(
-      year,
-      0,
-      1
-    );
+  const jan1 = new Date(
+    year,
+    0,
+    1
+  );
 
-  const day =
-    jan1.getDay();
+  const day = jan1.getDay();
 
   const diff =
-    day === 0
-      ? -6
-      : 1 - day;
+    day === 0 ? -6 : 1 - day;
 
-  const start =
-    new Date(jan1);
+  const start = new Date(jan1);
 
   start.setDate(
     jan1.getDate() + diff
   );
 
-  let current =
-    new Date(start);
-
+  let current = new Date(start);
   let week = 1;
 
   while (week <= 53) {
-    const end =
-      new Date(current);
+    const end = new Date(current);
 
     end.setDate(
       end.getDate() + 6
     );
 
     if (
-      current.getFullYear() >
-        year &&
-      end.getFullYear() >
-        year
+      current.getFullYear() > year &&
+      end.getFullYear() > year
     ) {
       break;
     }
