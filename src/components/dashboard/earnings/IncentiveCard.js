@@ -43,7 +43,6 @@ const formatTimeRange = value => {
 
 export default function IncentiveCard({
   item,
-  weeklyCompletedOrders,
   dailyCompletedOrders,
   peakCompletedOrders,
   peakProgressPercentage,
@@ -75,11 +74,9 @@ export default function IncentiveCard({
   const meta = metaIcons[item?.type] ?? metaIcons.daily;
 
   const dailyOrders = Number(dailyCompletedOrders ?? 0);
-  const weeklyOrders = Number(weeklyCompletedOrders ?? 0);
   const peakOrders = Number(peakCompletedOrders ?? 0);
 
   const dailyTarget = Number(item?.minOrders ?? 0);
-  const weeklyTarget = Number(item?.minOrders ?? 0);
   const peakTarget = Number(item?.minOrders ?? 0);
 
   const peakProgress =
@@ -214,47 +211,35 @@ export default function IncentiveCard({
           </View>
         )}
 
-      {/* WEEKLY */}
-
-      {isWeekly && !item?.emptyData && (
-        <View style={styles.weeklyContainer}>
-          {/* TASK weekly incentives use days only */}
-
-          {weeklyIsTask ? (
+      {/* WEEKLY */}        
+        {isWeekly && !item?.emptyData && (
+          <View style={styles.weeklyContainer}>
             <View style={styles.taskProgress}>
-              <Text style={styles.progressText}>
-                Progress: {Math.round(Number(weeklyProgressPercentage ?? 0))}%
-              </Text>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressText}>
+                  Progress
+                </Text>
+
+                <Text style={styles.progressText}>
+                  {Math.round(
+                    Number(weeklyProgressPercentage ?? 0),
+                  )}%
+                </Text>
+              </View>
 
               <ProgressBar
                 progress={Math.min(
-                  Number(weeklyProgressPercentage ?? 0),
+                  Math.max(
+                    Number(weeklyProgressPercentage ?? 0),
+                    0,
+                  ),
                   100,
                 )}
-                progressColor="#b470fc"
+                progressColor="#B470FC"
               />
             </View>
-          ) : (
-            weeklyTarget > 0 && (
-              <>
-                <View style={styles.progressRow}>
-                  <Text style={styles.progressText}>
-                    {weeklyOrders} / {weeklyTarget}
-                  </Text>
-                </View>
-
-                <ProgressBar
-                  progress={Math.min(
-                    (weeklyOrders / weeklyTarget) * 100,
-                    100,
-                  )}
-                  progressColor="#E9D4FF"
-                />
-              </>
-            )
-          )}
-        </View>
-      )}
+          </View>
+        )}
 
       {/* EMPTY */}
 
