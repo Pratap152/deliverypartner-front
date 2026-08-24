@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,281 +6,476 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
+  Modal,
 } from "react-native";
-import axios from "axios";
-import WEBSITE_URL from "../../utils/host";
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useNavigation } from "@react-navigation/native";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import DeviceInfo from "react-native-device-info";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
+import { saveBankDetails } from "../../services/bankDetailsService";
 
-export default function AddBankDetailsScreen() {
+const isTablet = DeviceInfo.isTablet();
+
+export default function AddBankDetails() {
+  const navigation = useNavigation();
+
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");
   const [holder, setHolder] = useState("");
-  const [focusedField, setFocusedField] = useState(null);
+  const [branch, setBranch] = useState("");
+  const [accountType, setAccountType] = useState("");
 
-
-  const [touched, setTouched] = useState({
-    bankName: false,
-    accountNumber: false,
-    ifsc: false,
-    holder: false,
-  });
-
-  const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
-  /* ---------------- VALIDATIONS ---------------- */
-  const validateBank = (t) =>
-    !t.trim()
-      ? "Bank name required"
-      : !/^(?!.*\s{2,})[A-Za-z ]{3,50}$/.test(t)
-      ? "Enter valid bank name"
-      : "";
+  /* =========================================================
+     NAME VALIDATION
+     ========================================================= */
 
-  const validateAccount = (t) => {
-  if (!t.trim()) return "Account number required";
+  const nameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
 
-  if (!/^\d+$/.test(t))
-    return "Only numbers are allowed";
+  const validateName = (value) => {
+    const trimmedValue = value.trim();
 
-  if (t.length < 9)
-    return "Minimum 9 digits required";
+    return (
+      trimmedValue.length >= 3 &&
+      trimmedValue.length <= 30 &&
+      nameRegex.test(trimmedValue)
+    );
+  };
 
-  if (t.length > 18)
-    return "Maximum 18 digits allowed";
+  const getNameError = (value, fieldName) => {
+    if (!value.trim()) {
+      return `${fieldName} is required`;
+    }
 
-  return "";
-};
+    if (value.length > 30) {
+      return `${fieldName} must not exceed 30 characters`;
+    }
 
-const validateIFSC = (t) => {
-  if (!t.trim()) return "IFSC code is required";
+    if (value.trim().length < 3) {
+      return `${fieldName} must contain at least 3 characters`;
+    }
 
-  if (t.length < 11)
-    return "IFSC must be 11 characters";
+    if (value !== value.trim()) {
+      return `${fieldName} cannot start or end with spaces`;
+    }
 
-  if (!/^[A-Z]{4}/.test(t))
-    return "First 4 characters must be letters";
+    if (/\s{2,}/.test(value)) {
+      return `${fieldName} cannot contain consecutive spaces`;
+    }
 
-  if (t[4] !== "0")
-    return "5th character must be 0";
+    if (!/^[A-Za-z ]+$/.test(value)) {
+      return `${fieldName} can contain only alphabets`;
+    }
 
-  if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(t))
-    return "Last 6 characters must be letters or numbers";
+    return "";
+  };
 
-  return "";
-};
+  const handleNameChange = (text, setter) => {
+    setter(text.slice(0, 30));
+  };
 
-  const validateHolder = (t) =>
-    !t.trim()
-      ? "Account holder name required"
-      : !/^(?!.*\s{2,})[A-Za-z ]{3,50}$/.test(t)
-      ? "Enter valid name"
-      : "";
+  /* =========================================================
+     ACCOUNT NUMBER VALIDATION
+     ========================================================= */
 
-  /* ---------------- LIVE VALIDATION ---------------- */
-  useEffect(() => {
-    if (touched.bankName)
-      setError((e) => ({ ...e, bankName: validateBank(bankName) }));
-  }, [bankName, touched.bankName]);
+  const validateAccount = () =>
+    /^\d{15}$/.test(accountNumber);
 
-  useEffect(() => {
-  if (touched.accountNumber || accountNumber.length > 0) {
-    setError((e) => ({
-      ...e,
-      accountNumber: validateAccount(accountNumber),
-    }));
-  }
-}, [accountNumber, touched.accountNumber]);
+  /* =========================================================
+     IFSC VALIDATION
+     ========================================================= */
 
+  const validateIFSC = () =>
+    /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
 
-  useEffect(() => {
-    if (touched.ifsc)
-      setError((e) => ({ ...e, ifsc: validateIFSC(ifsc) }));
-  }, [ifsc, touched.ifsc]);
+  /* =========================================================
+     FIELD VALIDATIONS
+     ========================================================= */
 
-  useEffect(() => {
-    if (touched.holder)
-      setError((e) => ({ ...e, holder: validateHolder(holder) }));
-  }, [holder, touched.holder]);
+  const bankNameValid = validateName(bankName);
+  const holderValid = validateName(holder);
+  const branchValid = validateName(branch);
 
-  /* ---------------- FINAL CHECK ---------------- */
   const allValid =
-    !validateBank(bankName) &&
-    !validateAccount(accountNumber) &&
-    !validateIFSC(ifsc) &&
-    !validateHolder(holder);
+    bankNameValid &&
+    holderValid &&
+    branchValid &&
+    validateAccount() &&
+    validateIFSC();
 
+  /* =========================================================
+     SUBMIT
+     ========================================================= */
 
-  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async () => {
     if (!allValid) return;
 
-    setLoading(true);
-    try { 
-      const response = await axios.post(
-  `${WEBSITE_URL}/api/rider/bank/bank-details`,
-  {
-    bankName,
-    accountHolderName: holder,
-    accountNumber,
-    ifscCode: ifsc,
-  },
-  {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization:
-        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWRlcklkIjoiNjk0NGYyZjE3OWYwYjY0Y2I5NTMzMjA0IiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc2NjEyNjMyOCwiZXhwIjoxNzY2MTI3MjI4fQ.mEtF1flRl00yTPTFb9S9nKX0Ol_dUWsQJHRGeq63XEY",
-    },
-  }
-);
+    try {
+      setLoading(true);
 
-           Alert.alert("Success", "Bank details added successfully"); } catch (err) {
-      Alert.alert(
-        "Error",
-        err?.response?.data?.message || "Something went wrong"
-      );
+      const payload = {
+        bankName: bankName.trim(),
+        accountHolderName: holder.trim(),
+        accountNumber,
+        ifscCode: ifsc.trim().toUpperCase(),
+        branch: branch.trim(),
+        accountType: accountType || undefined,
+      };
+
+      await saveBankDetails(payload);
+
+      setSuccessModal(true);
+    } catch (e) {
+      console.log("Save bank details error:", e);
+      alert("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
+
+      {/* =================================================
+          FORM
+          ================================================= */}
+
+      <KeyboardAwareScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={Platform.OS === "android" ? hp("4%") : hp("2%")}
+        extraHeight={Platform.OS === "android" ? hp("8%") : hp("4%")}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={
+          Platform.OS === "ios"
+            ? "interactive"
+            : "on-drag"
+        }
+        showsVerticalScrollIndicator={false}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+      >
+
+        {/* =================================================
+            BACK
+            ================================================= */}
+
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={isTablet ? 34 : 24}
+            color="#000"
+          />
+        </TouchableOpacity>
+
+        {/* =================================================
+            IMAGE
+            ================================================= */}
+
         <Image
-          source={require("../../assets/Bank.png")}
+          source={require("../../assets/Bank.jpg")}
           style={styles.image}
           resizeMode="contain"
         />
 
-        <Text style={styles.title}>Add Bank Account Details</Text>
+        <Text style={styles.title}>
+          Add Bank 
+        </Text>
 
-        <InputField
+        {/* =================================================
+            BANK NAME
+            ================================================= */}
+
+        <Input
           label="Bank Name"
           value={bankName}
-          onChangeText={(t) =>
-            setBankName(t.replace(/[^A-Za-z ]/g, "").replace(/\s{2,}/g, " "))
+          maxLength={30}
+          autoCapitalize="words"
+          onChangeText={(text) =>
+            handleNameChange(text, setBankName)
           }
-          onBlur={() => setTouched((p) => ({ ...p, bankName: true }))}
-          error={error.bankName}
-          touched={touched.bankName}
         />
 
-       <InputField
-  label="Account Number"
-  value={accountNumber}
-  keyboardType="numeric"
-  onFocus={() => setFocusedField("accountNumber")}
-  onBlur={() => {
-    setFocusedField(null);
-    setTouched((p) => ({ ...p, accountNumber: true }));
-  }}
-  onChangeText={(t) => {
-    if (/^\d*$/.test(t)) {
-      setAccountNumber(t);
-    }
-  }}
-  error={error.accountNumber}
-  touched={
-    touched.accountNumber &&
-    focusedField !== "accountNumber" &&
-    accountNumber.length > 0
-  }
-/>
+        {bankName.length > 0 && !bankNameValid && (
+          <Error
+            text={getNameError(
+              bankName,
+              "Bank name"
+            )}
+          />
+        )}
 
+        {/* =================================================
+            ACCOUNT NUMBER
+            ================================================= */}
 
-        <InputField
-  label="IFSC Code"
-  value={ifsc}
-  maxLength={11}
-  autoCapitalize="characters"
-  onChangeText={(t) =>
-    setIfsc(t.replace(/[^A-Za-z0-9]/g, "").toUpperCase())
-  }
-  onBlur={() => setTouched((p) => ({ ...p, ifsc: true }))}
-  error={error.ifsc}
-  touched={touched.ifsc}
-/>
+        <Input
+          label="Account Number (15 digits)"
+          value={accountNumber}
+          keyboardType="numeric"
+          maxLength={15}
+          onChangeText={(text) => {
+            if (/^\d*$/.test(text)) {
+              setAccountNumber(text);
+            }
+          }}
+        />
 
+        {!validateAccount() &&
+          accountNumber.length > 0 && (
+            <Error
+              text="Account number must be exactly 15 digits"
+            />
+          )}
 
-        <InputField
+        {/* =================================================
+            IFSC
+            ================================================= */}
+
+        <Input
+          label="IFSC Code"
+          value={ifsc}
+          maxLength={11}
+          autoCapitalize="characters"
+          onChangeText={(text) =>
+            setIfsc(text.toUpperCase())
+          }
+        />
+
+        {!validateIFSC() &&
+          ifsc.length > 0 && (
+            <Error
+              text="IFSC must be like ABCD0XXXXXX"
+            />
+          )}
+
+        {/* =================================================
+            ACCOUNT HOLDER NAME
+            ================================================= */}
+
+        <Input
           label="Account Holder Name"
           value={holder}
-          onChangeText={setHolder}
-          onBlur={() => setTouched((p) => ({ ...p, holder: true }))}
-          error={error.holder}
-          touched={touched.holder}
+          maxLength={30}
+          autoCapitalize="words"
+          onChangeText={(text) =>
+            handleNameChange(text, setHolder)
+          }
         />
 
+        {holder.length > 0 && !holderValid && (
+          <Error
+            text={getNameError(
+              holder,
+              "Account holder name"
+            )}
+          />
+        )}
+
+        {/* =================================================
+            BRANCH NAME
+            ================================================= */}
+
+        <Input
+          label="Branch Name"
+          value={branch}
+          maxLength={30}
+          autoCapitalize="words"
+          onChangeText={(text) =>
+            handleNameChange(text, setBranch)
+          }
+        />
+
+        {branch.length > 0 && !branchValid && (
+          <Error
+            text={getNameError(
+              branch,
+              "Branch name"
+            )}
+          />
+        )}
+
+        {/* =================================================
+            ACCOUNT TYPE
+            ================================================= */}
+
+        <Text style={styles.label}>
+          Account Type
+        </Text>
+
+        <View style={styles.row}>
+          {["SAVINGS", "CURRENT"].map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.typeBtn,
+                accountType === type &&
+                  styles.typeActive,
+              ]}
+              onPress={() =>
+                setAccountType(type)
+              }
+            >
+              <Text
+                style={[
+                  styles.typeText,
+                  accountType === type && {
+                    color: "#fff",
+                  },
+                ]}
+              >
+                {type}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Extra space so the last field can move
+            completely above the keyboard and button */}
+        <View style={styles.bottomSpace} />
+
+      </KeyboardAwareScrollView>
+
+      {/* =================================================
+          FIXED BUTTON
+          ================================================= */}
+
+      <View style={styles.fixedButton}>
         <TouchableOpacity
-          style={[styles.button, !allValid && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            !allValid &&
+              styles.buttonDisabled,
+          ]}
           disabled={!allValid || loading}
           onPress={handleSubmit}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.btnText}>Add Account</Text>
+            <Text style={styles.btnText}>
+              Add Account
+            </Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+
+      {/* ===================================================
+          SUCCESS MODAL
+          =================================================== */}
+
+      <Modal
+        transparent
+        visible={successModal}
+        animationType="fade"
+      >
+        <View style={styles.modalBg}>
+
+          <View style={styles.modalBox}>
+
+            <Ionicons
+              name="checkmark-circle"
+              size={80}
+              color="#28a745"
+            />
+
+            <Text style={styles.successText}>
+              Bank details added successfully
+            </Text>
+
+            <TouchableOpacity
+              style={styles.okBtn}
+              onPress={() => {
+                setSuccessModal(false);
+                navigation.goBack();
+              }}
+            >
+              <Text style={styles.okText}>
+                OK
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+
+        </View>
+      </Modal>
+
+    </View>
   );
 }
 
-/* ---------------- INPUT FIELD ---------------- */
-const InputField = ({ label, error, touched, ...props }) => (
-  <View style={{ marginTop: 18 }}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput style={styles.input} {...props} />
-    {touched && !!error && (
-      <Text style={styles.error}>{error}</Text>
-    )}
+/* =========================================================
+   INPUT COMPONENT
+   ========================================================= */
+
+const Input = ({
+  label,
+  ...props
+}) => (
+  <View style={styles.inputContainer}>
+
+    <Text style={styles.label}>
+      {label}
+    </Text>
+
+    <TextInput
+      style={styles.input}
+      placeholder={`Enter ${label}`}
+      placeholderTextColor="#98A2B3"
+      {...props}
+    />
+
   </View>
 );
 
-// /* ---------------- STYLES ---------------- */
-// const styles = StyleSheet.create({
-//   container: { padding: 30, backgroundColor: "#fff" },
-//   image: { width: "90%", height: 200, alignSelf: "center" },
-//   title: { fontSize: 22, fontWeight: "700", marginTop: 20, textAlign: "center" },
-//   label: { fontSize: 14, marginBottom: 6 },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: "#ccc",
-//     borderRadius: 10,
-//     padding: 14,
-//   },
-//   error: { color: "red", fontSize: 12, marginTop: 5 },
-//   button: {
-//     backgroundColor: "#3D63FF",
-//     paddingVertical: 15,
-//     borderRadius: 30,
-//     marginTop: 30,
-//     marginBottom: 100,
-//     alignItems: "center",
-//   },
-//   buttonDisabled: { backgroundColor: "#9BB4FF" },
-//   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-// });
+/* =========================================================
+   ERROR COMPONENT
+   ========================================================= */
+
+const Error = ({ text }) => (
+  <Text style={styles.error}>
+    {text}
+  </Text>
+);
+
+/* =========================================================
+   STYLES
+   ========================================================= */
 
 const styles = StyleSheet.create({
+
+  screen: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  scroll: {
+    flex: 1,
+  },
+
   container: {
     padding: wp("7%"),
+    paddingBottom: hp("25%"),
     backgroundColor: "#fff",
+  },
+
+  backButton: {
+    marginTop: 15,
   },
 
   image: {
@@ -292,36 +487,62 @@ const styles = StyleSheet.create({
   title: {
     fontSize: wp("5.5%"),
     fontWeight: "700",
-    marginTop: hp("2%"),
     textAlign: "center",
+  },
+
+  inputContainer: {
+    marginTop: 18,
   },
 
   label: {
     fontSize: wp("3.6%"),
     marginBottom: hp("0.8%"),
+    color: "#101828",
+    fontWeight: "500",
   },
 
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: wp("3%"),
-    paddingVertical: hp("1.8%"),
-    paddingHorizontal: wp("4%"),
-    fontSize: wp("4%"),
+    padding: wp("4%"),
+    color: "#101828",
   },
 
   error: {
     color: "red",
     fontSize: wp("3.2%"),
-    marginTop: hp("0.6%"),
+    marginTop: hp("0.5%"),
+  },
+
+  row: {
+    flexDirection: "row",
+    gap: wp("3%"),
+  },
+
+  typeBtn: {
+    borderWidth: 1,
+    borderColor: "#3D63FF",
+    padding: wp("3%"),
+    borderRadius: wp("6%"),
+  },
+
+  typeActive: {
+    backgroundColor: "#3D63FF",
+  },
+
+  typeText: {
+    color: "#000",
+  },
+
+  bottomSpace: {
+    height: hp("25%"),
   },
 
   button: {
     backgroundColor: "#3D63FF",
-    paddingVertical: hp("2%"),
+    padding: hp("2%"),
     borderRadius: wp("8%"),
-    marginTop: hp("4%"),
-    marginBottom: hp("12%"),
     alignItems: "center",
   },
 
@@ -334,4 +555,49 @@ const styles = StyleSheet.create({
     fontSize: wp("4.2%"),
     fontWeight: "600",
   },
+
+  fixedButton: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: wp("5%"),
+    backgroundColor: "#fff",
+  },
+
+  modalBg: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalBox: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: wp("6%"),
+    borderRadius: wp("4%"),
+    alignItems: "center",
+  },
+
+  successText: {
+    color: "#28a745",
+    fontSize: wp("4.5%"),
+    marginVertical: hp("2%"),
+    textAlign: "center",
+    fontWeight: "600",
+  },
+
+  okBtn: {
+    backgroundColor: "#28a745",
+    paddingHorizontal: wp("10%"),
+    paddingVertical: hp("1.2%"),
+    borderRadius: wp("6%"),
+  },
+
+  okText: {
+    color: "#fff",
+    fontSize: wp("4%"),
+  },
+
 });

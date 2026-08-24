@@ -33,6 +33,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [imageModal, setImageModal] = useState(false);
   const [selfieUri, setSelfieUri] = useState(null);
+  const [emailError, setEmailError] = useState('');
 
   /*  FETCH PROFILE  */
   useFocusEffect(
@@ -54,6 +55,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
       loadDocuments();
     }, [dispatch]),
   );
+
   /*  SYNC FORM  */
   useEffect(() => {
     if (profile) {
@@ -74,23 +76,102 @@ const PersonalDetailsScreen = ({ navigation }) => {
   }, [profile]);
 
   /*  HELPERS  */
+
   const handleChange = (key, value) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
+  // ---------------- EMAIL VALIDATION ----------------
 
- const pickImage = async () => {
-  const res = await launchImageLibrary({
-    mediaType: 'photo',
-    quality: 0.7,
-  });
+  const validateEmail = email => {
+    if (!email || !email.trim()) {
+      return 'Email is required';
+    }
 
-  if (!res.didCancel && res.assets?.length) {
-    setSelfieUri(res.assets[0].uri);
-  }
-};
+    // No spaces allowed
+    if (/\s/.test(email)) {
+      return 'Spaces are not allowed in email';
+    }
 
-  /*  SAVE PROFILE (REDUX) */
+    // Must contain exactly one @
+    const atCount = (email.match(/@/g) || []).length;
+
+    if (atCount !== 1) {
+      return 'Please enter a valid email address';
+    }
+
+    const [localPart, domainPart] = email.split('@');
+
+    // Local part is required
+    if (!localPart || !domainPart) {
+      return 'Please enter a valid email address';
+    }
+
+    // At least ONE alphabet should be present before @
+    if (!/[A-Za-z]/.test(localPart)) {
+      return 'Email must contain letters before @';
+    }
+
+    // Local part cannot start/end with dot
+    if (
+      localPart.startsWith('.') ||
+      localPart.endsWith('.')
+    ) {
+      return 'Please enter a valid email address';
+    }
+
+    // No consecutive dots
+    if (email.includes('..')) {
+      return 'Please enter a valid email address';
+    }
+
+    // Strict email format
+    const emailRegex =
+      /^[A-Za-z0-9]+(?:[._%+-][A-Za-z0-9]+)*@[A-Za-z0-9-]+(?:\.[A-Za-z]{2,})+$/;
+
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+
+    return '';
+  };
+
+  const handleEmailChange = value => {
+    handleChange('email', value);
+
+    const error = validateEmail(value);
+    setEmailError(error);
+  };
+
+  const pickImage = async () => {
+    const res = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.7,
+    });
+
+    if (!res.didCancel && res.assets?.length) {
+      setSelfieUri(res.assets[0].uri);
+    }
+  };
+
+  /*  SAVE PROFILE (REDUX)  */
   const handleSave = () => {
+
+    // Validate email before submitting
+    const emailValidationError = validateEmail(form.email);
+
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+
+      Alert.alert(
+        'Invalid Email',
+        emailValidationError,
+      );
+
+      return;
+    }
+
+    setEmailError('');
+
     const formData = new FormData();
 
     formData.append('email', form.email);
@@ -124,6 +205,7 @@ const PersonalDetailsScreen = ({ navigation }) => {
         Alert.alert('Success', 'Profile updated successfully');
 
         setIsEditing(false);
+        setEmailError('');
 
         dispatch(fetchProfile());
 
@@ -145,7 +227,6 @@ const PersonalDetailsScreen = ({ navigation }) => {
   }
 
   if (!form) return null;
-
 
   return (
     <SafeAreaView
@@ -175,45 +256,81 @@ const PersonalDetailsScreen = ({ navigation }) => {
                 state: profile.location?.state || '',
                 pincode: profile.location?.pincode || '',
               });
+
+              // Clear validation when cancelling
+              setEmailError('');
             }
+
             setIsEditing(p => !p);
           }}
         >
-          <Text style={styles.editText}>{isEditing ? 'Cancel' : 'Edit'}</Text>
+          <Text style={styles.editText}>
+            {isEditing ? 'Cancel' : 'Edit'}
+          </Text>
         </TouchableOpacity>
       </View>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
-        <ScrollView showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: rh('6%') }}
-          keyboardShouldPersistTaps="handled">
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior="height"
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: rh('6%')
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+
           {/* PROFILE CARD */}
           <View style={styles.profileCard}>
             <TouchableOpacity
               onPress={() =>
-                isEditing ? pickImage() : selfieUri && setImageModal(true)
+                isEditing
+                  ? pickImage()
+                  : selfieUri && setImageModal(true)
               }
             >
               <View style={styles.avatarOuterWrapper}>
-                <View style={[styles.avatarWrapper, isEditing && styles.avatarEditing]}>
+                <View
+                  style={[
+                    styles.avatarWrapper,
+                    isEditing && styles.avatarEditing
+                  ]}
+                >
                   {selfieUri ? (
-                    <Image source={{ uri: selfieUri }} style={styles.avatar} />
+                    <Image
+                      source={{ uri: selfieUri }}
+                      style={styles.avatar}
+                    />
                   ) : (
                     <View style={styles.placeholder}>
-                      <Ionicons name="person" size={rf(6)} color="#98A2B3" />
+                      <Ionicons
+                        name="person"
+                        size={rf(6)}
+                        color="#98A2B3"
+                      />
                     </View>
                   )}
                 </View>
 
                 {isEditing && (
                   <View style={styles.addIcon}>
-                    <Ionicons name="camera" size={rf(2)} color="#FFF" />
+                    <Ionicons
+                      name="camera"
+                      size={rf(2)}
+                      color="#FFF"
+                    />
                   </View>
                 )}
               </View>
             </TouchableOpacity>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.name}>{form.fullName}</Text>
+              <Text style={styles.name}>
+                {form.fullName}
+              </Text>
 
               <Text style={styles.driverId}>
                 Rider ID: {profile?.partnerId || '—'}
@@ -223,176 +340,295 @@ const PersonalDetailsScreen = ({ navigation }) => {
 
           {/* BASIC INFO */}
           <Section title="Basic Information">
+
             <Label text="Full Name" />
+
             <Field
               editable={false}
               value={form.fullName}
-              onChangeText={v => handleChange('fullName', v)}
+              onChangeText={v =>
+                handleChange('fullName', v)
+              }
               isEditing={isEditing}
             />
 
             <Label text="Email" />
+
             <Field
               editable={isEditing}
               value={form.email}
-              onChangeText={v => handleChange('email', v)}
+              onChangeText={handleEmailChange}
               isEditing={isEditing}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
             />
 
+            {isEditing && emailError ? (
+              <Text style={styles.errorText}>
+                {emailError}
+              </Text>
+            ) : null}
+
             <Label text="Phone Number" />
+
             <Field
               editable={false}
               value={form.phoneNumber}
               keyboardType="phone-pad"
-              onChangeText={v => handleChange('phoneNumber', v)}
+              onChangeText={v =>
+                handleChange('phoneNumber', v)
+              }
               isEditing={isEditing}
             />
 
             <Label text="Date of Birth" />
+
             <Field
               editable={false}
               value={form.dob}
-              onChangeText={v => handleChange('dob', v)}
+              onChangeText={v =>
+                handleChange('dob', v)
+              }
               isEditing={isEditing}
             />
+
           </Section>
 
           {/* ADDRESS */}
-          <Section title="Address" iconName="location-outline">
+          <Section
+            title="Address"
+            iconName="location-outline"
+          >
+
             <View style={styles.row}>
+
               <View style={styles.rowInput}>
+
                 <Label text="Area" />
+
                 <Field
                   editable={false}
                   value={form.area}
-                  onChangeText={v => handleChange('area', v)}
+                  onChangeText={v =>
+                    handleChange('area', v)
+                  }
                   isEditing={isEditing}
                 />
+
               </View>
+
               <View style={styles.rowInput}>
+
                 <Label text="City" />
+
                 <Field
                   editable={false}
                   value={form.city}
-                  onChangeText={v => handleChange('city', v)}
+                  onChangeText={v =>
+                    handleChange('city', v)
+                  }
                   isEditing={isEditing}
                 />
+
               </View>
+
             </View>
 
             <View style={styles.row}>
+
               <View style={styles.rowInput}>
+
                 <Label text="State" />
+
                 <Field
                   editable={false}
                   value={form.state}
-                  onChangeText={v => handleChange('state', v)}
+                  onChangeText={v =>
+                    handleChange('state', v)
+                  }
                   isEditing={isEditing}
                 />
+
               </View>
+
               <View style={styles.rowInput}>
+
                 <Label text="Pincode" />
+
                 <Field
                   editable={false}
                   value={form.pincode}
                   keyboardType="number-pad"
-                  onChangeText={v => handleChange('pincode', v)}
+                  onChangeText={v =>
+                    handleChange('pincode', v)
+                  }
                   isEditing={isEditing}
                 />
+
               </View>
+
             </View>
+
           </Section>
 
           {/* SAVE BUTTON */}
           {isEditing && (
             <TouchableOpacity
-              style={[styles.saveButton, loading && { opacity: 0.7 }]}
+              style={[
+                styles.saveButton,
+                loading && { opacity: 0.7 }
+              ]}
               onPress={handleSave}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.saveText}>Save Changes</Text>
+                <Text style={styles.saveText}>
+                  Save Changes
+                </Text>
               )}
             </TouchableOpacity>
           )}
 
           <View style={{ height: rh(4) }} />
+
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* IMAGE MODAL */}
-      <Modal visible={imageModal} transparent animationType="fade">
+      <Modal
+        visible={imageModal}
+        transparent
+        animationType="fade"
+      >
         <View style={styles.modal}>
+
           <TouchableOpacity
             style={styles.closeButton}
             onPress={() => setImageModal(false)}
           >
-            <Ionicons name="close" size={rf(3)} color="#FFF" />
+            <Ionicons
+              name="close"
+              size={rf(3)}
+              color="#FFF"
+            />
           </TouchableOpacity>
 
           {selfieUri && (
-            <Image source={{ uri: selfieUri }} style={styles.fullImage} />
+            <Image
+              source={{ uri: selfieUri }}
+              style={styles.fullImage}
+            />
           )}
+
         </View>
       </Modal>
+
     </SafeAreaView>
   );
 };
 
 export default PersonalDetailsScreen;
 
-const Section = ({ title, iconName, children }) => (
+const Section = ({
+  title,
+  iconName,
+  children
+}) => (
   <View style={styles.sectionCard}>
+
     <View style={styles.sectionHeader}>
+
       {iconName && (
         <Ionicons
           name={iconName}
           size={rf(2.2)}
           color="#101828"
-          style={{ marginRight: rw(2) }}
+          style={{
+            marginRight: rw(2)
+          }}
         />
       )}
-      <Text style={styles.sectionTitle}>{title}</Text>
+
+      <Text style={styles.sectionTitle}>
+        {title}
+      </Text>
+
     </View>
+
     {children}
+
   </View>
 );
 
-const Label = ({ iconName, text }) => (
+const Label = ({
+  iconName,
+  text
+}) => (
   <View style={styles.labelRow}>
+
     {iconName && (
       <Ionicons
         name={iconName}
         size={rf(1.8)}
         color="#667085"
-        style={{ marginRight: rw(1.5) }}
+        style={{
+          marginRight: rw(1.5)
+        }}
       />
     )}
-    <Text style={styles.labelText}>{text}</Text>
+
+    <Text style={styles.labelText}>
+      {text}
+    </Text>
+
   </View>
 );
 
-const Field = ({ editable, isEditing, style, ...props }) => {
-  const isDisabled = isEditing && !editable;
+const Field = ({
+  editable,
+  isEditing,
+  style,
+  ...props
+}) => {
+
+  const isDisabled =
+    isEditing && !editable;
+
   return (
     <TextInput
       {...props}
-      editable={isEditing ? editable : false}
+      editable={
+        isEditing
+          ? editable
+          : false
+      }
       style={[
         styles.input,
-        isEditing && editable && styles.activeInput,
-        isDisabled && styles.disabledInput,
+        isEditing &&
+        editable &&
+        styles.activeInput,
+        isDisabled &&
+        styles.disabledInput,
       ]}
     />
   );
 };
 
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6F8' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F6F8'
+  },
+
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
 
   header: {
     height: rh(8),
@@ -432,7 +668,9 @@ const styles = StyleSheet.create({
     borderRadius: rw(10),
   },
 
-  profileInfo: { marginLeft: rw(4) },
+  profileInfo: {
+    marginLeft: rw(4)
+  },
 
   name: {
     fontSize: rf(2.2),
@@ -501,8 +739,22 @@ const styles = StyleSheet.create({
     borderColor: '#E4E7EC',
   },
 
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  rowInput: { width: '48%' },
+  errorText: {
+    color: '#D92D20',
+    fontSize: rf(1.6),
+    marginTop: -rh(1.2),
+    marginBottom: rh(1.5),
+    marginLeft: rw(1),
+  },
+
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+
+  rowInput: {
+    width: '48%'
+  },
 
   saveButton: {
     backgroundColor: '#192A51',
@@ -526,7 +778,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  fullImage: { width: '100%', height: '100%' },
+  fullImage: {
+    width: '100%',
+    height: '100%'
+  },
 
   placeholder: {
     width: rw(20),
@@ -580,8 +835,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   avatarEditing: {
     borderWidth: 4,
     borderColor: '#192A51',
   },
+
 });
