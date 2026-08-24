@@ -664,15 +664,11 @@ export default function EarningsScreen({
 
     const loadEarningsIncentives = async () => {
       try {
-        if (
-          riderType === 'INDIVIDUAL_EMPLOYEE'
-        ) {
+        if (riderType === 'INDIVIDUAL_EMPLOYEE') {
           await fetchIndividualIncentives();
         }
 
-        if (
-          riderType === 'ZESTBOT_EMPLOYEE'
-        ) {
+        if (riderType === 'ZESTBOT_EMPLOYEE') {
           await fetchZestbotIncentives();
         }
       } catch (error) {
