@@ -122,14 +122,22 @@ const LicenseUploadScreen = ({ navigation, route }) => {
   const validateDL = dl => {
     if (!dl) return false;
 
-    const normalized = dl
-      .replace(/\s+/g, '')
-      .toUpperCase();
+    // Spaces are NOT allowed
+    if (/\s/.test(dl)) {
+      return false;
+    }
 
-    const regex =
-      /^[A-Z]{2}[0-9]{2,3}[0-9]{4}[0-9]{7}$/;
+    // Only letters and numbers are allowed
+    if (!/^[A-Z0-9]+$/.test(dl)) {
+      return false;
+    }
 
-    return regex.test(normalized);
+    // Exact DL format:
+    // 2 letters + 3 digits + 4 digits + 7 digits
+    // Example: AP00720249992221
+    const regex = /^[A-Z]{2}[0-9]{3}[0-9]{4}[0-9]{7}$/;
+
+    return regex.test(dl);
   };
 
   // ---------------- DL INPUT ----------------
@@ -139,11 +147,25 @@ const LicenseUploadScreen = ({ navigation, route }) => {
 
     setDlNumber(value);
 
-    const normalized = value.replace(/\s+/g, '');
-
-    if (!normalized) {
+    if (!value) {
       setDlError('DL Number is required');
-    } else if (!validateDL(normalized)) {
+      return;
+    }
+
+    // Explicitly reject spaces
+    if (/\s/.test(value)) {
+      setDlError('Spaces are not allowed in DL Number');
+      return;
+    }
+
+    // Reject special characters
+    if (!/^[A-Z0-9]+$/.test(value)) {
+      setDlError('Only letters and numbers are allowed');
+      return;
+    }
+
+    // Validate complete DL format
+    if (!validateDL(value)) {
       setDlError('Invalid DL format');
     } else {
       setDlError('');
@@ -230,7 +252,7 @@ const LicenseUploadScreen = ({ navigation, route }) => {
   // ---------------- UPLOAD LICENSE ----------------
 
   const uploadLicense = async () => {
-    if (!dlNumber.trim()) {
+    if (!dlNumber) {
       Alert.alert(
         'DL Number Required',
         'Please enter Driving License Number',
@@ -238,11 +260,25 @@ const LicenseUploadScreen = ({ navigation, route }) => {
       return;
     }
 
-    const normalizedDL = dlNumber
-      .replace(/\s+/g, '')
-      .toUpperCase();
+    // Do NOT remove spaces here.
+    // The entered value must pass validation exactly as entered.
+    if (/\s/.test(dlNumber)) {
+      Alert.alert(
+        'Invalid DL Number',
+        'Spaces are not allowed in DL Number',
+      );
+      return;
+    }
 
-    if (!validateDL(normalizedDL)) {
+    if (!/^[A-Z0-9]+$/.test(dlNumber)) {
+      Alert.alert(
+        'Invalid DL Number',
+        'Only letters and numbers are allowed',
+      );
+      return;
+    }
+
+    if (!validateDL(dlNumber)) {
       Alert.alert(
         'Invalid DL Number',
         'Enter valid DL format',
@@ -263,7 +299,9 @@ const LicenseUploadScreen = ({ navigation, route }) => {
 
       const formData = new FormData();
 
-      formData.append('dlNumber', normalizedDL);
+      // Send the exact validated DL number.
+      // No spaces are removed here.
+      formData.append('dlNumber', dlNumber);
 
       formData.append('front', {
         uri: front.uri,
