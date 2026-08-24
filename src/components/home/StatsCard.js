@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import EarningsScreen from "../../screens/dashboard/EarningsScreen";
 import EarningsHistoryScreen from "../../screens/earnings/EarningsHistoryScreen";
@@ -108,7 +108,10 @@ const StatsCard = ({
   isActive,
   totalOnlineMinutes,
 }) => {
-  const { data } = useEarningsDashboard();
+ const {
+  data,
+  onRefresh,
+} = useEarningsDashboard();
 
   const {
     todayEarnings = {},
@@ -144,6 +147,11 @@ const StatsCard = ({
       earningsSummary?.month?.orders || 0
     );
 
+  useFocusEffect(
+  useCallback(() => {
+    onRefresh();
+  }, [onRefresh]),
+);
   useEffect(() => {
     setMinutes(totalOnlineMinutes || 0);
 

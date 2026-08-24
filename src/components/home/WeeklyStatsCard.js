@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
 import {
   widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation,useFocusEffect } from "@react-navigation/native";
 
 import useEarningsDashboard from "../../hooks/useEarningsDashboard";
 import { formatMoney } from "../../utils/formatMoney";
@@ -45,10 +45,10 @@ const WeeklyStatsCard = ({ hours }) => {
   const navigation = useNavigation();
 
   const {
-    data,
-    loading,
-  } = useEarningsDashboard();
-
+  data,
+  loading,
+  onRefresh,
+} = useEarningsDashboard();
   const {
     riderType = "",
     earningsSummary = {},

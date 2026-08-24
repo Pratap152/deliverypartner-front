@@ -67,15 +67,15 @@ const HomeDashboard = () => {
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const [banners, setBanners] = useState([]);
 
-  const {
-    data: earningsData,
-    loading: earningsLoading,
-  } = useEarningsDashboard();
+ const {
+  data: earningsData,
+  loading: earningsLoading,
+  onRefresh: refreshEarnings,
+} = useEarningsDashboard();
 
-  const {
-    riderType = '',
-  } = earningsData || {};
-
+const {
+  riderType = '',
+} = earningsData || {};
 
   const {
     isOnline,
@@ -211,6 +211,32 @@ const HomeDashboard = () => {
     }, [])
   );
 
+
+  useFocusEffect(
+  useCallback(() => {
+    let mounted = true;
+
+    const refreshHomeEarnings = async () => {
+      try {
+        await refreshEarnings();
+      } catch (error) {
+        if (mounted) {
+          console.log(
+            'Home earnings refresh error:',
+            error,
+          );
+        }
+      }
+    };
+
+    refreshHomeEarnings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [refreshEarnings]),
+);
+
   const loadHomeData = async () => {
     try {
       await fetchRiderStatus();
@@ -225,6 +251,8 @@ const HomeDashboard = () => {
     }
   };
 
+  
+
   /*
    * ============================================================
    * PULL TO REFRESH
@@ -232,24 +260,29 @@ const HomeDashboard = () => {
    */
 
   const onRefresh = useCallback(async () => {
-    try {
-      setPullRefreshing(true);
+  try {
+    setPullRefreshing(true);
 
-      await Promise.all([
-        fetchRiderStatus(),
-        checkCurrentOrder(),
-        checkAgreementStatus(),
-        validateLocation(),
-      ]);
+    await Promise.all([
+      fetchRiderStatus(),
+      checkCurrentOrder(),
+      checkAgreementStatus(),
+      validateLocation(),
+      refreshEarnings(),
+    ]);
 
-      const bannerData = await getHomeBanners();
-      setBanners(bannerData);
-    } catch (error) {
-      console.log('Refresh error:', error);
-    } finally {
-      setPullRefreshing(false);
-    }
-  }, []);
+    const bannerData = await getHomeBanners();
+    setBanners(bannerData);
+  } catch (error) {
+    console.log('Refresh error:', error);
+  } finally {
+    setPullRefreshing(false);
+  }
+}, [
+  fetchRiderStatus,
+  checkCurrentOrder,
+  refreshEarnings,
+]);
 
   /*
    * ============================================================
