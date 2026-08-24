@@ -43,10 +43,9 @@ const useIncentives = () => {
     useState(null);
 
   const [riderIncentivesTarget, setRiderIncentivesTarget] = useState(null);
-
   const [load, setLoad] = useState(false);
 
-  // Prevent unnecessary duplicate API calls
+  // Used only for Zestbot target caching
   const loadedRef = useRef(false);
 
   const fetchPeakIncentives = useCallback(async () => {
@@ -99,10 +98,7 @@ const useIncentives = () => {
       const res = await getWeeklyIncentivesProgress();
       const data = getProgressData(res);
 
-      setWeeklyIncentivesProgress(
-        data || {emptyData: true},
-      );
-
+      setWeeklyIncentivesProgress(data || {emptyData: true});
       return res;
     } catch (error) {
       console.log(
@@ -119,10 +115,12 @@ const useIncentives = () => {
       const res = await getDailyIncentivesProgress();
       const data = getProgressData(res);
 
-      setDailyIncentivesProgress(
-        data || {emptyData: true},
+      console.log(
+        'DAILY PROGRESS:',
+        JSON.stringify(data, null, 2),
       );
 
+      setDailyIncentivesProgress(data || {emptyData: true});
       return res;
     } catch (error) {
       console.log(
@@ -139,10 +137,7 @@ const useIncentives = () => {
       const res = await getPeakIncentivesProgress();
       const data = getProgressData(res);
 
-      setPeakIncentivesProgress(
-        data || {emptyData: true},
-      );
-
+      setPeakIncentivesProgress(data || {emptyData: true});
       return res;
     } catch (error) {
       console.log(
@@ -173,40 +168,40 @@ const useIncentives = () => {
     }
   }, []);
 
-  const fetchIndividualIncentives = useCallback(
-    async (force = false) => {
-      // Already loaded → don't call APIs again
-      if (loadedRef.current && !force) {
-        return;
-      }
+  /*
+   * Individual incentives
+   *
+   * Program APIs + progress APIs are fetched every time.
+   * This keeps daily/weekly/peak progress fresh.
+   */
+  const fetchIndividualIncentives = useCallback(async () => {
+    try {
+      setLoad(true);
 
-      try {
-        setLoad(true);
+      await Promise.allSettled([
+        fetchPeakIncentives(),
+        fetchDailyIncentives(),
+        fetchWeeklyIncentives(),
 
-        await Promise.allSettled([
-          fetchPeakIncentives(),
-          fetchDailyIncentives(),
-          fetchWeeklyIncentives(),
-          fetchPeakIncentivesProgress(),
-          fetchDailyIncentivesProgress(),
-          fetchWeeklyIncentivesProgress(),
-        ]);
+        fetchPeakIncentivesProgress(),
+        fetchDailyIncentivesProgress(),
+        fetchWeeklyIncentivesProgress(),
+      ]);
+    } finally {
+      setLoad(false);
+    }
+  }, [
+    fetchPeakIncentives,
+    fetchDailyIncentives,
+    fetchWeeklyIncentives,
+    fetchPeakIncentivesProgress,
+    fetchDailyIncentivesProgress,
+    fetchWeeklyIncentivesProgress,
+  ]);
 
-        loadedRef.current = true;
-      } finally {
-        setLoad(false);
-      }
-    },
-    [
-      fetchPeakIncentives,
-      fetchDailyIncentives,
-      fetchWeeklyIncentives,
-      fetchPeakIncentivesProgress,
-      fetchDailyIncentivesProgress,
-      fetchWeeklyIncentivesProgress,
-    ],
-  );
-
+  /*
+   * Zestbot incentives
+   */
   const fetchZestbotIncentives = useCallback(
     async (force = false) => {
       if (loadedRef.current && !force) {
@@ -215,7 +210,9 @@ const useIncentives = () => {
 
       try {
         setLoad(true);
+
         await fetchRiderIncentivesTarget();
+
         loadedRef.current = true;
       } finally {
         setLoad(false);
