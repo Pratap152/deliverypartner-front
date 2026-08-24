@@ -242,7 +242,7 @@ export default function PayoutScreen({ navigation }) {
 
                   <Text style={styles.infoValue}>
                     {formatCurrency(
-                      wallet?.salary
+                      wallet?.attendanceAmount
                     )}
                   </Text>
                 </View>

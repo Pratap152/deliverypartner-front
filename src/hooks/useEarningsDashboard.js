@@ -109,7 +109,7 @@ const mapWallet = res => ({
   availableBalance: Number(res?.data?.availableBalance ?? 0),
   holdAmount: Number(res?.data?.holdAmount ?? 0),
   withdrawDate: res?.data?.withdrawDate ?? null,
-  todayEarning: Number(res?.data?.todayEarning ?? 0),
+  todayEarning: Number(res?.data?.attendanceAmount ?? 0),
   incentives: Number(res?.data?.incentives ?? 0),
   tips: Number(res?.data?.tips ?? 0),
 });
