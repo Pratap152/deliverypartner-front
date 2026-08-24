@@ -191,38 +191,49 @@ export default function IncentiveDetails({navigation}) {
       0,
   );
 
-  const dailyRewardEarned = Number(
-  dailyProgram?.slabs?.[0]?.rewardAmount ?? 0,
+
+ const dailySlabMinOrders = Number(
+  dailyProgram?.slabs?.[0]?.minOrders ?? 0,
 );
-  let dailyMinimumOrders = 0;
 
-  if (dailyRuleType === 'SLAB') {
-    dailyMinimumOrders = Number(
-      dailyProgram?.slabs?.[0]?.minOrders ?? 0,
-    );
-  } else if (dailyRuleType === 'FIXED_TARGET') {
-    dailyMinimumOrders = Number(
-      dailyProgram?.target?.orders ?? 0,
-    );
-  } else if (dailyRuleType === 'HYBRID') {
-    dailyMinimumOrders = Number(
-      dailyProgram?.conditions?.minOrders ?? 0,
-    );
-  } else if (dailyRuleType === 'PER_ORDER') {
-    dailyMinimumOrders = Number(
-      dailyProgram?.reward?.maxOrders ??
-        dailyProgram?.maxOrders ??
-        0,
-    );
-  }
+const dailySlabMaxOrders = Number(
+  dailyProgram?.slabs?.[0]?.maxOrders ?? 0,
+);
 
-  const dailyProgress =
-    dailyMinimumOrders > 0
-      ? Math.min(
-          (dailyCompletedOrders / dailyMinimumOrders) * 100,
-          100,
-        )
-      : 0;
+let dailyMinimumOrders = 0;
+
+if (dailyRuleType === 'SLAB') {
+  dailyMinimumOrders = dailySlabMinOrders;
+} else if (dailyRuleType === 'FIXED_TARGET') {
+  dailyMinimumOrders = Number(
+    dailyProgram?.target?.orders ?? 0,
+  );
+} else if (dailyRuleType === 'HYBRID') {
+  dailyMinimumOrders = Number(
+    dailyProgram?.conditions?.minOrders ?? 0,
+  );
+} else if (dailyRuleType === 'PER_ORDER') {
+  dailyMinimumOrders = Number(
+    dailyProgram?.reward?.maxOrders ??
+      dailyProgram?.maxOrders ??
+      0,
+  );
+}
+
+const dailyTargetOrders =
+  dailyRuleType === 'SLAB' &&
+  dailySlabMaxOrders > dailyMinimumOrders &&
+  dailyCompletedOrders >= dailyMinimumOrders
+    ? dailySlabMaxOrders
+    : dailyMinimumOrders;
+
+ const dailyProgress =
+  dailyTargetOrders > 0
+    ? Math.min(
+        (dailyCompletedOrders / dailyTargetOrders) * 100,
+        100,
+      )
+    : 0;
 
   /* =========================
      WEEKLY
@@ -480,7 +491,7 @@ export default function IncentiveDetails({navigation}) {
             </View>
 
             <Text style={styles.progressText}>
-              {dailyCompletedOrders} / {dailyMinimumOrders}{' '}
+              {dailyCompletedOrders} / {dailyTargetOrders}{' '}
               orders completed
             </Text>
           </TouchableOpacity>

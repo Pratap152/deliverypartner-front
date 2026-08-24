@@ -847,15 +847,19 @@ const weeklyProgressPercentage =
       dailyProgram?.maxPayoutPerDay ?? 0,
     );
 
-  const dailyMinOrders =
-    Number(
-      dailySlabs?.[0]?.minOrders ?? 0,
-    );
+  const dailyMinOrders = Number(
+  dailySlabs?.[0]?.minOrders ?? 0,
+);
 
-  const dailyMaxOrders =
-    Number(
-      dailySlabs?.[0]?.maxOrders ?? 0,
-    );
+const dailyMaxOrders = Number(
+  dailySlabs?.[0]?.maxOrders ?? 0,
+);
+
+const dailyTargetOrders =
+  dailyMaxOrders > dailyMinOrders &&
+  dailyCompletedOrders >= dailyMinOrders
+    ? dailyMaxOrders
+    : dailyMinOrders;
 
   /* =========================================================
      INCENTIVES
@@ -930,7 +934,7 @@ const weeklyProgressPercentage =
 
       amount: dailyRewardAmount,
 
-      minOrders: dailyMinOrders,
+      minOrders: dailyTargetOrders,
 
       dailyCompletedOrders,
 
