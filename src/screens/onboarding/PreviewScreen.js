@@ -209,6 +209,14 @@ const PreviewScreen = () => {
   const isCompanyEmployee =
     rider?.riderType === 'COMPANY_EMPLOYEE';
 
+  const formatDateOnly = (date) => {
+    if (!date) return '-';
+
+    const [year, month, day] = date.split('T')[0].split('-');
+
+    return `${day}/${month}/${year}`;
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -400,7 +408,7 @@ const PreviewScreen = () => {
 
                 <Text style={styles.value}>
                   <Text style={styles.label}>Date of Birth : </Text>
-                  {profile.dob}
+                  {formatDateOnly(profile.dob)}
                 </Text>
 
                 <Text style={styles.value}>
