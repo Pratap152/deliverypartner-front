@@ -1,38 +1,37 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Animated,
   Alert,
   StyleSheet,
+  Modal,
 } from 'react-native';
- 
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
- 
+
 import {
   responsiveWidth as rw,
   responsiveHeight as rh,
   responsiveFontSize as rf,
 } from 'react-native-responsive-dimensions';
- 
+
 import DeviceInfo from 'react-native-device-info';
- 
+
 import { getBankDetails, updateBankDetails } from '../../services/profile/profileApiService';
- 
+
 const isTablet = DeviceInfo.isTablet();
 const containerMaxWidth = isTablet ? 900 : '100%';
- 
+
 const BankAC = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
- 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
- 
+  const [showAccountTypeDropdown, setShowAccountTypeDropdown] = useState(false);
+
   const [bankDetails, setBankDetails] = useState({
     accountHolderName: '',
     accountNumber: '',
@@ -41,20 +40,28 @@ const BankAC = ({ navigation }) => {
     accountType: '',
     branch: '',
   });
- 
+
   const [verification, setVerification] = useState({
     bank: '',
     ifsc: '',
   });
- 
+
+  const [errors, setErrors] = useState({
+    accountHolderName: '',
+    bankName: '',
+    branch: '',
+    accountNumber: '',
+    ifscCode: '',
+  });
+
   /* FETCH BANK DETAILS */
   const fetchBankDetails = async () => {
     try {
       const res = await getBankDetails();
- 
+
       if (res?.data?.success) {
         const data = res.data.data;
- 
+
         setBankDetails({
           accountHolderName: data?.accountHolderName || '',
           accountNumber: data?.accountNumber || '',
@@ -63,7 +70,7 @@ const BankAC = ({ navigation }) => {
           accountType: data?.accountType || '',
           branch: data?.branch || '',
         });
- 
+
         setVerification({
           bank: data?.bankVerificationStatus,
           ifsc: data?.ifscVerificationStatus,
@@ -73,119 +80,179 @@ const BankAC = ({ navigation }) => {
       Alert.alert('Error', 'Failed to fetch bank details');
     }
   };
- 
+
   useEffect(() => {
     fetchBankDetails();
   }, []);
- 
+
   /* UPDATE BANK DETAILS */
- const handleUpdateBankDetails = async () => {
-  try {
-    const payload = {
-      bankDetails: {
-        bankName: bankDetails.bankName,
-        accountHolderName: bankDetails.accountHolderName,
-        accountType: bankDetails.accountType,
-        branch: bankDetails.branch,
-        accountNumber: bankDetails.accountNumber,
-        ifscCode: bankDetails.ifscCode,
-      },
-    };
- 
-    const res = await updateBankDetails(payload);
- 
-    if (res?.data?.success) {
-      setIsEditing(false);
-      fetchBankDetails();
-    } else {
-      Alert.alert('Error', 'Failed to update bank details');
+  const handleUpdateBankDetails = async () => {
+    const newErrors = {};
+
+    ['accountHolderName', 'bankName', 'branch'].forEach(key => {
+      const trimmedValue = bankDetails[key].trim();
+      const fieldName =
+        key === 'accountHolderName'
+          ? 'Account holder name'
+          : key === 'bankName'
+          ? 'Bank name'
+          : 'Branch name';
+
+      if (!trimmedValue) {
+        newErrors[key] = `${fieldName} is required`;
+      } else if (trimmedValue.length < 3) {
+        newErrors[key] = `${fieldName} must contain at least 3 characters`;
+      } else if (trimmedValue.length > 30) {
+        newErrors[key] = `${fieldName} must not exceed 30 characters`;
+      } else if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(trimmedValue)) {
+        newErrors[key] = `${fieldName} can contain only alphabets`;
+      }
+    });
+
+    if (!/^\d{15}$/.test(bankDetails.accountNumber)) {
+      newErrors.accountNumber = 'Account number must be exactly 15 digits';
     }
-  } catch (error) {
-    console.log(
-      'Update bank error:',
-      error?.response?.data || error
-    );
-    Alert.alert(
-      'Error',
-      'Something went wrong while updating bank details'
-    );
-  }
-};
- 
-  const toggleTooltip = () => {
-    Animated.timing(fadeAnim, {
-      toValue: showInfo ? 0 : 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => setShowInfo(!showInfo));
+
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankDetails.ifscCode)) {
+      newErrors.ifscCode = 'IFSC must be like ABCD0XXXXXX';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      Alert.alert('Error', 'Please fix the validation errors');
+      return;
+    }
+
+    try {
+      const payload = {
+        bankDetails: {
+          bankName: bankDetails.bankName,
+          accountHolderName: bankDetails.accountHolderName,
+          accountType: bankDetails.accountType || undefined,
+          branch: bankDetails.branch,
+          accountNumber: bankDetails.accountNumber,
+          ifscCode: bankDetails.ifscCode,
+        },
+      };
+
+      const res = await updateBankDetails(payload);
+
+      if (res?.data?.success) {
+        setIsEditing(false);
+        setErrors({});
+        fetchBankDetails();
+      } else {
+        Alert.alert('Error', 'Failed to update bank details');
+      }
+    } catch (error) {
+      console.log('Update bank error:', error?.response?.data || error);
+      Alert.alert('Error', 'Something went wrong while updating bank details');
+    }
   };
- 
+
+  const toggleTooltip = () => {
+    setShowInfo(!showInfo);
+  };
+
   const statusColor = status =>
     status === 'VERIFIED'
       ? '#00A63E'
       : status === 'PENDING'
-        ? '#FFA500'
-        : '#FF3B30';
- 
+      ? '#FFA500'
+      : '#FF3B30';
+
+  const handleInputChange = (key, text) => {
+    if (key === 'accountNumber') {
+      if (/^\d*$/.test(text)) {
+        const newValue = text.slice(0, 15);
+        setBankDetails({ ...bankDetails, [key]: newValue });
+        if (errors.accountNumber) {
+          setErrors({ ...errors, accountNumber: '' });
+        }
+      }
+      return;
+    }
+
+    if (key === 'ifscCode') {
+      const upperText = text.toUpperCase();
+      if (/^[A-Z0-9]*$/.test(upperText)) {
+        const newValue = upperText.slice(0, 11);
+        setBankDetails({ ...bankDetails, [key]: newValue });
+        if (errors.ifscCode) {
+          setErrors({ ...errors, ifscCode: '' });
+        }
+      }
+      return;
+    }
+
+    if (['accountHolderName', 'bankName', 'branch'].includes(key)) {
+      if (/^[A-Za-z ]*$/.test(text)) {
+        const newValue = text.slice(0, 30);
+        const trimmedValue = newValue.trim();
+        const fieldName =
+          key === 'accountHolderName'
+            ? 'Account holder name'
+            : key === 'bankName'
+            ? 'Bank name'
+            : 'Branch name';
+
+        if (trimmedValue.length > 0 && trimmedValue.length < 3) {
+          setErrors({ ...errors, [key]: `${fieldName} must contain at least 3 characters` });
+        } else if (trimmedValue.length > 30) {
+          setErrors({ ...errors, [key]: `${fieldName} must not exceed 30 characters` });
+        } else if (trimmedValue.length > 0 && !/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(trimmedValue)) {
+          setErrors({ ...errors, [key]: `${fieldName} can contain only alphabets and single spaces` });
+        } else {
+          setErrors({ ...errors, [key]: '' });
+        }
+
+        setBankDetails({ ...bankDetails, [key]: newValue });
+      }
+      return;
+    }
+
+    setBankDetails({ ...bankDetails, [key]: text });
+  };
+
+  const accountTypeOptions = ['', 'SAVINGS', 'CURRENT'];
+
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={['top']}
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.screenWrapper}>
         <View style={styles.container}>
           {/* HEADER */}
           <View style={styles.header}>
-            <Ionicons
-              name="arrow-back"
-              size={rf(3)}
-              onPress={() => navigation.goBack()}
-            />
- 
+            <Ionicons name="arrow-back" size={rf(3)} onPress={() => navigation.goBack()} />
             <Text style={styles.headerTitle}>Bank Details</Text>
- 
             {verification.bank !== 'VERIFIED' ? (
               <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-                <Text style={styles.editText}>
-                  {isEditing ? 'Cancel' : 'Edit'}
-                </Text>
+                <Text style={styles.editText}>{isEditing ? 'Cancel' : 'Edit'}</Text>
               </TouchableOpacity>
             ) : (
               <View style={{ width: rw(10) }} />
             )}
           </View>
- 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
+
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             {/* INFO */}
             <View style={styles.infoContainer}>
-              <TouchableOpacity
-                onPress={toggleTooltip}
-                style={styles.infoRow}
-              >
+              <TouchableOpacity onPress={toggleTooltip} style={styles.infoRow}>
                 <Icon name="info-outline" size={22} color="#192A51" />
- 
                 <Text style={styles.infoText}>Secure Information</Text>
               </TouchableOpacity>
- 
+
               {showInfo && (
-                <Animated.View
-                  style={[styles.tooltip, { opacity: fadeAnim }]}
-                >
+                <View style={styles.tooltip}>
                   <Text style={styles.tooltipText}>
-                    Your bank details are securely stored and used only for
-                    payouts.
+                    Your bank details are securely stored and used only for payouts.
                   </Text>
-                </Animated.View>
+                </View>
               )}
             </View>
- 
+
             {/* BANK DETAILS */}
             <View style={styles.detailsContainer}>
               <View style={styles.accountHeader}>
- 
                 <Text style={styles.accountHeaderText}>
                   Bank Account Information
                 </Text>
@@ -195,26 +262,27 @@ const BankAC = ({ navigation }) => {
                 {
                   label: 'Account Holder Name',
                   key: 'accountHolderName',
+                  autoCapitalize: 'words',
                 },
                 {
                   label: 'Account Number',
                   key: 'accountNumber',
+                  keyboardType: 'numeric',
                 },
                 {
                   label: 'IFSC Code',
                   key: 'ifscCode',
+                  autoCapitalize: 'characters',
                 },
                 {
                   label: 'Bank Name',
                   key: 'bankName',
-                },
-                {
-                  label: 'Account Type',
-                  key: 'accountType',
+                  autoCapitalize: 'words',
                 },
                 {
                   label: 'Branch',
                   key: 'branch',
+                  autoCapitalize: 'words',
                 },
               ].map((item, index) => (
                 <View
@@ -241,20 +309,88 @@ const BankAC = ({ navigation }) => {
                     ]}
                     editable={isEditing}
                     value={bankDetails[item.key]}
+                    keyboardType={item.keyboardType || 'default'}
+                    maxLength={
+                      item.key === 'accountNumber'
+                        ? 15
+                        : ['accountHolderName', 'bankName', 'branch'].includes(item.key)
+                        ? 30
+                        : item.key === 'ifscCode'
+                        ? 11
+                        : undefined
+                    }
+                    autoCapitalize={item.autoCapitalize || 'none'}
                     onChangeText={text =>
-                      setBankDetails({
-                        ...bankDetails,
-                        [item.key]: text,
-                      })
+                      handleInputChange(item.key, text)
                     }
                   />
+ 
+                  {/* ERROR MESSAGE */}
+                  {errors[item.key] && isEditing && (
+                    <Text style={styles.errorText}>
+                      {errors[item.key]}
+                    </Text>
+                  )}
                 </View>
               ))}
+ 
+              {/* ACCOUNT TYPE DROPDOWN */}
+              <View
+                style={[
+                  styles.inputBox,
+                  isTablet && styles.inputBoxTablet,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.label,
+                    isTablet && styles.labelTablet,
+                  ]}
+                >
+                  Account Type
+                </Text>
+ 
+                <TouchableOpacity
+                  style={[
+                    styles.input,
+                    !isEditing && styles.disabledInput,
+                    isTablet && styles.inputTablet,
+                  ]}
+                  onPress={() => {
+                    if (isEditing) {
+                      setShowAccountTypeDropdown(true);
+                    }
+                  }}
+                  disabled={!isEditing}
+                >
+                  <Text
+                    style={[
+                      styles.inputText,
+                      !bankDetails.accountType && styles.placeholderText,
+                    ]}
+                  >
+                    {bankDetails.accountType || 'Select Account Type'}
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={20}
+                    color="#666"
+                    style={styles.dropdownIcon}
+                  />
+                </TouchableOpacity>
+ 
+                {errors.accountType && isEditing && (
+                  <Text style={styles.errorText}>
+                    {errors.accountType}
+                  </Text>
+                )}
+              </View>
  
               {isEditing && (
                 <TouchableOpacity
                   style={styles.saveBtn}
-onPress={handleUpdateBankDetails}                >
+                  onPress={handleUpdateBankDetails}
+                >
                   <Text style={styles.saveText}>Save Changes</Text>
                 </TouchableOpacity>
               )}
@@ -324,6 +460,59 @@ onPress={handleUpdateBankDetails}                >
           </ScrollView>
         </View>
       </View>
+ 
+        {/* ACCOUNT TYPE DROPDOWN MODAL */}
+          <Modal
+            transparent
+            visible={showAccountTypeDropdown}
+            animationType="fade"
+            onRequestClose={() => setShowAccountTypeDropdown(false)}
+          >
+            <TouchableOpacity
+              style={styles.modalBg}
+              activeOpacity={1}
+              onPress={() => setShowAccountTypeDropdown(false)}
+            >
+              <View style={styles.dropdownContainer}>
+                {accountTypeOptions.map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.dropdownOption}
+                    onPress={() => {
+                      setBankDetails({
+                        ...bankDetails,
+                        accountType: option,
+                      });
+                      setShowAccountTypeDropdown(false);
+                      if (errors.accountType) {
+                        setErrors({ ...errors, accountType: '' });
+                      }
+                    }}
+                  >
+                    <Text style={styles.dropdownOptionText}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                
+                {/* Clear selection option */}
+                <TouchableOpacity
+                  style={[styles.dropdownOption, styles.clearOption]}
+                  onPress={() => {
+                    setBankDetails({
+                      ...bankDetails,
+                      accountType: '',
+                    });
+                    setShowAccountTypeDropdown(false);
+                  }}
+                >
+                  <Text style={[styles.dropdownOptionText, styles.clearText]}>
+                    Clear Selection
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
     </SafeAreaView>
   );
 };
@@ -475,6 +664,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F1F1',
   },
  
+  inputText: {
+    fontSize: 14,
+    color: '#000',
+  },
+ 
+  placeholderText: {
+    color: '#999',
+  },
+ 
+  dropdownIcon: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+  },
+ 
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 4,
+  },
+ 
   accountHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -589,5 +799,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-});
  
+  modalBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+ 
+  dropdownContainer: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+ 
+  dropdownOption: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+  },
+ 
+  dropdownOptionText: {
+    fontSize: 16,
+    color: '#000',
+  },
+    clearOption: {
+    backgroundColor: '#FFF5F5',
+  },
+ 
+  clearText: {
+    color: '#FF3B30',
+  },
+});
