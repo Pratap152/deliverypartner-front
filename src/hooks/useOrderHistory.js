@@ -4,7 +4,6 @@ import apiClient from '../services/ApiClient';
 
 const PAGE_SIZE = 10;
 const getCacheKey = filter => `ORDER_HISTORY_${filter}`;
-
 const API_FILTER_MAP = {
   all: 'all',
   today: 'daily',
@@ -21,11 +20,17 @@ export const useOrderHistory = (filter) => {
   const isFetching = useRef(false);
 
   const [orders, setOrders] = useState([]);
+  
+  // ✅ RESTORED TARGET FIELDS IN SUMMARY STATE
   const [summary, setSummary] = useState({
     totalOrders: 0,
     totalEarnings: 0,
     rating: 0,
     km: 0,
+    riderType: null,
+    targetOrders: null,
+    completedOrders: 0,
+    targetCompleted: false,
   });
 
   const [page, setPage] = useState(1);
@@ -34,7 +39,6 @@ export const useOrderHistory = (filter) => {
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  /* UNMOUNT CLEANUP */
   useEffect(() => {
     return () => {
       mountedRef.current = false;
@@ -44,7 +48,6 @@ export const useOrderHistory = (filter) => {
 
   const cancelRequest = () => abortRef.current?.abort();
 
-  /* LOAD CACHE FIRST */
   useEffect(() => {
     const loadCache = async () => {
       if (memoryCache[filter]) {
@@ -52,7 +55,6 @@ export const useOrderHistory = (filter) => {
         setSummary(memoryCache[filter].summary);
         return;
       }
-
       try {
         const cached = await AsyncStorage.getItem(getCacheKey(filter));
         if (cached) {
@@ -63,25 +65,20 @@ export const useOrderHistory = (filter) => {
         }
       } catch { }
     };
-
     loadCache();
   }, [filter]);
 
-  /* FETCH */
   const fetchOrders = useCallback(async (
     pageNo = 1,
     { refresh = false, activeFilter = filter } = {}
   ) => {
-
     if (isFetching.current) return;
     if (!hasMore && pageNo !== 1) return;
 
     cancelRequest();
-
     const controller = new AbortController();
     abortRef.current = controller;
     isFetching.current = true;
-
     const reqId = ++requestIdRef.current;
 
     try {
@@ -103,102 +100,76 @@ export const useOrderHistory = (filter) => {
       if (!res?.data?.success) return;
 
       const list = res.data.data || [];
+      
+      const mapped = list.map((item, i) => {
+        const isZestbot = item.riderType === 'ZESTBOT_EMPLOYEE';
+        const dateStr = isZestbot ? item.time : item.deliveredAt;
 
-      const mapped = list.map((item, i) => ({
-        id: `${item.orderId}-${pageNo}-${i}`,
-
-        orderId: item.orderId,
-
-        // Restaurant Name
-        vendorShopName: item.vendorShopName,
-
-        // Customer Name
-        userName: item.userName,
-
-        // Delivery Address
-        deliveredAddress: item.deliveredAddress,
-
-        // Earnings
-        earning: item.pricing?.riderEarning ?? 0,
-
-        // Earned Status
-        credited:
-          item.pricing?.earningBreakup?.credited ?? false,
-
-        // Customer Tip
-        tip:
-          item.pricing?.earningBreakup?.tips ?? 0,
-
-        // Distance
-        distance: item.distanceTravelled ?? 0,
-
-        // Rating
-        rating: item.rating ?? 0,
-
-        // Date
-        date: new Date(item.deliveredAt).toLocaleDateString(
-          'en-GB'
-        ),
-
-        // Time
-        time: new Date(item.deliveredAt).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-
-        // Keep full order for detail screen later
-        rawData: item,
-      }));
-
-      setOrders(prev => {
-        const combined =
-          pageNo === 1 ? mapped : [...prev, ...mapped];
-
-        const unique = Array.from(
-          new Map(combined.map(o => [o.orderId, o])).values()
-        );
-
-        const payload = {
-          orders: unique,
-          summary: {
-            totalOrders: res.data.totalOrders,
-            totalEarnings: res.data.totalRiderEarnings,
-            rating: res.data.avgRating ?? 0,
-            km: Math.round(res.data.totalDistance),
-          },
+        return {
+          id: `${item.orderId}-${pageNo}-${i}`,
+          orderId: item.orderId,
+          vendorShopName: isZestbot ? item.store : item.vendorShopName,
+          userName: item.userName || '',
+          deliveredAddress: item.deliveredAddress || '',
+          earning: isZestbot ? (item.totalEarnings ?? 0) : (item.pricing?.riderEarning ?? 0),
+          credited: isZestbot 
+            ? (item.transaction?.status === 'CREDITED') 
+            : (item.pricing?.earningBreakup?.credited ?? false),
+          tip: isZestbot 
+            ? (item.transaction?.tips ?? 0) 
+            : (item.pricing?.earningBreakup?.tips ?? 0),
+          incentive: isZestbot 
+            ? (item.transaction?.incentive ?? 0) 
+            : 0,
+          distance: item.distanceTravelled ?? 0,
+          rating: item.rating ?? 0,
+          date: dateStr ? new Date(dateStr).toLocaleDateString('en-GB') : '',
+          time: dateStr ? new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+          rawData: item,
+          riderType: item.riderType,
         };
-
-        memoryCache[activeFilter] = payload;
-        AsyncStorage.setItem(
-          getCacheKey(activeFilter),
-          JSON.stringify(payload)
-        );
-
-        return unique;
       });
 
-      setSummary({
+      // ✅ RESTORED TARGET DATA MAPPING
+      const summaryData = {
         totalOrders: res.data.totalOrders,
         totalEarnings: res.data.totalRiderEarnings,
         rating: res.data.avgRating ?? 0,
         km: Math.round(res.data.totalDistance),
+        riderType: res.data.riderType,
+        targetOrders: res.data.targetOrders,
+        completedOrders: res.data.completedOrders,
+        targetCompleted: res.data.targetCompleted,
+      };
+
+      setOrders(prev => {
+        const combined = pageNo === 1 ? mapped : [...prev, ...mapped];
+        const unique = Array.from(new Map(combined.map(o => [o.orderId, o])).values());
+        
+        const payload = {
+          orders: unique,
+          summary: summaryData,
+        };
+        
+        memoryCache[activeFilter] = payload;
+        AsyncStorage.setItem(getCacheKey(activeFilter), JSON.stringify(payload));
+        return unique;
       });
+
+      setSummary(summaryData);
       setHasMore(mapped.length === PAGE_SIZE);
       setPage(pageNo);
-
     } catch (e) {
       if (e.name !== 'CanceledError') {
         console.warn('Order fetch failed:', e.message);
       }
     } finally {
       if (!mountedRef.current) return;
-
       isFetching.current = false;
       setLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
     }
-
   }, [filter, hasMore]);
 
   useEffect(() => {
