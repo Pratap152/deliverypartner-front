@@ -1,5 +1,4 @@
-const WEBSITE_URL="https://api.swachvega.com";
-
+const WEBSITE_URL="https://rider-api.swachvega.com";
 
 export default WEBSITE_URL;
 
@@ -7,6 +6,4 @@ export default WEBSITE_URL;
 // export default WEBSOCKET_URL;
 // https://rider-api.swachvega.com/ for dev
 
-export const WEBSOCKET_URL = "wss://rider-module.onrender.com";
-
-//this rider module is for testing purpose
+export const WEBSOCKET_URL = "wss://rider-api.swachvega.com";
