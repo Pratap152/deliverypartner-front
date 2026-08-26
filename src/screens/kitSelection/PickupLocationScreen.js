@@ -38,27 +38,27 @@ const PickupLocationScreen = ({ navigation, route }) => {
       setLoading(true);
       setZonesError(null);
 
-      const response = await getKitAddress();
+      const locations = await getKitAddress();
 
-      const cities = Array.isArray(response?.cities)
-        ? response.cities
-        : Array.isArray(response)
-        ? response
+      const mappedLocations = Array.isArray(locations)
+        ? locations.map(location => ({
+          id: location.id,
+          name: location.officeLocation,
+          city: location.officeLocation,
+          contactName: location.contactName,
+          officeNo: location.officeNo,
+          address: location.officeAddress,
+        }))
         : [];
 
-      const mappedCities = cities.map((city, index) => ({
-        id: `${city}-${index}`,
-        name: city,
-        city,
-      }));
-
-      setZones(mappedCities);
+      setZones(mappedLocations);
     } catch (error) {
       setZonesError(
         error?.response?.data?.message ||
-          error?.message ||
-          'Failed to fetch pickup locations'
+        error?.message ||
+        'Failed to fetch pickup locations'
       );
+
       setZones([]);
     } finally {
       setLoading(false);
@@ -144,7 +144,7 @@ const PickupLocationScreen = ({ navigation, route }) => {
           ) : (
             zones.map((zone, index) => {
               const isSelected =
-                selectedZone?.id === zone?.id || selectedZone?.name === zone?.name;
+                selectedZone?.id === zone?.id;
 
               return (
                 <TouchableOpacity
@@ -154,7 +154,23 @@ const PickupLocationScreen = ({ navigation, route }) => {
                 >
                   <View style={styles.cardTopRow}>
                     <View style={styles.cardTextWrap}>
-                      <Text style={styles.storeName}>{zone?.name || 'Pickup City'}</Text>
+                      <View style={styles.cardTextWrap}>
+                        <Text style={styles.storeName}>
+                          {zone?.city || 'Pickup City'}
+                        </Text>
+
+                        <Text style={styles.contactName}>
+                          Contact: {zone?.contactName || '--'}
+                        </Text>
+
+                        <Text style={styles.officeNo}>
+                          Phone: {zone?.officeNo || '--'}
+                        </Text>
+
+                        <Text style={styles.storeAddress}>
+                          {zone?.address || 'Address not available'}
+                        </Text>
+                      </View>
                     </View>
 
                     <View
@@ -265,7 +281,17 @@ const getStyles = isTablet =>
       color: '#0F172A',
       marginBottom: 6,
     },
+    contactName: {
+      color: '#334155',
+      fontSize: 13,
+      marginBottom: 4,
+    },
 
+    officeNo: {
+      color: '#475569',
+      fontSize: 13,
+      marginBottom: 6,
+    },
     storeAddress: {
       color: '#475569',
       fontSize: 13,

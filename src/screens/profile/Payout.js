@@ -54,31 +54,42 @@ export default function PayoutScreen({ navigation }) {
     }
 
     try {
-      const settlementRes = await getSettlementBreakdown();
+  const settlementRes = await getSettlementBreakdown();
 
-      if (settlementRes.data.success) {
-        setSettlement(settlementRes.data.data);
-        setSettlementList(
-          settlementRes.data.data.settlements || []
-        );
-        setSettlementMessage('');
-      } else {
-        setSettlement(null);
-        setSettlementMessage(settlementRes.data.message);
-      }
-    } catch (error) {
-      console.log(
-        'Settlement Error =>',
-        error.response?.data
-      );
+  const settlementData = settlementRes.data?.data;
+  const settlements =
+    settlementData?.settlements || [];
 
-      setSettlement(null);
+  if (
+    settlementRes.data?.success &&
+    settlements.length > 0
+  ) {
+    setSettlement(settlementData);
+    setSettlementList(settlements);
+    setSettlementMessage('');
+  } else {
+    setSettlement(null);
+    setSettlementList([]);
 
-      setSettlementMessage(
-        error.response?.data?.message ||
-          'Unable to load settlement details'
-      );
-    }
+    setSettlementMessage(
+      settlementRes.data?.message ||
+        'No settlement data available'
+    );
+  }
+} catch (error) {
+  console.log(
+    'Settlement Error =>',
+    error.response?.data
+  );
+
+  setSettlement(null);
+  setSettlementList([]);
+
+  setSettlementMessage(
+    error.response?.data?.message ||
+      'Unable to load settlement details'
+  );
+}
 
     try {
       const bankRes = await getBankDetails();
@@ -242,7 +253,7 @@ export default function PayoutScreen({ navigation }) {
 
                   <Text style={styles.infoValue}>
                     {formatCurrency(
-                      wallet?.salary
+                      wallet?.attendanceAmount
                     )}
                   </Text>
                 </View>

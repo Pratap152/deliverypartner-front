@@ -31,9 +31,6 @@ const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 const PAGE_SIZE = 10;
-const getCacheKey = filter => `SLOT_HISTORY_CACHE_${filter}`;
-
-let memoryCache = {};
 
 /* STATUS CONFIG OUTSIDE COMPONENT  */
 const STATUS_CONFIG = {
@@ -43,32 +40,60 @@ const STATUS_CONFIG = {
     textColor: '#008236',
     icon: 'checkmark-circle',
   },
+
   ACTIVE: {
     label: 'Active',
     bgColor: '#DBEAFE',
     textColor: '#1447E6',
     icon: 'time-outline',
   },
+
   CANCELLED: {
     label: 'Cancelled',
     bgColor: '#FFE2E2',
     textColor: '#C10007',
     icon: 'close-circle',
   },
+
+  CANCELED: {
+    label: 'Cancelled',
+    bgColor: '#FFE2E2',
+    textColor: '#C10007',
+    icon: 'close-circle',
+  },
+
   MISSED: {
     label: 'Missed',
     bgColor: '#FFEDD4',
     textColor: '#CA3500',
     icon: 'alert-circle',
   },
-};
 
+  UPCOMING: {
+    label: 'Upcoming',
+    bgColor: '#E0E7FF',
+    textColor: '#3730A3',
+    icon: 'time-outline',
+  },
+};
+const getLocalDate = () => {
+  const date = new Date();
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
 const SlotHistory = ({ navigation }) => {
   const [slots, setSlots] = useState([]);
   const [summary, setSummary] = useState({
     totalSlots: 0,
+    completedSlotsCount: 0,
     totalEarnings: 0,
   });
+
+  const [riderType, setRiderType] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
 
   const [page, setPage] = useState(1);
@@ -83,121 +108,197 @@ const SlotHistory = ({ navigation }) => {
 
   const isFetchingRef = useRef(false);
 
-  /*  CACHE LOAD */
-  useEffect(() => {
-    const loadCache = async () => {
-      if (memoryCache[activeFilter]) {
-        setSlots(memoryCache[activeFilter].slots);
-        setSummary(memoryCache[activeFilter].summary);
-        setInitialRendered(true);
-        return;
-      }
-
-      try {
-        const cached = await AsyncStorage.getItem(getCacheKey(activeFilter));
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          memoryCache[activeFilter] = parsed;
-          setSlots(parsed.slots || []);
-          setSummary(parsed.summary || { totalSlots: 0, totalEarnings: 0 });
-        }
-      } catch {
-      } finally {
-        setInitialRendered(true);
-      }
-    };
-
-    loadCache();
-  }, [activeFilter]);
 
   /*  FETCH */
   const fetchSlotHistory = useCallback(
     async (filterType, pageNo = 1, isRefresh = false) => {
       if (isFetchingRef.current) return;
+
       if (!hasMore && pageNo !== 1) return;
 
       const reqId = ++requestIdRef.current;
+
       isFetchingRef.current = true;
 
       try {
-        if (pageNo === 1 && !isRefresh) {
+        if (pageNo === 1) {
           setFilterLoading(true);
         }
 
-        if (pageNo === 1 && !isRefresh && slots.length === 0) {
+        if (pageNo === 1) {
           setListLoading(true);
+
+          // Clear previous filter data immediately.
+          setSlots([]);
+
+          setSummary({
+            totalSlots: 0,
+            completedSlotsCount: 0,
+            totalEarnings: 0,
+          });
         }
 
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+
+        const date = [
+          year,
+          String(month).padStart(2, '0'),
+          String(now.getDate()).padStart(2, '0'),
+        ].join('-');
+
         const params = {
-            filter: filterType === 'all' ? undefined : filterType,
-            page: pageNo,
-            limit: PAGE_SIZE,
+          page: pageNo,
+          limit: PAGE_SIZE,
+        };
+
+        // DAILY
+        if (filterType === 'daily') {
+          params.filter = 'daily';
+          params.date = date;
         }
+
+        // WEEKLY
+        else if (filterType === 'weekly') {
+          params.filter = 'weekly';
+          params.date = date;
+        }
+
+        // MONTHLY
+        else if (filterType === 'monthly') {
+          params.filter = 'monthly';
+          params.month = month;
+          params.year = year;
+        }
+
+        // ALL
+        // No filter parameter is sent.
+
+        console.log(
+          '[SlotHistory] Request:',
+          params
+        );
 
         const res = await getSlotHistory(params);
 
-        if (reqId !== requestIdRef.current) return;
+        // Ignore old request response
+        if (reqId !== requestIdRef.current) {
+          return;
+        }
 
-        if (!res.data?.success) throw new Error();
+        if (!res?.data?.success) {
+          throw new Error(
+            res?.data?.message ||
+            'Unable to fetch slot history'
+          );
+        }
 
-        const newData = res.data.data || [];
+        const responseData = res.data;
 
+        /*
+         * RIDER TYPE
+         *
+         * API response:
+         * riderType: "ZESTBOT_EMPLOYEE"
+         */
+        setRiderType(
+          responseData?.riderType || null
+        );
+
+        const newData = Array.isArray(
+          responseData?.data
+        )
+          ? responseData.data
+          : [];
+
+        /*
+         * For page 1, use ONLY the current API response.
+         * Do not merge old filter data.
+         */
         setSlots(prev => {
-          const merged = pageNo === 1 ? newData : [...prev, ...newData];
+          const merged =
+            pageNo === 1
+              ? newData
+              : [...prev, ...newData];
 
-          /* DEDUP SAFE */
           const unique = Object.values(
             merged.reduce((acc, item) => {
-              acc[item.slotBookingId] = item;
+              if (item?.slotBookingId) {
+                acc[item.slotBookingId] = item;
+              }
+
               return acc;
-            }, {}),
-          );
-
-          const cachePayload = {
-            slots: unique,
-            summary: {
-              totalSlots: Number(res.data.totalSlots ?? 0),
-              totalEarnings: Number(res.data.totalEarnings ?? 0),
-            },
-          };
-
-          memoryCache[filterType] = cachePayload;
-
-          AsyncStorage.setItem(
-            getCacheKey(filterType),
-            JSON.stringify(cachePayload),
+            }, {})
           );
 
           return unique;
         });
 
+        /*
+         * SUMMARY FROM API
+         */
         setSummary({
-          totalSlots: Number(res.data.totalSlots ?? 0),
-          totalEarnings: Number(res.data.totalEarnings ?? 0),
+          totalSlots: Number(
+            responseData?.totalSlots ?? 0
+          ),
+
+          completedSlotsCount: Number(
+            responseData?.completedSlotsCount ?? 0
+          ),
+
+          totalEarnings: Number(
+            responseData?.totalEarnings ?? 0
+          ),
         });
 
-        setHasMore(newData.length === PAGE_SIZE);
+        setHasMore(
+          newData.length === PAGE_SIZE
+        );
+
         setPage(pageNo);
-      } catch (e) {
-        Alert.alert('Error', 'Unable to fetch the data');
+
+        setInitialRendered(true);
+
+      } catch (error) {
+        if (reqId === requestIdRef.current) {
+          console.log(
+            '[SlotHistory] Error:',
+            error?.response?.data ||
+            error?.message
+          );
+
+          Alert.alert(
+            'Error',
+            error?.response?.data?.message ||
+            error?.message ||
+            'Unable to fetch slot history'
+          );
+
+          setSlots([]);
+        }
       } finally {
         if (reqId === requestIdRef.current) {
           setFilterLoading(false);
+          setListLoading(false);
+          setRefreshing(false);
         }
 
         isFetchingRef.current = false;
-        setListLoading(false);
-        setRefreshing(false);
-        setInitialRendered(true);
       }
     },
-    [hasMore, slots.length],
+    [hasMore]
   );
-
   useEffect(() => {
     setPage(1);
     setHasMore(true);
-    fetchSlotHistory(activeFilter, 1);
+
+    fetchSlotHistory(
+      activeFilter,
+      1,
+      false
+    );
   }, [activeFilter]);
 
   const onRefresh = () => {
@@ -223,10 +324,39 @@ const SlotHistory = ({ navigation }) => {
     }, {});
   }, [slots]);
 
-  const sortedDates = useMemo(
-    () => Object.keys(groupedSlots).sort((a, b) => new Date(b) - new Date(a)),
-    [groupedSlots],
-  );
+  const sortedDates = useMemo(() => {
+    const today = getLocalDate();
+
+    return Object.keys(groupedSlots).sort((a, b) => {
+      // Always keep today at the top
+      if (a === today) return -1;
+      if (b === today) return 1;
+
+      const dateA = new Date(`${a}T00:00:00`);
+      const dateB = new Date(`${b}T00:00:00`);
+      const todayDate = new Date(`${today}T00:00:00`);
+
+      const aIsFuture = dateA > todayDate;
+      const bIsFuture = dateB > todayDate;
+
+      // Future dates: today -> tomorrow -> next day...
+      if (aIsFuture && bIsFuture) {
+        return dateA - dateB;
+      }
+
+      // Future dates should come before past dates
+      if (aIsFuture && !bIsFuture) {
+        return -1;
+      }
+
+      if (!aIsFuture && bIsFuture) {
+        return 1;
+      }
+
+      // Past dates: latest past date first
+      return dateB - dateA;
+    });
+  }, [groupedSlots]);
 
   const flatData = useMemo(() => {
     if (!sortedDates.length) return [];
@@ -290,7 +420,17 @@ const SlotHistory = ({ navigation }) => {
       );
     }
 
-    const status = STATUS_CONFIG[item.slotStatus] || STATUS_CONFIG.ACTIVE;
+    const statusKey = String(
+      item?.slotStatus || item?.bookingStatus || ''
+    ).toUpperCase();
+
+    const status =
+      STATUS_CONFIG[statusKey] || {
+        label: item?.slotStatus || 'Unknown',
+        bgColor: '#E5E7EB',
+        textColor: '#374151',
+        icon: 'help-circle-outline',
+      };
 
     return (
       <View style={styles.slotCard}>
@@ -326,8 +466,8 @@ const SlotHistory = ({ navigation }) => {
     <SafeAreaView
       style={styles.container}
       edges={['top']}
-    >      
-    {/* HEADER */}
+    >
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={rf(2.6)} />
@@ -361,7 +501,29 @@ const SlotHistory = ({ navigation }) => {
                 activeFilter === item.value && styles.activeFilterTab,
               ]}
               onPress={() => {
-                if (activeFilter === item.value) return;
+                if (activeFilter === item.value) {
+                  return;
+                }
+
+                // Cancel/ignore previous request
+                requestIdRef.current += 1;
+
+                // Allow the new request
+                isFetchingRef.current = false;
+
+                // Clear previous filter data immediately
+                setSlots([]);
+
+                setPage(1);
+                setHasMore(true);
+                setInitialRendered(false);
+
+                setSummary({
+                  totalSlots: 0,
+                  completedSlotsCount: 0,
+                  totalEarnings: 0,
+                });
+
                 setActiveFilter(item.value);
               }}
             >
@@ -379,26 +541,31 @@ const SlotHistory = ({ navigation }) => {
 
         <View style={styles.summaryRow}>
           <View style={[styles.summaryBox, styles.green]}>
-                      <Ionicons
-                        name="calendar-outline"
-                        size={isTablet?34 :28}
-                        color="#22C55E"
-                        style={styles.summaryIcon}
-                      />
-                      <Text style={styles.summaryValue}>{summary.totalSlots}</Text>
-                      <Text style={styles.summaryLabel}>Slots Completed</Text>
-                    </View>
+            <Ionicons
+              name="calendar-outline"
+              size={isTablet ? 34 : 28}
+              color="#22C55E"
+              style={styles.summaryIcon}
+            />
+            <Text style={styles.summaryValue}>
+              {summary.completedSlotsCount}
+            </Text>
 
-                    <View style={[styles.summaryBox, styles.orange]}>
-                      <Ionicons
-                        name="wallet-outline"
-                        size={isTablet? 34 :28}
-                        color="#F97316"
-                        style={styles.summaryIcon}
-                      />
-                      <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
-                      <Text style={styles.summaryLabel}>Total Earnings</Text>
-                    </View>
+            <Text style={styles.summaryLabel}>
+              Slots Completed
+            </Text>
+          </View>
+
+          <View style={[styles.summaryBox, styles.orange]}>
+            <Ionicons
+              name="wallet-outline"
+              size={isTablet ? 34 : 28}
+              color="#F97316"
+              style={styles.summaryIcon}
+            />
+            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
+            <Text style={styles.summaryLabel}>Total Earnings</Text>
+          </View>
         </View>
       </View>
 
@@ -420,11 +587,6 @@ const SlotHistory = ({ navigation }) => {
         maxToRenderPerBatch={6}
         windowSize={7}
         removeClippedSubviews
-        ListFooterComponent={
-          listLoading && (
-            <ActivityIndicator size="small" style={{ marginVertical: rh(2) }} />
-          )
-        }
         ListEmptyComponent={
           initialRendered && (
             <Text

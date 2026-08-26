@@ -161,34 +161,55 @@ const DailyGuarentee = ({route, navigation}) => {
      TARGET
   ========================================================= */
 
-  const minOrders = Number(
-    program?.slabs?.[0]?.minOrders ??
-      program?.target?.orders ??
-      program?.conditions?.minOrders ??
-      0,
-  );
+const slabMinOrders = Number(
+  program?.slabs?.[0]?.minOrders ?? 0,
+);
 
-  const maxReward = Number(
-    program?.maxPayoutPerDay ?? 0,
-  );
+const slabMaxOrders = Number(
+  program?.slabs?.[0]?.maxOrders ?? 0,
+);
 
-  const minEarnings = Number(
-    program?.conditions?.minEarnings ?? 0,
-  );
+const baseTargetOrders = Number(
+  program?.target?.orders ??
+    program?.conditions?.minOrders ??
+    0,
+);
 
-  const perOrderAmount = Number(
-    program?.reward?.perOrderAmount ??
-      program?.rewardPerOrder ??
-      0,
-  );
+const minOrders =
+  ruleType === 'SLAB'
+    ? slabMinOrders
+    : baseTargetOrders;
 
-  const maxOrders = Number(
-    program?.reward?.maxOrders ??
-      program?.maxOrders ??
-      0,
-  );
+const maxOrders =
+  ruleType === 'SLAB'
+    ? slabMaxOrders
+    : Number(
+        program?.reward?.maxOrders ??
+          program?.maxOrders ??
+          0,
+      );
 
-  const slabs = Array.isArray(
+const targetOrders =
+  ruleType === 'SLAB' &&
+  maxOrders > minOrders &&
+  ordersCompleted >= minOrders
+    ? maxOrders
+    : minOrders;
+
+const maxReward = Number(
+  program?.maxPayoutPerDay ?? 0,
+);
+
+const minEarnings = Number(
+  program?.conditions?.minEarnings ?? 0,
+);
+
+const perOrderAmount = Number(
+  program?.reward?.perOrderAmount ??
+    program?.rewardPerOrder ??
+    0,
+);
+ const slabs = Array.isArray(
     program?.slabs,
   )
     ? program.slabs
@@ -278,7 +299,7 @@ const DailyGuarentee = ({route, navigation}) => {
               </Text>
 
               <Text style={styles.value}>
-                {ordersCompleted} / {minOrders}
+                {ordersCompleted} / {targetOrders}
               </Text>
 
               <Text style={styles.value}>
