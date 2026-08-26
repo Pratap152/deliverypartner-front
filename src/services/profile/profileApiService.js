@@ -51,8 +51,14 @@ export const getRiderAssets = async () => {
     return response;
 };
 
-export const getSlotHistory = async (params) => {
-    const response = await apiClient.get('/api/rider/profile/slots/history', params);
+export const getSlotHistory = async (params = {}) => {
+    const response = await apiClient.get(
+        '/api/rider/profile/slots/history',
+        {
+            params,
+        }
+    );
+
     return response;
 };
 
