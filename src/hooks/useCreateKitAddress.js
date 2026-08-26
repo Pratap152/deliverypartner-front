@@ -39,20 +39,31 @@ export function useKitAddress() {
     }
   };
   // GET – fetch zone points by pincode
-  const getKitAddress = async () => {
+ const getKitAddress = async () => {
   setLoading(true);
   setError(null);
-  try {
-    const response = await apiClient.get('/api/rider/location/cities', {
-      headers: { 'x-client': 'mobile' },
-    });
 
-    const cities = response?.data?.cities ?? [];
-    setData(cities);
-    return cities;
+  try {
+    const response = await apiClient.get(
+      '/api/rider/kit/pickup-locations',
+      {
+        headers: {
+          'x-client': 'mobile',
+        },
+      }
+    );
+
+    const locations = response?.data?.data ?? [];
+
+    setData(locations);
+
+    return locations;
   } catch (err) {
     const message =
-      err?.response?.data?.message || err?.message || 'Something went wrong';
+      err?.response?.data?.message ||
+      err?.message ||
+      'Something went wrong';
+
     setError(message);
     throw err;
   } finally {
