@@ -15,232 +15,143 @@ import {
 } from 'react-native-responsive-dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
 const OrderHistoryDetails = ({ navigation, route }) => {
   const { order } = route.params;
-
-  const deliveredDate = new Date(order?.deliveredAt);
-
+  
+  // Determine Rider Type
+  const isZestbot = order?.riderType === 'ZESTBOT_EMPLOYEE';
+  
+  // Map fields based on Rider Type
+  const vendorName = isZestbot ? order?.store : order?.vendorShopName;
+  const userName = order?.userName;
+  const deliveredAddress = order?.deliveredAddress;
+  const dateStr = isZestbot ? order?.time : order?.deliveredAt;
+  
+  const deliveredDate = new Date(dateStr);
   const date = deliveredDate.toLocaleDateString();
+  const time = deliveredDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const time = deliveredDate.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  // Earnings Logic
+  const tip = isZestbot ? (order?.transaction?.tips || 0) : (order?.pricing?.earningBreakup?.tips || 0);
+  const incentive = isZestbot ? (order?.transaction?.incentive || 0) : 0;
+  
+  // Total Earning is strictly 0 for Zestbot
+  const totalEarning = isZestbot ? 0 : (order?.pricing?.earningBreakup?.totalEarning || 0);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons
-            name="arrow-back"
-            size={rf(2.6)}
-            color="#111827"
-          />
+          <Ionicons name="arrow-back" size={rf(2.6)} color="#111827" />
         </TouchableOpacity>
-
         <View style={{ alignItems: 'center' }}>
-          <Text style={styles.headerTitle}>
-            Order History
-          </Text>
-
-          <Text style={styles.orderIdText}>
-            Order ID : #{order?.orderId}
-          </Text>
+          <Text style={styles.headerTitle}>Order History</Text>
+          <Text style={styles.orderIdText}>Order ID : #{order?.orderId}</Text>
         </View>
-
         <TouchableOpacity
           style={styles.rightIconWrapper}
           onPress={() => navigation.navigate('HelpCenterList')}
         >
-          <Ionicons
-            name="chatbubble-ellipses-outline"
-            size={isTablet ? 34 : 24}
-            color="#294484"
-          />
+          <Ionicons name="chatbubble-ellipses-outline" size={isTablet ? 34 : 24} color="#294484" />
         </TouchableOpacity>
       </View>
+      
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: rw(4),
-          paddingBottom: rh(3),
-        }}>
-
+        contentContainerStyle={{ paddingHorizontal: rw(4), paddingBottom: rh(3) }}
+      >
         {/* Order Summary Card */}
         <View style={styles.orderCard}>
           <View style={styles.topRow}>
             <View style={styles.avatar} />
-
             <View style={styles.detailsContainer}>
-              <Text style={styles.restaurantName}>
-                {order?.vendorShopName}
-              </Text>
-
-              <Text style={styles.customerName}>
-                {order?.userName}
-              </Text>
-
-              <Text style={styles.addressText}>
-                {order?.deliveredAddress}
-              </Text>
+              <Text style={styles.restaurantName}>{vendorName}</Text>
+              {!isZestbot && userName ? <Text style={styles.customerName}>{userName}</Text> : null}
+              {!isZestbot && deliveredAddress ? <Text style={styles.addressText}>{deliveredAddress}</Text> : null}
             </View>
-
             <View style={styles.amountContainer}>
-              <Text style={styles.amountText}>
-                ₹{order?.pricing?.riderEarning || 0}
-              </Text>
-
-              <Text style={styles.earnedText}>
-                EARNED
-              </Text>
+              {/* Total earning shows as 0 for Zestbot */}
+              <Text style={styles.amountText}>₹{totalEarning}</Text>
+              {!isZestbot && <Text style={styles.earnedText}>EARNED</Text>}
             </View>
           </View>
-
+          
           <View style={styles.ratingContainer}>
-            <Ionicons
-              name="star"
-              size={isTablet ? 22 : 15}
-              color="#F59E0B"
-            />
-            <Text style={styles.ratingText}>
-              {order?.rating || '0'}
-            </Text>
+            <Ionicons name="star" size={isTablet ? 22 : 15} color="#F59E0B" />
+            <Text style={styles.ratingText}>{order?.rating || '0'}</Text>
           </View>
-
+          
           <View style={styles.dateTimeRow}>
             <View style={styles.chip}>
-              <Ionicons
-                name="calendar-outline"
-                size={isTablet ? 22 : 14}
-                color="#22C55E"
-              />
-
-              <Text style={styles.chipText}>
-                {date}
-              </Text>
+              <Ionicons name="calendar-outline" size={isTablet ? 22 : 14} color="#22C55E" />
+              <Text style={styles.chipText}>{date}</Text>
             </View>
-
             <View style={styles.chip}>
-              <Ionicons
-                name="time-outline"
-                size={isTablet ? 22 : 14}
-                color='#16A34A'
-              />
-
-              <Text style={styles.chipText}>
-                {time}
-              </Text>
+              <Ionicons name="time-outline" size={isTablet ? 22 : 14} color='#16A34A' />
+              <Text style={styles.chipText}>{time}</Text>
             </View>
           </View>
         </View>
 
         {/* Earnings Breakdown */}
-        <Text style={styles.sectionHeading}>
-          Earnings Breakdown :
-        </Text>
-
+        <Text style={styles.sectionHeading}>Earnings Breakdown :</Text>
         <View style={styles.card}>
-          <InfoRow
-            label="Base Fare"
-            value={`₹${order?.pricing?.earningBreakup?.basePay || 0}`}
-          />
-
-          <InfoRow
-            label="Distance Fare"
-            value={`₹${order?.pricing?.earningBreakup?.distancePay || 0}`}
-          />
-
-          <InfoRow
-            label="Surge"
-            value={`₹${order?.pricing?.earningBreakup?.surgePay || 0}`}
-            valueStyle={{
-              color: '#EF4444',
-            }}
-          />
-
-          <InfoRow
-            label="Customer Tip"
-            value={`₹${order?.pricing?.earningBreakup?.tips || 0}`}
-            valueStyle={{
-              color: '#16A34A',
-            }}
-          />
-
-          <View style={styles.divider} />
-
-          <InfoRow
-            label="Total Amount"
-            value={`₹${order?.pricing?.earningBreakup?.totalEarning || 0}`}
-            valueStyle={{
-              color: '#16A34A',
-              fontWeight: '700',
-              fontSize: rf(2.1),
-            }}
-          />
+          {isZestbot ? (
+            <>
+              {/* ZESTBOT BREAKDOWN */}
+              <InfoRow label="Incentive" value={`₹${incentive}`} valueStyle={{ color: '#8B5CF6' }} />
+              <InfoRow label="Customer Tip" value={`₹${tip}`} valueStyle={{ color: '#16A34A' }} />
+              <View style={styles.divider} />
+              <InfoRow 
+                label="Total Earning" 
+                value={`₹${totalEarning}`} 
+                valueStyle={{ color: '#16A34A', fontWeight: '700', fontSize: rf(2.1) }} 
+              />
+            </>
+          ) : (
+            <>
+              {/* INDIVIDUAL BREAKDOWN */}
+              <InfoRow label="Base Fare" value={`₹${order?.pricing?.earningBreakup?.basePay || 0}`} />
+              <InfoRow label="Distance Fare" value={`₹${order?.pricing?.earningBreakup?.distancePay || 0}`} />
+              <InfoRow label="Surge" value={`₹${order?.pricing?.earningBreakup?.surgePay || 0}`} valueStyle={{ color: '#EF4444' }} />
+              <InfoRow label="Customer Tip" value={`₹${tip}`} valueStyle={{ color: '#16A34A' }} />
+              <View style={styles.divider} />
+              <InfoRow 
+                label="Total Amount" 
+                value={`₹${totalEarning}`} 
+                valueStyle={{ color: '#16A34A', fontWeight: '700', fontSize: rf(2.1) }} 
+              />
+            </>
+          )}
         </View>
 
         {/* Order Information */}
-        <Text style={styles.sectionHeading}>
-          Order Information :
-        </Text>
-
+        <Text style={styles.sectionHeading}>Order Information :</Text>
         <View style={styles.card}>
-          <InfoRow
-            label="Order ID"
-            value={`#${order?.orderId || 0}`}
-          />
-
-          <InfoRow
-            label="Distance Travelled"
-            value={`${order?.distanceTravelled || 0} km`}
-          />
-
+          <InfoRow label="Order ID" value={`#${order?.orderId || 0}`} />
+          <InfoRow label="Distance Travelled" value={`${order?.distanceTravelled || 0} km`} />
           <InfoRow
             label="Payment Status"
-            value="Credited"
-            valueStyle={{
-              color: '#16A34A',
-            }}
+            value={isZestbot ? (order?.transaction?.status || 'Credited') : 'Credited'}
+            valueStyle={{ color: '#16A34A' }}
           />
-
-          <InfoRow
-            label="Order Status"
-            value="Delivered"
-          />
-
-          <InfoRow
-            label="Credited on"
-            value={`${date} ${time}`}
-          />
+          <InfoRow label="Order Status" value="Delivered" />
+          <InfoRow label="Completed on" value={`${date} ${time}`} />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const InfoRow = ({
-  label,
-  value,
-  valueStyle,
-}) => {
+const InfoRow = ({ label, value, valueStyle }) => {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>
-        {label}
-      </Text>
-
-      <Text
-        style={[
-          styles.infoValue,
-          valueStyle,
-        ]}>
-        {value}
-      </Text>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={[styles.infoValue, valueStyle]}>{value}</Text>
     </View>
   );
 };
