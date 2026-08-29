@@ -6,9 +6,6 @@ export const routeNotification = data => {
     // ORDER
     // =========================
     case 'ORDER_ASSIGNED': {
-      // Example body:
-      // "Order #ORD10234 has been assigned to you."
-
       const orderId = data?.body?.match(
         /Order\s+#([A-Za-z0-9_-]+)/i,
       )?.[1];
@@ -21,8 +18,14 @@ export const routeNotification = data => {
         return;
       }
 
-      navigate('OrderAccept', {
-        orderId,
+      navigate('MainTabs', {
+        screen: 'Home',
+        params: {
+          screen: 'OrderDetailsScreen',
+          params: {
+            orderId,
+          },
+        },
       });
 
       break;
@@ -33,8 +36,11 @@ export const routeNotification = data => {
     // =========================
     case 'SLOT_BOOKED':
     case 'SLOT_CANCELLED':
-      navigate('SlotsNavigator', {
-        screen: 'SlotBookingScreen',
+      navigate('MainTabs', {
+        screen: 'SlotBooking',
+        params: {
+          screen: 'SlotBookingScreen',
+        },
       });
       break;
 
@@ -48,8 +54,11 @@ export const routeNotification = data => {
     case 'PEAK_SLOT_CREATED':
     case 'DAILY_INCENTIVE_CREATED':
     case 'WEEKLY_INCENTIVE_CREATED':
-      navigate('EarningsNavigator', {
-        screen: 'EarningsScreen',
+      navigate('MainTabs', {
+        screen: 'Earnings',
+        params: {
+          screen: 'EarningsScreen',
+        },
       });
       break;
 
@@ -58,18 +67,30 @@ export const routeNotification = data => {
     // =========================
     case 'BANK_ADDED':
     case 'BANK_VERIFIED':
-      navigate('BankAC');
+      navigate('MainTabs', {
+        screen: 'Profile',
+        params: {
+          screen: 'BankAC',
+        },
+      });
       break;
 
     case 'BANK_PENDING':
-      navigate('AddBankDetails');
+      navigate('MainTabs', {
+        screen: 'Profile',
+        params: {
+          screen: 'BankAC',
+        },
+      });
       break;
 
     // =========================
     // ANNOUNCEMENT
     // =========================
     case 'ANNOUNCEMENT':
-      navigate('NotificationsScreen');
+      navigate('MainTabs', {
+        screen: 'Alerts',
+      });
       break;
 
     // =========================
