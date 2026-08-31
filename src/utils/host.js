@@ -1,6 +1,4 @@
 const WEBSITE_URL="https://rider-module.onrender.com";
-
-
 export default WEBSITE_URL;
 
 // const WEBSOCKET_URL="delivarypartner.onrender.com";
