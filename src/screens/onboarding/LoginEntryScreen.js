@@ -34,7 +34,7 @@ export const sendOTPApi = async (phone) => {
     const response = await axios.post(
       `${WEBSITE_URL}/api/mobile/send-static-otp`,
       {
-        phone: phone,
+        phoneNumber: phone,
       },
       {
         headers: {
@@ -154,117 +154,117 @@ const LoginEntryScreen = ({ navigation }) => {
 
   return (
     <>
-  <StatusBar
-    backgroundColor="#192A51"
-    barStyle="light-content"
-    translucent={false}
-  />
+      <StatusBar
+        backgroundColor="#192A51"
+        barStyle="light-content"
+        translucent={false}
+      />
 
-  <View style={styles.safeArea}>
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      <View style={styles.safeArea}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          {/* HEADER */}
-          <View style={styles.header}>
-            <Image
-              source={require('../../assets/zestbot.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* WHITE CURVE CARD */}
-          <View style={styles.curveContainer}>
-            <Text style={styles.welcomeText}>
-              Welcome
-            </Text>
-
-            <Text style={styles.subText}>
-              Be a ZestBot Partner
-              {"\n"}
-              Earn a stable daily income
-            </Text>
-
-            <View style={styles.contentArea}>
-              <Text style={styles.inputLabel}>
-                Enter Mobile Number
-              </Text>
-
-              <TextInput
-                style={[
-                  styles.input,
-                  error ? { borderWidth: 1, borderColor: 'red' } : {},
-                ]}
-                value={mobileNumber}
-                onChangeText={handleMobileNumberChange}
-                placeholder="e.g. 98765 43210"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-                maxLength={10}
-              />
-
-              {error ? (
-                <Text style={styles.errorText}>
-                  {error}
-                </Text>
-              ) : null}
-
-              <View style={styles.checkboxContainer}>
-                <TouchableOpacity
-                  onPress={() => setIsChecked(!isChecked)}
-                  style={styles.customCheckbox}
-                >
-                  {isChecked && (
-                    <Text style={styles.checkMark}>✓</Text>
-                  )}
-                </TouchableOpacity>
-
-                <Text style={styles.termsText}>
-                  By signing up I agree to the{' '}
-                  <Text style={styles.linkText}>Terms of use</Text> and{' '}
-                  <Text style={styles.linkText}>Privacy Policy.</Text>
-                </Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+              contentContainerStyle={{ flexGrow: 1 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {/* HEADER */}
+              <View style={styles.header}>
+                <Image
+                  source={require('../../assets/zestbot.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  isButtonDisabled && styles.buttonDisabled,
-                ]}
-                onPress={handleSendOTP}
-                disabled={isButtonDisabled}
-              >
-                <Text style={styles.buttonText}>
-                  {isSending ? 'Sending...' : 'Send OTP'}
+              {/* WHITE CURVE CARD */}
+              <View style={styles.curveContainer}>
+                <Text style={styles.welcomeText}>
+                  Welcome
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
-  </View>
-</>
-);
+
+                <Text style={styles.subText}>
+                  Be a ZestBot Partner
+                  {"\n"}
+                  Earn a stable daily income
+                </Text>
+
+                <View style={styles.contentArea}>
+                  <Text style={styles.inputLabel}>
+                    Enter Mobile Number
+                  </Text>
+
+                  <TextInput
+                    style={[
+                      styles.input,
+                      error ? { borderWidth: 1, borderColor: 'red' } : {},
+                    ]}
+                    value={mobileNumber}
+                    onChangeText={handleMobileNumberChange}
+                    placeholder="e.g. 98765 43210"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                    maxLength={10}
+                  />
+
+                  {error ? (
+                    <Text style={styles.errorText}>
+                      {error}
+                    </Text>
+                  ) : null}
+
+                  <View style={styles.checkboxContainer}>
+                    <TouchableOpacity
+                      onPress={() => setIsChecked(!isChecked)}
+                      style={styles.customCheckbox}
+                    >
+                      {isChecked && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+
+                    <Text style={styles.termsText}>
+                      By signing up I agree to the{' '}
+                      <Text style={styles.linkText}>Terms of use</Text> and{' '}
+                      <Text style={styles.linkText}>Privacy Policy.</Text>
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.button,
+                      isButtonDisabled && styles.buttonDisabled,
+                    ]}
+                    onPress={handleSendOTP}
+                    disabled={isButtonDisabled}
+                  >
+                    <Text style={styles.buttonText}>
+                      {isSending ? 'Sending...' : 'Send OTP'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </View>
+    </>
+  );
 };
 export default LoginEntryScreen;
 
 const styles = StyleSheet.create({
   safeArea: {
-  flex: 1,
-  backgroundColor: '#FFFFFF',
-},
-scrollContainer: {
-  flexGrow: 1,
-},
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
 
   container: {
     flex: 1,
@@ -272,11 +272,11 @@ scrollContainer: {
   },
 
   header: {
-  height: hp('48%'),
-  backgroundColor: '#192A51',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+    height: hp('48%'),
+    backgroundColor: '#192A51',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   logo: {
     width: wp('90%'),
@@ -284,13 +284,13 @@ scrollContainer: {
   },
 
   curveContainer: {
-  flex: 1,
-  backgroundColor: '#FFFFFF',
-  marginTop: -100,
-  borderTopRightRadius: 100,
-  paddingTop: hp('4%'),
-  paddingBottom: hp('8%'),
-},
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    marginTop: -100,
+    borderTopRightRadius: 100,
+    paddingTop: hp('4%'),
+    paddingBottom: hp('8%'),
+  },
   welcomeText: {
     fontSize: hp('4.2%'),
     fontWeight: '700',

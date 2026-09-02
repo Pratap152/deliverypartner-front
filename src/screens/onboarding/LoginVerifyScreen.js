@@ -27,7 +27,10 @@ const verifyOTPApi = async (phone, otp) => {
   try {
     const response = await apiClient.post(
       '/api/mobile/verify-static-otp',
-      { phone, otp },
+      {
+        phoneNumber: phone,
+        otp,
+      },
       { skipAuth: true },
     );
 
