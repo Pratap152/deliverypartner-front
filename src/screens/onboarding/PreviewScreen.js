@@ -330,9 +330,7 @@ const PreviewScreen = () => {
               </PreviewCard>
             )}
 
-
             {/* VEHICLE */}
-
             {vehicle && (
               <PreviewCard
                 title="Vehicle Details"
@@ -352,17 +350,17 @@ const PreviewScreen = () => {
                   {vehicle.type}
                 </Text>
 
-                <Text style={styles.value}>
-                  <Text style={styles.label}>Vehicle Source : </Text>
-                  {vehicle.vehicleSource}
-                </Text>
-
-                {vehicle.ownershipType && (
+                {vehicle.type?.toLowerCase() === 'bike' ? (
+                  <Text style={styles.value}>
+                    <Text style={styles.label}>Vehicle Source : </Text>
+                    {vehicle.vehicleSource}
+                  </Text>
+                ) : vehicle.type?.toLowerCase() === 'ev' ? (
                   <Text style={styles.value}>
                     <Text style={styles.label}>Ownership Type : </Text>
                     {vehicle.ownershipType}
                   </Text>
-                )}
+                ) : null}
               </PreviewCard>
             )}
 
