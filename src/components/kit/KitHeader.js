@@ -33,7 +33,7 @@ const styles = getStyles(isTablet);
             ]}
           >
             <Image
-              source={require("../../assets/kitSelectionBag.jpg")}
+              source={require("../../assets/new_bag.jpeg")}
               style={styles.image}
               resizeMode="contain"
             />
@@ -53,7 +53,7 @@ const styles = getStyles(isTablet);
             ]}
           >
             <Image
-              source={require("../../assets/kitSelectionTshirt.png")}
+              source={require("../../assets/new_kit.jpeg")}
               style={styles.image}
               resizeMode="contain"
             />

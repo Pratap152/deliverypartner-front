@@ -17,8 +17,8 @@ import { setKitFlowStep } from '../../redux/slices/kitSlice';
 import { useKitAddress } from '../../hooks/useCreateKitAddress';
 import { getRiderAssets } from '../../services/profile/profileApiService';
 
-import kitImage1 from '../../assets/kitSelectionBag.jpg';
-import kitImage2 from '../../assets/kitSelectionTshirt.png';
+import kitImage1 from '../../assets/new_bag.jpeg';
+import kitImage2 from '../../assets/new_kit.jpeg';
 
 const formatAssetName = value => {
   if (!value) return '';
