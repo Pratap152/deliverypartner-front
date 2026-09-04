@@ -181,8 +181,8 @@ export default function ReferEarn({ navigation }) {
         {tab === "PENDING"
           ? "No Pending Referrals"
           : tab === "COMPLETED"
-          ? "No Completed Referrals"
-          : "No Referrals Yet"}
+            ? "No Completed Referrals"
+            : "No Referrals Yet"}
       </Text>
 
       <Text style={styles.emptySubtitle}>
@@ -254,7 +254,7 @@ export default function ReferEarn({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
 
       <View style={styles.topBanner}>
         <View style={styles.backButtonContainer}>
@@ -278,8 +278,10 @@ export default function ReferEarn({ navigation }) {
         style={styles.container}
         contentContainerStyle={{
           paddingTop: hp("26%"),
-          paddingBottom: 100,
+          paddingBottom: hp("18%"),
         }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -427,19 +429,19 @@ export default function ReferEarn({ navigation }) {
           )}
         </View>
 
-        <FlatList
-          data={filteredData}
-          keyExtractor={(item, index) =>
-            String(
+        {filteredData.length > 0 ? (
+          filteredData.map((item, index) => (
+            <View key={
               item?.referralId ||
               item?.referee?.riderId ||
               `referral-${index}`
-            )
-          }
-          renderItem={renderItem}
-          ListEmptyComponent={renderEmpty}
-          scrollEnabled={false}
-        />
+            }>
+              {renderItem({ item })}
+            </View>
+          ))
+        ) : (
+          renderEmpty()
+        )}
 
       </ScrollView>
 
@@ -447,9 +449,7 @@ export default function ReferEarn({ navigation }) {
       <View style={styles.fixedButtonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() =>
-            navigation.navigate("ReferFrd")
-          }
+          onPress={() => navigation.navigate("ReferFrd")}
         >
           <Text style={styles.buttonText}>
             Refer Now
@@ -836,13 +836,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-
     backgroundColor: "#F8FAFC",
-
-    padding: isTablet
-      ? rw(1.8)
-      : 10,
-
+    padding: isTablet ? rw(1.8) : 10,
     borderTopWidth: 1,
     borderColor: "#E2E8F0",
   },
