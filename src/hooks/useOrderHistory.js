@@ -21,7 +21,7 @@ export const useOrderHistory = (filter) => {
 
   const [orders, setOrders] = useState([]);
   
-  // ✅ RESTORED TARGET FIELDS IN SUMMARY STATE
+  // RESTORED TARGET FIELDS IN SUMMARY STATE
   const [summary, setSummary] = useState({
     totalOrders: 0,
     totalEarnings: 0,
