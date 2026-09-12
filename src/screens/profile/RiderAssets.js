@@ -303,9 +303,6 @@ const RiderAssets = ({navigation}) => {
                 })}
                 </View>
 
-                <Text style={styles.deliveringText}>
-                  Delivering soon...
-                </Text>
               </>
             ) : (
               <TouchableOpacity
