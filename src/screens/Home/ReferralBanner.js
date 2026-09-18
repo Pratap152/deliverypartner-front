@@ -28,8 +28,8 @@ export default ReferralBanner;
 const styles = StyleSheet.create({
   bannerContainer: {
     // borderWidth:1,
-    margin:15,
-    height: hp("22%"),
+    margin:12,
+    height: hp("20%"),
     backgroundColor: '#b5dfeb',
     borderRadius:28,
     flexDirection: 'row',

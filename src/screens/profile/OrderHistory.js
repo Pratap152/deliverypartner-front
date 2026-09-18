@@ -200,7 +200,11 @@ const OrderHistory = ({ navigation }) => {
 
         {/* SUMMARY */}
         <View style={styles.summaryGrid}>
-          <SummaryCard icon="bag-handle-outline" label="Total Orders" value={summary.totalOrders} bgColor="#FF690014" iconColor="#FF6900" />
+          <SummaryCard icon="bag-handle-outline" 
+          label="Total Orders"
+          value={summary.completedOrders} 
+          bgColor="#FF690014" 
+          iconColor="#FF6900" />
 
           {/* TARGET STATUS - ZESTBOT / COMPANY ONLY */}
           {(summary.riderType === 'ZESTBOT_EMPLOYEE' ||
