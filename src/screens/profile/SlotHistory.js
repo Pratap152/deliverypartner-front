@@ -151,7 +151,7 @@ const SlotHistory = ({ navigation }) => {
           String(now.getDate()).padStart(2, '0'),
         ].join('-');
 
-              const params = {
+        const params = {
           page: pageNo,
           limit: PAGE_SIZE,
         };
@@ -159,9 +159,9 @@ const SlotHistory = ({ navigation }) => {
         if (filterType === 'daily') {
           params.filter = 'daily';
           params.date = date;
-        } 
+        }
 
-       else if (filterType === 'weekly') {
+        else if (filterType === 'weekly') {
           params.filter = 'weekly';
         }
 
@@ -169,7 +169,7 @@ const SlotHistory = ({ navigation }) => {
           params.filter = 'monthly';
           params.month = month;
           params.year = year;
-        } 
+        }
 
         else if (filterType === 'all') {
           params.filter = 'all';
@@ -190,7 +190,7 @@ const SlotHistory = ({ navigation }) => {
         }
 
         const responseData = res.data;
-      
+
 
         /*
          * RIDER TYPE
@@ -319,45 +319,45 @@ const SlotHistory = ({ navigation }) => {
     }, {});
   }, [slots]);
 
- const sortedDates = useMemo(() => {
-  const dates = Object.keys(groupedSlots);
+  const sortedDates = useMemo(() => {
+    const dates = Object.keys(groupedSlots);
 
-  if (activeFilter === 'weekly') {
-    return dates.sort(
-      (a, b) =>
-        new Date(`${a}T00:00:00`) -
-        new Date(`${b}T00:00:00`)
-    );
-  }
-
-  const today = getLocalDate();
-
-  return dates.sort((a, b) => {
-    if (a === today) return -1;
-    if (b === today) return 1;
-
-    const dateA = new Date(`${a}T00:00:00`);
-    const dateB = new Date(`${b}T00:00:00`);
-    const todayDate = new Date(`${today}T00:00:00`);
-
-    const aIsFuture = dateA > todayDate;
-    const bIsFuture = dateB > todayDate;
-
-    if (aIsFuture && bIsFuture) {
-      return dateA - dateB;
+    if (activeFilter === 'weekly') {
+      return dates.sort(
+        (a, b) =>
+          new Date(`${a}T00:00:00`) -
+          new Date(`${b}T00:00:00`)
+      );
     }
 
-    if (aIsFuture && !bIsFuture) {
-      return -1;
-    }
+    const today = getLocalDate();
 
-    if (!aIsFuture && bIsFuture) {
-      return 1;
-    }
+    return dates.sort((a, b) => {
+      if (a === today) return -1;
+      if (b === today) return 1;
 
-    return dateB - dateA;
-  });
-}, [groupedSlots, activeFilter]);
+      const dateA = new Date(`${a}T00:00:00`);
+      const dateB = new Date(`${b}T00:00:00`);
+      const todayDate = new Date(`${today}T00:00:00`);
+
+      const aIsFuture = dateA > todayDate;
+      const bIsFuture = dateB > todayDate;
+
+      if (aIsFuture && bIsFuture) {
+        return dateA - dateB;
+      }
+
+      if (aIsFuture && !bIsFuture) {
+        return -1;
+      }
+
+      if (!aIsFuture && bIsFuture) {
+        return 1;
+      }
+
+      return dateB - dateA;
+    });
+  }, [groupedSlots, activeFilter]);
 
   const flatData = useMemo(() => {
     if (!sortedDates.length) return [];
@@ -400,11 +400,11 @@ const SlotHistory = ({ navigation }) => {
     );
   };
 
- const getLeftLabel = date => {
-  return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
-    weekday: 'long',
-  });
-};
+  const getLeftLabel = date => {
+    return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
+      weekday: 'long',
+    });
+  };
 
   /*  RENDER  */
   const renderItem = useCallback(({ item }) => {
@@ -539,13 +539,22 @@ const SlotHistory = ({ navigation }) => {
         </View>
 
         <View style={styles.summaryRow}>
-          <View style={[styles.summaryBox, styles.green]}>
+          <View
+            style={[
+              styles.summaryBox,
+              styles.green,
+              riderType !== 'INDIVIDUAL_EMPLOYEE' && {
+                width: '100%',
+              },
+            ]}
+          >
             <Ionicons
               name="calendar-outline"
               size={isTablet ? 34 : 28}
               color="#22C55E"
               style={styles.summaryIcon}
             />
+
             <Text style={styles.summaryValue}>
               {summary.completedSlotsCount}
             </Text>
@@ -555,16 +564,24 @@ const SlotHistory = ({ navigation }) => {
             </Text>
           </View>
 
-          <View style={[styles.summaryBox, styles.orange]}>
-            <Ionicons
-              name="wallet-outline"
-              size={isTablet ? 34 : 28}
-              color="#F97316"
-              style={styles.summaryIcon}
-            />
-            <Text style={styles.summaryValue}>₹{summary.totalEarnings}</Text>
-            <Text style={styles.summaryLabel}>Total Earnings</Text>
-          </View>
+          {riderType === 'INDIVIDUAL_EMPLOYEE' && (
+            <View style={[styles.summaryBox, styles.orange]}>
+              <Ionicons
+                name="wallet-outline"
+                size={isTablet ? 34 : 28}
+                color="#F97316"
+                style={styles.summaryIcon}
+              />
+
+              <Text style={styles.summaryValue}>
+                ₹{summary.totalEarnings}
+              </Text>
+
+              <Text style={styles.summaryLabel}>
+                Total Earnings
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
