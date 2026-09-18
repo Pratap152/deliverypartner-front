@@ -97,7 +97,7 @@ export default function ProfileScreen({ navigation }) {
 
         setStats({
           rating: data.averageRating ?? 0,
-          deliveries: data.deliveredOrders ?? 0,
+          deliveries: data.totalOrders ?? 0,
           onTime: data.acceptanceRate ?? 0,
         });
       }
@@ -121,30 +121,30 @@ export default function ProfileScreen({ navigation }) {
 
 
   const loadProfileData = async () => {
-  try {
-    await Promise.allSettled([
-      dispatch(fetchProfile()),
-      fetchStats(),
-      fetchSelfie(),
-    ]);
-  } catch (error) {
-    console.log('Profile refresh error:', error);
-  }
-};
+    try {
+      await Promise.allSettled([
+        dispatch(fetchProfile()),
+        fetchStats(),
+        fetchSelfie(),
+      ]);
+    } catch (error) {
+      console.log('Profile refresh error:', error);
+    }
+  };
 
   useFocusEffect(
-  useCallback(() => {
-    loadProfileData();
-  }, []),
-);
+    useCallback(() => {
+      loadProfileData();
+    }, []),
+  );
 
-const onRefresh = useCallback(async () => {
-  setRefreshing(true);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
 
-  await loadProfileData();
+    await loadProfileData();
 
-  setRefreshing(false);
-}, []);
+    setRefreshing(false);
+  }, []);
 
   return (
     <SafeAreaView
@@ -154,19 +154,19 @@ const onRefresh = useCallback(async () => {
 
       <View style={styles.safeArea}>
         <ScrollView
-            bounces
-            alwaysBounceVertical
-            overScrollMode="always"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#13ACBE']}     // Android
-                tintColor="#13ACBE"      // iOS
-              />
-            }>
+          bounces
+          alwaysBounceVertical
+          overScrollMode="always"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#13ACBE']}     // Android
+              tintColor="#13ACBE"      // iOS
+            />
+          }>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profile</Text>
