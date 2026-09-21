@@ -26,7 +26,7 @@ const COLORS = {
 const verifyOTPApi = async (phone, otp) => {
   try {
     const response = await apiClient.post(
-      '/api/rider/auth/verify-otp',
+      '/api/mobile/verify-static-otp',
       {
         phoneNumber: phone,
         otp,
@@ -43,38 +43,6 @@ const verifyOTPApi = async (phone, otp) => {
       };
     }
     return { status: 500, data: { message: 'Network error' } };
-  }
-};
-
-/* ================= RESEND OTP API ================= */
-const resendOTPApi = async (phone) => {
-  try {
-    const response = await apiClient.post(
-      '/api/rider/auth/resend-otp',
-      {
-        phoneNumber: phone,
-      },
-      { skipAuth: true },
-    );
-
-    return {
-      status: response.status,
-      data: response.data,
-    };
-  } catch (err) {
-    if (err.response) {
-      return {
-        status: err.response.status,
-        data: err.response.data || {},
-      };
-    }
-
-    return {
-      status: 500,
-      data: {
-        message: 'Network error',
-      },
-    };
   }
 };
 
@@ -121,7 +89,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setOtpFromAutoFill,
   } = useOtp(6);
 
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(300);
   const [isResendEnabled, setIsResendEnabled] = useState(false);
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -190,47 +158,26 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   };
 
   /* ================= RESEND OTP ================= */
- const handleResendOtp = async () => {
-  if (!isResendEnabled) return;
+  const handleResendOtp = async () => {
+    if (!isResendEnabled) return;
 
-  if (resendCount >= 5) {
-    setError('You have reached the maximum resend limit.');
-    return;
-  }
+    if (resendCount >= 3) {
+      setError('You have reached the resend limit. Try again later.');
+      return;
+    }
 
-  try {
-    setError('');
-
-    const result = await resendOTPApi(phone);
+    const result = await sendOTPApi(phone);
 
     if (result.status === 200) {
       setResendCount(prev => prev + 1);
-      setTimer(30);
+      setTimer(300);
       setIsResendEnabled(false);
       clearOtp();
       setError('');
-    } else if (result.status === 429) {
-      setError(
-        result.data?.message ||
-        'Please wait before requesting another OTP.'
-      );
-    } else if (result.status === 404) {
-      setError('Rider not found.');
-    } else if (result.status === 400) {
-      setError(
-        result.data?.message ||
-        'Invalid phone number.'
-      );
     } else {
-      setError(
-        result.data?.message ||
-        'Failed to resend OTP. Try again.'
-      );
+      setError('Failed to resend OTP. Try again.');
     }
-  } catch (err) {
-    setError('Something went wrong. Try again.');
-  }
-};
+  };
 
   return (
     <View style={styles.container}>
@@ -274,15 +221,14 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       >
         <Text style={[styles.resend, isResendEnabled && styles.resendEnabled]}>
           {timer > 0
-            ? `Resend code in 00:${String(timer).padStart(2, '0')}`
+            ? `Resend code in ${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')}`
             : 'Resend OTP'}
         </Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-/* ================= STYLES ================= */
+export default LoginVerifyScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -338,7 +284,6 @@ const styles = StyleSheet.create({
   },
   resendEnabled: {
     color: COLORS.primary,
+    fontWeight: '700',
   },
 });
-
-export default LoginVerifyScreen;

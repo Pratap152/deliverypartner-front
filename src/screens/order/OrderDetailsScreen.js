@@ -577,6 +577,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           <View style={styles.centerModalCard}>
             <CustomerNotResponding
               duration={10}
+              customerNumber={orderDetails?.deliveryAddress?.contactNumber}
               onCallPress={() => {
                 Alert.alert("Call", "Calling customer...");
               }}

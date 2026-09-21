@@ -123,8 +123,10 @@ const StatsCard = ({
     totalOnlineMinutes || 0
   );
 
-  const todayOrdersCount =
-    useTodayOrdersCount();
+  const {
+  count: todayOrdersCount,
+  onRefresh: refreshTodayOrdersCount,
+} = useTodayOrdersCount();
 
   const isZestbotEmployee =
     riderType === "ZESTBOT_EMPLOYEE";
@@ -147,10 +149,11 @@ const StatsCard = ({
       earningsSummary?.month?.orders || 0
     );
 
-  useFocusEffect(
+useFocusEffect(
   useCallback(() => {
     onRefresh();
-  }, [onRefresh]),
+    refreshTodayOrdersCount();
+  }, [onRefresh, refreshTodayOrdersCount]),
 );
   useEffect(() => {
     setMinutes(totalOnlineMinutes || 0);

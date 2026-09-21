@@ -14,6 +14,7 @@ export default function CustomerNotResponding({
   onCallPress,
   onMarkIssuePress,
   onClose,
+  customerNumber,
 }) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
@@ -40,8 +41,14 @@ export default function CustomerNotResponding({
 
   // 📞 Call dialer
   const handleCallCustomer = () => {
-    const fakeNumber = "tel:9876543210";
-    Linking.openURL(fakeNumber).catch(() => {
+    if (!customerNumber) {
+      console.log("Customer number not available");
+      return;
+    }
+
+    const phoneNumber = `tel:${customerNumber}`;
+
+    Linking.openURL(phoneNumber).catch(() => {
       console.log("Unable to open dialer");
     });
   };
