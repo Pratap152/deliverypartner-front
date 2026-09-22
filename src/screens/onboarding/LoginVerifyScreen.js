@@ -190,47 +190,47 @@ const LoginVerifyScreen = ({ route, navigation }) => {
   };
 
   /* ================= RESEND OTP ================= */
- const handleResendOtp = async () => {
-  if (!isResendEnabled) return;
+  const handleResendOtp = async () => {
+    if (!isResendEnabled) return;
 
-  if (resendCount >= 5) {
-    setError('You have reached the maximum resend limit.');
-    return;
-  }
-
-  try {
-    setError('');
-
-    const result = await resendOTPApi(phone);
-
-    if (result.status === 200) {
-      setResendCount(prev => prev + 1);
-      setTimer(300);
-      setIsResendEnabled(false);
-      clearOtp();
-      setError('');
-    } else if (result.status === 429) {
-      setError(
-        result.data?.message ||
-        'Please wait before requesting another OTP.'
-      );
-    } else if (result.status === 404) {
-      setError('Rider not found.');
-    } else if (result.status === 400) {
-      setError(
-        result.data?.message ||
-        'Invalid phone number.'
-      );
-    } else {
-      setError(
-        result.data?.message ||
-        'Failed to resend OTP. Try again.'
-      );
+    if (resendCount >= 5) {
+      setError('You have reached the maximum resend limit.');
+      return;
     }
-  } catch (err) {
-    setError('Something went wrong. Try again.');
-  }
-};
+
+    try {
+      setError('');
+
+      const result = await resendOTPApi(phone);
+
+      if (result.status === 200) {
+        setResendCount(prev => prev + 1);
+        setTimer(300);
+        setIsResendEnabled(false);
+        clearOtp();
+        setError('');
+      } else if (result.status === 429) {
+        setError(
+          result.data?.message ||
+          'Please wait before requesting another OTP.'
+        );
+      } else if (result.status === 404) {
+        setError('Rider not found.');
+      } else if (result.status === 400) {
+        setError(
+          result.data?.message ||
+          'Invalid phone number.'
+        );
+      } else {
+        setError(
+          result.data?.message ||
+          'Failed to resend OTP. Try again.'
+        );
+      }
+    } catch (err) {
+      setError('Something went wrong. Try again.');
+    }
+  };
 
   return (
     <View style={styles.container}>

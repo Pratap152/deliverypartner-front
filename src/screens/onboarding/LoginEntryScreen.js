@@ -373,7 +373,6 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
 
-  // ================= CHECKBOX =================
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -411,7 +410,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ================= BUTTON =================
   button: {
     backgroundColor: '#192A51',
     height: 58,
