@@ -21,10 +21,6 @@ import useEarningsDashboard from '../../hooks/useEarningsDashboard';
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-/* =========================================================
-   REWARD SECTIONS
-   ========================================================= */
-
 const REWARD_SECTIONS = [
   {
     key: 'peak',
@@ -101,7 +97,7 @@ const RewardsScreen = ({ navigation }) => {
 
   const incentives = earningsData?.incentives || [];
 
-  
+
   const riderType = earningsData?.riderType || '';
 
   const isZestbotEmployee =
@@ -110,27 +106,27 @@ const RewardsScreen = ({ navigation }) => {
   const isIndividual =
     riderType === 'INDIVIDUAL_EMPLOYEE';
 
-
-  /* =======================================================
-     INCENTIVE PROGRESS
-     ======================================================= */
-
   const {
+    peakIncentives,
+    dailyIncentives,
+    weeklyIncentives,
+
     dailyIncentivesProgress,
     weeklyIncentivesProgress,
     peakIncentivesProgress,
 
+    fetchIndividualIncentives,
     fetchDailyIncentivesProgress,
     fetchWeeklyIncentivesProgress,
     fetchPeakIncentivesProgress,
   } = useIncentives();
 
-
-
   useEffect(() => {
     if (!isIndividual) {
       return;
     }
+
+    fetchIndividualIncentives();
 
     fetchDailyIncentivesProgress();
     fetchWeeklyIncentivesProgress();
@@ -138,28 +134,19 @@ const RewardsScreen = ({ navigation }) => {
 
   }, [
     isIndividual,
+    fetchIndividualIncentives,
     fetchDailyIncentivesProgress,
     fetchWeeklyIncentivesProgress,
     fetchPeakIncentivesProgress,
   ]);
 
-
-  /* =======================================================
-     VISIBLE REWARD SECTIONS
-     ======================================================= */
-
   const visibleRewardSections = isZestbotEmployee
     ? REWARD_SECTIONS.filter(
-        item =>
-          item.key === 'refer' ||
-          item.key === 'joining'
-      )
+      item =>
+        item.key === 'refer' ||
+        item.key === 'joining'
+    )
     : REWARD_SECTIONS;
-
-
-  /* =======================================================
-     HANDLE REWARD CARD PRESS
-     ======================================================= */
 
   const handlePress = (item) => {
 
@@ -169,14 +156,20 @@ const RewardsScreen = ({ navigation }) => {
 
     if (item.key === 'peak') {
 
-      const peakItem = incentives.find(
-        i => i.type === 'peak'
+      console.log(
+        'REWARDS PEAK INCENTIVES:',
+        peakIncentives
+      );
+
+      console.log(
+        'REWARDS PEAK PROGRESS:',
+        peakIncentivesProgress
       );
 
       navigation.navigate(
         'PeakHourBonusScreen',
         {
-          ...peakItem,
+          peak_data: peakIncentives,
           peakIncentivesProgress,
         }
       );
@@ -184,43 +177,32 @@ const RewardsScreen = ({ navigation }) => {
       return;
     }
 
-
     /* -------------------------------------------------------
        DAILY
        ------------------------------------------------------- */
 
     if (item.key === 'daily') {
 
-      const dailyItem = incentives.find(
-        i => i.type === 'daily'
-      );
-
       navigation.navigate(
         'DailyGuarentee',
         {
-          ...dailyItem,
+          daily_data: dailyIncentives,
           dailyIncentivesProgress,
         }
       );
 
       return;
     }
-
-
     /* -------------------------------------------------------
        WEEKLY
        ------------------------------------------------------- */
 
     if (item.key === 'weekly') {
 
-      const weeklyItem = incentives.find(
-        i => i.type === 'weekly'
-      );
-
       navigation.navigate(
         'WeekEarnings',
         {
-          ...weeklyItem,
+          weekly_data: weeklyIncentives,
           weeklyIncentivesProgress,
         }
       );
@@ -253,20 +235,11 @@ const RewardsScreen = ({ navigation }) => {
     }
   };
 
-
-  /* =======================================================
-     UI
-     ======================================================= */
-
   return (
     <SafeAreaView
       style={styles.container}
       edges={['top']}
     >
-
-      {/* ===================================================
-          HEADER
-          =================================================== */}
 
       <View style={styles.header}>
 
@@ -301,11 +274,6 @@ const RewardsScreen = ({ navigation }) => {
 
       </View>
 
-
-      {/* ===================================================
-          CONTENT
-          =================================================== */}
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -317,11 +285,6 @@ const RewardsScreen = ({ navigation }) => {
           }}
         />
 
-
-        {/* =================================================
-            REWARD CARDS
-            ================================================= */}
-
         {visibleRewardSections.map(item => (
 
           <TouchableOpacity
@@ -330,10 +293,6 @@ const RewardsScreen = ({ navigation }) => {
             activeOpacity={0.7}
             onPress={() => handlePress(item)}
           >
-
-            {/* ---------------------------------------------
-                ICON
-                --------------------------------------------- */}
 
             <View
               style={[
@@ -351,11 +310,6 @@ const RewardsScreen = ({ navigation }) => {
               />
 
             </View>
-
-
-            {/* ---------------------------------------------
-                CONTENT
-                --------------------------------------------- */}
 
             <View style={styles.content}>
 
@@ -397,11 +351,6 @@ const RewardsScreen = ({ navigation }) => {
 
             </View>
 
-
-            {/* ---------------------------------------------
-                ARROW
-                --------------------------------------------- */}
-
             <Ionicons
               name="chevron-forward"
               size={rf(2.2)}
@@ -425,14 +374,7 @@ const RewardsScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-
 export default RewardsScreen;
-
-
-/* =========================================================
-   STYLES
-   ========================================================= */
 
 const styles = StyleSheet.create({
 
@@ -445,11 +387,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: rh(2),
   },
-
-
-  /* =======================================================
-     HEADER
-     ======================================================= */
 
   header: {
     flexDirection: 'row',
@@ -474,11 +411,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-
-  /* =======================================================
-     CARD
-     ======================================================= */
-
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: rw(4),
@@ -491,11 +423,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-
-  /* =======================================================
-     ICON
-     ======================================================= */
-
   iconBox: {
     width: rw(13),
     height: rw(13),
@@ -505,11 +432,6 @@ const styles = StyleSheet.create({
     marginRight: rw(3.2),
     flexShrink: 0,
   },
-
-
-  /* =======================================================
-     CONTENT
-     ======================================================= */
 
   content: {
     flex: 1,
@@ -538,11 +460,6 @@ const styles = StyleSheet.create({
     color: '#667085',
   },
 
-
-  /* =======================================================
-     BADGE
-     ======================================================= */
-
   badge: {
     paddingHorizontal: rw(2.5),
     paddingVertical: rh(0.4),
@@ -555,12 +472,6 @@ const styles = StyleSheet.create({
     fontSize: rf(1.5),
     fontWeight: '600',
   },
-
-
-  /* =======================================================
-     ARROW
-     ======================================================= */
-
   arrow: {
     marginLeft: rw(2),
   },

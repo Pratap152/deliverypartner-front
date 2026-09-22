@@ -6,18 +6,22 @@ import { store } from '../redux/store';
 import { clearProfile } from '../redux/slices/profileSlice';
 
 class AuthService {
-  async logout() {
-    try {
-      await logoutService();
-    } catch (e) {
-      console.log('Logout API failed:', e.response?.data || e.message);
-    } finally {
-      await gpsService.stopTracking();
-      // await tokenService.clear();
-      store.dispatch(clearProfile());
-      navigateAndReset('OnBoardingScreen');
-    }
+ async logout() {
+  try {
+    await logoutService();
+  } catch (e) {
+    console.log('Logout API failed:', e.response?.data || e.message);
+  } finally {
+    await gpsService.stopTracking();
+
+    // Clear stored authentication tokens
+    await tokenService.clear();
+
+    store.dispatch(clearProfile());
+
+    navigateAndReset('OnBoardingScreen');
   }
+}
 
   async forceLogout() {
     await gpsService.stopTracking();

@@ -278,17 +278,18 @@ export default function ReferEarn({ navigation }) {
         </View>
 
         {/* SCROLLABLE CONTENT */}
-        <ScrollView
-          style={styles.container}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          }
-        >
+       <ScrollView
+  style={styles.container}
+  contentContainerStyle={styles.scrollContent}
+  showsVerticalScrollIndicator={false}
+  keyboardShouldPersistTaps="handled"
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+    />
+  }
+>
 
           {/* Title */}
           <View style={styles.titleRow}>
@@ -463,14 +464,17 @@ export default function ReferEarn({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#F8FAFC",
-  },
+  flex: 1,
+  backgroundColor: "#F8FAFC",
+},
 
   safeArea: {
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
-
+scrollContent: {
+  paddingBottom: 100,
+},
   backButtonContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -488,7 +492,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
   },
 
@@ -820,15 +824,17 @@ const styles = StyleSheet.create({
   },
 
   fixedButtonContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#F8FAFC",
-    padding: isTablet ? rw(1.8) : 10,
-    borderTopWidth: 1,
-    borderColor: "#E2E8F0",
-  },
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: "#F8FAFC",
+  padding: isTablet ? rw(1.8) : 10,
+  borderTopWidth: 1,
+  borderColor: "#E2E8F0",
+  zIndex: 10,
+  elevation: 8,
+},
 
   button: {
     backgroundColor: "#19A7CE",

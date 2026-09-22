@@ -205,7 +205,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
 
     if (result.status === 200) {
       setResendCount(prev => prev + 1);
-      setTimer(30);
+      setTimer(300);
       setIsResendEnabled(false);
       clearOtp();
       setError('');
@@ -274,15 +274,14 @@ const LoginVerifyScreen = ({ route, navigation }) => {
       >
         <Text style={[styles.resend, isResendEnabled && styles.resendEnabled]}>
           {timer > 0
-            ? `Resend code in 00:${String(timer).padStart(2, '0')}`
+            ? `Resend code in ${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')}`
             : 'Resend OTP'}
         </Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-/* ================= STYLES ================= */
+export default LoginVerifyScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -338,7 +337,7 @@ const styles = StyleSheet.create({
   },
   resendEnabled: {
     color: COLORS.primary,
+    fontWeight: '700',
   },
 });
 
-export default LoginVerifyScreen;
