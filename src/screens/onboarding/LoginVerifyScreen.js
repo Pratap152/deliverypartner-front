@@ -121,7 +121,7 @@ const LoginVerifyScreen = ({ route, navigation }) => {
     setOtpFromAutoFill,
   } = useOtp(6);
 
-  const [timer, setTimer] = useState(30);
+const [timer, setTimer] = useState(300);
   const [isResendEnabled, setIsResendEnabled] = useState(false);
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
