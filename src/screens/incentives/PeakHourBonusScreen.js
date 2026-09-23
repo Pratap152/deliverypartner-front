@@ -16,7 +16,7 @@ import SlabRuleTypeIncentives from '../../components/dashboard/earnings/SlabRule
 import FixedTargetRuleTypeIncentives from '../../components/dashboard/earnings/FixedTargetRuleTypeIncentives';
 import HybridRuleTypeIncentives from '../../components/dashboard/earnings/HybridRuleTypeIncentives';
 
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 /* =========================================================
    HELPERS
@@ -58,9 +58,9 @@ const getRewardAmount = source => {
 
   const directReward = Number(
     source?.reward?.amount ??
-      source?.rewardAmount ??
-      source?.amount ??
-      0,
+    source?.rewardAmount ??
+    source?.amount ??
+    0,
   );
 
   if (directReward > 0) {
@@ -74,9 +74,9 @@ const getRewardAmount = source => {
       .map(slab =>
         Number(
           slab?.rewardAmount ??
-            slab?.reward?.amount ??
-            slab?.amount ??
-            0,
+          slab?.reward?.amount ??
+          slab?.amount ??
+          0,
         ),
       )
       .filter(value => value > 0);
@@ -97,7 +97,7 @@ const PeakHourBonusScreen = ({
   route,
   navigation,
 }) => {
-  const {width} = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
   const isTablet = DeviceInfo.isTablet();
 
@@ -127,15 +127,12 @@ const PeakHourBonusScreen = ({
     params?.progress ||
     {};
 
-  if (!program || params?.emptyData) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>
-          Please come again later
-        </Text>
-      </View>
-    );
-  }
+  /*
+   * IMPORTANT:
+   * Keep header visible even when program is unavailable.
+   */
+  const isEmpty =
+    !program || params?.emptyData;
 
   /* =========================================================
      PROGRAM
@@ -184,11 +181,11 @@ const PeakHourBonusScreen = ({
 
   const ordersCompleted = Number(
     params?.completedOrders ??
-      progress?.ordersCompleted ??
-      progress?.completedOrders ??
-      progress?.progress?.ordersCompleted ??
-      progress?.progress?.completedOrders ??
-      0,
+    progress?.ordersCompleted ??
+    progress?.completedOrders ??
+    progress?.progress?.ordersCompleted ??
+    progress?.progress?.completedOrders ??
+    0,
   );
 
   /* =========================================================
@@ -200,20 +197,20 @@ const PeakHourBonusScreen = ({
   if (ruleType === 'HYBRID') {
     targetOrders = Number(
       slot?.conditions?.minOrders ??
-        params?.minOrders ??
-        0,
+      params?.minOrders ??
+      0,
     );
   } else if (ruleType === 'FIXED_TARGET') {
     targetOrders = Number(
       slot?.target?.orders ??
-        params?.minOrders ??
-        0,
+      params?.minOrders ??
+      0,
     );
   } else if (ruleType === 'SLAB') {
     targetOrders = Number(
       slot?.slabs?.[0]?.minOrders ??
-        params?.minOrders ??
-        0,
+      params?.minOrders ??
+      0,
     );
   }
 
@@ -224,11 +221,11 @@ const PeakHourBonusScreen = ({
   const orderProgress =
     targetOrders > 0
       ? Math.min(
-          (ordersCompleted /
-            targetOrders) *
-            100,
-          100,
-        )
+        (ordersCompleted /
+          targetOrders) *
+        100,
+        100,
+      )
       : 0;
 
   /* =========================================================
@@ -241,8 +238,8 @@ const PeakHourBonusScreen = ({
   const minOrders =
     Number(
       conditions?.minOrders ??
-        params?.minOrders ??
-        0,
+      params?.minOrders ??
+      0,
     );
 
   const minEarnings =
@@ -261,10 +258,10 @@ const PeakHourBonusScreen = ({
   const earnedReward =
     Number(
       progress?.rewardAmount ??
-        progress?.rewardEarned ??
-        progress?.progress?.rewardAmount ??
-        progress?.progress?.rewardEarned ??
-        0,
+      progress?.rewardEarned ??
+      progress?.progress?.rewardAmount ??
+      progress?.progress?.rewardEarned ??
+      0,
     );
 
   const rewardAmount =
@@ -282,15 +279,15 @@ const PeakHourBonusScreen = ({
   const slabMaxReward =
     slabs.length > 0
       ? Math.max(
-          ...slabs.map(slab =>
-            Number(
-              slab?.rewardAmount ??
-                slab?.reward?.amount ??
-                slab?.amount ??
-                0,
-            ),
+        ...slabs.map(slab =>
+          Number(
+            slab?.rewardAmount ??
+            slab?.reward?.amount ??
+            slab?.amount ??
+            0,
           ),
-        )
+        ),
+      )
       : 0;
 
   const maxReward =
@@ -303,31 +300,13 @@ const PeakHourBonusScreen = ({
     targetOrders > 0 &&
     ordersCompleted >= targetOrders;
 
-  console.log(
-    'Peak Calculated Values:',
-    {
-      ruleType,
-      peakSlotStart,
-      peakSlotEnd,
-      peakSlotTime,
-      ordersCompleted,
-      targetOrders,
-      orderProgress,
-      configuredReward,
-      earnedReward,
-      rewardAmount,
-      maxReward,
-      isCompleted,
-    },
-  );
-
   return (
     <ScrollView
       style={styles.container}
       showsVerticalScrollIndicator={false}>
 
       {/* =====================================================
-          HERO
+          HERO HEADER - ALWAYS VISIBLE
       ===================================================== */}
 
       <LinearGradient
@@ -335,18 +314,25 @@ const PeakHourBonusScreen = ({
           '#192A51',
           '#475B8A',
         ]}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 1}}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.heroHeader}>
 
         <SafeAreaView
           edges={['top']}
           style={styles.headerTop}>
 
+          {/* BACK BUTTON */}
           <TouchableOpacity
             onPress={() =>
               navigation.goBack()
-            }>
+            }
+            hitSlop={{
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10,
+            }}>
             <Ionicons
               name="arrow-back"
               size={
@@ -359,215 +345,257 @@ const PeakHourBonusScreen = ({
           <Text
             style={styles.heroTitle}
             numberOfLines={1}>
-            {title}
+            {isEmpty
+              ? 'Peak Incentives'
+              : title}
           </Text>
         </SafeAreaView>
 
-        <View style={styles.rewardPill}>
-          <Ionicons
-            name="flash"
-            size={
-              isTablet ? 22 : 16
-            }
-            color="#FFD700"
-          />
+        {/* Show peak time only when data exists */}
+        {!isEmpty && (
+          <View style={styles.rewardPill}>
+            <Ionicons
+              name="flash"
+              size={
+                isTablet ? 22 : 16
+              }
+              color="#FFD700"
+            />
 
-          <Text style={styles.rewardLabel}>
-            Peak Hours:
-          </Text>
-
-          <Text style={styles.rewardValue}>
-            {peakSlotTime}
-          </Text>
-        </View>
-      </LinearGradient>
-
-      <View style={styles.contentContainer}>
-
-        {/* ===================================================
-            INFO CARD
-        =================================================== */}
-
-        <View style={styles.titleCard}>
-          <Text
-            style={
-              styles.checkpointTitle
-            }>
-            {title}
-          </Text>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              marginTop: 10,
-            }}>
-
-            <View style={{flex: 1}}>
-              <Text style={styles.label}>
-                City
-              </Text>
-
-              <Text style={styles.label}>
-                Type
-              </Text>
-
-              <Text style={styles.label}>
-                Status
-              </Text>
-
-              <Text style={styles.label}>
-                Completed
-              </Text>
-
-              <Text style={styles.label}>
-                Target
-              </Text>
-
-              <Text style={styles.label}>
-                Reward
-              </Text>
-            </View>
-
-            <View style={{flex: 1}}>
-              <Text style={styles.value}>
-                {city}
-              </Text>
-
-              <Text style={styles.value}>
-                {ruleType}
-              </Text>
-
-              <Text style={styles.value}>
-                {status}
-              </Text>
-
-              <Text style={styles.value}>
-                {ordersCompleted}
-              </Text>
-
-              <Text style={styles.value}>
-                {targetOrders}
-              </Text>
-
-              <Text style={styles.value}>
-                ₹{rewardAmount}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ===================================================
-            PROGRESS
-        =================================================== */}
-
-        <View style={styles.progressCard}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>
-              Order Progress
+            <Text
+              style={styles.rewardLabel}>
+              Peak Hours:
             </Text>
 
             <Text
-              style={
-                styles.progressPercentage
-              }>
-              {Math.round(
-                orderProgress,
-              )}
-              %
+              style={styles.rewardValue}>
+              {peakSlotTime}
             </Text>
           </View>
+        )}
+      </LinearGradient>
 
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${orderProgress}%`,
-                },
-              ]}
+      {/* =====================================================
+          EMPTY STATE
+      ===================================================== */}
+
+      {isEmpty ? (
+        <View style={styles.emptyContainer}>
+
+          <View style={styles.emptyIconContainer}>
+            <Ionicons
+              name="flash-outline"
+              size={
+                isTablet ? 60 : 45
+              }
+              color="#00B2C9"
             />
           </View>
 
-          <Text
-            style={
-              styles.progressDescription
-            }>
-            {ordersCompleted} of {targetOrders}{' '}
-            orders completed
+          <Text style={styles.emptyTitle}>
+            Peak Incentives Not Available
           </Text>
 
-          {isCompleted && (
+          <Text style={styles.emptySubtitle}>
+            Complete more orders to unlock exciting
+            incentives.
+          </Text>
+
+        </View>
+      ) : (
+
+        /* =====================================================
+           NORMAL PROGRAM CONTENT
+        ===================================================== */
+
+        <View style={styles.contentContainer}>
+
+          {/* INFO CARD */}
+
+          <View style={styles.titleCard}>
             <Text
               style={
-                styles.completedText
+                styles.checkpointTitle
               }>
-              Target achieved! ₹
-              {rewardAmount}
+              {title}
             </Text>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                marginTop: 10,
+              }}>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>
+                  City
+                </Text>
+
+                <Text style={styles.label}>
+                  Type
+                </Text>
+
+                <Text style={styles.label}>
+                  Status
+                </Text>
+
+                <Text style={styles.label}>
+                  Completed
+                </Text>
+
+                <Text style={styles.label}>
+                  Target
+                </Text>
+
+                <Text style={styles.label}>
+                  Reward
+                </Text>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.value}>
+                  {city}
+                </Text>
+
+                <Text style={styles.value}>
+                  {ruleType}
+                </Text>
+
+                <Text style={styles.value}>
+                  {status}
+                </Text>
+
+                <Text style={styles.value}>
+                  {ordersCompleted}
+                </Text>
+
+                <Text style={styles.value}>
+                  {targetOrders}
+                </Text>
+
+                <Text style={styles.value}>
+                  ₹{rewardAmount}
+                </Text>
+              </View>
+
+            </View>
+          </View>
+
+          {/* PROGRESS */}
+
+          <View style={styles.progressCard}>
+
+            <View style={styles.progressHeader}>
+
+              <Text
+                style={
+                  styles.progressTitle
+                }>
+                Order Progress
+              </Text>
+
+              <Text
+                style={
+                  styles.progressPercentage
+                }>
+                {Math.round(
+                  orderProgress,
+                )}
+                %
+              </Text>
+
+            </View>
+
+            <View
+              style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${orderProgress}%`,
+                  },
+                ]}
+              />
+            </View>
+
+            <Text
+              style={
+                styles.progressDescription
+              }>
+              {ordersCompleted} of {targetOrders}{' '}
+              orders completed
+            </Text>
+
+            {isCompleted && (
+              <Text
+                style={
+                  styles.completedText
+                }>
+                Target achieved! ₹
+                {rewardAmount}
+              </Text>
+            )}
+
+          </View>
+
+          {/* SLAB */}
+
+          {ruleType === 'SLAB' && (
+            <SlabRuleTypeIncentives
+              title={title}
+              status={status}
+              slabs={slabs}
+              ordersCompleted={
+                ordersCompleted
+              }
+              maxReward={maxReward}
+              styles={styles}
+              isTablet={isTablet}
+            />
           )}
+
+          {/* FIXED TARGET */}
+
+          {ruleType ===
+            'FIXED_TARGET' && (
+              <FixedTargetRuleTypeIncentives
+                title={title}
+                status={status}
+                target={targetOrders}
+                ordersCompleted={
+                  ordersCompleted
+                }
+                maxReward={maxReward}
+                styles={styles}
+                isTablet={isTablet}
+              />
+            )}
+
+          {/* HYBRID */}
+
+          {ruleType === 'HYBRID' && (
+            <HybridRuleTypeIncentives
+              title={title}
+              status={status}
+              ordersCompleted={
+                ordersCompleted
+              }
+              minOrders={minOrders}
+              rewardEarned={
+                earnedReward
+              }
+              minEarnings={
+                minEarnings
+              }
+              maxReward={maxReward}
+              styles={styles}
+              isTablet={isTablet}
+            />
+          )}
+
         </View>
+      )}
 
-        {/* ===================================================
-            SLAB
-        =================================================== */}
-
-        {ruleType === 'SLAB' && (
-          <SlabRuleTypeIncentives
-            title={title}
-            status={status}
-            slabs={slabs}
-            ordersCompleted={
-              ordersCompleted
-            }
-            maxReward={maxReward}
-            styles={styles}
-            isTablet={isTablet}
-          />
-        )}
-
-        {/* ===================================================
-            FIXED TARGET
-        =================================================== */}
-
-        {ruleType ===
-          'FIXED_TARGET' && (
-          <FixedTargetRuleTypeIncentives
-            title={title}
-            status={status}
-            target={targetOrders}
-            ordersCompleted={
-              ordersCompleted
-            }
-            maxReward={maxReward}
-            styles={styles}
-            isTablet={isTablet}
-          />
-        )}
-
-        {/* ===================================================
-            HYBRID
-        =================================================== */}
-
-        {ruleType === 'HYBRID' && (
-          <HybridRuleTypeIncentives
-            title={title}
-            status={status}
-            ordersCompleted={
-              ordersCompleted
-            }
-            minOrders={minOrders}
-            rewardEarned={
-              earnedReward
-            }
-            minEarnings={
-              minEarnings
-            }
-            maxReward={maxReward}
-            styles={styles}
-            isTablet={isTablet}
-          />
-        )}
-      </View>
     </ScrollView>
   );
 };
@@ -590,15 +618,38 @@ const createStyles = (
 
     emptyContainer: {
       flex: 1,
+      minHeight: 300,
       justifyContent: 'center',
       alignItems: 'center',
+      paddingHorizontal: 30,
+      paddingVertical: 60,
+      backgroundColor: '#F4F7FB',
     },
 
-    emptyText: {
-      fontSize:
-        isTablet ? 24 : 16,
-      fontWeight: '600',
+    emptyIconContainer: {
+      width: isTablet ? 100 : 80,
+      height: isTablet ? 100 : 80,
+      borderRadius: isTablet ? 50 : 40,
+      backgroundColor: '#E6F9FB',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+
+    emptyTitle: {
+      fontSize: isTablet ? 24 : 18,
+      fontWeight: '700',
+      color: '#111827',
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+
+    emptySubtitle: {
+      fontSize: isTablet ? 18 : 14,
       color: '#6B7280',
+      textAlign: 'center',
+      lineHeight: isTablet ? 26 : 20,
+      paddingHorizontal: 20,
     },
 
     heroHeader: {

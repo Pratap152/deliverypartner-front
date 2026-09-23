@@ -42,13 +42,6 @@ export default function SuccessfullDelivered({ route, navigation }) {
     paymentMethod
   });
 
-  const getSuccessMessage = () => {
-    if (paymentMethod === 'ONLINE') {
-      return "money is collected using online payment";
-    }
-    return "money is collected using cash";
-  };
-
   return (
     <View style={styles.container}>
       <Image
@@ -59,21 +52,29 @@ export default function SuccessfullDelivered({ route, navigation }) {
 
       <Text style={styles.successTitle}>Delivery Completed</Text>
       <Text style={styles.successSubtitle}>Successfully</Text>
-      <Text style={styles.paymentMethodText}>{getSuccessMessage()}</Text>
 
       <View style={styles.earningsCard}>
         <Text style={styles.earningsTitle}>Earnings Added</Text>
+
         <Text style={styles.amount}>₹{roundedAmount}</Text>
 
-        {(codCollected > 0 || paymentMethod === 'CASH' || paymentMethod === 'ONLINE') && (
-          <>
-            <View style={styles.divider} />
-            <Text style={[styles.earningsTitle, { marginTop: 10 }]}>
-              {paymentMethod === 'ONLINE' ? 'Online Payment Received' : 'Cash Collected'}
-            </Text>
-            <Text style={styles.codAmount}>₹{codCollected || 0}</Text>
-          </>
-        )}
+        <View style={styles.divider} />
+
+        <Text style={styles.paymentLabel}>Payment Method</Text>
+
+        <Text style={styles.paymentMethod}>
+          {paymentMethod || "N/A"}
+        </Text>
+
+        <Text style={styles.paymentReceived}>
+          {paymentMethod === "ONLINE"
+            ? "Online Payment Received"
+            : "Cash Collected"}
+        </Text>
+
+        <Text style={styles.codAmount}>
+          ₹{codCollected || 0}
+        </Text>
       </View>
 
       <TouchableOpacity
@@ -114,20 +115,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#15A721",
   },
-  paymentMethodText: {
-    fontSize: wp("4%"),
-    color: "#4B5563",
-    marginTop: hp("1%"),
-    fontWeight: "500",
-    textAlign: 'center',
-  },
 
   earningsCard: {
-    marginTop: hp("4%"),
+    marginTop: hp("2%"),
     width: wp("80%"),
     backgroundColor: "#d4f5e7ff",
     borderRadius: wp("4%"),
-    paddingVertical: hp("4%"),
+    paddingVertical: hp("2%"),
     alignItems: "center",
   },
 
@@ -138,37 +132,58 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
+  paymentLabel: {
+    fontSize: wp("4%"),
+    color: "#333",
+    marginTop: hp("0.5%"),
+    marginBottom: hp("0.3%"),
+    fontWeight: "500",
+  },
+
+  paymentMethod: {
+    fontSize: wp("5%"),
+    fontWeight: "800",
+    color: "#333333",
+    marginBottom: hp("1.2%"),
+  },
+
+  paymentReceived: {
+    fontSize: wp("4.2%"),
+    fontWeight: "500",
+    color: "#333",
+    marginBottom: hp("0.5%"),
+    textAlign: "center",
+  },
+
   amount: {
-    fontSize: wp("10%"),
+    fontSize: wp("8%"),
     fontWeight: "700",
     color: "#1E8E3E",
-    marginBottom: hp("1%"),
+    marginBottom: hp("0.5%"),
   },
 
   codAmount: {
-    fontSize: wp("8%"),
+    fontSize: wp("6.5%"),
     fontWeight: "700",
     color: "#1F2937",
-    marginBottom: hp("1%"),
+    marginBottom: hp("0.5%"),
   },
-
   divider: {
-    width: '80%',
+    width: "80%",
     height: 1,
-    backgroundColor: '#A7D7C5',
-    marginVertical: hp('1.5%'),
+    backgroundColor: "#A7D7C5",
+    marginVertical: hp("0.8%"),
   },
 
   backButton: {
-    position: "absolute",
-    bottom: hp("4%"),
+    marginTop: "auto",
+    marginBottom: hp("5%"),
     width: wp("80%"),
     backgroundColor: "#10B7C4",
     paddingVertical: hp("2%"),
     borderRadius: wp("8%"),
     alignItems: "center",
   },
-
   backButtonText: {
     color: "#FFFFFF",
     fontSize: wp("4.5%"),
