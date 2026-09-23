@@ -8,9 +8,6 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
-
-import ProgressBar from '../../components/dashboard/earnings/ProgressBar';
-
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
@@ -19,8 +16,6 @@ import SlabRuleTypeIncentives from '../../components/dashboard/earnings/SlabRule
 import FixedTargetRuleTypeIncentives from '../../components/dashboard/earnings/FixedTargetRuleTypeIncentives';
 import HybridRuleTypeIncentives from '../../components/dashboard/earnings/HybridRuleTypeIncentives';
 import PerOrderRuleTypeIncentives from '../../components/dashboard/earnings/PerOrderRuleTypeIncentives';
-
-import WeeklyMissionProgress from '../../components/dashboard/earnings/WeeklyMissionProgress';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -59,26 +54,9 @@ const WeekEarnings = ({
     rawProgress ||
     null;
 
-  if (
+  const isEmpty =
     !program ||
-    params?.emptyData ||
-    progress?.emptyData
-  ) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Ionicons
-          name="calendar-outline"
-          size={isTablet ? 70 : 50}
-          color="#9CA3AF"
-        />
-
-        <Text style={styles.emptyText}>
-          Please come again later
-        </Text>
-      </View>
-    );
-  }
-
+    params?.emptyData;
   /* =========================================================
      PROGRAM
   ========================================================= */
@@ -113,7 +91,7 @@ const WeekEarnings = ({
   const ordersCompleted =
     Number(
       progress?.ordersCompleted ??
-        0,
+      0,
     );
 
   const minOrders =
@@ -175,11 +153,11 @@ const WeekEarnings = ({
     const completedOrders =
       Number(
         taskProgress?.completedOrders ??
-          0,
+        0,
       );
 
     switch (
-      task?.taskRuleType
+    task?.taskRuleType
     ) {
       case 'SLAB':
         return (
@@ -320,249 +298,286 @@ const WeekEarnings = ({
             style={styles.heroTitle}
             numberOfLines={1}
           >
-            {title}
+            {isEmpty
+              ? 'Weekly Incentives'
+              : title}
           </Text>
         </SafeAreaView>
 
-        <View
-          style={styles.rewardPill}
-        >
-          <Ionicons
-            name="trophy"
-            size={
-              isTablet ? 20 : 16
-            }
-            color="#FFD700"
-          />
-
-          <Text
-            style={styles.rewardLabel}
+        {!isEmpty && (
+          <View
+            style={styles.rewardPill}
           >
-            Max Reward:
-          </Text>
+            <Ionicons
+              name="trophy"
+              size={
+                isTablet ? 20 : 16
+              }
+              color="#FFD700"
+            />
 
-          <Text
-            style={styles.rewardValue}
-          >
-            ₹{maxReward}
-          </Text>
-        </View>
+            <Text
+              style={styles.rewardLabel}
+            >
+              Max Reward:
+            </Text>
+
+            <Text
+              style={styles.rewardValue}
+            >
+              ₹{maxReward}
+            </Text>
+          </View>
+        )}
       </LinearGradient>
 
-      <View
-        style={
-          styles.contentContainer
-        }
-      >
-        {/* INFO */}
-
-        <View
-          style={
-            styles.titleCard
-          }
-        >
-          <Text
-            style={
-              styles.checkpointTitle
-            }
-          >
-            {title}
-          </Text>
+      {isEmpty ? (
+        <View style={styles.emptyContainer}>
 
           <View
-            style={{
-              flexDirection: 'row',
-              marginTop: 10,
-            }}
+            style={
+              styles.emptyIconContainer
+            }
           >
-            <View
-              style={{ flex: 1 }}
-            >
-              <Text
-                style={styles.label}
-              >
-                City
-              </Text>
-
-              <Text
-                style={styles.label}
-              >
-                Type
-              </Text>
-
-              <Text
-                style={styles.label}
-              >
-                Status
-              </Text>
-            </View>
-
-            <View
-              style={{ flex: 1 }}
-            >
-              <Text
-                style={styles.value}
-              >
-                {city}
-              </Text>
-
-              <Text
-                style={styles.value}
-              >
-                {ruleType}
-              </Text>
-
-              <Text
-                style={styles.value}
-              >
-                {status}
-              </Text>
-            </View>
+            <Ionicons
+              name="calendar-outline"
+              size={
+                isTablet ? 60 : 45
+              }
+              color="#F79009"
+            />
           </View>
+
+          <Text
+            style={styles.emptyTitle}
+          >
+            Weekly Incentives Not Available
+          </Text>
+
+          <Text
+            style={styles.emptySubtitle}
+          >
+            Complete more orders to unlock
+            exciting incentives.
+          </Text>
+
         </View>
+      ) : (
+        <View
+          style={
+            styles.contentContainer
+          }
+        >
+          {/* INFO */}
 
-        {/* NORMAL RULE TYPE */}
-
-        {ruleType === 'SLAB' && (
-          <SlabRuleTypeIncentives
-            title={title}
-            status={status}
-            slabs={slabs}
-            ordersCompleted={
-              ordersCompleted
+          <View
+            style={
+              styles.titleCard
             }
-            maxReward={maxReward}
-            styles={styles}
-            isTablet={isTablet}
-          />
-        )}
-
-        {ruleType ===
-          'FIXED_TARGET' && (
-          <FixedTargetRuleTypeIncentives
-            title={title}
-            status={status}
-            target={minOrders}
-            ordersCompleted={
-              ordersCompleted
-            }
-            maxReward={maxReward}
-            isTablet={isTablet}
-            styles={styles}
-          />
-        )}
-
-        {ruleType === 'HYBRID' && (
-          <HybridRuleTypeIncentives
-            title={title}
-            status={status}
-            ordersCompleted={
-              ordersCompleted
-            }
-            minOrders={minOrders}
-            rewardEarned={rewardEarned}
-            minEarnings={minEarnings}
-            maxReward={maxReward}
-            styles={styles}
-            isTablet={isTablet}
-          />
-        )}
-
-        {ruleType ===
-          'PER_ORDER' && (
-          <PerOrderRuleTypeIncentives
-            title={title}
-            status={status}
-            perOrderAmount={
-              perOrderAmount
-            }
-            ordersCompleted={
-              ordersCompleted
-            }
-            maxOrders={maxOrders}
-            maxReward={maxReward}
-            styles={styles}
-            isTablet={isTablet}
-          />
-        )}
-
-        {/* TASK PROGRAM */}
-
-        {ruleType === 'TASK' &&
-          tasks.length > 0 && (
-            <View
+          >
+            <Text
               style={
-                styles.progressWrapper
+                styles.checkpointTitle
               }
             >
-              {tasks.map(task => {
-                const progressTask =
-                  progressTasks.find(
-                    item =>
-                      item?.dayNumber ===
-                      task?.dayNumber,
-                  );
+              {title}
+            </Text>
 
-                /*
-                 * Use dayName from the API.
-                 * task.dayName is preferred,
-                 * progressTask.dayName is fallback.
-                 */
-                const dayName =
-                  task?.dayName ||
-                  progressTask?.dayName ||
-                  '';
+            <View
+              style={{
+                flexDirection: 'row',
+                marginTop: 10,
+              }}
+            >
+              <View
+                style={{ flex: 1 }}
+              >
+                <Text
+                  style={styles.label}
+                >
+                  City
+                </Text>
 
-                return (
-                  <View
-                    key={`day-${task.dayNumber}`}
-                  >
-                    <View
-                      style={
-                        styles.taskRuleTypeHeaderRow
-                      }
-                    >
-                      <Text
-                        style={
-                          styles.taskRuleTypeHeaderDay
-                        }
-                      >
-                        Day{' '}
-                        {task.dayNumber}
+                <Text
+                  style={styles.label}
+                >
+                  Type
+                </Text>
 
-                        {!!dayName && (
-                          <Text
-                            style={
-                              styles.taskRuleTypeHeaderDayName
-                            }
-                          >
-                            {' • '}
-                            {dayName}
-                          </Text>
-                        )}
-                      </Text>
+                <Text
+                  style={styles.label}
+                >
+                  Status
+                </Text>
+              </View>
 
-                      <Text
-                        style={
-                          styles.taskRuleTypeHeaderRuleType
-                        }
-                      >
-                        {
-                          task.taskRuleType
-                        }
-                      </Text>
-                    </View>
+              <View
+                style={{ flex: 1 }}
+              >
+                <Text
+                  style={styles.value}
+                >
+                  {city}
+                </Text>
 
-                    {renderTaskRuleType(
-                      task,
-                      progressTask,
-                    )}
-                  </View>
-                );
-              })}
+                <Text
+                  style={styles.value}
+                >
+                  {ruleType}
+                </Text>
+
+                <Text
+                  style={styles.value}
+                >
+                  {status}
+                </Text>
+              </View>
             </View>
+          </View>
+
+          {/* NORMAL RULE TYPE */}
+
+          {ruleType === 'SLAB' && (
+            <SlabRuleTypeIncentives
+              title={title}
+              status={status}
+              slabs={slabs}
+              ordersCompleted={
+                ordersCompleted
+              }
+              maxReward={maxReward}
+              styles={styles}
+              isTablet={isTablet}
+            />
           )}
-      </View>
+
+          {ruleType ===
+            'FIXED_TARGET' && (
+              <FixedTargetRuleTypeIncentives
+                title={title}
+                status={status}
+                target={minOrders}
+                ordersCompleted={
+                  ordersCompleted
+                }
+                maxReward={maxReward}
+                isTablet={isTablet}
+                styles={styles}
+              />
+            )}
+
+          {ruleType === 'HYBRID' && (
+            <HybridRuleTypeIncentives
+              title={title}
+              status={status}
+              ordersCompleted={
+                ordersCompleted
+              }
+              minOrders={minOrders}
+              rewardEarned={rewardEarned}
+              minEarnings={minEarnings}
+              maxReward={maxReward}
+              styles={styles}
+              isTablet={isTablet}
+            />
+          )}
+
+          {ruleType ===
+            'PER_ORDER' && (
+              <PerOrderRuleTypeIncentives
+                title={title}
+                status={status}
+                perOrderAmount={
+                  perOrderAmount
+                }
+                ordersCompleted={
+                  ordersCompleted
+                }
+                maxOrders={maxOrders}
+                maxReward={maxReward}
+                styles={styles}
+                isTablet={isTablet}
+              />
+            )}
+
+          {/* TASK PROGRAM */}
+
+          {ruleType === 'TASK' &&
+            tasks.length > 0 && (
+              <View
+                style={
+                  styles.progressWrapper
+                }
+              >
+                {tasks.map(task => {
+                  const progressTask =
+                    progressTasks.find(
+                      item =>
+                        item?.dayNumber ===
+                        task?.dayNumber,
+                    );
+
+                  /*
+                   * Use dayName from the API.
+                   * task.dayName is preferred,
+                   * progressTask.dayName is fallback.
+                   */
+                  const dayName =
+                    task?.dayName ||
+                    progressTask?.dayName ||
+                    '';
+
+                  return (
+                    <View
+                      key={`day-${task.dayNumber}`}
+                    >
+                      <View
+                        style={
+                          styles.taskRuleTypeHeaderRow
+                        }
+                      >
+                        <Text
+                          style={
+                            styles.taskRuleTypeHeaderDay
+                          }
+                        >
+                          Day{' '}
+                          {task.dayNumber}
+
+                          {!!dayName && (
+                            <Text
+                              style={
+                                styles.taskRuleTypeHeaderDayName
+                              }
+                            >
+                              {' • '}
+                              {dayName}
+                            </Text>
+                          )}
+                        </Text>
+
+                        <Text
+                          style={
+                            styles.taskRuleTypeHeaderRuleType
+                          }
+                        >
+                          {
+                            task.taskRuleType
+                          }
+                        </Text>
+                      </View>
+
+                      {renderTaskRuleType(
+                        task,
+                        progressTask,
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -580,20 +595,38 @@ const createStyles = (
     },
 
     emptyContainer: {
-      flex: 1,
+      minHeight: 400,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: '#F4F7FB',
-      paddingHorizontal: 20,
+      paddingHorizontal: 30,
+      paddingVertical: 60,
     },
 
-    emptyText: {
-      marginTop: 14,
-      fontSize:
-        isTablet ? 22 : 16,
-      color: '#6B7280',
-      fontWeight: '600',
+    emptyIconContainer: {
+      width: isTablet ? 100 : 80,
+      height: isTablet ? 100 : 80,
+      borderRadius: isTablet ? 50 : 40,
+      backgroundColor: '#FFFAEB',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+
+    emptyTitle: {
+      fontSize: isTablet ? 24 : 18,
+      fontWeight: '700',
+      color: '#111827',
       textAlign: 'center',
+      marginBottom: 8,
+    },
+
+    emptySubtitle: {
+      fontSize: isTablet ? 18 : 14,
+      color: '#6B7280',
+      textAlign: 'center',
+      lineHeight: isTablet ? 26 : 20,
+      paddingHorizontal: 20,
     },
 
     heroHeader: {
