@@ -1,5 +1,5 @@
 import React from 'react';
-
+ 
 import {
   View,
   Text,
@@ -11,89 +11,89 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DeviceInfo from 'react-native-device-info';
-
+ 
 import SlabRuleTypeIncentives from '../../components/dashboard/earnings/SlabRuleTypeIncentives';
 import FixedTargetRuleTypeIncentives from '../../components/dashboard/earnings/FixedTargetRuleTypeIncentives';
 import HybridRuleTypeIncentives from '../../components/dashboard/earnings/HybridRuleTypeIncentives';
 import PerOrderRuleTypeIncentives from '../../components/dashboard/earnings/PerOrderRuleTypeIncentives';
-
+ 
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+ 
 const WeekEarnings = ({
   route,
   navigation,
 }) => {
   const { width } = useWindowDimensions();
-
+ 
   const isTablet = DeviceInfo.isTablet();
-
+ 
   const styles = createStyles(
     isTablet,
     width,
   );
-
+ 
   const params = route?.params || {};
-
+ 
   console.log(
     'Week Earnings params:',
     params,
   );
-
+ 
   const program =
     params?.weekly_data?.data?.[0] ||
     params?.weeklyProgram ||
     null;
-
+ 
   const rawProgress =
     params?.weeklyIncentivesProgress ||
     params?.progress ||
     null;
-
+ 
   const progress =
     rawProgress?.data?.[0] ||
     rawProgress ||
     null;
-
+ 
   const isEmpty =
     !program ||
     params?.emptyData;
   /* =========================================================
      PROGRAM
   ========================================================= */
-
+ 
   const title =
     program?.name ||
     'Weekly Incentive';
-
+ 
   const maxReward =
     Number(
       program?.maxReward ?? 0,
     );
-
+ 
   const ruleType =
     program?.ruleType || '';
-
+ 
   const status =
     program?.status || '';
-
+ 
   const city =
     program?.cityName ||
     program?.city ||
     '--';
-
+ 
   /* =========================================================
      STANDARD RULE TYPES
   ========================================================= */
-
+ 
   const slabs =
     program?.slabs || [];
-
+ 
   const ordersCompleted =
     Number(
       progress?.ordersCompleted ??
       0,
     );
-
+ 
   const minOrders =
     params?.minOrders ??
     program?.target?.orders ??
@@ -102,39 +102,39 @@ const WeekEarnings = ({
     program?.slabs?.[0]
       ?.minOrders ??
     0;
-
+ 
   const minEarnings =
     program?.conditions
       ?.minEarnings ?? 0;
-
+ 
   const rewardEarned =
     progress?.rewardEarned ?? 0;
-
+ 
   const perOrderAmount =
     program?.rewardPerOrder ??
     0;
-
+ 
   const maxOrders =
     program?.maxOrders ?? 0;
-
+ 
   /* =========================================================
      TASK PROGRAM
   ========================================================= */
-
+ 
   const tasks =
     Array.isArray(
       program?.tasks,
     )
       ? program.tasks
       : [];
-
+ 
   const progressTasks =
     Array.isArray(
       progress?.tasks,
     )
       ? progress.tasks
       : [];
-
+ 
   const renderTaskRuleType = (
     task,
     progressTask,
@@ -142,20 +142,20 @@ const WeekEarnings = ({
     if (!task) {
       return null;
     }
-
+ 
     const taskProgress =
       progressTask?.progress || {};
-
+ 
     const taskStatus =
       taskProgress?.status ||
       'PENDING';
-
+ 
     const completedOrders =
       Number(
         taskProgress?.completedOrders ??
         0,
       );
-
+ 
     switch (
     task?.taskRuleType
     ) {
@@ -179,7 +179,7 @@ const WeekEarnings = ({
             isTablet={isTablet}
           />
         );
-
+ 
       case 'FIXED_TARGET':
         return (
           <FixedTargetRuleTypeIncentives
@@ -200,7 +200,7 @@ const WeekEarnings = ({
             styles={styles}
           />
         );
-
+ 
       case 'HYBRID':
         return (
           <HybridRuleTypeIncentives
@@ -230,7 +230,7 @@ const WeekEarnings = ({
             isTablet={isTablet}
           />
         );
-
+ 
       case 'PER_ORDER':
         return (
           <PerOrderRuleTypeIncentives
@@ -253,12 +253,12 @@ const WeekEarnings = ({
             isTablet={isTablet}
           />
         );
-
+ 
       default:
         return null;
     }
   };
-
+ 
   return (
     <ScrollView
       style={styles.container}
@@ -267,7 +267,7 @@ const WeekEarnings = ({
       }
     >
       {/* HERO */}
-
+ 
       <LinearGradient
         colors={[
           '#192A51',
@@ -293,7 +293,7 @@ const WeekEarnings = ({
               color="#FFF"
             />
           </TouchableOpacity>
-
+ 
           <Text
             style={styles.heroTitle}
             numberOfLines={1}
@@ -303,7 +303,7 @@ const WeekEarnings = ({
               : title}
           </Text>
         </SafeAreaView>
-
+ 
         {!isEmpty && (
           <View
             style={styles.rewardPill}
@@ -315,13 +315,13 @@ const WeekEarnings = ({
               }
               color="#FFD700"
             />
-
+ 
             <Text
               style={styles.rewardLabel}
             >
               Max Reward:
             </Text>
-
+ 
             <Text
               style={styles.rewardValue}
             >
@@ -330,10 +330,10 @@ const WeekEarnings = ({
           </View>
         )}
       </LinearGradient>
-
+ 
       {isEmpty ? (
         <View style={styles.emptyContainer}>
-
+ 
           <View
             style={
               styles.emptyIconContainer
@@ -347,20 +347,20 @@ const WeekEarnings = ({
               color="#F79009"
             />
           </View>
-
+ 
           <Text
             style={styles.emptyTitle}
           >
             Weekly Incentives Not Available
           </Text>
-
+ 
           <Text
             style={styles.emptySubtitle}
           >
             Complete more orders to unlock
             exciting incentives.
           </Text>
-
+ 
         </View>
       ) : (
         <View
@@ -369,7 +369,7 @@ const WeekEarnings = ({
           }
         >
           {/* INFO */}
-
+ 
           <View
             style={
               styles.titleCard
@@ -382,7 +382,7 @@ const WeekEarnings = ({
             >
               {title}
             </Text>
-
+ 
             <View
               style={{
                 flexDirection: 'row',
@@ -397,20 +397,20 @@ const WeekEarnings = ({
                 >
                   City
                 </Text>
-
+ 
                 <Text
                   style={styles.label}
                 >
                   Type
                 </Text>
-
+ 
                 <Text
                   style={styles.label}
                 >
                   Status
                 </Text>
               </View>
-
+ 
               <View
                 style={{ flex: 1 }}
               >
@@ -419,13 +419,13 @@ const WeekEarnings = ({
                 >
                   {city}
                 </Text>
-
+ 
                 <Text
                   style={styles.value}
                 >
                   {ruleType}
                 </Text>
-
+ 
                 <Text
                   style={styles.value}
                 >
@@ -434,9 +434,9 @@ const WeekEarnings = ({
               </View>
             </View>
           </View>
-
+ 
           {/* NORMAL RULE TYPE */}
-
+ 
           {ruleType === 'SLAB' && (
             <SlabRuleTypeIncentives
               title={title}
@@ -450,7 +450,7 @@ const WeekEarnings = ({
               isTablet={isTablet}
             />
           )}
-
+ 
           {ruleType ===
             'FIXED_TARGET' && (
               <FixedTargetRuleTypeIncentives
@@ -465,7 +465,7 @@ const WeekEarnings = ({
                 styles={styles}
               />
             )}
-
+ 
           {ruleType === 'HYBRID' && (
             <HybridRuleTypeIncentives
               title={title}
@@ -481,7 +481,7 @@ const WeekEarnings = ({
               isTablet={isTablet}
             />
           )}
-
+ 
           {ruleType ===
             'PER_ORDER' && (
               <PerOrderRuleTypeIncentives
@@ -499,9 +499,9 @@ const WeekEarnings = ({
                 isTablet={isTablet}
               />
             )}
-
+ 
           {/* TASK PROGRAM */}
-
+ 
           {ruleType === 'TASK' &&
             tasks.length > 0 && (
               <View
@@ -516,7 +516,7 @@ const WeekEarnings = ({
                         item?.dayNumber ===
                         task?.dayNumber,
                     );
-
+ 
                   /*
                    * Use dayName from the API.
                    * task.dayName is preferred,
@@ -526,7 +526,7 @@ const WeekEarnings = ({
                     task?.dayName ||
                     progressTask?.dayName ||
                     '';
-
+ 
                   return (
                     <View
                       key={`day-${task.dayNumber}`}
@@ -543,7 +543,7 @@ const WeekEarnings = ({
                         >
                           Day{' '}
                           {task.dayNumber}
-
+ 
                           {!!dayName && (
                             <Text
                               style={
@@ -555,7 +555,7 @@ const WeekEarnings = ({
                             </Text>
                           )}
                         </Text>
-
+ 
                         <Text
                           style={
                             styles.taskRuleTypeHeaderRuleType
@@ -566,7 +566,7 @@ const WeekEarnings = ({
                           }
                         </Text>
                       </View>
-
+ 
                       {renderTaskRuleType(
                         task,
                         progressTask,
@@ -581,9 +581,9 @@ const WeekEarnings = ({
     </ScrollView>
   );
 };
-
+ 
 export default WeekEarnings;
-
+ 
 const createStyles = (
   isTablet,
   width,
@@ -593,7 +593,7 @@ const createStyles = (
       flex: 1,
       backgroundColor: '#F4F7FB',
     },
-
+ 
     emptyContainer: {
       minHeight: 400,
       justifyContent: 'center',
@@ -602,7 +602,7 @@ const createStyles = (
       paddingHorizontal: 30,
       paddingVertical: 60,
     },
-
+ 
     emptyIconContainer: {
       width: isTablet ? 100 : 80,
       height: isTablet ? 100 : 80,
@@ -612,7 +612,7 @@ const createStyles = (
       alignItems: 'center',
       marginBottom: 20,
     },
-
+ 
     emptyTitle: {
       fontSize: isTablet ? 24 : 18,
       fontWeight: '700',
@@ -620,7 +620,7 @@ const createStyles = (
       textAlign: 'center',
       marginBottom: 8,
     },
-
+ 
     emptySubtitle: {
       fontSize: isTablet ? 18 : 14,
       color: '#6B7280',
@@ -628,7 +628,7 @@ const createStyles = (
       lineHeight: isTablet ? 26 : 20,
       paddingHorizontal: 20,
     },
-
+ 
     heroHeader: {
       paddingBottom:
         isTablet ? 45 : 30,
@@ -639,7 +639,7 @@ const createStyles = (
       borderBottomRightRadius:
         isTablet ? 36 : 26,
     },
-
+ 
     headerTop: {
       width: '100%',
       flexDirection: 'row',
@@ -648,7 +648,7 @@ const createStyles = (
       marginBottom:
         isTablet ? 28 : 18,
     },
-
+ 
     heroTitle: {
       flex: 1,
       fontSize:
@@ -658,7 +658,7 @@ const createStyles = (
       lineHeight:
         isTablet ? 48 : 34,
     },
-
+ 
     rewardPill: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -674,7 +674,7 @@ const createStyles = (
       borderColor:
         'rgba(255,255,255,0.2)',
     },
-
+ 
     rewardLabel: {
       color: '#E5E7EB',
       fontSize:
@@ -682,14 +682,14 @@ const createStyles = (
       marginHorizontal: 6,
       fontWeight: '500',
     },
-
+ 
     rewardValue: {
       color: '#FFD700',
       fontSize:
         isTablet ? 24 : 18,
       fontWeight: '700',
     },
-
+ 
     titleCard: {
       marginVertical: 20,
       paddingHorizontal: 20,
@@ -699,14 +699,14 @@ const createStyles = (
       borderRadius: 8,
       backgroundColor: '#FFF',
     },
-
+ 
     checkpointTitle: {
       fontSize:
         isTablet ? 24 : 18,
       fontWeight: '700',
       color: '#1F2937',
     },
-
+ 
     label: {
       fontSize:
         isTablet ? 17 : 14,
@@ -714,7 +714,7 @@ const createStyles = (
       color: '#6B7280',
       paddingTop: 8,
     },
-
+ 
     value: {
       fontSize:
         isTablet ? 17 : 14,
@@ -722,13 +722,13 @@ const createStyles = (
       color: '#111827',
       paddingTop: 8,
     },
-
+ 
     contentContainer: {
       paddingVertical:
         isTablet ? 30 : 20,
       paddingHorizontal: 20,
     },
-
+ 
     progressWrapper: {
       backgroundColor: '#FFFFFF',
       borderColor: '#DEDEE1',
@@ -739,7 +739,7 @@ const createStyles = (
         isTablet ? 28 : 18,
       marginBottom: 20,
     },
-
+ 
     taskRuleTypeHeaderRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -751,7 +751,7 @@ const createStyles = (
         isTablet ? 14 : 10,
       paddingHorizontal: 4,
     },
-
+ 
     taskRuleTypeHeaderDay: {
       flex: 1,
       fontSize:
@@ -759,12 +759,12 @@ const createStyles = (
       fontWeight: '700',
       color: '#111827',
     },
-
+ 
     taskRuleTypeHeaderDayName: {
       fontWeight: '500',
       color: '#6B7280',
     },
-
+ 
     taskRuleTypeHeaderRuleType: {
       fontSize:
         isTablet ? 17 : 14,
@@ -773,3 +773,4 @@ const createStyles = (
     },
   });
 };
+ 

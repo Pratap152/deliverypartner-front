@@ -629,11 +629,15 @@ export const RiderProvider = ({ children }) => {
       setOrderQueue([]);
       setExpandedOrderId(null);
       stopOrderSound();
-      navigate("OrderDetailsScreen", {
-
-        orderId,
-
-        status: "ASSIGNED",
+      navigate("MainTabs", {
+        screen: "Home",
+        params: {
+          screen: "OrderDetailsScreen",
+          params: {
+            orderId,
+            status: "ASSIGNED",
+          },
+        },
       });
 
     } catch (err) {
