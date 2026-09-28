@@ -25,14 +25,14 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPolicies } from '../../services/profile/profileApiService';
- 
+
 const BUTTON_BLUE = '#192A51';
 export const sendOTPApi = async (phone) => {
   console.log("📤 Sending OTP to:", phone);
- 
+
   try {
     const response = await axios.post(
-      `${WEBSITE_URL}/api/mobile/send-static-otp`,
+      `${WEBSITE_URL}/api/rider/auth/send-otp`,
       {
         phoneNumber: phone,
       },
@@ -42,7 +42,7 @@ export const sendOTPApi = async (phone) => {
         },
       }
     );
- 
+
     console.log(response.data);
     return { status: response.status, data: response.data };
   } catch (error) {
@@ -59,10 +59,10 @@ export const sendOTPApi = async (phone) => {
     };
   }
 };
- 
- 
+
+
 const LoginEntryScreen = ({ navigation }) => {
- 
+
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
@@ -80,32 +80,32 @@ const LoginEntryScreen = ({ navigation }) => {
             },
           ]
         );
- 
+
         return true; // Prevent default behavior
       };
- 
+
       const subscription = BackHandler.addEventListener(
         "hardwareBackPress",
         onBackPress
       );
- 
+
       return () => subscription.remove();
     }, [])
   );
- 
+
   const [mobileNumber, setMobileNumber] = useState('');
   const [isChecked, setIsChecked] = useState(false);
   const [isSending, setIsSending] = useState(false);
- 
+
   const [error, setError] = useState('');
- 
+
   const [policies, setPolicies] = useState([]);
- 
+
   useEffect(() => {
     const getPolicies = async () => {
       try {
         const response = await getAllPolicies();
- 
+
         if (response?.data?.success) {
           setPolicies(response.data.data);
         }
@@ -113,7 +113,7 @@ const LoginEntryScreen = ({ navigation }) => {
         console.log('Policies Error:', error);
       }
     };
- 
+
     getPolicies();
   }, []);
   // ---------------------------
@@ -121,29 +121,29 @@ const LoginEntryScreen = ({ navigation }) => {
   // ---------------------------
   const validateMobileNumber = (num) => {
     if (num.length === 0) return "";
- 
+
     if (!/^[0-9]+$/.test(num))
       return "Only numbers are allowed";
- 
+
     if (num.length !== 10)
       return "Mobile number must be 10 digits";
- 
+
     if (!/^[6-9]/.test(num))
       return "Mobile number must start with 6, 7, 8 or 9";
- 
+
     if (/^(\d)\1{9}$/.test(num))
       return "Please enter a valid mobile number";
- 
+
     if (num === "1234567890" || num === "9876543210")
       return "This number looks invalid";
- 
+
     return "";
   };
- 
+
   const handleMobileNumberChange = (text) => {
     const filteredText = text.replace(/[^0-9]/g, '');
     setMobileNumber(filteredText);
- 
+
     const validationMessage = validateMobileNumber(filteredText);
     setError(validationMessage);
   };
@@ -151,7 +151,7 @@ const LoginEntryScreen = ({ navigation }) => {
     if (error || mobileNumber.length !== 10 || isSending) return;
     setIsSending(true);
     setError(""); // reset any previous errors
- 
+
     const result = await sendOTPApi(mobileNumber);
     setIsSending(false);
     if (result.status === 200) {
@@ -166,16 +166,16 @@ const LoginEntryScreen = ({ navigation }) => {
       setError("Failed to send OTP. Try again later.");
     }
   };
- 
- 
+
+
   const isButtonDisabled = Boolean(error) || mobileNumber.length !== 10 || !isChecked || isSending;
- 
+
   const openPolicy = (policy) => {
     if (policy?.url) {
       Linking.openURL(policy.url);
     }
   };
- 
+
   return (
     <>
       <StatusBar
@@ -183,7 +183,7 @@ const LoginEntryScreen = ({ navigation }) => {
         barStyle="light-content"
         translucent={false}
       />
- 
+
       <View style={styles.safeArea}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -204,24 +204,24 @@ const LoginEntryScreen = ({ navigation }) => {
                   resizeMode="contain"
                 />
               </View>
- 
+
               {/* WHITE CURVE CARD */}
               <View style={styles.curveContainer}>
                 <Text style={styles.welcomeText}>
                   Welcome
                 </Text>
- 
+
                 <Text style={styles.subText}>
                   Be a ZestBot Partner
                   {"\n"}
                   Earn a stable daily income
                 </Text>
- 
+
                 <View style={styles.contentArea}>
                   <Text style={styles.inputLabel}>
                     Enter Mobile Number
                   </Text>
- 
+
                   <TextInput
                     style={[
                       styles.input,
@@ -234,13 +234,13 @@ const LoginEntryScreen = ({ navigation }) => {
                     keyboardType="numeric"
                     maxLength={10}
                   />
- 
+
                   {error ? (
                     <Text style={styles.errorText}>
                       {error}
                     </Text>
                   ) : null}
- 
+
                   <View style={styles.checkboxContainer}>
                     <TouchableOpacity
                       onPress={() => setIsChecked(!isChecked)}
@@ -250,19 +250,19 @@ const LoginEntryScreen = ({ navigation }) => {
                         <Text style={styles.checkMark}>✓</Text>
                       )}
                     </TouchableOpacity>
- 
+
                     <Text style={styles.termsText}>
                       By signing up I agree to the{' '}
- 
+
                       <Text
                         style={styles.linkText}
                         onPress={() => openPolicy(policies?.[0])}
                       >
                         Terms of use
                       </Text>
- 
+
                       {' '}and{' '}
- 
+
                       <Text
                         style={styles.linkText}
                         onPress={() => openPolicy(policies?.[0])}
@@ -271,7 +271,7 @@ const LoginEntryScreen = ({ navigation }) => {
                       </Text>
                     </Text>
                   </View>
- 
+
                   <TouchableOpacity
                     style={[
                       styles.button,
@@ -294,7 +294,7 @@ const LoginEntryScreen = ({ navigation }) => {
   );
 };
 export default LoginEntryScreen;
- 
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -303,24 +303,24 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
   },
- 
+
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
- 
+
   header: {
     height: hp('48%'),
     backgroundColor: '#192A51',
     justifyContent: 'center',
     alignItems: 'center',
   },
- 
+
   logo: {
     width: wp('90%'),
     height: hp('28%'),
   },
- 
+
   curveContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     color: '#1B2238',
     marginHorizontal: wp('8%'),
   },
- 
+
   subText: {
     fontSize: hp('2.2%'),
     color: '#26292d',
@@ -348,14 +348,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp('8%'),
     marginTop: hp('2%'),
   },
- 
+
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1B2238',
     marginBottom: 8,
   },
- 
+
   input: {
     height: 56,
     backgroundColor: '#F2F4FA',
@@ -365,22 +365,21 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 25,
   },
- 
+
   errorText: {
     color: 'red',
     fontSize: 13,
     marginTop: -18,
     marginBottom: 18,
   },
- 
-  // ================= CHECKBOX =================
+
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginTop: 10,
     marginBottom: 35,
   },
- 
+
   customCheckbox: {
     width: 22,
     height: 22,
@@ -392,26 +391,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 2,
   },
- 
+
   checkMark: {
     color: '#192A51',
     fontSize: 16,
     fontWeight: 'bold',
   },
- 
+
   termsText: {
     flex: 1,
     fontSize: 14,
     color: '#555',
     lineHeight: 22,
   },
- 
+
   linkText: {
     color: '#192A51',
     fontWeight: '600',
   },
- 
-  // ================= BUTTON =================
+
   button: {
     backgroundColor: '#192A51',
     height: 58,
@@ -420,15 +418,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
- 
+
   buttonDisabled: {
     backgroundColor: '#A2A2A2',
   },
- 
+
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
   },
 });
- 
