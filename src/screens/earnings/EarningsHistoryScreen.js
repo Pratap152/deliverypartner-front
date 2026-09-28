@@ -402,27 +402,26 @@ function WeeklyScreen({
         <>
           {(mode === "HISTORY" ||
             mode === "WEEK") && (
-            <View
-              style={styles.filters}
-            >
-              <Filter
-                text={`Year: ${selectedYear}`}
-                onPress={onYear}
-              />
+              <View
+                style={styles.filters}
+              >
+                <Filter
+                  text={`Year: ${selectedYear}`}
+                  onPress={onYear}
+                />
 
-              <Filter
-                text={`Week: ${
-                  selectedWeek || "-"
-                }`}
-                onPress={onWeek}
-              />
+                <Filter
+                  text={`Week: ${selectedWeek || "-"
+                    }`}
+                  onPress={onWeek}
+                />
 
-              <Filter
-                text="Pick Day"
-                onPress={onDayPicker}
-              />
-            </View>
-          )}
+                <Filter
+                  text="Pick Day"
+                  onPress={onDayPicker}
+                />
+              </View>
+            )}
 
           <TotalCard
             title="Total Earnings"
@@ -433,7 +432,7 @@ function WeeklyScreen({
       renderItem={({ item }) => {
         const daily =
           weeklyDailyData?.[
-            item.date
+          item.date
           ];
 
         /*
@@ -552,10 +551,9 @@ function DailyScreen({
     <FlatList
       data={visibleItems}
       keyExtractor={(item, index) =>
-        `${
-          item.orderId ||
-          item.transactionId ||
-          item.type
+        `${item.orderId ||
+        item.transactionId ||
+        item.type
         }-${index}`
       }
       refreshControl={
@@ -572,19 +570,13 @@ function DailyScreen({
         />
       }
       renderItem={({ item }) => {
-        if (
-          item.type ===
-          "INCENTIVE"
-        ) {
+        if (item.type === "INCENTIVE") {
           return (
             <Row
               title="INCENTIVE"
-              subtitle={formatTime(
-                item.time
-              )}
-              amount={Number(
-                item.amount || 0
-              )}
+              subtitle={formatTime(item.time)}
+              amount={Number(item.amount || 0)}
+              onPress={() => onOrder(item.transactionId)}
             />
           );
         }
@@ -612,7 +604,7 @@ function DailyScreen({
         if (
           isZestbot &&
           item.type ===
-            "DELIVERY"
+          "DELIVERY"
         ) {
           const incentive =
             Number(
@@ -649,13 +641,13 @@ function DailyScreen({
             )}
             amount={Number(
               item.amount ??
-                item.incentive ??
-                0
+              item.incentive ??
+              0
             )}
             onPress={() => {
               if (
                 item.type ===
-                  "DELIVERY" &&
+                "DELIVERY" &&
                 item.orderId
               ) {
                 onOrder(
@@ -698,6 +690,91 @@ function OrderDetails({
   const transaction =
     data.transaction || data;
 
+
+  // ============================================
+  // INCENTIVE DETAILS
+  // ============================================
+  if (transaction.type === "INCENTIVE") {
+    const amount = Number(
+      transaction.amount || 0
+    );
+
+    const transactionId =
+      transaction.transactionId || "-";
+
+    const description =
+      transaction.description || "-";
+
+    const referenceId =
+      transaction.referenceId || "-";
+
+    const status =
+      transaction.status || "-";
+
+    const creditedAt =
+      transaction.creditedAt || "-";
+
+    return (
+      <FlatList
+        data={[]}
+        renderItem={null}
+        ListHeaderComponent={
+          <View style={styles.details}>
+            <TotalCard
+              title="Incentive"
+              amount={amount}
+            />
+
+            <View style={styles.box}>
+
+              <BreakRow
+                label="Transaction ID"
+                value={transactionId}
+                text
+              />
+
+              <BreakRow
+                label="Description"
+                value={description}
+                text
+              />
+
+              <BreakRow
+                label="Reference ID"
+                value={referenceId}
+                text
+              />
+
+              <BreakRow
+                label="Amount"
+                value={amount}
+              />
+
+              <BreakRow
+                label="Status"
+                value={status}
+                text
+              />
+
+              <BreakRow
+                label="Credited At"
+                value={formatDateTime(
+                  creditedAt
+                )}
+                text
+              />
+
+            </View>
+
+            {loading && (
+              <LoaderSmall />
+            )}
+          </View>
+        }
+      />
+    );
+  }
+
   const currentRiderType =
     data.riderType || riderType;
 
@@ -708,15 +785,15 @@ function OrderDetails({
     const incentive =
       Number(
         transaction.incentive ??
-          data.incentive ??
-          0
+        data.incentive ??
+        0
       );
 
     const tips =
       Number(
         transaction.tips ??
-          data.tips ??
-          0
+        data.tips ??
+        0
       );
 
     const total =
@@ -842,7 +919,7 @@ function OrderDetails({
               label="Base Fare"
               value={Number(
                 transaction.basePay ||
-                  0
+                0
               )}
             />
 
@@ -850,7 +927,7 @@ function OrderDetails({
               label="Distance Fare"
               value={Number(
                 transaction.distancePay ||
-                  0
+                0
               )}
             />
 
@@ -858,7 +935,7 @@ function OrderDetails({
               label="Surge"
               value={Number(
                 transaction.surgePay ||
-                  0
+                0
               )}
             />
 
@@ -866,7 +943,7 @@ function OrderDetails({
               label="Tips"
               value={Number(
                 transaction.tips ||
-                  0
+                0
               )}
             />
 
@@ -874,8 +951,8 @@ function OrderDetails({
               label="Time"
               value={formatDateTime(
                 transaction.time ||
-                  transaction.creditedAt ||
-                  data.time
+                transaction.creditedAt ||
+                data.time
               )}
               text
             />
@@ -974,8 +1051,8 @@ function BreakRow({
         {text
           ? value || "-"
           : `₹${formatMoney(
-              value || 0
-            )}`}
+            value || 0
+          )}`}
       </Text>
     </View>
   );
@@ -1093,8 +1170,8 @@ function SimpleModal({
             ) =>
               String(
                 item?.week ??
-                  item ??
-                  index
+                item ??
+                index
               )
             }
             renderItem={({
@@ -1111,9 +1188,9 @@ function SimpleModal({
                   style={[
                     styles.modalItem,
                     active &&
-                      styles.modalSelected,
+                    styles.modalSelected,
                     current &&
-                      styles.modalCurrent,
+                    styles.modalCurrent,
                   ]}
                   onPress={() =>
                     onSelect(item)
@@ -1260,8 +1337,8 @@ function prettyDate(value) {
     day > 3 && day < 21
       ? "th"
       : ["th", "st", "nd", "rd"][
-          day % 10
-        ] || "th";
+      day % 10
+      ] || "th";
 
   return `${date.toLocaleString(
     "en-US",

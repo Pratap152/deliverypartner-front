@@ -63,7 +63,7 @@ const BonusCard = ({ data, isTaskBased }) => {
 
       <InfoRow
         label="Status"
-        value={data.payoutStatus}
+        value={data.status}
       />
     </View>
   );
@@ -78,8 +78,8 @@ const TaskRow = ({ task }) => {
     task.status === 'COMPLETED'
       ? '#2DBE60'
       : task.status === 'RUNNING'
-      ? '#1B2A5B'
-      : '#8E8E8E';
+        ? '#1B2A5B'
+        : '#8E8E8E';
 
   return (
     <View style={styles.card}>
