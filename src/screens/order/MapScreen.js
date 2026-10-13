@@ -29,7 +29,7 @@ import { getDistance } from 'geolib';
  
  
  
-const ARRIVAL_RADIUS = 5;
+const ARRIVAL_RADIUS = 50;
 const APP_LOGO = require('../../assets/Applogo.png');
 const RESTAURANT_ICON = require('../../assets/restaurant.png');
 const HOME_ICON = require('../../assets/drop.png');
