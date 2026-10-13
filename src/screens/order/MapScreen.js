@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
     View,
@@ -14,7 +13,7 @@ import {
     Linking,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+ 
 import MapView, {
     PROVIDER_GOOGLE,
     Marker,
@@ -26,15 +25,15 @@ import Config from 'react-native-config';
 import {useGPS} from '../../context/GPSContext';
 import { useRider } from "../../context/RiderContext";
 import { getDistance } from 'geolib';
-
-
-
-
-const ARRIVAL_RADIUS = 100; 
+ 
+ 
+ 
+ 
+const ARRIVAL_RADIUS = 5;
 const APP_LOGO = require('../../assets/Applogo.png');
 const RESTAURANT_ICON = require('../../assets/restaurant.png');
 const HOME_ICON = require('../../assets/drop.png');
-
+ 
 // CLEAN GOOGLE MAP STYLE
 const MAP_STYLE = [
     { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
@@ -44,24 +43,24 @@ const MAP_STYLE = [
     { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
     { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d8e8' }] },
 ];
-
-
+ 
+ 
 // MAIN MAP SCREEN
 const MapScreen = ({ route, navigation }) => {
-
+ 
     const {
         orderId,
         type,
         orderDetails: passedOrderDetails,
     } = route.params;
-  
+ 
     // STATE
     const { location, currentLocation, currentHeading } = useGPS();
     console.log("GPS Location:", currentLocation);
     const { checkCurrentOrder } = useRider();
     const isLocating = !currentLocation;
     const locationError = null;
-
+ 
     const [markerReady, setMarkerReady] = useState(false);
     const [orderDetails, setOrderDetails] = useState(
         passedOrderDetails || null
@@ -77,84 +76,84 @@ const MapScreen = ({ route, navigation }) => {
         duration: null,
     });
 const [showArrivalButton, setShowArrivalButton] = useState(false);
-
+ 
     // REFS
     const mapRef = useRef(null);
-
+ 
     const hasRouteFitted = useRef(false);
-
+ 
     const isTrackingRef = useRef(true);
-
+ 
     const offlineBannerAnim = useRef(
         new Animated.Value(-60)
     ).current;
-
+ 
     // PICKUP OR DROP
     const isPickup =
         type === 'pickupOrder' ||
         type === 'navigateToPickup';
-
+ 
     // DESTINATION ICON
     const destinationMarkerIcon = useMemo(() => {
         return isPickup
             ? RESTAURANT_ICON
             : HOME_ICON;
     }, [isPickup]);
-
+ 
     // TARGET LOCATION
     const targetLocation = useMemo(() => {
-
+ 
         if (!orderDetails) return null;
-
+ 
         const addr = isPickup
             ? orderDetails.pickupAddress
             : orderDetails.deliveryAddress;
-
+ 
         const lat = parseFloat(addr?.lat);
         const lng = parseFloat(addr?.lng);
-
+ 
         if (isNaN(lat) || isNaN(lng)) {
-
+ 
             console.warn(
                 '[MapScreen] Invalid coordinates:',
                 addr
             );
-
+ 
             return null;
         }
-
+ 
         return {
             latitude: lat,
             longitude: lng,
         };
-
+ 
     }, [orderDetails, isPickup]);
-
+ 
     // TARGET NAME
     const targetName = useMemo(() => {
-
+ 
         if (!orderDetails) return '';
         console.log(" checking orderDetails", orderDetails, "addressLine", orderDetails?.deliveryAddress?.addressLine)
-
+ 
         return isPickup
             ? orderDetails.pickupAddress?.name
             : (
                 orderDetails?.deliveryAddress?.name
             );
-
+ 
     }, [orderDetails, isPickup]);
-
+ 
     // TARGET ADDRESS
     const targetAddress = useMemo(() => {
-
+ 
         if (!orderDetails) return '';
-
+ 
         return isPickup
             ? orderDetails.pickupAddress?.addressLine
             : orderDetails.deliveryAddress?.addressLine;
-
+ 
     }, [orderDetails, isPickup]);
-
+ 
     // PREVENT BACK
     useEffect(() => {
         const backHandler =
@@ -162,52 +161,57 @@ const [showArrivalButton, setShowArrivalButton] = useState(false);
                 "hardwareBackPress",
                 () => true
             );
-
+ 
         navigation.setOptions({
             gestureEnabled: false,
         });
-
+ 
         return () => backHandler.remove();
-
+ 
     }, [navigation]);
-
+ 
     // RESET ROUTE FIT
-    useEffect(() => {
-
-    if (!currentLocation || !targetLocation) {
-        return;
-    }
-const distance = getDistance(
+ 
+useEffect(() => {
+  if (!currentLocation || !targetLocation) {
+    setShowArrivalButton(false);
+    return;
+  }
+ 
+  const distance = getDistance(
     currentLocation,
     targetLocation
-);
-
-console.log("Distance:", distance);
-
-if (
-    distance <= ARRIVAL_RADIUS &&
-    !showArrivalButton
-) {
-    setShowArrivalButton(true);
-}
-}, [
-    currentLocation,
-    targetLocation,
-    isPickup,
-    orderId,
-    navigation,
-]);
-
+  );
+ 
+  const accuracy = location?.accuracy;
+ 
+  console.log("Distance to destination:", distance, "meters");
+  console.log("GPS accuracy:", accuracy, "meters");
+ 
+  setShowArrivalButton((previousValue) => {
+    if (distance <= ARRIVAL_RADIUS) {
+      return true;
+    }
+ 
+    // Allow a small GPS fluctuation without flickering.
+    if (previousValue && distance <= 8) {
+      return true;
+    }
+ 
+    return false;
+  });
+}, [currentLocation, targetLocation, location?.accuracy]);
+ 
    
     // OFFLINE DETECTION
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(
             state => {
-
+ 
                 const offline = !state.isConnected;
-
+ 
                 setIsOffline(offline);
-
+ 
                 Animated.timing(offlineBannerAnim, {
                     toValue: offline ? 0 : -60,
                     duration: 300,
@@ -215,46 +219,46 @@ if (
                 }).start();
             }
         );
-
+ 
         return () => unsubscribe();
-
+ 
     }, []);
-
+ 
     // FETCH ORDER DETAILS
     useEffect(() => {
-
+ 
         if (passedOrderDetails) return;
-
+ 
         const fetchOrder = async () => {
-
+ 
             try {
-
+ 
                 const data =
                     await orderService.getOrderDetails(orderId);
-
+ 
                 setOrderDetails(data);
-
+ 
             } catch (err) {
-
+ 
                 Alert.alert(
                     "Error",
                     "Failed to fetch order details"
                 );
-
+ 
                 navigation.goBack();
-
+ 
             } finally {
-
+ 
                 setIsFetchingOrder(false);
             }
         };
-
+ 
         fetchOrder();
-
+ 
     }, [orderId, passedOrderDetails]);
-
-
-
+ 
+ 
+ 
     useEffect(() => {
     if (
         currentLocation &&
@@ -272,22 +276,22 @@ if (
                 duration: 1000,
             }
         );
-
+ 
     }
-
+ 
 }, [currentLocation, currentHeading]);
-
-    
+ 
+   
     // RECENTER
     const handleRecenter = () => {
-
+ 
         if (!currentLocation || !mapRef.current)
             return;
-
+ 
         isTrackingRef.current = true;
-
+ 
         setIsTracking(true);
-
+ 
         mapRef.current.animateCamera({
             center: currentLocation,
             zoom: 17,
@@ -297,26 +301,26 @@ if (
             duration: 800,
         });
     };
-
-
+ 
+ 
     // OPEN MAPS REDIRECT
     const handleOpenMaps = () => {
-
+ 
         if (!targetLocation) {
             Alert.alert("Error", "Destination coordinates not available");
             return;
         }
-
+ 
         const { latitude, longitude } = targetLocation;
         const label = encodeURIComponent(targetName || (isPickup ? 'Pickup' : 'Drop'));
-
+ 
         const url = Platform.select({
             ios: `maps:0,0?q=${latitude},${longitude}(${label})`,
             android: `geo:0,0?q=${latitude},${longitude}(${label})`,
         });
-
+ 
         const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-
+ 
         Linking.openURL(url).catch(() => {
             Linking.openURL(webUrl).catch((err) => {
                 console.error('[MapScreen] Failed to open maps URL:', err);
@@ -325,19 +329,19 @@ if (
         });
     };
     const handleArrival = async () => {
-
+ 
     try {
-
+ 
         setButtonLoading(true);
-
+ 
         if (isPickup) {
-
+ 
             await orderService.markArrivedAtPickup(orderId);
-
+ 
         } else {
-
+ 
             await orderService.markArrivedAtDrop(orderId);
-
+ 
         }
 await checkCurrentOrder();
         navigation.replace(
@@ -350,44 +354,44 @@ await checkCurrentOrder();
     }
 );
     } catch (error) {
-
+ 
         Alert.alert(
             "Error",
             "Unable to update status."
         );
-
+ 
     } finally {
-
+ 
         setButtonLoading(false);
-
+ 
     }
-
+ 
 };
-
+ 
     // LOADING STATE
     if (isFetchingOrder && !passedOrderDetails) {
         return (
             <View style={styles.center}>
-
+ 
                 <ActivityIndicator
                     size="large"
                     color="#00C4B4"
                 />
-
+ 
                 <Text style={{
                     marginTop: 10,
                     color: '#64748B',
                 }}>
                     Loading Map...
                 </Text>
-
+ 
             </View>
         );
     }
-
+ 
     // INVALID LOCATION
     if (!targetLocation) {
-
+ 
         return (
             <View style={styles.center}>
                 <Text style={{
@@ -409,7 +413,7 @@ if (!currentLocation) {
 }
     // UI
     return (
-
+ 
         <View style={styles.container}>
             {/* OFFLINE BANNER */}
             <Animated.View
@@ -429,7 +433,7 @@ if (!currentLocation) {
                     ⚠️ No Internet Connection
                 </Text>
             </Animated.View>
-
+ 
             {/* MAP */}
             <MapView
                 ref={mapRef}
@@ -450,16 +454,16 @@ if (!currentLocation) {
                     setIsTracking(false);
                 }}
             >
-
+ 
                 {/* DESTINATION MARKER */}
                 {targetLocation && (
-
+ 
                     <Marker
                         coordinate={targetLocation}
                         anchor={{ x: 0.5, y: 0.5 }}
                         tracksViewChanges={!markerReady}
                     >
-
+ 
                         <Image
                             source={destinationMarkerIcon}
                             style={styles.riderMarkerImage}
@@ -469,13 +473,13 @@ if (!currentLocation) {
                                 setMarkerReady(true)
                             }
                         />
-
+ 
                     </Marker>
                 )}
-
+ 
                 {/* RIDER CURRENT LOCATION */}
                 {currentLocation && (
-
+ 
                     <Marker
                         coordinate={currentLocation}
                         anchor={{ x: 0.5, y: 0.5 }}
@@ -490,15 +494,15 @@ if (!currentLocation) {
                             resizeMode="contain"
                             fadeDuration={0}
                         />
-
+ 
                     </Marker>
                 )}
-
+ 
                 {/* ROUTE */}
                 {currentLocation &&
                     targetLocation &&
                     !isOffline && (
-
+ 
                         <MapViewDirections
                             origin={currentLocation}
                             destination={targetLocation}
@@ -509,24 +513,24 @@ if (!currentLocation) {
                             precision="high"
                             timePrecision="now"
                             resetOnChange={false}
-
+ 
                             onReady={result => {
-
+ 
                                 setRouteInfo({
                                     distance:
                                         result.distance.toFixed(1),
-
+ 
                                     duration:
                                         Math.ceil(result.duration),
                                 });
-
+ 
                                 if (
                                     mapRef.current &&
                                     !hasRouteFitted.current
                                 ) {
-
+ 
                                     hasRouteFitted.current = true;
-
+ 
                                     mapRef.current.fitToCoordinates(
                                         result.coordinates,
                                         {
@@ -541,9 +545,9 @@ if (!currentLocation) {
                                     );
                                 }
                             }}
-
+ 
                             onError={errorMessage => {
-
+ 
                                 console.log(
                                     '[MapScreen] Directions API Error:',
                                     errorMessage
@@ -552,78 +556,78 @@ if (!currentLocation) {
                         />
                     )}
             </MapView>
-
+ 
             {/* TOP BADGES */}
             <View style={styles.topBadgeContainer}>
-
+ 
                 {isLocating && (
-
+ 
                     <View style={styles.topBadge}>
-
+ 
                         <ActivityIndicator
                             size="small"
                             color="#000080"
                         />
-
+ 
                         <Text style={styles.topBadgeText}>
                             Acquiring GPS…
                         </Text>
-
+ 
                     </View>
                 )}
-
+ 
                 {!isLocating &&
                     locationError && (
-
+ 
                         <View style={[
                             styles.topBadge,
                             styles.topBadgeError,
                         ]}>
-
+ 
                             <Text style={
                                 styles.topBadgeErrorText
                             }>
                                 ⚠ {locationError}
                             </Text>
-
+ 
                         </View>
                     )}
-
+ 
                 {!isLocating &&
                     routeInfo.distance &&
                     !locationError && (
-
+ 
                         <View style={styles.topBadge}>
-
+ 
                             <Text style={styles.topBadgeText}>
                                 🕐 {routeInfo.duration} min · 📍 {routeInfo.distance} km
                             </Text>
-
+ 
                         </View>
                     )}
             </View>
-
+ 
             {/* RECENTER BUTTON */}
             {!isTracking && (
-
+ 
                 <TouchableOpacity
                     style={styles.recenterBtn}
                     onPress={handleRecenter}
                 >
-
+ 
                     <Text style={styles.recenterIcon}>
                         🎯
                     </Text>
-
+ 
                 </TouchableOpacity>
             )}
-
+ 
             {/* BOTTOM CARD */}
-
+ 
             <View style={styles.bottomCard}>
-
+ 
                 <View style={styles.dragHandle} />
-
+ 
                 <View style={styles.topSection}>
                     <View style={styles.textDetails}>
                         <View style={styles.orderTypeRow}>
@@ -648,7 +652,7 @@ if (!currentLocation) {
                             {targetName}
                         </Text>
                     </View>
-
+ 
                     <TouchableOpacity
                         style={styles.mapsRedirectButton}
                         onPress={handleOpenMaps}
@@ -658,9 +662,9 @@ if (!currentLocation) {
                         <Text style={styles.mapsRedirectButtonText}>MAPS</Text>
                     </TouchableOpacity>
                 </View>
-
+ 
                 <View style={styles.divider} />
-
+ 
                 <View style={styles.addressSection}>
                     <Text style={styles.locationAddress}>
                         {targetAddress}
@@ -684,31 +688,31 @@ if (!currentLocation) {
     </TouchableOpacity>
 )}
             </View>
-
+ 
         </View>
     );
 };
-
+ 
 export default MapScreen;
-
-
+ 
+ 
 const styles = StyleSheet.create({
-
+ 
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
     },
-
+ 
     map: {
         flex: 1,
     },
-
+ 
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-
+ 
     offlineBanner: {
         position: 'absolute',
         top: 0,
@@ -720,14 +724,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-
+ 
     offlineBannerText: {
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 14,
         marginTop: 10,
     },
-
+ 
     topBadgeContainer: {
         position: 'absolute',
         top: 52,
@@ -736,7 +740,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         zIndex: 50,
     },
-
+ 
     topBadge: {
         backgroundColor: 'rgba(255,255,255,0.96)',
         paddingHorizontal: 18,
@@ -746,24 +750,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         elevation: 6,
     },
-
+ 
     topBadgeText: {
         fontSize: 14,
         fontWeight: '600',
         color: '#1a1a2e',
         marginLeft: 6,
     },
-
+ 
     topBadgeError: {
         backgroundColor: 'rgba(254,226,226,0.97)',
     },
-
+ 
     topBadgeErrorText: {
         fontSize: 13,
         fontWeight: '600',
         color: '#C53030',
     },
-
+ 
     recenterBtn: {
         position: 'absolute',
         bottom: 240,
@@ -777,11 +781,11 @@ const styles = StyleSheet.create({
         elevation: 8,
         zIndex: 60,
     },
-
+ 
     recenterIcon: {
         fontSize: 24,
     },
-
+ 
     bottomCard: {
         position: 'absolute',
         bottom: 0,
@@ -798,7 +802,7 @@ const styles = StyleSheet.create({
                 : 25,
         elevation: 25,
     },
-
+ 
     dragHandle: {
         width: 40,
         height: 5,
@@ -807,42 +811,42 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         marginBottom: 20,
     },
-
+ 
     topSection: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 12,
     },
-
+ 
     textDetails: {
         flex: 1,
         marginRight: 12,
     },
-
+ 
     orderTypeRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 6,
     },
-
+ 
     orderTypeIcon: {
         marginRight: 6,
     },
-
+ 
     orderTypeText: {
         fontSize: 14,
         color: '#64748B',
         fontWeight: '500',
     },
-
+ 
     locationTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         color: '#1E293B',
         lineHeight: 24,
     },
-
+ 
     mapsRedirectButton: {
         width: 58,
         height: 58,
@@ -856,7 +860,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-
+ 
     mapsRedirectButtonText: {
         color: '#FFFFFF',
         fontSize: 10,
@@ -864,7 +868,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
         letterSpacing: 0.5,
     },
-
+ 
     divider: {
         borderWidth: 0.8,
         borderColor: '#E2E8F0',
@@ -872,17 +876,17 @@ const styles = StyleSheet.create({
         marginVertical: 14,
         height: 0,
     },
-
+ 
     addressSection: {
         marginBottom: 20,
     },
-
+ 
     locationAddress: {
         fontSize: 14,
         color: '#475569',
         lineHeight: 20,
     },
-
+ 
     etaBadge: {
         backgroundColor: '#EFF6FF',
         paddingHorizontal: 10,
@@ -890,13 +894,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginLeft: 8,
     },
-
+ 
     etaBadgeText: {
         color: '#000080',
         fontWeight: '700',
         fontSize: 12,
     },
-
+ 
     actionButton: {
         backgroundColor: '#1F3365',
         paddingVertical: 18,
@@ -905,18 +909,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         elevation: 4,
     },
-
+ 
     actionButtonInactive: {
         backgroundColor: '#CBD5E1',
     },
-
+ 
     actionButtonText: {
         fontSize: 16,
         fontWeight: '700',
         color: '#FFFFFF',
         letterSpacing: 0.5,
     },
-
+ 
     riderMarkerImage: {
         width: 62,
         height: 62,
